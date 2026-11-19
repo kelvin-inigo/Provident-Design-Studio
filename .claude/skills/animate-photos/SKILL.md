@@ -40,6 +40,8 @@ python3 "$A" fail  <id> <reason>      # mark failed; the studio shows the reason
    `write_prompt`, and from CASV also `move`, `move_phrase`, `note` and `people`. No lines: say so and stop.
 
 2. **Write the prompts from the photos** (every line with `write_prompt: true`; free, no credits).
+   The studio's server now writes prompt-to-write jobs itself within a minute (Claude Code
+   headless); one still listed here means that did not run, so write it as below.
    For each one, Read its `photo_path` and follow
    `../photo-to-video-prompt/SKILL.md` (Pass 1 sheet, Pass 2 word bank, Pass 3 prompt with all 14
    headings, then its checks). These CASV rules override the framework:

@@ -1,10 +1,12 @@
 """Local server for the Video Studio prototype: the repo's static files, never cached.
 
     python3 tools/video-dev/serve.py [port]        # default 8794
+    python3 tools/video-dev/serve.py --claude-login  # once: lets the studio write prompts from photos
 
 Then open http://localhost:8794/Provident%20Video%20Studio.html
 """
 import base64
+import glob
 import json
 import os
 import re
@@ -17,7 +19,7 @@ import urllib.request
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 8794
+PORT = int(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].isdigit() else 8794
 QUEUE = os.path.join(ROOT, '_animate')
 # Finished videos waiting for CAS. CASV records the Reel and the Square, parks both here, and the
 # CAS website (which holds the Google sign-in) fetches them from this computer and uploads them to
@@ -48,6 +50,82 @@ def site_ok(origin):
 # /api/animate/run, which the page only sends after showing the cost.
 HF = shutil.which('higgsfield') or os.path.expanduser('~/.local/node/bin/higgsfield')
 SIGN_IN = "Higgsfield's tool is not signed in on this computer. Run `higgsfield auth login` in Terminal, or use Send to the animate queue."
+
+
+# ── Have Claude write it from the photo (2026-11-19). The prompt-to-write job no longer waits for
+# someone to run /animate-photos: this server runs Claude Code headless on it at once (about a
+# minute, no Higgsfield credits). It reads the start frame and writes all 14 sections with the
+# photo-to-video-prompt skill plus the CASV rules below. Claude Code must be signed in on this
+# computer once (`claude auth login`); the desktop app's own copy is found when `claude` is not on
+# PATH. Without it the job fails with the fix, and /animate-photos still answers it the old way.
+SKILLS = os.path.join(ROOT, '.claude', 'skills')
+CLAUDE_LOGIN = ('Claude is not signed in on this computer, so it cannot read the photo. Run '
+                '`python3 tools/video-dev/serve.py --claude-login` in Terminal once and sign in, then press the button again.')
+CASV_RULES = """These CASV rules override the framework:
+- The camera move is the user's. CAMERA starts with this move phrase as written: "{move_phrase}". Add only the shadow-side placement and the colour words. Do not pick another move.
+- The clip is {duration} seconds at {aspect}: ACTION's three beats add up to {duration} seconds.
+- Extra direction from the user (work it into SCENE CONTEXT or ACTION; empty means none): "{note}"
+- People in it: {people}. If "no", PERFORMANCE reads "No people in frame; none appear."
+- AUDIO is always: "Natural sound of the environment in each scene, every interaction with the environment, accurate sound details." followed by the ambience you would pick.
+- POSITIVE LOCKS always ends: "No new people, objects, text or logos appear."
+- 2,500 characters at most for the whole prompt, all 14 headings in order."""
+DESC_SCHEMA = {'type': 'object', 'required': ['prompt', 'sheet', 'words'], 'additionalProperties': False,
+               'properties': {'prompt': {'type': 'string'}, 'sheet': {'type': 'string'}, 'words': {'type': 'string'}}}
+
+
+def claude_bin():
+    found = [shutil.which('claude'), os.path.expanduser('~/.local/bin/claude'), os.path.expanduser('~/.claude/local/claude')]
+    found += sorted(glob.glob(os.path.expanduser('~/Library/Application Support/Claude/claude-code/*/*/claude.app/Contents/MacOS/claude')),
+                    key=os.path.getmtime, reverse=True)
+    return next((p for p in found if p and os.access(p, os.X_OK)), None)
+
+
+def claude_env():
+    # started from inside a Claude Code session, the parent's variables would make this one refuse to run
+    return {k: v for k, v in os.environ.items() if not k.startswith(('CLAUDECODE', 'CLAUDE_CODE_'))}
+
+
+def desc_run(jp):
+    """Write one prompt from its photo. Runs in its own thread; the job file carries the state."""
+    def save(**k):
+        job = json.load(open(jp)); job.update(k); json.dump(job, open(jp, 'w'), indent=1); return job
+    try:
+        job = save(step='writing', started=int(time.time()))
+        cb = claude_bin()
+        if not cb:
+            return save(status='failed', error='Claude Code is not on this computer. Run /animate-photos in Claude instead.')
+        skill = open(os.path.join(SKILLS, 'photo-to-video-prompt', 'SKILL.md')).read()
+        ask = ('Read the photo at %s (the first frame of the video, exactly as the studio frames it). Then follow the '
+               'skill below: Pass 1 analysis sheet, Pass 2 word bank, Pass 3 the prompt with all 14 headings, and its checks.\n\n'
+               % os.path.join(QUEUE, job['photo'])
+               + CASV_RULES.format(move_phrase=job.get('move_phrase') or job.get('move') or '', duration=job.get('duration') or 5,
+                                   aspect=job.get('aspect') or '9:16', note=job.get('note') or '', people='yes' if job.get('people') else 'no')
+               + '\n\nAnswer with the JSON only: "prompt" the finished prompt, "sheet" Pass 1 in short, "words" Pass 2.'
+               + '\n\n--- THE SKILL ---\n' + skill)
+        r = subprocess.run([cb, '-p', ask, '--model', 'sonnet', '--output-format', 'json', '--json-schema', json.dumps(DESC_SCHEMA),
+                            '--allowedTools', 'Read', '--add-dir', QUEUE],
+                           capture_output=True, text=True, timeout=420, cwd=os.path.expanduser('~'), env=claude_env())
+        out = (r.stdout or '') + (r.stderr or '')
+        if 'Not logged in' in out or 'Please run /login' in out:
+            return save(status='failed', error=CLAUDE_LOGIN)
+        try:
+            res = json.loads(r.stdout)
+            w = res.get('structured_output') or json.loads(re.search(r'\{.*\}', res.get('result') or '', re.S).group(0))
+        except Exception:
+            return save(status='failed', error='Claude gave no prompt back. ' + out.strip()[-240:])
+        text = str(w.get('prompt') or '').strip()
+        if len(text) > 2500:
+            return save(status='failed', error='Claude wrote %d characters; Higgsfield takes 2,500. Press the button again.' % len(text))
+        if 'SCENE CONTEXT' not in text or 'POSITIVE LOCKS' not in text:
+            return save(status='failed', error='Claude left out some of the 14 sections. Press the button again.')
+        save(status='described', prompt=text, prompt_by='claude', read=False, sheet=w.get('sheet') or '', words=w.get('words') or '', step=None)
+    except subprocess.TimeoutExpired:
+        save(status='failed', error='Claude took more than seven minutes. Press the button again.')
+    except Exception as e:                   # never leave a clip reading "Claude is writing it" forever
+        try:
+            save(status='failed', error='%s: %s' % (type(e).__name__, e))
+        except Exception:
+            pass
 
 
 def hf_args(job, photo):
@@ -326,6 +404,8 @@ class H(SimpleHTTPRequestHandler):
             job = {k: v for k, v in job.items() if v is not None}
             job.update(status='describe' if job.get('kind') == 'describe' else 'queued', photo=jid + '.jpg', at=int(time.time()))
             json.dump(job, open(jp, 'w'), indent=1)
+            if job['status'] == 'describe':          # written now, not when /animate-photos next runs
+                threading.Thread(target=desc_run, args=(jp,), daemon=True).start()
             return self._json(200, job)
         if path == '/api/music/cost':
             rc, out = hf('generate', 'cost', *music_args(body))
@@ -511,5 +591,8 @@ class H(SimpleHTTPRequestHandler):
 
 
 if __name__ == '__main__':
+    if '--claude-login' in sys.argv:          # sign Claude Code in once, so the studio can write prompts from photos
+        cb = claude_bin()
+        sys.exit(subprocess.call([cb, 'auth', 'login'], env=claude_env()) if cb else 'Claude Code is not on this computer.')
     print('Video Studio on http://localhost:%d/' % PORT, flush=True)
     ThreadingHTTPServer(('127.0.0.1', PORT), H).serve_forever()

@@ -874,3 +874,26 @@ Text is stored plain (`**` is the only markup), never HTML-escaped.
   "Imported" and a second import reuses the file.
 - While it is open no timeline shortcut fires (keydown returns early); Esc and a click on the
   backdrop close it.
+
+## Have Claude write it from the photo runs on its own (2026-11-19, later)
+
+- Reported "not working at all". Two causes: the button sat inside More options › Prompt (two
+  folds deep after the redesign), and pressing it only queued a `describe` job that nothing
+  answered until someone ran `/animate-photos`.
+- The button now sits under **Length** (`.vs-prw`, outside the Prompt fold); the Prompt fold is on
+  the panel too, no longer inside More options. While Claude writes, Generate is disabled
+  ("Waiting for Claude's prompt").
+- `serve.py` starts `desc_run` in a thread when a `describe` job arrives: Claude Code headless
+  (`claude -p`, `--model sonnet`, `--allowedTools Read`, `--add-dir _animate`,
+  `--json-schema {prompt, sheet, words}`, cwd `~` so the repo's CLAUDE.md and hooks do not load),
+  given the photo path, the CASV rules (`CASV_RULES`) and the whole photo-to-video-prompt SKILL.md.
+  It checks the result like `animate.py prompt` (≤2,500, SCENE CONTEXT…POSITIVE LOCKS) and sets
+  `described`; anything else sets `failed` with a reason the clip shows.
+- `claude_bin()`: `claude` on PATH, `~/.local/bin`, `~/.claude/local`, else the desktop app's
+  bundled copy (`~/Library/Application Support/Claude/claude-code/<ver>/<hash>/claude.app/…`).
+  `claude_env()` drops `CLAUDECODE*` / `CLAUDE_CODE_*` so a server started from a session still runs it.
+- That copy is not signed in by itself (checked 2026-11-19: `auth status` loggedIn false). One-time:
+  `python3 tools/video-dev/serve.py --claude-login` (runs `claude auth login`). Until then the clip
+  reads "Claude is not signed in on this computer…" with that command.
+- Tested: the button, the writing state, the not-signed-in message, all from a real click. A
+  successful headless write is not tested yet (needs the sign-in).

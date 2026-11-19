@@ -2402,15 +2402,15 @@
       (st === 'failed' ? '<div class="vs-job" data-st="failed"><b>That did not work</b><span class="vs-note">' + esc(j.error || 'No reason was given.') + ' Change anything below and try again.</span></div>' : '') +
       '<div class="vs-f"><label>Camera move' + (it.move ? '' : ' <s>choose one</s>') + '</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + dis + '><i class="vs-mvp" aria-hidden="true"><u data-m="' + m[0] + '" style="' + mvBg + '"></u></i><span>' + m[1] + '</span></button>').join('') + '</div></div>' +
       row('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + '>' + d + ' s</button>').join('') + '</div>') +
-      '<div class="vs-go"><div class="vs-jl"><span>' + (it.move ? what : 'Choose a camera move to continue') + '</span><time>' + (it.move ? 'about ' + genCredits(it) + ' credits' : '') + '</time></div>' +
-        '<button class="p-btn p-sm" id="animNow"' + (it.move ? '' : ' disabled') + '>' + (st === 'failed' ? 'Try again' : 'Generate') + '</button>' +
+      promptBox(it) +
+      '<div class="vs-go"><div class="vs-jl"><span>' + (!it.move ? 'Choose a camera move to continue' : it.descJob ? 'Waiting for Claude\'s prompt' : what) + '</span><time>' + (it.move ? 'about ' + genCredits(it) + ' credits' : '') + '</time></div>' +
+        '<button class="p-btn p-sm" id="animNow"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (st === 'failed' ? 'Try again' : 'Generate') + '</button>' +
         '<span class="vs-note">You see the exact cost and confirm before anything is spent.</span></div>' +
-      '<details class="vs-pr" data-acc="more"' + (moreOpen || it.descJob ? ' open' : '') + '><summary><b>More options</b><s>' + genModel(it)[1] + ' · ' + (it.genMode === 'pro' ? 'Full 1080p' : 'Draft 720p') + '</s>' + CHEV + '</summary><div class="vs-pr-b">' +
+      '<details class="vs-pr" data-acc="more"' + (moreOpen ? ' open' : '') + '><summary><b>More options</b><s>' + genModel(it)[1] + ' · ' + (it.genMode === 'pro' ? 'Full 1080p' : 'Draft 720p') + '</s>' + CHEV + '</summary><div class="vs-pr-b">' +
       f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + ((it.genModel || 'seedance') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
       row('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
       f('Extra direction <s>optional</s>', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Golden hour light">') +
       row('People in it', '<div class="vs-seg">' + [[0, 'No'], [1, 'Yes']].map(q => '<button data-gp="' + q[0] + '"' + ((it.people ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-      promptBox(it) +
         '<button class="vs-link" id="animBtn"' + (it.move ? '' : ' disabled') + '>Add it to the queue for Claude instead</button>' +
         '<span class="vs-note">Costs nothing until you run <b>/animate-photos</b> in Claude.</span></div></details>');
   }
@@ -2427,13 +2427,17 @@
     const by = it.genPromptBy, wait = !!it.descJob, p = promptOf(it), stale = by && it.genPromptFor && it.genPromptFor !== promptSig(it);
     const who = wait ? 'Claude is writing it' : by === 'claude' ? 'Written by Claude from the photo' : by === 'you' ? 'Edited by you' : 'The studio\'s template';
     const fw = String(it.genPromptFor || '').split('|'), fm = MOVES.find(m => m[0] === fw[0]);
-    return '<details class="vs-pr" data-acc="prompt"' + (promptOpen || wait ? ' open' : '') + '><summary><b>Prompt</b><s>' + who + '</s>' + CHEV + '</summary><div class="vs-pr-b">' +
-      (it.descErr ? '<span class="vs-note vs-bad">Claude could not write it: ' + esc(it.descErr) + '</span>' : '') +
+    const err = it.descErr ? esc(it.descErr).replace(/`([^`]+)`/g, '<b>$1</b>') : '';
+    return '<div class="vs-f vs-prw">' +
+      (wait ? '<div class="vs-jl"><span>Claude is reading the photo and writing the prompt</span><time>about a minute</time></div><div class="vs-busy"><i></i></div>' +
+          '<span class="vs-note">Free; nothing is generated. You can keep working.</span><button class="vs-link" id="descCancel">Stop</button>'
+        : '<button class="p-ghost p-sm" id="descBtn">' + (by === 'claude' ? 'Have Claude write it again' : 'Have Claude write it from the photo') + '</button>' +
+          '<span class="vs-note">Free. Claude looks at the photo (people, room, light, what can move) and writes the prompt from what it sees.</span>') +
+      (err ? '<span class="vs-note vs-bad">Claude could not write it: ' + err + '</span>' : '') + '</div>' +
+      '<details class="vs-pr" data-acc="prompt"' + (promptOpen ? ' open' : '') + '><summary><b>Prompt</b><s>' + who + '</s>' + CHEV + '</summary><div class="vs-pr-b">' +
       '<textarea class="p-in" id="genPrompt" rows="10" spellcheck="false" aria-label="Prompt"' + (wait ? ' disabled' : '') + '>' + esc(p) + '</textarea>' +
       '<span class="vs-note" id="genPromptN"' + (p.length > PMAX ? ' data-over="1"' : '') + '>' + pCount(p) + '</span>' +
       (stale ? '<span class="vs-note vs-bad">Written for ' + esc([fm ? fm[1] : '', fw[1] ? fw[1] + ' s' : '', fw[3] === '1' ? 'people' : ''].filter(Boolean).join(' · ')) + '. The settings have changed since: write it again, or it is used as it is.</span>' : '') +
-      (wait ? '<span class="vs-note">Waiting for Claude: run <b>/animate-photos</b>. It reads this photo and writes the prompt back here. Free; nothing is generated.</span><button class="vs-link" id="descCancel">Stop waiting for it</button>'
-        : '<button class="vs-link" id="descBtn">' + (by === 'claude' ? 'Have Claude write it again' : 'Have Claude write it from the photo') + '</button><span class="vs-note">Free. Claude describes what it sees (people, room, light, what can move) and writes all 14 parts from that the next time you run <b>/animate-photos</b>.</span>') +
       (by && !wait ? '<button class="vs-link" id="promptReset">Back to the studio\'s template</button>' : '') +
       '</div></details>';
   }
@@ -2459,9 +2463,9 @@
       if (r.error) throw new Error(r.error);
       // a server from before 2026-11-19 drops `kind` and files it as a video to generate: take it back off
       if (r.status !== 'describe') { await api('/api/animate/cancel', { id }).catch(() => {}); toast('The local server is an older copy. Restart it (python3 tools/video-dev/serve.py), then try again.'); return; }
-      mark(); c.descJob = id; delete c.descErr; promptOpen = moreOpen = true;
+      mark(); c.descJob = id; delete c.descErr;
       JOBS.push({ id, kind: 'describe', status: 'describe', name: media[c.mid].name, move: mv[1], duration: c.genDur || 5, photo: id + '.jpg', at: Math.floor(Date.now() / 1000) });
-      renderAll(); animWatch(); toast('Run /animate-photos in Claude: it reads the photo and writes the prompt back here.');
+      renderAll(); animWatch(); toast('Claude is reading the photo. The prompt comes back here in about a minute.');
     } catch (e) { toast('Could not reach the local server\'s animate queue (' + e.message + ').'); }
   }
   // the queue, in the Generate panel's Animate tab: every job still waiting or generating, whichever video it is for
@@ -2469,15 +2473,15 @@
     const act = JOBS.filter(jobActive).sort((a, b) => (a.status === 'working' ? 0 : 1) - (b.status === 'working' ? 0 : 1) || (a.at || 0) - (b.at || 0));
     if (!act.length) return '';
     const g = act.filter(j => j.status === 'working' && !jobStale(j)).length, w = act.filter(j => j.status === 'queued').length, dn = act.filter(j => j.status === 'describe').length, x = act.length - g - w - dn;
-    return '<div class="vs-sec" id="animQ"><div class="vs-h"><b>Animating</b><s>' + [g ? g + ' generating' : '', w ? w + ' waiting' : '', dn ? dn + (dn === 1 ? ' prompt' : ' prompts') + ' to write' : '', x ? x + ' stalled' : ''].filter(Boolean).join(' · ') + '</s></div>' +
+    return '<div class="vs-sec" id="animQ"><div class="vs-h"><b>Animating</b><s>' + [g ? g + ' generating' : '', w ? w + ' waiting' : '', dn ? dn + (dn === 1 ? ' prompt' : ' prompts') + ' being written' : '', x ? x + ' stalled' : ''].filter(Boolean).join(' · ') + '</s></div>' +
       act.map(j => { const c = P.clips.find(x => (x.job && x.job.id === j.id) || x.descJob === j.id); return (
         '<div class="vs-qr" data-st="' + j.status + '"' + (c ? ' data-qsel="' + c.id + '" role="button" tabindex="0" title="Show this clip"' : '') + '><i style="background-image:url(\'/_animate/' + esc(j.photo || '') + '\')"></i>' +
         '<span class="n"><b>' + esc(j.name || 'Photo') + '</b><s>' + esc(j.move || '') + ' · ' + (j.duration || 5) + ' s' + (c ? '' : ' · not in this video') + '</s>' +
         (j.status === 'working' && !jobStale(j) ? '<div class="vs-busy"><i></i></div>' : '') +
-        '<s class="t"' + (jobStale(j) ? ' title="No result came back. It has probably stopped; remove it and generate again."' : '') + '>' + (jobStale(j) ? 'Stalled' : j.status === 'working' ? 'Generating' : j.status === 'describe' ? 'Prompt to write · free' : j.read ? 'Waiting · Claude writes the prompt first' : 'Waiting') + ' · <time data-since="' + j.id + '">' + jobSince(j) + '</time></s></span>' +
+        '<s class="t"' + (jobStale(j) ? ' title="No result came back. It has probably stopped; remove it and generate again."' : '') + '>' + (jobStale(j) ? 'Stalled' : j.status === 'working' ? 'Generating' : j.status === 'describe' ? 'Claude is writing the prompt · free' : j.read ? 'Waiting · Claude writes the prompt first' : 'Waiting') + ' · <time data-since="' + j.id + '">' + jobSince(j) + '</time></s></span>' +
         '<span class="vs-mo" role="button" tabindex="0" data-qcancel="' + j.id + '" aria-label="Remove from the queue" title="Remove from the queue">' + ico('close') + '</span></div>'); }).join('') +
       (w ? '<span class="vs-note">Waiting clips start when you run <b>/animate-photos</b> in Claude, or press <b>Generate now</b> on the photo.</span>' : '') +
-      (dn ? '<span class="vs-note">Prompts to write cost nothing: <b>/animate-photos</b> reads each photo and sends its prompt back to the clip.</span>' : '') + '</div>';
+      (dn ? '<span class="vs-note">Claude reads each photo and sends its prompt back to the clip. Free; nothing is generated.</span>' : '') + '</div>';
   }
   setInterval(() => { document.querySelectorAll('time[data-since]').forEach(t => { const j = JOBS.find(x => x.id === t.dataset.since); if (j) t.textContent = jobSince(j); }); }, 1000);
   // a finished clip nobody on this timeline is waiting for (the photo was deleted, another video
@@ -2651,7 +2655,7 @@
       const j = JOBS.find(x => x.id === c.descJob);
       if (!j) { delete c.descJob; changed = true; continue; }                // taken off the queue elsewhere
       if (j.status === 'described' && j.prompt) {
-        Object.assign(c, { genPrompt: j.prompt, genPromptBy: 'claude', genPromptFor: j.sig || promptSig(c) }); delete c.descJob; delete c.descErr; changed = true; promptOpen = moreOpen = true;
+        Object.assign(c, { genPrompt: j.prompt, genPromptBy: 'claude', genPromptFor: j.sig || promptSig(c) }); delete c.descJob; delete c.descErr; changed = true; promptOpen = true;
         api('/api/animate/cancel', { id: j.id }).catch(() => {}); toast('Claude wrote the prompt from the photo.');
       } else if (j.status === 'failed') {
         c.descErr = j.error || 'no reason was given'; delete c.descJob; changed = true; api('/api/animate/cancel', { id: j.id }).catch(() => {});
