@@ -4361,10 +4361,11 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .an-gen .an-mv,.an-gen .p-tabs{background:var(--ps-card)}
 canvas.an-mk{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none}
 canvas.an-mk[data-live]{opacity:1}
-.as-img[data-an],.ae-shot>span[data-an]{position:relative}
+/* every tile that can hold a live canvas is ALWAYS its containing block: when DC reused a tile
+   for a still design, [data-an] went and the canvas escaped to cover the whole window */
+.as-img,.ae-shot>span,.as-big-img{position:relative}
 .as-an-cv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;opacity:0}
 .as-an-cv[data-live]{opacity:1}
-.as-big-img[data-an]{position:relative}
 .as-big-img .as-an-cv{object-fit:contain}
 .as-anim{position:absolute;left:8px;bottom:8px;z-index:1;display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 6px;border-radius:var(--ps-pill);background:var(--ps-card);color:var(--ps-ink);box-shadow:0 1px 4px color-mix(in srgb,var(--ps-ink) 25%,transparent);font:500 11px/1.3 var(--ps-font);pointer-events:none}
 .as-anim svg{width:13px;height:13px;fill:currentColor}
@@ -12875,6 +12876,22 @@ class CampaignStudio extends StudioBase {
     if (this.anVis().indexOf(vi) < 0) return null;
     return { eng: this, st, vi, sk, assets: await this.loadAssets(st), url: this._clips[vi].url };
   }
+  // THE DESIGN'S OWN FACE (2026-11-19): the renderers read the face from window globals, which
+  // the open project — or the last review project loaded — published. A tile of an Arabic design
+  // drew its words in another project's face (system Arabic fallback, measured too wide), so each
+  // build and each frame runs under the design's face, and the globals are put back after.
+  static anFace(st, fn) {
+    const K = ['providentFont', 'providentFontHead', 'providentFontFam', 'providentArabic'], was = K.map(k => window[k]), look = CampaignStudio._look;
+    try { StudioBase.applyFont(st); return fn(); }
+    finally { K.forEach((k, i) => { window[k] = was[i]; }); CampaignStudio._look = look; }
+  }
+  // a canvas never pulls a webfont: every weight the ad draws, in the design's face, before it draws
+  static anFaceReady(st) {
+    const fam = CampaignStudio.anFace(st, () => window.providentFontFam) || 'Google Sans Flex';
+    const safe = f => { try { return document.fonts.load(f, 'Abg \u0627\u0628\u062c\u062f').catch(() => null); } catch (e) { return Promise.resolve(null); } };
+    return Promise.all(['300 41px', '400 59px', '300 92px', '500 24px', '400 50px', '300 34px', '400 30px'].map(w => safe(w + ' "' + fam + '"'))
+      .concat([CampaignStudio.anFace(st, () => StudioBase.ensureFont(StudioBase.fontKey(st))).catch(() => null)])).then(() => document.fonts.ready).catch(() => null);
+  }
   // THE DESIGN PLAYING OVER ITS CLIP, live, for the placement preview and the Ad sets tiles: the
   // export's own method (anRecord) at a small scale — the clip's picture stands in for the photo,
   // the ops are built once and redrawn on every new video frame. `cvs()` returns the canvases to
@@ -12884,13 +12901,15 @@ class CampaignStudio extends StudioBase {
     const vid = document.createElement('video'); vid.muted = true; vid.loop = true; vid.playsInline = true; vid.preload = 'auto'; vid.src = info.url;
     let stop = false, T = 0;
     const end = () => { stop = true; clearTimeout(T); try { vid.pause(); vid.removeAttribute('src'); vid.load(); } catch (e) {} };
-    vid.onloadeddata = () => {
+    vid.onloadeddata = async () => {
+      if (stop) return;
+      await C.anFaceReady(st);
       if (stop) return;
       const fc = document.createElement('canvas'); fc.width = vid.videoWidth; fc.height = vid.videoHeight; fc.naturalWidth = fc.width; fc.naturalHeight = fc.height;
       const fx = fc.getContext('2d'), assets = info.assets || {}, psz = C.photoSize(sk);
       const slot = (psz !== 'sq' && v.bgSep && v.bgSep[psz] && assets['bg' + vi + '_' + psz]) ? 'bg' + vi + '_' + psz : 'bg' + vi;
       const A = Object.assign({}, assets); A[slot] = Object.assign({ s: 1, x: 0, y: 0 }, assets[slot] || {}, { img: fc, u: 'clip' });
-      let built; try { built = this.buildOps(st, vi, sk, A); } catch (e) { return end(); }
+      let built; try { built = C.anFace(st, () => this.buildOps(st, vi, sk, A)); } catch (e) { return end(); }
       vid.play().catch(() => {});
       let last = -1;
       const tick = () => {
@@ -12899,7 +12918,7 @@ class CampaignStudio extends StudioBase {
         if (!list.length) return end();
         if (vid.readyState >= 2 && vid.currentTime !== last) {
           last = vid.currentTime; fx.drawImage(vid, 0, 0, fc.width, fc.height);
-          const out = this.renderOpsToCanvas(built, scale);
+          const out = C.anFace(st, () => this.renderOpsToCanvas(built, scale));
           list.forEach(c => { if (c.width !== out.width || c.height !== out.height) { c.width = out.width; c.height = out.height; } c.getContext('2d').drawImage(out, 0, 0); c.dataset.live = '1'; });
         }
         T = setTimeout(tick, 40);
@@ -18963,23 +18982,29 @@ class Component extends DCLogic {
   anHoverInit() {
     if (this._anHov) return; this._anHov = true;
     const io = new IntersectionObserver(es => es.forEach(e => { e.target._anVis = e.isIntersecting; if (e.isIntersecting) this.anTileStart(e.target); else this.anTileStop(e.target); }), { rootMargin: '120px' });
-    const scan = () => document.querySelectorAll('.as-img[data-an], .ae-shot>span[data-an], .as-big-img[data-an]').forEach(b => {
+    // a tile DC reused for a still design (no data-an) or took off the page stops its canvas —
+    // the selector below no longer finds it, so it is swept from the running set instead
+    const run = this._anRun = this._anRun || new Set();
+    const scan = () => {
+      run.forEach(b => { if (!b.isConnected || !b.hasAttribute('data-an')) { run.delete(b); this.anTileStop(b); } });
+      document.querySelectorAll('.as-img[data-an], .ae-shot>span[data-an], .as-big-img[data-an]').forEach(b => {
       if (!b._anObs) { b._anObs = true; io.observe(b); return; }
       if (b._anOn && b._anTid !== b.dataset.tid) { this.anTileStop(b); if (b._anVis) this.anTileStart(b); }
       else if (!b._anOn && b._anVis) this.anTileStart(b);
-    });
+      });
+    };
     this._anScan = setInterval(scan, 700); scan();
   }
   anTileStart(b) {
-    if (b._anOn || !b.isConnected) return;
+    if (b._anOn || !b.isConnected || !b.hasAttribute('data-an')) return;
     const t = (this._anTiles || {})[b.dataset.tid]; if (!t || !t.anim) return;
-    b._anOn = true; b._anTid = b.dataset.tid;
+    b._anOn = true; b._anTid = b.dataset.tid; if (this._anRun) this._anRun.add(b);
     const cv = document.createElement('canvas'); cv.className = 'as-an-cv'; b.appendChild(cv); b._anCv = cv;
     const big = b.classList.contains('as-big-img'), sc = big ? .9 : Math.min(.55, Math.max(.2, (b.clientWidth * (window.devicePixelRatio || 1)) / 1080));
     t.anim().then(info => { if (!b._anOn || b._anCv !== cv || !info) return; b._anStop = info.eng.anLive(() => [cv], info, sc); }, () => this.anTileStop(b));
   }
   anTileStop(b) {
-    b._anOn = false;
+    b._anOn = false; if (this._anRun) this._anRun.delete(b);
     if (b._anStop) { try { b._anStop(); } catch (e) {} }
     b._anStop = null; if (b._anCv) b._anCv.remove(); b._anCv = null;
   }
