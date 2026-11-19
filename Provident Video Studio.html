@@ -249,6 +249,21 @@ a.p-wm{text-decoration:none;border-radius:6px}
 .vs-chev{flex:none;width:16px;height:16px;color:var(--ps-dim);transition:transform var(--ps-motion) var(--ps-ease)}
 .vs-acc:not([open]) > summary .vs-chev{transform:rotate(-90deg)}
 .vs-acc-b{padding:0 16px 16px;display:flex;flex-direction:column;gap:10px}
+/* Animate › Prompt: the 14-part prompt, folded inside Animate this photo */
+.vs-pr{border:1px solid var(--ps-hair);border-radius:var(--ps-r-sm)}
+.vs-pr > summary{display:flex;align-items:center;gap:8px;padding:9px 10px;list-style:none;cursor:pointer;user-select:none;-webkit-user-select:none}
+.vs-pr > summary::-webkit-details-marker{display:none}
+.vs-pr > summary:focus-visible{outline-offset:-3px;border-radius:var(--ps-r-sm)}
+.vs-pr > summary b{flex:none;font:500 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.vs-pr > summary s{flex:1;text-align:right;min-width:0;text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vs-pr > summary:hover b,.vs-pr > summary:hover .vs-chev{color:var(--ps-ink)}
+.vs-pr:not([open]) > summary .vs-chev{transform:rotate(-90deg)}
+.vs-pr-b{padding:0 10px 10px;display:flex;flex-direction:column;gap:6px}
+.vs-pr-b textarea.p-in{height:auto;min-height:160px;max-height:420px;resize:vertical;padding:8px 10px;font:400 12px/1.45 var(--ps-font);color:var(--ps-ink)}
+.vs-pr-b textarea.p-in:disabled{opacity:.6}
+.vs-pr-b .vs-link{margin-top:2px;text-align:left}
+#genPromptN{font-variant-numeric:tabular-nums}
+#genPromptN[data-over],.vs-bad{color:var(--ps-ink-2);padding-left:8px;box-shadow:inset 2px 0 0 var(--ps-bad)}
 
 /* fields */
 .vs-f{display:flex;flex-direction:column;gap:6px;min-width:0}

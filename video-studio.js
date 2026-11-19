@@ -66,21 +66,50 @@
     { id: 'music', name: 'Music', icon: 'music_note' },
     { id: 'sfx', name: 'Sound', icon: 'graphic_eq' }
   ];
-  // Camera moves for turning a photo into video (Higgsfield Cinema Studio). The move is a phrase
-  // in the prompt; the studio writes the WHOLE prompt, so the skill that runs it decides nothing.
+  // Camera moves for turning a photo into video (Higgsfield). The move is the CAMERA line of the
+  // prompt. The prompt itself is the photo-to-video-prompt framework's 14 sections (2026-11-19):
+  // promptFor() fills them from what the studio knows; Claude can rewrite them from the photo.
   const MOVES = [
-    ['push_in', 'Push in', 'slow, steady dolly push-in toward the centre of the frame'],
-    ['pull_back', 'Pull back', 'slow, steady dolly pull-back that reveals more of the space'],
-    ['pan_left', 'Pan left', 'smooth, slow camera pan to the left'],
-    ['pan_right', 'Pan right', 'smooth, slow camera pan to the right'],
-    ['tilt_up', 'Tilt up', 'smooth, slow camera tilt upward'],
-    ['tilt_down', 'Tilt down', 'smooth, slow camera tilt downward'],
-    ['crane_up', 'Crane up', 'crane shot rising smoothly straight up'],
-    ['orbit', 'Orbit', 'slow orbit, the camera arcing gently to the right around the subject'],
-    ['slide', 'Slide', 'slow lateral tracking move to the right, parallel to the subject'],
-    ['hold', 'Hold', 'locked-off camera with no camera movement']
+    ['push_in', 'Push in', 'Slow dolly in at 1 km/h toward the centre of the frame, steady'],
+    ['pull_back', 'Pull back', 'Slow dolly out at 1 km/h, revealing more of the space, steady'],
+    ['pan_left', 'Pan left', 'Slow pan to camera-left on a fluid head, steady'],
+    ['pan_right', 'Pan right', 'Slow pan to camera-right on a fluid head, steady'],
+    ['tilt_up', 'Tilt up', 'Slow tilt up, steady'],
+    ['tilt_down', 'Tilt down', 'Slow tilt down, steady'],
+    ['crane_up', 'Crane up', 'Slow crane up, rising straight up, steady, no shake'],
+    ['orbit', 'Orbit', 'Slow orbit to camera-right around the subject, about 15 degrees in total, smooth'],
+    ['slide', 'Slide', 'Slow lateral slide to camera-right at 1 km/h, parallel to the subject, gimbal-smooth, parallax on foreground objects'],
+    ['hold', 'Hold', 'Locked-off camera, no camera movement']
   ];
-  const MOVE_BASE = 'Photorealistic real estate footage from this exact photograph. Camera: {move}. Keep the architecture, layout, furniture, materials and proportions exactly as in the image. Do not add people, objects, text or logos, and do not warp or morph anything. Only gentle natural motion: light, foliage, water, curtains. Stable, smooth, cinematic, no cuts. Add natural sound of the environment in each scene, every interaction with the environment, accurate sound details.';   // the sound line: user, 2026-11-13
+  const SOUND = 'Natural sound of the environment in each scene, every interaction with the environment, accurate sound details.';   // the sound line: user, 2026-11-13
+  const PMAX = 2500;                // Kling's prompt cap; every model gets the same prompt
+  const beatT = d => [0, .3, .7, 1].map(f => (Math.round(d * f * 10) / 10).toFixed(1));
+  // the 14 sections, filled without seeing the photo (Claude's version, written from it, replaces this)
+  function promptFor(c) {
+    const mv = MOVES.find(x => x[0] === c.move); if (!mv) return '';
+    const d = c.genDur || 5, t = beatT(d), ppl = !!c.people, hold = c.move === 'hold', note = String(c.moveNote || '').trim();
+    return [
+      ['SCENE CONTEXT', 'Photoreal real estate film made from this exact photograph.' + (ppl ? ' The people in it stay calm and natural.' : ' No people in frame.') + (note ? ' Direction: ' + note.replace(/\.?$/, '.') : '')],
+      ['ACTIVE REFERENCES', '@Image 1 = start frame: the photograph exactly as framed, every room, building, view, object and material in it' + (ppl ? ', and every person with their face, hair and clothing' : '') + '. 100% matches the reference.'],
+      ['LOCATION MAP', 'Camera at the photograph\'s own height and position. Foreground, midground and background stay exactly where they are in @Image 1.'],
+      ['FIRST FRAME / BLOCKING', 'Opens on the exact framing of @Image 1' + (ppl ? '; everyone in the pose and gaze of @Image 1' : '') + '.'],
+      ['FORMAT MODE', 'One continuous shot, the camera does not cut on its own.'],
+      ['OPTICS', 'The photograph\'s own lens and depth of field; no zoom, no lens change.'],
+      ['CAMERA', mv[2] + '. Soft highlight roll-off, true-to-life colour.'],
+      ['ACTION', t[0] + 's to ' + t[1] + 's: ' + (hold ? 'the frame holds on the exact framing of @Image 1' : 'the camera begins its move from the exact framing of @Image 1') + '.\n' +
+        t[1] + 's to ' + t[2] + 's: ' + (hold ? 'the frame stays still' : 'the move continues evenly') + '; gentle natural motion where it already exists: light, leaves, water, curtains' + (ppl ? '; the people make only small natural movements, a breath, a blink, a slight turn of the head' : '') + '.\n' +
+        t[2] + 's to ' + t[3] + 's: ' + (hold ? 'everything settles' : 'the move eases out and the frame comes to rest') + (ppl ? '; everyone holds still' : '') + '.'],
+      ['PERFORMANCE', ppl ? 'Restraint: small movements, relaxed shoulders, a single slow blink, living eyes with catch-lights, pore-level skin realism.' : 'No people in frame; none appear.'],
+      ['PHYSICS', 'Only natural motion that already exists in @Image 1; nothing warps or morphs.'],
+      ['LIGHTING', 'Light stays as in @Image 1: same direction, colour and shadows.'],
+      ['AUDIO', SOUND],
+      ['STYLE', 'Photoreal editorial luxury film, fine natural grain.'],
+      ['POSITIVE LOCKS', (ppl ? 'Faces, hair and outfits stay 100% as in @Image 1. ' : '') + 'Architecture, layout, furniture, materials and proportions stay 100% as in @Image 1. Any text, sign or logo stays sharp and unchanged. No new people, objects, text or logos appear.']
+    ].map(s => s[0] + '\n' + s[1]).join('\n\n');
+  }
+  // what a written prompt was written for; when these change, the prompt is flagged (not dropped)
+  const promptSig = c => [c.move, c.genDur || 5, P.size, c.people ? 1 : 0].join('|');
+  const promptOf = c => c.genPromptBy && c.genPrompt ? c.genPrompt : promptFor(c);
   const ANIMS = [['none', 'None'], ['fade', 'Fade'], ['rise', 'Rise'], ['lines', 'Line by line'], ['words', 'Word by word']];
   const LBL = 92;
 
@@ -1930,7 +1959,10 @@
     }
     if (it) h += allHtml(it);
     if (it) h += '<div class="vs-sec vs-foot"><div class="vs-acts"><button class="p-ghost p-sm" id="iDup">' + ico('content_copy') + 'Duplicate</button><button class="p-danger p-sm" id="iDel">' + ico('delete') + 'Delete</button></div></div>';
+    // the queue poll repaints this panel; the prompt being typed keeps its caret and scroll
+    const a = document.activeElement, keep = a && a.id === 'genPrompt' && el.contains(a) && [a.selectionStart, a.selectionEnd, a.scrollTop], top = el.parentNode.scrollTop;
     el.innerHTML = h;
+    if (keep) { const b = document.getElementById('genPrompt'); if (b && !b.disabled) { b.focus({ preventScroll: true }); try { b.setSelectionRange(keep[0], keep[1]); } catch (e) {} b.scrollTop = keep[2]; } el.parentNode.scrollTop = top; }
   }
   // THE GENERATE PANEL (2026-11-18, by request): everything that is generated sits in one place,
   // the right rail's third tab, one inner tab each: the animate queue, the voiceover, the music.
@@ -1967,7 +1999,7 @@
     if ((el = q('data-gtab'))) { gtab = el.dataset.gtab; renderGen(); }
     else if ((el = q('data-qcancel'))) { e.stopPropagation(); const id = el.dataset.qcancel, c = P.clips.find(x => x.job && x.job.id === id);
       if (c) animCancel(c); else api('/api/animate/cancel', { id }).catch(() => {}).then(() => { JOBS = JOBS.filter(j => j.id !== id); renderGen(); }); }
-    else if ((el = q('data-qsel'))) { sel = { kind: 'clip', id: el.dataset.qsel }; const sp = span('clip', find(sel)); if (sp) seek(sp[0]); renderAll(); }
+    else if ((el = q('data-qsel'))) { sel = { kind: 'clip', id: el.dataset.qsel }; rtab = 'sel'; const sp = span('clip', find(sel)); if (sp) seek(sp[0]); renderAll(); }
     else if (e.target.closest('#voHear')) voHear();
     else if (e.target.closest('#muBtn')) muMake(false);
     else if (e.target.closest('#muGo')) muMake(true);
@@ -1978,7 +2010,7 @@
     else if (e.target.closest('#voCancel')) { VO.quote = null; renderGen(); }
   });
   const insp = $('#insp');
-  insp.addEventListener('toggle', e => { if (e.target.dataset && e.target.dataset.acc === 'anim') animOpen = e.target.open; }, true);
+  insp.addEventListener('toggle', e => { const a = e.target.dataset && e.target.dataset.acc; if (a === 'anim') animOpen = e.target.open; else if (a === 'prompt') promptOpen = e.target.open; }, true);
   insp.addEventListener('pointerdown', e => { if (e.target.matches('input[type=range]')) mark(); });
   insp.addEventListener('focusin', e => { if (e.target.matches('input:not([type=range]),textarea,select')) mark(); });
   insp.addEventListener('input', e => {
@@ -1989,6 +2021,14 @@
       dirty = true; save(); return;
     }
     if (!it || rtab !== 'sel') return;
+    if (e.target.id === 'genPrompt') {        // a prompt edited by hand is kept as it is, and remembers what it was written for
+      const v = e.target.value, first = it.genPromptBy !== 'you';
+      if (first) { it.genPromptBy = 'you'; if (!it.genPromptFor) it.genPromptFor = promptSig(it); }
+      it.genPrompt = v;
+      if (first) { dirty = true; save(); renderInspector(); return; }   // shows "Edited by you" and the way back; the caret is kept
+      const n = document.getElementById('genPromptN'); if (n) { n.textContent = pCount(v); if (v.length > PMAX) n.dataset.over = '1'; else delete n.dataset.over; }
+      dirty = true; save(); return;
+    }
     if (d.ir) {
       let v = +e.target.value; const k = d.ir;
       const o = insp.querySelector('[data-out="' + k + '"]'); if (o) o.textContent = e.target.value + (d.unit || '');
@@ -2019,6 +2059,10 @@
     if (b.dataset.gd) { mark(); it.genDur = +b.dataset.gd; renderAll(); return; }
     if (b.dataset.gm) { mark(); it.genModel = b.dataset.gm; renderAll(); return; }
     if (b.dataset.gq) { mark(); it.genMode = b.dataset.gq; renderAll(); return; }
+    if (b.dataset.gp) { mark(); it.people = b.dataset.gp === '1'; renderAll(); return; }
+    if (b.id === 'descBtn') return descSend(it);
+    if (b.id === 'descCancel') { const id = it.descJob; mark(); delete it.descJob; JOBS = JOBS.filter(j => j.id !== id); api('/api/animate/cancel', { id }).catch(() => {}); renderAll(); return; }
+    if (b.id === 'promptReset') { mark(); delete it.genPrompt; delete it.genPromptBy; delete it.genPromptFor; delete it.descErr; renderAll(); return; }
     if (b.id === 'rateReset') { mark(); const span = it.dur * (it.rate || 1); it.rate = 1; it.dur = span; save(); renderAll(); return; }
     if (b.id === 'animBtn') return animSend(it);
     if (b.id === 'animNow') return animSend(it, true);
@@ -2263,7 +2307,7 @@
   // it has been, and what happens when it lands. The server gives no percentage, so the bar is an
   // honest "busy" bar beside a running clock, never a made-up number.
   let JOBS = [];                    // the server's queue as last polled (every job, any project)
-  const jobActive = j => j.status === 'queued' || j.status === 'working';
+  const jobActive = j => j.status === 'queued' || j.status === 'working' || j.status === 'describe';
   // the tool waits 25 minutes at most, so a job still "working" after 40 has lost its worker (the server was restarted)
   const jobStale = j => j.status === 'working' && Date.now() / 1000 - (j.started || j.at || 0) > 2400;
   const jobSince = j => { const t0 = (j.status === 'working' && j.started) || j.at || 0, d = Math.max(0, Math.floor(Date.now() / 1000 - t0)); return !t0 ? '' : d < 3600 ? Math.floor(d / 60) + ':' + String(d % 60).padStart(2, '0') : d < 172800 ? Math.round(d / 3600) + ' h' : Math.round(d / 86400) + ' days'; };
@@ -2299,25 +2343,76 @@
       f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + ((it.genModel || 'seedance') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
       row('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
       f('Extra direction <s>optional</s>', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Golden hour light">') +
+      row('People in it', '<div class="vs-seg">' + [[0, 'No'], [1, 'Yes']].map(q => '<button data-gp="' + q[0] + '"' + ((it.people ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+      promptBox(it) +
       '<div class="vs-go"><div class="vs-jl"><span>' + (it.move ? what : 'Choose a camera move to continue') + '</span><time>' + (it.move ? 'about ' + genCredits(it) + ' credits' : '') + '</time></div>' +
         '<button class="p-btn p-sm" id="animNow"' + (it.move ? '' : ' disabled') + '>' + (st === 'failed' ? 'Try again' : 'Generate now') + '</button>' +
         '<span class="vs-note">Runs on this computer. You see the exact cost and confirm before anything is spent.</span>' +
         '<button class="vs-link" id="animBtn"' + (it.move ? '' : ' disabled') + '>Or add it to the queue for Claude</button>' +
         '<span class="vs-note">Costs nothing until you run <b>/animate-photos</b> in Claude, which works through everything waiting.</span></div>');
   }
+  // THE PROMPT (2026-11-19, by request: "bake this skill in CASV"). The prompt is the
+  // photo-to-video-prompt framework's 14 sections. The studio fills them without seeing the photo
+  // (promptFor); "Have Claude write it from the photo" queues a free describe job that
+  // /animate-photos answers by reading the start frame and writing all 14 from what it sees.
+  // Edits by hand are kept. Either kind is flagged, not dropped, when the move, length, size or
+  // People change after it was written.
+  let promptOpen = false;
+  const pCount = p => p.length.toLocaleString() + ' of ' + PMAX.toLocaleString() + ' characters';
+  function promptBox(it) {
+    if (!it.move) return '';
+    const by = it.genPromptBy, wait = !!it.descJob, p = promptOf(it), stale = by && it.genPromptFor && it.genPromptFor !== promptSig(it);
+    const who = wait ? 'Claude is writing it' : by === 'claude' ? 'Written by Claude from the photo' : by === 'you' ? 'Edited by you' : 'The studio\'s template';
+    const fw = String(it.genPromptFor || '').split('|'), fm = MOVES.find(m => m[0] === fw[0]);
+    return '<details class="vs-pr" data-acc="prompt"' + (promptOpen || wait ? ' open' : '') + '><summary><b>Prompt</b><s>' + who + '</s>' + CHEV + '</summary><div class="vs-pr-b">' +
+      (it.descErr ? '<span class="vs-note vs-bad">Claude could not write it: ' + esc(it.descErr) + '</span>' : '') +
+      '<textarea class="p-in" id="genPrompt" rows="10" spellcheck="false" aria-label="Prompt"' + (wait ? ' disabled' : '') + '>' + esc(p) + '</textarea>' +
+      '<span class="vs-note" id="genPromptN"' + (p.length > PMAX ? ' data-over="1"' : '') + '>' + pCount(p) + '</span>' +
+      (stale ? '<span class="vs-note vs-bad">Written for ' + esc([fm ? fm[1] : '', fw[1] ? fw[1] + ' s' : '', fw[3] === '1' ? 'people' : ''].filter(Boolean).join(' · ')) + '. The settings have changed since: write it again, or it is used as it is.</span>' : '') +
+      (wait ? '<span class="vs-note">Waiting for Claude: run <b>/animate-photos</b>. It reads this photo and writes the prompt back here. Free; nothing is generated.</span><button class="vs-link" id="descCancel">Stop waiting for it</button>'
+        : '<button class="vs-link" id="descBtn">' + (by === 'claude' ? 'Have Claude write it again' : 'Have Claude write it from the photo') + '</button><span class="vs-note">Free. Claude describes what it sees (people, room, light, what can move) and writes all 14 parts from that the next time you run <b>/animate-photos</b>.</span>') +
+      (by && !wait ? '<button class="vs-link" id="promptReset">Back to the studio\'s template</button>' : '') +
+      '</div></details>';
+  }
+  // the start frame: the photo exactly as this clip frames it, at the video's size
+  function frameFor(c) {
+    const m = media[c.mid], im = m && imgFor(m); if (!im || !im.complete || !im.naturalWidth) return null;
+    const g = G(), k = document.createElement('canvas'); k.width = g.w; k.height = g.h;
+    const x = k.getContext('2d'); x.fillStyle = ART.ground; x.fillRect(0, 0, g.w, g.h);
+    const fill = c.fit !== 'fit', sc = (fill ? Math.max(g.w / im.naturalWidth, g.h / im.naturalHeight) : Math.min(g.w / im.naturalWidth, g.h / im.naturalHeight)) * (c.z || 100) / 100;
+    const dw = im.naturalWidth * sc, dh = im.naturalHeight * sc;
+    x.drawImage(im, (g.w - dw) * (c.fx == null ? 50 : c.fx) / 100, (g.h - dh) * (c.fy == null ? 50 : c.fy) / 100, dw, dh);
+    return k.toDataURL('image/jpeg', .92);
+  }
+  // what every job carries so Claude can write the prompt for exactly these settings
+  const jobBase = (c, mv) => ({ name: media[c.mid].name, move: mv[1], move_phrase: mv[2], duration: c.genDur || 5, aspect: P.size === '1x1' ? '1:1' : '9:16',
+    note: String(c.moveNote || '').trim(), people: !!c.people, sig: promptSig(c), model: genModel(c)[2], mode: c.genMode === 'pro' ? 'pro' : 'std' });
+  async function descSend(c) {
+    const mv = MOVES.find(x => x[0] === c.move); if (!media[c.mid] || !mv) return;
+    const photo = frameFor(c); if (!photo) { toast('The photo is still loading. Try again in a moment.'); return; }
+    const id = uid() + uid().slice(0, 3);
+    try {
+      const r = await api('/api/animate/job', Object.assign(jobBase(c, mv), { id, kind: 'describe', prompt: promptFor(c), photo }));
+      if (r.error) throw new Error(r.error);
+      mark(); c.descJob = id; delete c.descErr; promptOpen = true;
+      JOBS.push({ id, kind: 'describe', status: 'describe', name: media[c.mid].name, move: mv[1], duration: c.genDur || 5, photo: id + '.jpg', at: Math.floor(Date.now() / 1000) });
+      renderAll(); animWatch(); toast('Run /animate-photos in Claude: it reads the photo and writes the prompt back here.');
+    } catch (e) { toast('Could not reach the local server\'s animate queue (' + e.message + ').'); }
+  }
   // the queue, in the Generate panel's Animate tab: every job still waiting or generating, whichever video it is for
   function queueHtml() {
     const act = JOBS.filter(jobActive).sort((a, b) => (a.status === 'working' ? 0 : 1) - (b.status === 'working' ? 0 : 1) || (a.at || 0) - (b.at || 0));
     if (!act.length) return '';
-    const g = act.filter(j => j.status === 'working' && !jobStale(j)).length, w = act.filter(j => j.status === 'queued').length, x = act.length - g - w;
-    return '<div class="vs-sec" id="animQ"><div class="vs-h"><b>Animating</b><s>' + [g ? g + ' generating' : '', w ? w + ' waiting' : '', x ? x + ' stalled' : ''].filter(Boolean).join(' · ') + '</s></div>' +
-      act.map(j => { const c = P.clips.find(x => x.job && x.job.id === j.id); return (
+    const g = act.filter(j => j.status === 'working' && !jobStale(j)).length, w = act.filter(j => j.status === 'queued').length, dn = act.filter(j => j.status === 'describe').length, x = act.length - g - w - dn;
+    return '<div class="vs-sec" id="animQ"><div class="vs-h"><b>Animating</b><s>' + [g ? g + ' generating' : '', w ? w + ' waiting' : '', dn ? dn + (dn === 1 ? ' prompt' : ' prompts') + ' to write' : '', x ? x + ' stalled' : ''].filter(Boolean).join(' · ') + '</s></div>' +
+      act.map(j => { const c = P.clips.find(x => (x.job && x.job.id === j.id) || x.descJob === j.id); return (
         '<div class="vs-qr" data-st="' + j.status + '"' + (c ? ' data-qsel="' + c.id + '" role="button" tabindex="0" title="Show this clip"' : '') + '><i style="background-image:url(\'/_animate/' + esc(j.photo || '') + '\')"></i>' +
         '<span class="n"><b>' + esc(j.name || 'Photo') + '</b><s>' + esc(j.move || '') + ' · ' + (j.duration || 5) + ' s' + (c ? '' : ' · not in this video') + '</s>' +
         (j.status === 'working' && !jobStale(j) ? '<div class="vs-busy"><i></i></div>' : '') +
-        '<s class="t"' + (jobStale(j) ? ' title="No result came back. It has probably stopped; remove it and generate again."' : '') + '>' + (jobStale(j) ? 'Stalled' : j.status === 'working' ? 'Generating' : 'Waiting') + ' · <time data-since="' + j.id + '">' + jobSince(j) + '</time></s></span>' +
+        '<s class="t"' + (jobStale(j) ? ' title="No result came back. It has probably stopped; remove it and generate again."' : '') + '>' + (jobStale(j) ? 'Stalled' : j.status === 'working' ? 'Generating' : j.status === 'describe' ? 'Prompt to write · free' : j.read ? 'Waiting · Claude writes the prompt first' : 'Waiting') + ' · <time data-since="' + j.id + '">' + jobSince(j) + '</time></s></span>' +
         '<span class="vs-mo" role="button" tabindex="0" data-qcancel="' + j.id + '" aria-label="Remove from the queue" title="Remove from the queue">' + ico('close') + '</span></div>'); }).join('') +
-      (w ? '<span class="vs-note">Waiting clips start when you run <b>/animate-photos</b> in Claude, or press <b>Generate now</b> on the photo.</span>' : '') + '</div>';
+      (w ? '<span class="vs-note">Waiting clips start when you run <b>/animate-photos</b> in Claude, or press <b>Generate now</b> on the photo.</span>' : '') +
+      (dn ? '<span class="vs-note">Prompts to write cost nothing: <b>/animate-photos</b> reads each photo and sends its prompt back to the clip.</span>' : '') + '</div>';
   }
   setInterval(() => { document.querySelectorAll('time[data-since]').forEach(t => { const j = JOBS.find(x => x.id === t.dataset.since); if (j) t.textContent = jobSince(j); }); }, 1000);
   // a finished clip nobody on this timeline is waiting for (the photo was deleted, another video
@@ -2334,17 +2429,12 @@
   }
   async function animSend(c, now) {
     const m = media[c.mid], mv = MOVES.find(x => x[0] === c.move); if (!m || !mv) return;
-    const im = imgFor(m); if (!im.complete || !im.naturalWidth) { toast('The photo is still loading. Try again in a moment.'); return; }
-    // the start frame is the photo exactly as this clip frames it, at the video's size
-    const g = G(), k = document.createElement('canvas'); k.width = g.w; k.height = g.h;
-    const x = k.getContext('2d'); x.fillStyle = ART.ground; x.fillRect(0, 0, g.w, g.h);
-    const fill = c.fit !== 'fit', sc = (fill ? Math.max(g.w / im.naturalWidth, g.h / im.naturalHeight) : Math.min(g.w / im.naturalWidth, g.h / im.naturalHeight)) * (c.z || 100) / 100;
-    const dw = im.naturalWidth * sc, dh = im.naturalHeight * sc;
-    x.drawImage(im, (g.w - dw) * (c.fx == null ? 50 : c.fx) / 100, (g.h - dh) * (c.fy == null ? 50 : c.fy) / 100, dw, dh);
-    const id = uid() + uid().slice(0, 3);
-    const prompt = MOVE_BASE.replace('{move}', mv[2]) + (c.moveNote ? ' ' + String(c.moveNote).trim() : '');
+    const photo = frameFor(c); if (!photo) { toast('The photo is still loading. Try again in a moment.'); return; }
+    const id = uid() + uid().slice(0, 3), prompt = promptOf(c);
+    if (prompt.length > PMAX) { toast('The prompt is ' + prompt.length + ' characters; Higgsfield takes ' + PMAX + '. Shorten it under Prompt.'); return; }
     try {
-      const r = await api('/api/animate/job', { id, name: m.name, move: mv[1], prompt, duration: c.genDur || 5, model: genModel(c)[2], mode: c.genMode === 'pro' ? 'pro' : 'std', aspect: P.size === '1x1' ? '1:1' : '9:16', photo: k.toDataURL('image/jpeg', .92) });
+      // queued for Claude with the studio's template: Claude reads the photo and writes the prompt first (read)
+      const r = await api('/api/animate/job', Object.assign(jobBase(c, mv), { id, prompt, read: !now && !c.genPromptBy, photo }));
       if (r.error) throw new Error(r.error);
       mark(); c.job = { id, status: 'queued' }; JOBS.push({ id, status: 'queued', name: m.name, move: mv[1], duration: c.genDur || 5, photo: id + '.jpg', at: Math.floor(Date.now() / 1000) }); renderAll();
       if (!now) { animWatch(); toast('Added to the queue. Run /animate-photos in Claude to generate it.'); return; }
@@ -2397,6 +2487,18 @@
         } catch (e) { c.job = { id: j.id, status: 'failed', error: 'the finished video could not be loaded' }; changed = true; }
       } else if (j.status !== c.job.status && !(c.job.status === 'confirm' && j.status === 'queued')) {
         c.job = j.status === 'failed' ? { id: j.id, status: 'failed', error: j.error } : { id: j.id, status: j.status }; changed = true;
+      }
+    }
+    // a prompt Claude wrote from the photo comes back to its clip; the describe job is then cleared
+    for (const c of P.clips) {
+      if (!c.descJob) continue;
+      const j = JOBS.find(x => x.id === c.descJob);
+      if (!j) { delete c.descJob; changed = true; continue; }                // taken off the queue elsewhere
+      if (j.status === 'described' && j.prompt) {
+        Object.assign(c, { genPrompt: j.prompt, genPromptBy: 'claude', genPromptFor: j.sig || promptSig(c) }); delete c.descJob; delete c.descErr; changed = true; promptOpen = true;
+        api('/api/animate/cancel', { id: j.id }).catch(() => {}); toast('Claude wrote the prompt from the photo.');
+      } else if (j.status === 'failed') {
+        c.descErr = j.error || 'no reason was given'; delete c.descJob; changed = true; api('/api/animate/cancel', { id: j.id }).catch(() => {});
       }
     }
     let got = 0;

@@ -729,3 +729,52 @@ Queue button against the live queue (it calls the existing `animSend`), Square 1
 **Known limits:** type printed on top of a photo in the PDF comes with it (The Wilds p23
 "AMENITIES", p20's tagline); the crop words are approximate (the p7 marker lands right of centre);
 floorplan pages are filled like photos, not placed on a background.
+
+## The prompt is the photo-to-video framework (2026-11-19, by request: "bake this skill in CASV")
+
+The photo-to-video-prompt skill (`.claude/skills/photo-to-video-prompt/`, now tracked here; the
+main checkout has a symlink to it, like animate-photos) reads a photo in three passes (analysis
+sheet, word bank, prompt) and writes a Higgsfield prompt in 14 fixed sections: Scene context,
+Active references, Location map, First frame / blocking, Format mode, Optics, Camera, Action,
+Performance, Physics, Lighting, Audio, Style, Positive locks. It was built from a Higgsfield prompt
+the user liked (a couple in a lounge, 5 s, 9:16).
+
+- **Every animate prompt is now those 14 sections.** `MOVE_BASE` is gone. `promptFor(c)` fills them
+  from what the studio knows: the move (MOVES' third field is now the CAMERA line, "Slow dolly in at
+  1 km/h …"), the length (three ACTION beats at 30 / 40 / 30 %), Extra direction, and a new
+  **People in it: No / Yes** on the photo clip (`c.people`), which changes Scene context,
+  Performance and the locks. The user's sound line is the AUDIO section (`SOUND`).
+- **Animate › Prompt** (`promptBox`, folded `details.vs-pr`): the prompt that will be sent, who
+  wrote it (the studio's template / Written by Claude from the photo / Edited by you), a count
+  against `PMAX` 2,500 (Kling's cap; every model gets the same text; animSend refuses longer).
+  Typing keeps the edit (`genPrompt`, `genPromptBy: 'you'`). A written prompt remembers what it
+  was written for (`genPromptFor` = `promptSig`: move, length, size, people); when those change it
+  is flagged, not dropped. "Back to the studio's template" clears it.
+- **Have Claude write it from the photo** queues a free **describe** job (`kind: 'describe'`,
+  status `describe`) with the start frame (`frameFor`, shared with animSend) and the settings
+  (`jobBase`: move, move_phrase, duration, aspect, note, people, sig). `/animate-photos` reads the
+  frame, runs the framework's passes with CASV's rules (the move is the user's, AUDIO keeps the sound
+  line, locks end "No new people, objects, text or logos appear"), and runs
+  `animate.py prompt <id> <file.json>` (refuses over 2,500 or without the headings), which marks it
+  `described`. `animPoll` copies the prompt to the clip and cancels the job. The queue row reads
+  "Prompt to write · free".
+- **Add it to the queue for Claude** with the template prompt sends `read: true`: the skill writes
+  the prompt from the photo first, then generates with it. Generate now (Higgsfield's tool, no
+  Claude) sends whatever the Prompt box holds. Old jobs and CAS's jobs carry no `read` and are
+  used verbatim, as before.
+- `serve.py` keeps the new job fields (`kind`, `move_phrase`, `note`, `people`, `sig`, `read`);
+  cost and run still accept only `queued`, so a describe job can never spend credits.
+- **Fixed in passing:** the inspector repaint (the 4 s queue poll) now keeps the caret in the
+  prompt; a queue row whose clip was already selected now switches the rail to Selected (it stayed
+  on Generate, so its clip's buttons were dead).
+
+Tested in the pane on a spare port (8797) with a frame of the couple clip: template at 5 s and at
+10 s with People Yes (beats 0–3 / 3–7 / 7–10, people lines in), describe job queued with the right
+settings, `animate.py list` showing `write_prompt`, a 2,479-character prompt written from the frame
+and stored, the page picking it up in one poll ("Written by Claude from the photo", job removed),
+the stale flag after a length change, queue jobs carrying `read: false` with Claude's prompt and
+`read: true` with the template, first hand edit (caret kept, way back shown), the reload keeping
+it, no sideways overflow, no console errors.
+**Not tested:** a real generation with a 14-section prompt (whether Seedance, Kling and Cinema
+Studio follow it better than the old one-line prompt is still the user's call), a real
+`/animate-photos` run in a fresh session, light theme, phones, Square 1:1.

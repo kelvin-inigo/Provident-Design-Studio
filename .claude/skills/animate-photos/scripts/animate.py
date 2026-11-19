@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """The animate queue, for the animate-photos skill. Python 3 standard library only.
 
-    animate.py list                      queued jobs, one JSON object per line
+    animate.py list                      queued jobs and prompts to write, one JSON object per line
+    animate.py prompt <id> <file.json>   store the prompt Claude wrote from the photo ({prompt, sheet, words})
     animate.py start <id> <job_id>       mark a job as generating (remember Higgsfield's job id)
     animate.py done  <id> <video_url>    download the finished MP4 and mark the job done
     animate.py fail  <id> <reason...>    mark a job failed, with the reason the studio will show
@@ -52,12 +53,28 @@ def main():
             if not f.endswith('.json'):
                 continue
             j = json.load(open(os.path.join(q, f)))
-            if j.get('status') == 'queued':
+            if j.get('status') in ('queued', 'describe'):
                 j['photo_path'] = os.path.join(q, j['photo'])
+                j['write_prompt'] = j.get('status') == 'describe' or bool(j.get('read'))
                 print(json.dumps(j))
                 n += 1
         if not n:
             print('No queued jobs. In the Video Studio, select a photo clip, pick a camera move and press "Send to the animate queue".')
+    elif cmd == 'prompt' and len(a) == 3:
+        p, j = load(q, a[1])
+        w = json.load(open(a[2]))
+        text = str(w.get('prompt') or '').strip()
+        if not text:
+            sys.exit('The file has no "prompt".')
+        if len(text) > 2500:
+            sys.exit('The prompt is %d characters; Higgsfield takes 2500. Shorten it and run this again.' % len(text))
+        if 'POSITIVE LOCKS' not in text or 'SCENE CONTEXT' not in text:
+            sys.exit('The prompt is missing its sections; write all 14 headings.')
+        j.update(prompt=text, prompt_by='claude', read=False, sheet=w.get('sheet') or '', words=w.get('words') or '')
+        if j.get('status') == 'describe':
+            j['status'] = 'described'           # the studio copies the prompt to the clip and clears the job
+        json.dump(j, open(p, 'w'), indent=1)
+        print('prompt', a[1], len(text), 'characters', j['status'])
     elif cmd == 'start' and len(a) == 3:
         p, j = load(q, a[1])
         j.update(status='working', job_id=a[2])

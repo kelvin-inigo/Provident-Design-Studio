@@ -293,8 +293,11 @@ class H(SimpleHTTPRequestHandler):
             if not m:
                 return self._json(400, {'error': 'photo must be a JPEG data URL'})
             open(os.path.join(QUEUE, jid + '.jpg'), 'wb').write(base64.b64decode(m.group(1)))
-            job = {k: body.get(k) for k in ('id', 'name', 'move', 'prompt', 'duration', 'aspect', 'mode', 'model')}
-            job.update(status='queued', photo=jid + '.jpg', at=int(time.time()))
+            # kind 'describe' (CASV, 2026-11-19): no video, only a prompt Claude writes from the photo
+            # (status describe -> described); `read` on a video job asks Claude to write it first
+            job = {k: body.get(k) for k in ('id', 'name', 'move', 'move_phrase', 'prompt', 'duration', 'aspect', 'mode', 'model', 'note', 'people', 'sig', 'read', 'kind')}
+            job = {k: v for k, v in job.items() if v is not None}
+            job.update(status='describe' if job.get('kind') == 'describe' else 'queued', photo=jid + '.jpg', at=int(time.time()))
             json.dump(job, open(jp, 'w'), indent=1)
             return self._json(200, job)
         if path == '/api/music/cost':
