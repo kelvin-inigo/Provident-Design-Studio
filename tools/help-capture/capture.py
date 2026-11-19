@@ -5,7 +5,9 @@ and its demo data, so they show demo names and never touch anyone's real work. R
 whenever the chrome changes enough that a guide's screens look stale.
 
   1. python3 tools/share-dev/serve.py 8796        (a fresh server: it starts empty)
-  2. python3 tools/video-dev/serve.py             (CASV, from the video-studio worktree; optional)
+  2. python3 tools/video-dev/serve.py             (CASV, from the video-studio worktree; optional;
+                                                   casv-script/-anim/-prompt need its _test-media demo
+                                                   script and brochure, see that block below)
   3. python3 tools/help-capture/capture.py --seed [--photo still.jpg] [frame,frame…]
 
 --seed fills the server with /dev-seed's demo data once, in the capture browser's own profile
@@ -76,6 +78,15 @@ FIND = """function F(q){ if(q.startsWith('parent:')) { const e=F(q.slice(7)); re
 def click(q, wait=1.2):
     r = ev(FIND + "const e=F(%s); if(!e) return 'no '+%s; e.click(); return 'ok';" % (json.dumps(q), json.dumps(q)))
     time.sleep(wait); return r
+
+
+def tap(q, wait=1.2):
+    """a real mouse click at the middle of q (pointer handlers ignore synthetic clicks)"""
+    r = ev(FIND + "const e=F(%s); if(!e) return null; const b=e.getBoundingClientRect(); return [b.x+b.width/2,b.y+b.height/2];" % json.dumps(q))
+    if not isinstance(r, list): return 'no ' + q
+    for t in ('mouseMoved', 'mousePressed', 'mouseReleased'):
+        c.call('Input.dispatchMouseEvent', {'type': t, 'x': r[0], 'y': r[1], 'button': 'left', 'clickCount': 1})
+    time.sleep(wait); return 'ok'
 
 
 def scroll(q):
@@ -205,6 +216,30 @@ try:
         go(ARGS.casv + '/Provident%20Video%20Studio.html', 6)
         if not ev("return document.querySelectorAll('#libList .vs-t').length"): print(drop('#cvw')); time.sleep(3)
         click('text:Text', 1.2); cap('casv', {'top': 'header.p-top', 'lib': 'aside.vs-rail', 'tl': '#tl', 'insp': '#insp'})
+    if want('casv-script', 'casv-anim', 'casv-prompt'):
+        # a first cut from a demo script (2026-11-19): the script and the brochure it names are
+        # served from CASV's git-ignored _test-media/ (palm-springs-demo-script.md + palm-springs-brochure.pdf).
+        # This capture browser's CASV storage (its own profile, never anyone's real one) is cleared first,
+        # so its library shows only the script's photos
+        go('about:blank', 1)
+        print('clear:', c.call('Storage.clearDataForOrigin', {'origin': ARGS.casv, 'storageTypes': 'local_storage,indexeddb'}))
+        go(ARGS.casv + '/Provident%20Video%20Studio.html', 6)
+        print('script:', ev("""const get=async(u,t)=>new File([await (await fetch('/_test-media/'+u)).blob()],u,{type:t});
+          const run=VideoStudio.importScript([await get('palm-springs-demo-script.md','text/markdown'), await get('palm-springs-brochure.pdf','application/pdf')]);
+          for(let i=0;i<40;i++){ """ + sleep(250) + """ const d=document.getElementById('ask'); if(d&&d.open){ document.getElementById('askYes').click(); break; } }
+          await run; """ + sleep(2000) + """ return VideoStudio.project.clips.length+' clips';""", 240))
+        # (the rail's title row sticks, so each section is scrolled to just under it)
+        UNDER = "const top=(el)=>{ const sc=document.getElementById('insp').parentNode, cap=document.querySelector('#insp .vs-cap'), y0=cap?cap.getBoundingClientRect().bottom:sc.getBoundingClientRect().top; sc.scrollTop += el.getBoundingClientRect().top - y0 - 10; };"
+        ev(UNDER + "const s=[...document.querySelectorAll('#insp .vs-sec')].find(s=>/^From the script/.test(s.innerText)); if(s){ s.id='hpFrom'; top(s); }"); time.sleep(.8)
+        cap('casv-script', {'btn': '#scriptBtn', 'from': '#hpFrom', 'tl': '#tl'})
+        print('select:', tap('.vs-it[data-kind="clip"]', 1.5))   # scene 1's photo; its camera move came from the script
+        # then a shorter timeline (the user can drag it), so the photo clip's panel has room; put back after
+        ev("document.documentElement.style.setProperty('--vs-tlh','150px'); window.dispatchEvent(new Event('resize'));"); time.sleep(1.2)
+        ev(UNDER + "const g=document.querySelector('[data-gp]'); if(g) g.closest('.vs-row').id='hpPeople'; const l=document.querySelector('[data-gd]'); if(l) l.closest('.vs-row').id='hpLen'; const m=document.querySelector('.vs-mvs'); if(m) top(m.closest('.vs-f'));"); time.sleep(.8)
+        cap('casv-anim', {'moves': '.vs-mvs', 'len': '#hpLen'})
+        ev(UNDER + "const d=document.querySelector('details.vs-pr'); if(d){ d.open=true; " + sleep(300) + " top(document.getElementById('hpPeople')||d); }"); time.sleep(.8)
+        cap('casv-prompt', {'people': '#hpPeople', 'prompt': 'details.vs-pr', 'write': '#descBtn'})
+        ev("document.documentElement.style.removeProperty('--vs-tlh'); localStorage.removeItem('provident-video-tlh'); window.dispatchEvent(new Event('resize'));")
 finally:
     json.dump(frames, open(FJ, 'w'), indent=1, sort_keys=True)
     c.close()

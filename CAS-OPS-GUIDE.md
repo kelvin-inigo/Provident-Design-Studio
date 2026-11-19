@@ -857,6 +857,37 @@ not need to be opened) and show as numbered pins on its timeline and under **Com
 within a few seconds. A page that is already open picks up new comments when it is reloaded. After the changes, **Send to CAS** again and use **Replace video** in the window: the
 comments stay and the version number goes up.
 
+**Start a video from a script.** The video-script skill in Claude writes the script as a Markdown
+file (.md): the script table (voiceover and on-screen text per scene) and the image map (which
+brochure page each scene uses, and how to crop it). In the Video Studio press the page icon in the
+top bar (**Start from a video script**), or **Or start from a video script** on an empty timeline,
+and choose the script and its brochure PDF together. It lays out a first cut: the photo from each
+page the script names, cut to its scene's time and framed from the crop words; the on-screen lines
+as texts; the last scene as the end card. **Whole video › From the script** lists what is still
+needed (a missing developer logo, lines that still say [NEED: …], pages with no photo), each with a
+**Scene** link; **Voiceover** and **Music** open the Generate panel with the script's lines, mood
+and length filled in; **Queue N camera moves** queues each photo's move from the script (free until
+**/animate-photos** runs in Claude). **Export video** and **Send to CAS** ask first while a text
+still says [NEED: …].
+
+**Turn a photo into video.** Select a photo on the timeline; under **Selected › Animate this
+photo** choose a **Camera move** (each button plays the move on the photo), **Length**, **Model**,
+**Quality**, an optional **Extra direction**, and **People in it** (**Yes** when the photo has
+people, so their faces and clothes are kept and only small movements are asked for).
+- **Prompt** shows exactly what Higgsfield gets, in 14 parts (scene, references, location, first
+  frame, format, optics, camera, action, performance, physics, lighting, audio, style, and what
+  must not change). The studio fills it from the choices above (**The studio's template**); type in
+  it to change it (**Edited by you**). It must stay under 2,500 characters.
+- **Have Claude write it from the photo** is free: run **/animate-photos** in Claude and it looks
+  at the photo, describes what it sees, and writes the 14 parts from that. The prompt comes back to
+  the clip marked **Written by Claude from the photo**. If the camera move, length or People change
+  afterwards, the box says so: **Have Claude write it again**, or **Back to the studio's template**.
+- **Generate now** shows the exact credits and waits for a yes. **Or add it to the queue for
+  Claude** waits for **/animate-photos**, which writes the prompt from the photo first when the box
+  still holds the studio's template. Either way the finished clip takes the photo's place.
+- If it says the local server is an older copy, restart the Video Studio's server
+  (`python3 tools/video-dev/serve.py`) and press it again.
+
 ## 3. CAS: build an ad
 
 What's on the screen, from left to right:

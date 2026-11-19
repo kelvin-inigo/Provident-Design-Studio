@@ -154,6 +154,13 @@ exports download as a zip. The studios fit tablets and phones.
   opens the Video Studio on that computer (it must be running), and the video comes back picked
   when the designer presses **Send to CAS** there. A video tile's **⋯** holds **Replace video** and
   **Remove**.
+- **In the Video Studio (CASV):** **Start from a video script** (the page icon in the top bar)
+  takes the video-script skill's .md and its brochure PDF and lays out a first cut; **Whole video ›
+  From the script** lists what is still needed. **Animate this photo** on a photo clip: camera move,
+  length, model, quality, **People in it**, and a **Prompt** box with the 14-part Higgsfield prompt
+  (the studio's template, editable). **Have Claude write it from the photo** is free and is answered
+  when the designer runs **/animate-photos** in Claude; **Generate now** shows the credits first. If
+  CASV says its local server is an older copy, restart `python3 tools/video-dev/serve.py`.
 - **Drive follows Status.** **Remove** on a project or a video, and the ad set's **Delete for
   everyone** (under the brief on its page), send their files to Google Drive's trash, where they
   can be restored for 30 days. Delete for everyone also trashes the campaign folder if nothing else
