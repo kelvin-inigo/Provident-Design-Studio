@@ -78,6 +78,13 @@ a.p-wm{text-decoration:none;border-radius:6px}
 .vs-note{font:400 11.5px/1.45 var(--ps-font);color:var(--ps-dim);text-wrap:pretty}
 .vs-note b{font-weight:500;color:var(--ps-ink-2)}
 .vs-none{font:400 12.5px/1.5 var(--ps-font);color:var(--ps-dim);padding:14px 16px;border-radius:14px;background:var(--ps-fill);text-wrap:pretty}
+.vs-need{display:flex;flex-direction:column;gap:8px}
+.vs-need b{color:var(--ps-ink);font-weight:500}
+.vs-need ul,.vs-open ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+.vs-need .vs-link{display:inline;padding:0;margin:0;font-size:inherit}
+.vs-open{font:400 12px/1.5 var(--ps-font);color:var(--ps-dim)}
+.vs-open summary{cursor:pointer;color:var(--ps-ink);font-weight:500;padding:2px 0}
+.vs-open ul{margin-top:8px}
 .vs-none b{display:block;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink);margin-bottom:3px}
 .vs-cap{display:flex;align-items:center;gap:10px;min-height:28px;padding:4px 16px 12px}
 .vs-cap b{font:600 13px/1.3 var(--ps-font);color:var(--ps-ink);white-space:nowrap}
@@ -450,6 +457,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 .vs-rail.r .vs-cap + .vs-sec{border-top:0}
 .vs-foot{position:sticky;bottom:0;z-index:1;margin-top:auto;background:var(--ps-sb);padding-top:12px;padding-bottom:12px;border-top:1px solid var(--ps-hair)}
 #insp{display:flex;flex-direction:column;flex:1 0 auto}
+#insp[hidden]{display:none}   /* the flex above beat [hidden], so Generate opened under Whole video (since e32d045) */
 .vs-mvs{gap:6px}
 .vs-mv{background:var(--ps-fill);text-align:center;padding:0 8px}
 .vs-mv:hover:not(:disabled){background:var(--ps-fill-h)}
@@ -594,6 +602,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   <span class="vs-tag">CASV · prototype</span>
   <div class="p-tgrp">
     <button class="p-ghost p-ico-t" id="newBtn" title="Start a new video" aria-label="Start a new video"></button>
+    <button class="p-ghost p-ico-t" id="scriptBtn" title="Start from a video script: choose the script (.md) and its brochure PDF" aria-label="Start from a video script"></button>
   </div>
   <div class="p-seg" id="sizeSeg" role="radiogroup" aria-label="Video size">
     <button data-size="9x16" role="radio"><span class="vs-l">Reel </span>9:16</button>
@@ -633,6 +642,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
         <span>Drop one here, or upload it. Photos work too, as still clips you can animate.</span>
         <button class="p-btn p-ico-t" id="emptyUp"></button>
         <button class="p-ghost vs-prev" id="prevBtn" hidden>Reopen the last video</button>
+        <button class="vs-link" id="emptyScript">Or start from a video script</button>
       </div></div>
     </div>
   </section>

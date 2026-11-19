@@ -24,7 +24,8 @@
     more: '<circle cx="6" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18" cy="12" r="1.2" fill="currentColor"/>',
     grid: '<rect x="4.5" y="4.5" width="6" height="6" rx="1.5"/><rect x="13.5" y="4.5" width="6" height="6" rx="1.5"/><rect x="4.5" y="13.5" width="6" height="6" rx="1.5"/><rect x="13.5" y="13.5" width="6" height="6" rx="1.5"/>',
     list: '<path d="M9 7h11M9 12h11M9 17h11M4.5 7h.01M4.5 12h.01M4.5 17h.01"/>',
-    edit: '<path d="m5 19 1-4L16.5 4.5l3 3L9 18z"/>'
+    edit: '<path d="m5 19 1-4L16.5 4.5l3 3L9 18z"/>',
+    script: '<path d="M7 3.5h7.5l3.5 3.5v13.5H7z"/><path d="M14.5 3.5V7H18M9.8 11h5.4M9.8 14h5.4M9.8 17h3.4"/>'
   };
   const sico = n => '<i class="vs-i vs-is"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICS[n] || '') + '</svg></i>';
   const CHEV = '<svg class="vs-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
@@ -1666,7 +1667,7 @@
     const b = P.brand, lib = devLib(), g = G();
     const seg = (k, opts, cls) => '<div class="vs-seg' + (cls ? ' ' + cls : '') + '">' + opts.map(o => '<button data-bk="' + k + '" data-bv="' + o[0] + '"' + (String(b[k]) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
     const row = (label, body) => '<div class="vs-row"><span>' + label + '</span>' + body + '</div>';
-    return '<div class="vs-cap"><b>Whole video</b><s>' + g.name + (total() ? ' · ' + fmt(total()) : '') + '</s></div>' + casNotesHtml() +
+    return '<div class="vs-cap"><b>Whole video</b><s>' + g.name + (total() ? ' · ' + fmt(total()) : '') + '</s></div>' + casNotesHtml() + scriptHtml() +
       '<div class="vs-sec">' + H('Provident wordmark') + row('Show', seg('on', [[true, 'Shown'], [false, 'Hidden']], 's')) +
         (b.on ? row('Align', seg('align', [['left', 'Left'], ['centre', 'Centre']])) + row('Position', seg('vpos', [['top', 'Top'], ['bottom', 'Bottom']])) +
           row('Colour', seg('ink', [['white', 'White'], ['navy', 'Navy']])) +
@@ -1693,7 +1694,7 @@
   let upWant = 'media';
   function pickFiles(want) {
     upWant = want; const fi = $('#fileIn');
-    fi.accept = want === 'media' ? 'video/*,image/*,.mov' : want === 'audio' ? 'audio/*' : 'image/*';
+    fi.accept = want === 'media' ? 'video/*,image/*,.mov' : want === 'audio' ? 'audio/*' : want === 'script' ? '.md,.markdown,text/markdown,.pdf,application/pdf' : 'image/*';
     fi.multiple = want !== 'partner' && want !== 'qr'; fi.value = ''; fi.click();
   }
   // the wordmark, collaboration logo and logo colour controls, wherever they are drawn
@@ -1748,6 +1749,7 @@
   });
   $('#fileIn').addEventListener('change', e => {
     const files = e.target.files; if (!files.length) return;
+    if (upWant === 'script') { importScript(Array.from(files)); return; }
     if (upWant === 'qr') {                    // kept in the project itself, at most 600 px, so it travels with it
       const f = files[0], im = new Image(), url = URL.createObjectURL(f);
       im.onload = () => {
@@ -2008,7 +2010,7 @@
   });
   $('#rtabs').addEventListener('click', e => { const b = e.target.closest('[data-rtab]'); if (b) { rtab = b.dataset.rtab; renderInspector(); } });
   insp.addEventListener('click', e => {
-    if (brandClick(e)) return;
+    if (scriptClick(e) || brandClick(e)) return;
     const it = find(sel), b = e.target.closest('button'); if (!b) return;
     if (b.dataset.nt != null) { if (playing) pause(); seek(+b.dataset.nt); return; }
     if (b.dataset.all != null && it) return allApply(it, b.dataset.all);
@@ -2385,8 +2387,10 @@
       if (j.status === 'done' && j.video) {
         try {
           const rec = await jobToMedia(j);
-          // the video takes the photo's place on the timeline, whole and unreframed (it was generated at this size)
-          Object.assign(c, { mid: rec.id, in: 0, out: rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: false });   // generated with natural sound, so it plays
+          // the video takes the photo's place on the timeline, whole and unreframed (it was generated at this size);
+          // a clip from a script keeps its scene's length, so the voiceover and texts stay on their cues
+          const was = clipLen(c);
+          Object.assign(c, { mid: rec.id, in: 0, out: c.sc ? Math.min(rec.dur, was) : rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: false });   // generated with natural sound, so it plays
           delete c.job; changed = true;
           api('/api/animate/placed', { id: j.id }).catch(() => {});
           toast('The animated clip is on the timeline and in Your media.');
@@ -2405,6 +2409,292 @@
     if (changed) renderAll(); else if (sig !== animSig) { renderGen(); if (sel && sel.kind === 'clip' && rtab !== 'gen') renderInspector(); }
     animSig = sig;
     animWatch();
+  }
+
+  // ── START FROM A SCRIPT (2026-11-19, by request) ─────────────────────────────────────
+  // The video-script skill writes a Markdown file: a header (Format, Total length, Music mood,
+  // End card), Table 1 (# | Time | Voiceover | On-screen text) and Table 2, the image map
+  // (# | Time | Scene | Image | PDF file | Page | Treatment). This turns it into a first cut: one
+  // still per brochure page, cut to the scene's time and framed from the treatment's crop words,
+  // its camera move chosen (nothing is queued or spent), the on-screen lines as texts, the end
+  // card, the voiceover script and music mood filled into the Generate panel, and every
+  // [NEED: …] kept visible. The pages are rendered here with pdf.js (vendor/pdfjs, 3.11.174).
+  // The words come from the script verbatim; CASV writes none of its own.
+  const NEEDRX = /\[NEED:[^\]]*\]/gi, NEED1 = /\[NEED:/i;
+  const hasNeed = t => NEED1.test([t.eyebrow, t.text, t.sub, t.line, t.head, t.btn].join(' '));
+  const mdPlain = s => String(s || '').replace(/\*\*|__|`/g, '').replace(/\[([^\]]+)\]\((?:[^)]+)\)/g, '$1').trim();
+  const secs = s => { const m = /(\d+):(\d+(?:\.\d+)?)/.exec(s || ''); return m ? +m[1] * 60 + +m[2] : NaN; };
+  function mdTable(lines, first) {                // the table whose header starts with these column names
+    const i = lines.findIndex(l => { const c = l.split('|').map(x => mdPlain(x).toLowerCase()).filter(Boolean); return l.trim().startsWith('|') && first.every((f, k) => c[k] === f); });
+    if (i < 0) return null;
+    const cells = l => { const c = l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(x => x.trim()); return c; };
+    const head = cells(lines[i]).map(x => mdPlain(x).toLowerCase()), rows = [];
+    // each column is also kept under its first word, so "Image (what it shows)" reads as image
+    for (let j = i + 2; j < lines.length && lines[j].trim().startsWith('|'); j++) { const c = cells(lines[j]), o = {}; head.forEach((h, k) => { o[h] = c[k] || ''; const w = h.split(/[\s(]/)[0]; if (!(w in o)) o[w] = c[k] || ''; }); rows.push(o); }
+    return rows;
+  }
+  function parseScript(md) {
+    const lines = String(md).replace(/\r/g, '').split('\n'), meta = {}, end = {};
+    let inEnd = false;
+    lines.forEach(l => {
+      const m = /^-\s+\*\*([^*:]+):?\*\*:?\s*(.*)$/.exec(l.trim());
+      if (m && !/^\s{2,}/.test(l)) { meta[m[1].trim().toLowerCase()] = mdPlain(m[2]); inEnd = /end card/i.test(m[1]); return; }
+      const e = /^\s{2,}-\s+([^:]+):\s*(.*)$/.exec(l);
+      if (e && inEnd) end[e[1].trim().toLowerCase()] = mdPlain(e[2]);
+      else if (l.trim() && !/^\s{2,}-/.test(l)) inEnd = false;
+    });
+    const title = mdPlain((lines.find(l => /^#\s/.test(l)) || '').replace(/^#\s+/, ''));
+    const open = []; { const i = lines.findIndex(l => /^##\s+open items/i.test(l)); if (i >= 0) for (let j = i + 1; j < lines.length && !/^#/.test(lines[j]); j++) if (/^-\s/.test(lines[j].trim())) open.push(mdPlain(lines[j].trim().slice(2))); }
+    const t1 = mdTable(lines, ['#', 'time', 'voiceover']) || [], t2 = mdTable(lines, ['#', 'time', 'scene']) || [];
+    const scenes = t1.map(r => {
+      const n = parseInt(r['#'], 10), tm = (r.time || '').split(/[–—-]/), a = secs(tm[0]), b = secs(tm[1]);
+      const im = t2.find(x => parseInt(x['#'], 10) === n) || {};
+      // the page column: "19 (alt 17)", "28, 29, 30, 32, 34", "28–34"; an alternative is never used
+      const pg = String(im.page || '').replace(/\(alt[^)]*\)/gi, ''), pages = [];
+      pg.replace(/(\d+)\s*[–—-]\s*(\d+)|(\d+)/g, (s, x, y, z) => { if (z) pages.push(+z); else for (let k = +x; k <= +y && k - x < 40; k++) pages.push(k); return s; });
+      const treat = mdPlain(im.treatment), textOnly = {}; treat.replace(/\bp(\d+) is text\b/gi, (s, p) => { textOnly[p] = 1; return s; });
+      return { n, at: a, end: b, vo: mdPlain(r.voiceover), screen: mdPlain(r['on-screen text']), scene: mdPlain(im.scene), image: mdPlain(im.image), treat, pages: pages.filter(p => !textOnly[p]) };
+    }).filter(s => s.n && isFinite(s.at) && isFinite(s.end) && s.end > s.at);
+    const px = {}; String(md).replace(/\bp(\d+)\s[^()\n|]*\((\d+)\s*[x×]\s*(\d+)[,)]/g, (s0, p, w, h) => { px[p] = [+w, +h]; return s0; });   // the low-res notes
+    const fmtKey = (meta.format || '').replace(/\s/g, '').replace(':', 'x');
+    return {
+      title, name: meta.project || title.split(/[·|]/)[0].trim() || 'Video from a script', developer: meta['developer (collab logo)'] || meta.developer || '',
+      size: SIZES[fmtKey] ? fmtKey : '9x16', len: secs(meta['total length']) || (scenes.length ? scenes[scenes.length - 1].end : 0),
+      px, voice: meta.voice || '', music: meta['music mood'] || '', pdf: (meta['pdf used'] || '').replace(/\s*\(.*$/, '').split('/').pop(),
+      end: { line: end['line above'] || '', head: end.headline || '', btn: end.cta || '', legal: end.legal || '' }, open, scenes
+    };
+  }
+  // a camera move from the treatment's words; "Hold" (or nothing) leaves the photo still
+  function moveOf(s) {
+    const a = /Animate this photo:\s*([^.]+)/i.exec(s || ''), t = (a ? a[1] : s || '').toLowerCase();
+    if (/pull[- ]?back|pull out|reveal/.test(t)) return 'pull_back';
+    if (/push[- ]?in|dolly in|zoom in/.test(t)) return 'push_in';
+    if (/left to right/.test(t)) return 'pan_right';     // before "pan left": "Pan left to right" moves right
+    if (/right to left|pan[- ]left/.test(t)) return 'pan_left';
+    if (/pan[- ]right|\bpan\b/.test(t)) return 'pan_right';
+    if (/tilt[- ]up/.test(t)) return 'tilt_up';
+    if (/tilt[- ]down/.test(t)) return 'tilt_down';
+    if (/crane/.test(t)) return 'crane_up';
+    if (/orbit/.test(t)) return 'orbit';
+    if (/slide|tracking/.test(t)) return 'slide';
+    return null;
+  }
+  // where to centre the crop, as fractions of the page: "right 40%", "centre-left", "50% across, 45% down"
+  function aimOf(s) {
+    s = String(s || '').toLowerCase(); let x = .5, y = .5, m;
+    if ((m = /(\d+)%\s*across/.exec(s))) x = +m[1] / 100;
+    else if ((m = /\bright\s+(\d+)%/.exec(s))) x = 1 - +m[1] / 200;
+    else if ((m = /\bleft\s+(\d+)%/.exec(s))) x = +m[1] / 200;
+    else if (/centre-left|center-left/.test(s)) x = .38;
+    else if (/centre-right|center-right/.test(s)) x = .62;
+    else if (/left half/.test(s)) x = .25;
+    else if (/right half/.test(s)) x = .75;
+    if ((m = /(\d+)%\s*down/.exec(s))) y = +m[1] / 100;
+    else if ((m = /\btop\s+(\d+)%/.exec(s))) y = +m[1] / 200;
+    else if ((m = /\bbottom\s+(\d+)%/.exec(s))) y = 1 - +m[1] / 200;
+    return { x, y };
+  }
+  // the clip's focus (fx, fy) that puts that point in the middle of a fill-cropped frame
+  function focusFor(w, h, aim) {
+    const g = G(), sc = Math.max(g.w / w, g.h / h), vx = g.w / (w * sc), vy = g.h / (h * sc);
+    const f = (c, v) => v >= .999 ? 50 : Math.round(clamp((c - v / 2) / (1 - v), 0, 1) * 1000) / 10;
+    return { fx: f(aim.x, vx), fy: f(aim.y, vy) };
+  }
+  // the words about one page inside a treatment that names several ("p18 crop right 45%, … p15 crop centre, …")
+  function pageWords(treat, pages, p) {
+    const main = treat.split(/\bAlt:/i)[0], re = /\bp(\d+)\b/gi, hits = []; let m;
+    while ((m = re.exec(main))) hits.push({ p: +m[1], i: m.index });
+    const i = hits.findIndex(h => h.p === p);
+    if (i < 0) return pages.length > 1 && hits.length ? '' : main;
+    return main.slice(hits[i].i, i + 1 < hits.length ? hits[i + 1].i : main.length);
+  }
+  let pdfjsP = null;
+  const pdfjs = () => pdfjsP || (pdfjsP = new Promise((res, rej) => {
+    if (window.pdfjsLib) return res(window.pdfjsLib);
+    const s = document.createElement('script'); s.src = 'vendor/pdfjs/pdf.min.js';
+    s.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdfjs/pdf.worker.min.js'; res(window.pdfjsLib); };
+    s.onerror = () => { pdfjsP = null; rej(new Error('pdf.js did not load')); }; document.head.appendChild(s);
+  }));
+  // THE PICTURE ON THE PAGE, NOT THE PAGE: brochure pages are spreads with type around the photo,
+  // and the script means the photo (its image map quotes the photo's own pixel size). The page's
+  // drawing list says where each image lands, and the script says which one it means: a pixel
+  // size from its low-res notes ("p7 map (1840x1197)") wins, then "portrait" / "landscape" in its
+  // words, then the biggest. (The Wilds p19: the biggest is a full-page paper texture; the photo
+  // is the 2608x3376 portrait on it.) Strips of one photo lying edge to edge are joined. The
+  // chosen picture is rendered alone at its own resolution. A page with no image covering 4% of
+  // it is rendered whole.
+  async function pageImage(doc, n, want) {
+    want = want || {};
+    const L = window.pdfjsLib, OPS = L.OPS, page = await doc.getPage(n), vp1 = page.getViewport({ scale: 1 });
+    const ops = await page.getOperatorList(), mul = (a, b) => [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1], a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3], a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
+    let m = [1, 0, 0, 1, 0, 0]; const stack = [], ims = [];
+    for (let i = 0; i < ops.fnArray.length; i++) {
+      const f = ops.fnArray[i], a = ops.argsArray[i];
+      if (f === OPS.save) stack.push(m);
+      else if (f === OPS.restore) m = stack.pop() || [1, 0, 0, 1, 0, 0];
+      else if (f === OPS.transform) m = mul(m, a);
+      else if (f === OPS.paintFormXObjectBegin) { stack.push(m); if (a && a[0]) m = mul(m, a[0]); }
+      else if (f === OPS.paintFormXObjectEnd) m = stack.pop() || [1, 0, 0, 1, 0, 0];
+      else if (f === OPS.paintImageXObject || f === OPS.paintInlineImageXObject) {
+        const pts = [[0, 0], [1, 0], [0, 1], [1, 1]].map(p => vp1.convertToViewportPoint(m[0] * p[0] + m[2] * p[1] + m[4], m[1] * p[0] + m[3] * p[1] + m[5]));
+        const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+        const r = { x0: Math.max(0, Math.min(...xs)), y0: Math.max(0, Math.min(...ys)), x1: Math.min(vp1.width, Math.max(...xs)), y1: Math.min(vp1.height, Math.max(...ys)) };
+        const nw = f === OPS.paintImageXObject ? +a[1] || 0 : (a[0] && a[0].width) || 0, nh = f === OPS.paintImageXObject ? +a[2] || 0 : (a[0] && a[0].height) || 0;
+        if (r.x1 - r.x0 > 2 && r.y1 - r.y0 > 2) ims.push(Object.assign(r, { nw, nh, area: (r.x1 - r.x0) * (r.y1 - r.y0) }));
+      }
+    }
+    ims.sort((p, q) => q.area - p.area);
+    const big = ims.filter(r => r.area > .04 * vp1.width * vp1.height), tall = r => r.y1 - r.y0 > r.x1 - r.x0;
+    const pick = (want.px && big.find(r => Math.abs(r.nw - want.px[0]) <= 2 && Math.abs(r.nh - want.px[1]) <= 2))
+      || (want.orient && big.find(r => tall(r) === (want.orient === 'p'))) || big[0];
+    let box = { x0: 0, y0: 0, x1: vp1.width, y1: vp1.height }, res = 0, whole = true;
+    if (pick) {
+      box = Object.assign({}, pick); res = Math.max(pick.nw / (pick.x1 - pick.x0), pick.nh / (pick.y1 - pick.y0)); whole = false;
+      const near = (a, b) => Math.abs(a - b) <= 2;
+      for (let grew = true; grew;) {              // strips: same width and touching above or below, or same height beside
+        grew = false;
+        big.forEach(r => { if (r.used || r === pick) return;
+          if ((near(r.x0, box.x0) && near(r.x1, box.x1) && (near(r.y0, box.y1) || near(r.y1, box.y0))) || (near(r.y0, box.y0) && near(r.y1, box.y1) && (near(r.x0, box.x1) || near(r.x1, box.x0)))) {
+            r.used = 1; grew = true; box = { x0: Math.min(box.x0, r.x0), y0: Math.min(box.y0, r.y0), x1: Math.max(box.x1, r.x1), y1: Math.max(box.y1, r.y1) }; } });
+      }
+    }
+    const bw = box.x1 - box.x0, bh = box.y1 - box.y0;
+    // the image's own resolution, but never less than fills the frame, and at most 4096 a side
+    const need = Math.max(1920 / bh, 1080 / bw) * 1.1, sc = Math.min(Math.max(res, need), 4096 / Math.max(bw, bh), Math.sqrt(16e6 / (bw * bh)));
+    const vp = page.getViewport({ scale: sc, offsetX: -box.x0 * sc, offsetY: -box.y0 * sc });
+    const k = document.createElement('canvas'); k.width = Math.max(1, Math.round(bw * sc)); k.height = Math.max(1, Math.round(bh * sc));
+    const x = k.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, k.width, k.height);
+    await page.render({ canvasContext: x, viewport: vp }).promise; page.cleanup();
+    return { blob: await new Promise(r => k.toBlob(r, 'image/jpeg', .9)), whole, native: pick ? pick.nw + 'x' + pick.nh : '' };
+  }
+  function pickOne(accept) {                     // a second file picker, for the brochure after the script
+    return new Promise(res => {
+      const fi = document.createElement('input'); fi.type = 'file'; fi.accept = accept;
+      fi.onchange = () => res(fi.files[0] || null); fi.addEventListener('cancel', () => res(null)); fi.click();
+    });
+  }
+  const needsOf = s => (String(s || '').match(NEEDRX) || []);
+  function scriptProg(title, note, done, of) {
+    $('#ovT').textContent = title; $('#ovN').textContent = note; $('#ovP').style.width = (of ? done / of * 100 : 0) + '%';
+    $('#ovC').textContent = of ? done + ' of ' + of : ''; $('#ovX').hidden = true; $('#ov').dataset.on = '1';
+  }
+  function scriptProgEnd() { delete $('#ov').dataset.on; $('#ovX').hidden = false; $('#ovT').textContent = 'Exporting the video'; $('#ovN').textContent = 'The video is recorded as it plays, so this takes as long as the video. Keep this tab in front until it finishes.'; }
+  async function importScript(files) {
+    files = Array.from(files || []);
+    const mdF = files.find(f => /\.(md|markdown|txt)$/i.test(f.name)); let pdfF = files.find(f => /\.pdf$/i.test(f.name));
+    if (!mdF) { toast('Choose the video script (.md), with its brochure PDF if you have it.'); return; }
+    let S; try { S = parseScript(await mdF.text()); } catch (e) { S = null; }
+    if (!S || !S.scenes.length) { toast('No scene table was found in ' + mdF.name + '. It needs the # | Time | Voiceover | On-screen text table.'); return; }
+    const want = [...new Set(S.scenes.flatMap(s => s.pages))], hint = {};
+    S.scenes.forEach(s => s.pages.forEach(p => {   // which picture on the page: its size, or the words about it
+      const w = (pageWords(s.treat, s.pages, p) || s.treat.split(/\bAlt:/i)[0]) + ' ' + (s.pages.length === 1 ? s.image : ''), lw = w.toLowerCase();
+      if (!hint[p]) hint[p] = { px: S.px[p], orient: /portrait/.test(lw) ? 'p' : /landscape/.test(lw) ? 'l' : '' };
+    }));
+    if (!pdfF && want.length) {
+      if (!(await ask('Now choose the brochure', 'The script takes its pictures from ' + (S.pdf || 'the brochure PDF') + ' (pages ' + want.slice(0, 8).join(', ') + (want.length > 8 ? ' …' : '') + '). Choose that PDF next.', 'Choose the PDF'))) return;
+      pdfF = await pickOne('application/pdf,.pdf'); if (!pdfF) return;
+    }
+    if (!(await startNew(S.name, 'the script'))) return;
+    P.size = S.size; fitCanvas();
+    const pageMid = {}, missing = [], wholePages = [];
+    if (pdfF) {
+      try {
+        scriptProg('Reading the brochure', 'Each page the script uses becomes a photo in Your media.', 0, want.length);
+        const lib = await pdfjs(), doc = await lib.getDocument({ data: new Uint8Array(await pdfF.arrayBuffer()) }).promise;
+        for (let i = 0; i < want.length; i++) {
+          const n = want[i]; scriptProg('Reading the brochure', 'Page ' + n + ' of ' + doc.numPages + ' · each page the script uses becomes a photo in Your media.', i, want.length);
+          if (n < 1 || n > doc.numPages) { missing.push(n); continue; }
+          const pi = await pageImage(doc, n, hint[n]), nm = S.name + ' · p' + n;
+          const rec = { id: uid(), kind: 'image', name: nm, blob: new File([pi.blob], nm + '.jpg', { type: 'image/jpeg' }) };
+          if (pi.whole) wholePages.push(n);
+          await probe(rec); media[rec.id] = rec; DB.put(dbRec(rec)); pageMid[n] = rec.id;
+        }
+        doc.destroy();
+      } catch (e) { scriptProgEnd(); toast('The brochure could not be read (' + e.message + '). The script was not imported.'); return; }
+      scriptProgEnd();
+    }
+    // the timeline: each scene's pages share its time equally; text and the end card ride on top
+    const last = S.scenes[S.scenes.length - 1], hasEnd = !!(S.end.head || S.end.btn);
+    S.scenes.forEach(s => {
+      const pages = s.pages.filter(p => pageMid[p]), len = s.end - s.at, each = len / Math.max(1, pages.length);
+      if (!pages.length) return;
+      pages.forEach(p => {
+        const m = media[pageMid[p]], words = pageWords(s.treat, s.pages, p), aim = aimOf(words || s.treat.split(/\bAlt:/i)[0]);
+        const mv = moveOf(words || s.treat.split(/\bAlt:/i)[0]), f = focusFor(m.w, m.h, aim);
+        const c = { id: uid(), mid: m.id, in: 0, out: Math.round(each * 1000) / 1000, vol: 1, mute: false, fit: 'fill', z: 100, fx: f.fx, fy: f.fy, sc: s.n };
+        if (mv) { c.move = mv; c.genDur = [5, 8, 10].find(d => d >= each - .05) || 10; }
+        P.clips.push(c);
+      });
+    });
+    S.scenes.forEach(s => {
+      const len = s.end - s.at;
+      if (s === last && hasEnd) {
+        P.texts.push({ id: uid(), at: s.at, dur: len, call: 'cta', line: S.end.line, head: S.end.head, btn: S.end.btn, mark: true, glass: 'glass', y: 50 });
+        if (S.end.legal) P.texts.push({ id: uid(), at: s.at, dur: len, eyebrow: '', text: S.end.legal, sub: '', size: 'Small', pos: 'bottom', align: 'centre', anim: 'fade', scrim: 0 });
+        return;
+      }
+      const parts = s.screen.split(/\s+\/\s+/).map(x => x.trim()).filter(Boolean);
+      if (!parts.length) return;
+      const tx = parts.length >= 3 ? { eyebrow: parts[0], text: parts[1], sub: parts.slice(2).join(' · ') } : { eyebrow: '', text: parts[0], sub: parts[1] || '' };
+      P.texts.push(Object.assign({ id: uid(), at: s.at, dur: len, size: 'Medium', pos: 'bottom', align: 'left', anim: 'rise', scrim: 55 }, tx));
+    });
+    // the collaboration logo, when this computer has the developer's
+    const dev = S.developer && devLib().find(l => l.name.toLowerCase() === S.developer.toLowerCase()) || (S.developer && devLib().find(l => l.name.toLowerCase().indexOf(S.developer.toLowerCase()) >= 0));
+    if (dev) { P.brand.partner = { id: dev.id, name: dev.name, u: dev.u }; P.brand.on = true; }
+    const needs = [];
+    if (S.developer && !dev) needs.push({ s: 0, t: S.developer + '\'s logo is not on this computer: add it under Collaboration logo.' });
+    missing.forEach(n => needs.push({ s: 0, t: 'Page ' + n + ' is not in the PDF you chose.' }));
+    S.scenes.forEach(s => s.pages.filter(p => wholePages.indexOf(p) >= 0).forEach(p => needs.push({ s: s.n, t: 'p' + p + ' has no photo on it, so the whole page was used.' })));
+    S.scenes.forEach(s => {
+      needsOf(s.image).forEach(t => needs.push({ s: s.n, t: t.replace(/^\[NEED:\s*/i, '').replace(/\]$/, '') }));
+      if (s.pages.length && !s.pages.some(p => pageMid[p])) needs.push({ s: s.n, t: 'No picture: the brochure was not chosen.' });
+      needsOf(s.screen + ' ' + s.vo + (s === last ? ' ' + S.end.legal : '')).forEach(t => needs.push({ s: s.n, t: 'On screen: ' + t }));
+    });
+    const seen = {}; for (let i = needs.length - 1; i >= 0; i--) { const k = needs[i].s + needs[i].t; if (seen[k]) needs.splice(i, 1); seen[k] = 1; }
+    P.script = { file: mdF.name, pdf: pdfF ? pdfF.name : '', name: S.name, len: S.len, scenes: S.scenes.length, voice: S.voice, music: S.music, vo: S.scenes.map(s => s.vo).filter(Boolean).join(' '), needs, open: S.open };
+    scriptFill(true);
+    sel = null; T = 0; partnerLoad(); rtab = 'doc'; selKey = ''; renderAll(); save();
+    const mv = P.clips.filter(c => c.move).length;
+    toast(S.scenes.length + ' scenes on the timeline' + (mv ? ', ' + mv + ' camera moves chosen (not queued)' : '') + '. What is still needed is under Whole video.');
+  }
+  // the voiceover and music forms take the script's words, unless something is typed there already
+  function scriptFill(force) {
+    const s = P.script; if (!s) return;
+    if (force || !VO.text) { VO.text = s.vo || ''; VO.target = s.len ? String(Math.round(s.len * 10) / 10) : ''; }
+    if (force || !MU.text) { MU.text = s.music || ''; MU.len = s.len ? String(Math.ceil(s.len)) : ''; }
+  }
+  const leftNeeds = () => P.texts.filter(hasNeed).length;
+  function scriptHtml() {
+    const s = P.script; if (!s) return '';
+    const queued = P.clips.filter(c => c.move && !c.job), onTl = leftNeeds();
+    const li = n => '<li>' + (n.s ? '<button class="vs-link" data-scn="' + n.s + '">Scene ' + n.s + '</button> ' : '') + esc(n.t) + '</li>';
+    return '<div class="vs-sec">' + H('From the script', esc(s.file)) +
+      '<span class="vs-note">' + s.scenes + ' scenes, ' + fmt(s.len || 0) + (s.pdf ? ', pictures from ' + esc(s.pdf) : '') + '. Words are the script\'s; check the framing of each photo.</span>' +
+      (s.needs.length ? '<div class="vs-none vs-need"><b>Still needed</b><ul>' + s.needs.map(li).join('') + '</ul>' +
+        (onTl ? '<span>' + onTl + (onTl === 1 ? ' text on the video still says' : ' texts on the video still say') + ' [NEED: …]. Export asks before it records them.</span>' : '') + '</div>' : '') +
+      (s.open && s.open.length ? '<details class="vs-open"><summary>Open items from the script (' + s.open.length + ')</summary><ul>' + s.open.map(t => '<li>' + esc(t) + '</li>').join('') + '</ul></details>' : '') +
+      '<div class="vs-acts">' + '<button class="p-ghost p-sm" data-scgo="vo">Voiceover</button><button class="p-ghost p-sm" data-scgo="mu">Music</button>' +
+        (queued.length ? '<button class="p-btn p-sm" data-scq="1">Queue ' + queued.length + ' camera move' + (queued.length === 1 ? '' : 's') + '</button>' : '') + '</div>' +
+      (queued.length ? '<span class="vs-note">Queuing costs nothing. Run <b>/animate-photos</b> in Claude to generate them; each clip keeps its scene\'s length.</span>' : '') +
+      (s.voice ? '<span class="vs-note">Voice in the script: ' + esc(s.voice) + '.</span>' : '') + '</div>';
+  }
+  function scriptClick(e) {
+    const q = a => e.target.closest('[' + a + ']'); let el;
+    if ((el = q('data-scn'))) { const st = clipStarts(), i = P.clips.findIndex(c => c.sc === +el.dataset.scn); if (i >= 0) { if (playing) pause(); seek(st[i] + .05); sel = { kind: 'clip', id: P.clips[i].id }; renderAll(); } return true; }
+    if ((el = q('data-scgo'))) { scriptFill(false); gtab = el.dataset.scgo; rtab = 'gen'; renderInspector(); return true; }
+    if ((el = q('data-scq'))) {
+      el.disabled = true;
+      (async () => {
+        for (const c of P.clips.filter(x => x.move && !x.job)) { const m = media[c.mid]; if (m) { const im = imgFor(m); if (!im.complete) await once(im, 'load').catch(() => {}); } await animSend(c, false); }
+        renderAll();
+      })();
+      return true;
+    }
+    return false;
+  }
+  async function needsOk() {
+    if (!leftNeeds()) return true;
+    return !!(await ask('Some text still says [NEED: …]', 'The video has placeholders the script could not fill. Fill them in first, or record anyway for a draft.', 'Record anyway'));
   }
 
   // ── placement preview (CAS's phone frames and app chrome; see tools/video-dev/build-preview.py) ──
@@ -2498,7 +2788,7 @@
   $('#undoBtn').innerHTML = ico('undo'); $('#redoBtn').innerHTML = ico('redo'); $('#splitBtn').innerHTML = ico('content_cut');
   $('#dupBtn').innerHTML = ico('content_copy'); $('#delBtn').innerHTML = ico('delete'); $('#homeBtn').innerHTML = ico('skip_previous');
   $('#safeBtn').innerHTML = ico('smartphone') + 'Safe zones';
-  $('#newBtn').innerHTML = sico('add_box'); $('#keysBtn').innerHTML = sico('keyboard'); $('#emptyUp').innerHTML = ico('upload') + 'Upload video or photos';
+  $('#newBtn').innerHTML = sico('add_box'); $('#scriptBtn').innerHTML = sico('script'); $('#keysBtn').innerHTML = sico('keyboard'); $('#emptyUp').innerHTML = ico('upload') + 'Upload video or photos';
   $('#emptyUp').addEventListener('click', () => pickFiles('media'));
   // one small dialog for the questions the studio asks (the kit's card; Esc cancels). With `value`
   // it carries a field and answers with the text; without, it answers true. Cancelled, null.
@@ -2527,6 +2817,8 @@
     return true;
   }
   $('#newBtn').addEventListener('click', () => startNew());
+  $('#scriptBtn').addEventListener('click', () => pickFiles('script')); $('#emptyScript').addEventListener('click', () => pickFiles('script'));
+  scriptFill(false);
   $('#prevBtn').addEventListener('click', async () => {
     let old = null; try { old = JSON.parse(localStorage.getItem(PREV) || 'null'); } catch (e) {}
     if (!old || old.v !== 1) { prevOn(); return; }
@@ -2584,7 +2876,7 @@
   $('#homeBtn').addEventListener('click', () => { seek(0); tl.scrollLeft = 0; });
   $('#playBtn').addEventListener('click', () => (playing ? pause() : play()));
   $('#previewBtn2').innerHTML = ico('visibility') + '<span class="vs-l">Preview</span>'; $('#previewBtn2').addEventListener('click', pvOpen);
-  $('#exportBtn').addEventListener('click', () => exportVideo()); $('#sendBtn').innerHTML = ico('send') + '<span class="vs-l2">Send to CAS</span>'; $('#sendBtn').addEventListener('click', () => P.casBg ? sendBack() : sendToCas()); $('#frameBtn').addEventListener('click', saveFrame);
+  $('#exportBtn').addEventListener('click', async () => { if (await needsOk()) exportVideo(); }); $('#sendBtn').innerHTML = ico('send') + '<span class="vs-l2">Send to CAS</span>'; $('#sendBtn').addEventListener('click', async () => { if (await needsOk()) (P.casBg ? sendBack() : sendToCas()); }); $('#frameBtn').addEventListener('click', saveFrame);
   $('#zoom').addEventListener('input', e => { pps = +e.target.value; renderTimeline(); });
   // THE TIMELINE CAN BE PULLED TALLER (2026-11-13, by request): drag the top edge of its bar, or
   // focus it and use the arrow keys; double-click puts it back. Kept per computer.
@@ -2670,5 +2962,5 @@
   })();
 
   // a small handle for tests and the console
-  window.VideoStudio = { get project() { return P; }, get time() { return T; }, media, stats, addFiles, seek, play, pause, split, total, draw: () => { sync(); draw(); } };
+  window.VideoStudio = { get project() { return P; }, get time() { return T; }, media, stats, addFiles, importScript, parseScript, seek, play, pause, split, total, draw: () => { sync(); draw(); } };
 })();

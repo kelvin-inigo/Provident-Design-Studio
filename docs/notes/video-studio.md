@@ -679,3 +679,53 @@ parallax the flat preview cannot. Off under reduced motion; paused while a job i
 Animate this photo is open by default (`animOpen = true`).
 Checked in the pane: ten previews, each with its own running animation, buttons 70 px, no sideways
 overflow. The pane cannot play animations, so the motion itself was not watched.
+
+## Start from a video script (2026-11-19, by request: "can this skill be built in inside CASV")
+
+The video-script skill (it runs in Cowork, not in this repo) writes a Markdown file: a header,
+Table 1 `# | Time | Voiceover | On-screen text` and Table 2, the image map
+`# | Time | Scene | Image | PDF file | Page | Treatment`. Writing the script stays in Claude: it
+needs the brochure read and every fact checked against the developer's pages. CASV only **reads**
+the result. Top bar › the page icon beside Start new, or "Or start from a video script" on the
+empty stage: choose the `.md` and the brochure PDF together (or the PDF when asked).
+`importScript` / `parseScript`, also on `window.VideoStudio`.
+
+- **Parsing.** Header bullets (`- **Format:**`, Total length, Voice, Music mood, Developer, End card
+  with its indented Line above / Headline / CTA / Legal), Open items, both tables. Columns are found by
+  name, and each is also kept under its first word ("Image (what it shows)" reads as `image`). Page
+  column: "19 (alt 17)" uses 19 only; lists and ranges are read; "p24 is text" drops p24.
+- **Pictures.** pdf.js 3.11.174 (`vendor/pdfjs/`, UMD build, loaded only when importing) renders
+  each page the script names, once. **The picture on the page, not the page**: brochure pages are
+  spreads with type around the photo. `pageImage` walks the page's drawing list for the images and
+  where they land, and picks the one the script means: a pixel size from its low-res notes
+  ("p7 map (1840x1197)") first, then "portrait" / "landscape" in its words, then the biggest. Strips
+  lying edge to edge are joined. The pick is rendered alone at its own resolution (never below what
+  fills the frame, at most 4096 a side). The Wilds p19 is the case that needs it: the biggest image
+  is a full-page paper texture, the photo is the 2608x3376 portrait on it.
+- **Timeline.** One still per page; a scene's pages share its time equally (scene 5: five cuts of
+  1.2 s). Framing from the crop words (`aimOf`: "right 40%", "centre-left", "50% across, 45% down")
+  turned into Left to right / Top to bottom for a filled frame (`focusFor`). Camera move from
+  "Animate this photo: …" (`moveOf`; Hold = stays still); **nothing is queued or spent**. Each
+  clip carries `sc` (its scene). On-screen text: "A / B" is headline + line under, three parts add
+  the eyebrow; Medium, bottom, Rise. The last scene is the end card (CAS-style CTA: Line above,
+  Headline, CTA) with the Legal line as a Small centred text under it.
+- **Generate panel.** Voiceover gets the script's voiceover lines and Length = the total; Music gets
+  the mood and the length (`scriptFill`, again on load when those fields are empty).
+- **Whole video › From the script:** what is still needed (missing developer logo, [NEED: …] in
+  the image map, on-screen placeholders, pages with no photo), each with a link to its scene; the
+  script's open items folded; Voiceover, Music, and **Queue N camera moves** (free; `/animate-photos`
+  generates). A generated clip for a script clip keeps its scene's length (`animPoll`), so the
+  voiceover and texts stay on cue.
+- **Export and Send to CAS ask first** while any text still says [NEED: …] ("Record anyway").
+- **Fixed in passing:** `#insp{display:flex}` (e32d045) beat `[hidden]`, so the Generate tab
+  opened BELOW Whole video / Selected, off screen. `#insp[hidden]{display:none}`.
+
+Tested in the pane with The Wilds script and its real 36-page, 98 MB brochure: 10 scenes, 17
+clips, 11 texts, 57.00 s, in 18 s; the right photo on every portrait page; scene link, Voiceover
+button (filled, "Fits 57 s"), Export gate with Cancel (nothing recorded); no console errors.
+Aldar is not among the preloaded developer logos, so it is listed as needed.
+**Not tested:** the native file picker itself (the import was called with the same files), the
+Queue button against the live queue (it calls the existing `animSend`), Square 1:1, light theme.
+**Known limits:** type printed on top of a photo in the PDF comes with it (The Wilds p23
+"AMENITIES", p20's tagline); the crop words are approximate (the p7 marker lands right of centre);
+floorplan pages are filled like photos, not placed on a background.
