@@ -1555,7 +1555,7 @@
   const mBtn = id => '<span class="vs-mo" role="button" tabindex="0" data-more="' + id + '" aria-haspopup="menu" aria-label="Rename, move or remove" title="Rename, move or remove">' + sico('more') + '</span>';
   function libList(key, M) {
     const v = libPick(key, M), all = libAll(key, M).length, st = LQ[key];
-    if (!all) return '<div class="vs-none"><b>Nothing here yet</b>' + (key === 'media' ? 'Videos and photos you upload stay in this list, ready to add again.' : key === 'audio' ? 'Upload a track or a voiceover, or make one below.' : 'Upload one, or drop an image on the video.') + '</div>';
+    if (!all) return '<div class="vs-none"><b>Nothing here yet</b>' + (key === 'media' ? 'Videos and photos you upload stay in this list, ready to add again.' : key === 'audio' ? 'Upload a track or a voiceover, or make one above.' : 'Upload one, or drop an image on the video.') + '</div>';
     if (!v.length) return '<div class="vs-none"><b>No file matches</b>' + (st.q.trim() ? 'Nothing is named “' + esc(st.q.trim()) + '”' + (st.f !== 'all' || st.dir ? ' in this view.' : '.') : 'Nothing fits this filter or folder.') + '<button class="vs-link" data-libclear="1">Show every file</button></div>';
     const dirTag = m => { const d = lm(m.id).dir; return d && !st.dir ? '<span class="vs-dir">' + sico('folder') + esc(d) + '</span>' : ''; };
     const usedTxt = u => u ? 'In video' + (u > 1 ? ' ×' + u : '') : '';
@@ -1662,7 +1662,7 @@
     const rm = id => '<span class="vs-x" data-rm="' + id + '" title="Remove from the library and the timeline">' + ico('close') + '</span>';
     const none = (t, body) => '<div class="vs-none"><b>' + t + '</b>' + body + '</div>';
     if (tab === 'media' || tab === 'audio') {
-      h += '<div class="vs-sec">' + (tab === 'media' ? drop('media', 'Drop video or photos', 'MP4, MOV, WebM, JPG or PNG') : drop('audio', 'Drop music or sound', 'MP3, WAV or M4A')) + '</div>';
+      h += '<div class="vs-sec">' + (tab === 'media' ? drop('media', 'Drop video or photos', 'MP4, MOV, WebM, JPG or PNG') : drop('audio', 'Drop music or sound', 'MP3, WAV or M4A') + '<span class="vs-mkl">Or make one</span><div class="vs-mk2"><button class="p-ghost p-sm" data-mk="vo" title="Type the words and choose a voice">Voiceover</button><button class="p-ghost p-sm" data-mk="mu" title="Describe the music you want">Music</button></div>') + '</div>';
       h += libSec(tab, M) + (tab === 'media' && P.casBg ? '<div class="vs-sec"><button class="vs-mini" data-liball="1">' + (P.casBg.all ? 'Show only this video\'s media' : 'Show everything in the library') + '</button></div>' : '');
     } else if (tab === 'text') {
       // each tile is a specimen of what it adds, in the chrome's ink; the full description is its tooltip
@@ -1687,7 +1687,7 @@
     } else {
       h += '<div class="vs-sec">' + drop('logo', 'Drop a graphic or logo', 'PNG or SVG, clear background') + '</div>';
       h += libSec('logos', M);
-      h += '<div class="vs-sec"><div class="vs-none"><b>Looking for the wordmark?</b>The Provident wordmark and the collaboration logo are set once for the whole video.<button class="vs-link" data-go="doc">Open Whole video</button></div></div>';
+      h += '<div class="vs-sec"><div class="vs-none"><b>Looking for the wordmark?</b>The Provident wordmark and the collaboration logo are set once for the whole video.<button class="vs-link" data-go="doc">Open Brand</button></div></div>';
     }
     $('#lib').innerHTML = h;
   }
@@ -1697,7 +1697,7 @@
     const b = P.brand, lib = devLib(), g = G();
     const seg = (k, opts, cls) => '<div class="vs-seg' + (cls ? ' ' + cls : '') + '">' + opts.map(o => '<button data-bk="' + k + '" data-bv="' + o[0] + '"' + (String(b[k]) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
     const row = (label, body) => '<div class="vs-row"><span>' + label + '</span>' + body + '</div>';
-    return '<div class="vs-cap"><b>Whole video</b><s>' + g.name + (total() ? ' · ' + fmt(total()) : '') + '</s></div>' + casNotesHtml() + scriptHtml() +
+    return '<div class="vs-cap"><b>Brand</b><s>' + g.name + (total() ? ' · ' + fmt(total()) : '') + '</s></div>' + casNotesHtml() + scriptHtml() +
       '<div class="vs-sec">' + H('Provident wordmark') + row('Show', seg('on', [[true, 'Shown'], [false, 'Hidden']], 's')) +
         (b.on ? row('Align', seg('align', [['left', 'Left'], ['centre', 'Centre']])) + row('Position', seg('vpos', [['top', 'Top'], ['bottom', 'Bottom']])) +
           row('Colour', seg('ink', [['white', 'White'], ['navy', 'Navy']])) +
@@ -1888,7 +1888,7 @@
       f('Starts at', '<input class="p-in" type="number" data-n="at" min="0" step="0.1" value="' + it.at.toFixed(2) + '">') +
       f('Lasts', '<input class="p-in" type="number" data-n="dur" min="0.2" step="0.1" value="' + it.dur.toFixed(2) + '">') + '</div>');
     if (!it) {
-      h = '<div class="vs-sec"><div class="vs-none"><b>Nothing selected</b>Click a clip, a text, a graphic or a sound on the timeline, or anything on the picture, to edit it here.</div></div>';
+      h = '<div class="vs-sec"><div class="vs-none"><b>Nothing selected</b>Click a clip, a text, a graphic or a sound on the timeline, or anything on the picture, to edit it here.<div class="vs-qa"><button class="p-ghost p-sm" data-ltab="media">Add footage</button><button class="p-ghost p-sm" data-ltab="text">Add text</button><button class="p-ghost p-sm" data-ltab="graphics">Add a graphic</button><button class="p-ghost p-sm" data-go2="doc">Logos and QR code</button></div></div></div>';
     } else if (sel.kind === 'clip') {
       const m = media[it.mid] || {}, vid = m.kind === 'video';
       h = cap(vid ? 'Video clip' : 'Photo clip', esc(m.name));
@@ -1970,7 +1970,7 @@
   // It is its own container (#gen) beside #insp, so the inspector's handlers never see it.
   let gtab = 'anim';
   const genN = () => JOBS.filter(jobActive).length;
-  function genTab() { const b = $('#rtabs').querySelector('[data-rtab="gen"]'), n = genN(), t = 'Generate' + (n ? ' · ' + n : ''); if (b && b.textContent !== t) b.textContent = t; }
+  function genTab() { const b = $('#rtabs').querySelector('[data-rtab="gen"]'), n = genN(), t = 'Queue' + (n ? ' · ' + n : ''); if (b && b.textContent !== t) b.textContent = t; }
   function genHtml() {
     const n = genN();
     if (VO.busy || VO.quote != null) gtab = 'vo'; else if (MU.busy || MU.quote != null) gtab = 'mu';
@@ -2011,7 +2011,7 @@
     else if (e.target.closest('#voCancel')) { VO.quote = null; renderGen(); }
   });
   const insp = $('#insp');
-  insp.addEventListener('toggle', e => { const a = e.target.dataset && e.target.dataset.acc; if (a === 'anim') animOpen = e.target.open; else if (a === 'prompt') promptOpen = e.target.open; }, true);
+  insp.addEventListener('toggle', e => { const a = e.target.dataset && e.target.dataset.acc; if (a === 'anim') animOpen = e.target.open; else if (a === 'prompt') promptOpen = e.target.open; else if (a === 'more') moreOpen = e.target.open; }, true);
   insp.addEventListener('pointerdown', e => { if (e.target.matches('input[type=range]')) mark(); });
   insp.addEventListener('focusin', e => { if (e.target.matches('input:not([type=range]),textarea,select')) mark(); });
   insp.addEventListener('input', e => {
@@ -2363,16 +2363,17 @@
       (st === 'failed' ? '<div class="vs-job" data-st="failed"><b>That did not work</b><span class="vs-note">' + esc(j.error || 'No reason was given.') + ' Change anything below and try again.</span></div>' : '') +
       '<div class="vs-f"><label>Camera move' + (it.move ? '' : ' <s>choose one</s>') + '</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + dis + '><i class="vs-mvp" aria-hidden="true"><u data-m="' + m[0] + '" style="' + mvBg + '"></u></i><span>' + m[1] + '</span></button>').join('') + '</div></div>' +
       row('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + '>' + d + ' s</button>').join('') + '</div>') +
+      '<div class="vs-go"><div class="vs-jl"><span>' + (it.move ? what : 'Choose a camera move to continue') + '</span><time>' + (it.move ? 'about ' + genCredits(it) + ' credits' : '') + '</time></div>' +
+        '<button class="p-btn p-sm" id="animNow"' + (it.move ? '' : ' disabled') + '>' + (st === 'failed' ? 'Try again' : 'Generate') + '</button>' +
+        '<span class="vs-note">You see the exact cost and confirm before anything is spent.</span></div>' +
+      '<details class="vs-pr" data-acc="more"' + (moreOpen || it.descJob ? ' open' : '') + '><summary><b>More options</b><s>' + genModel(it)[1] + ' · ' + (it.genMode === 'pro' ? 'Full 1080p' : 'Draft 720p') + '</s>' + CHEV + '</summary><div class="vs-pr-b">' +
       f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + ((it.genModel || 'seedance') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
       row('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
       f('Extra direction <s>optional</s>', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Golden hour light">') +
       row('People in it', '<div class="vs-seg">' + [[0, 'No'], [1, 'Yes']].map(q => '<button data-gp="' + q[0] + '"' + ((it.people ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
       promptBox(it) +
-      '<div class="vs-go"><div class="vs-jl"><span>' + (it.move ? what : 'Choose a camera move to continue') + '</span><time>' + (it.move ? 'about ' + genCredits(it) + ' credits' : '') + '</time></div>' +
-        '<button class="p-btn p-sm" id="animNow"' + (it.move ? '' : ' disabled') + '>' + (st === 'failed' ? 'Try again' : 'Generate now') + '</button>' +
-        '<span class="vs-note">Runs on this computer. You see the exact cost and confirm before anything is spent.</span>' +
-        '<button class="vs-link" id="animBtn"' + (it.move ? '' : ' disabled') + '>Or add it to the queue for Claude</button>' +
-        '<span class="vs-note">Costs nothing until you run <b>/animate-photos</b> in Claude, which works through everything waiting.</span></div>');
+        '<button class="vs-link" id="animBtn"' + (it.move ? '' : ' disabled') + '>Add it to the queue for Claude instead</button>' +
+        '<span class="vs-note">Costs nothing until you run <b>/animate-photos</b> in Claude.</span></div></details>');
   }
   // THE PROMPT (2026-11-19, by request: "bake this skill in CASV"). The prompt is the
   // photo-to-video-prompt framework's 14 sections. The studio fills them without seeing the photo
@@ -2380,7 +2381,7 @@
   // /animate-photos answers by reading the start frame and writing all 14 from what it sees.
   // Edits by hand are kept. Either kind is flagged, not dropped, when the move, length, size or
   // People change after it was written.
-  let promptOpen = false;
+  let promptOpen = false, moreOpen = false;
   const pCount = p => p.length.toLocaleString() + ' of ' + PMAX.toLocaleString() + ' characters';
   function promptBox(it) {
     if (!it.move) return '';
@@ -2419,7 +2420,7 @@
       if (r.error) throw new Error(r.error);
       // a server from before 2026-11-19 drops `kind` and files it as a video to generate: take it back off
       if (r.status !== 'describe') { await api('/api/animate/cancel', { id }).catch(() => {}); toast('The local server is an older copy. Restart it (python3 tools/video-dev/serve.py), then try again.'); return; }
-      mark(); c.descJob = id; delete c.descErr; promptOpen = true;
+      mark(); c.descJob = id; delete c.descErr; promptOpen = moreOpen = true;
       JOBS.push({ id, kind: 'describe', status: 'describe', name: media[c.mid].name, move: mv[1], duration: c.genDur || 5, photo: id + '.jpg', at: Math.floor(Date.now() / 1000) });
       renderAll(); animWatch(); toast('Run /animate-photos in Claude: it reads the photo and writes the prompt back here.');
     } catch (e) { toast('Could not reach the local server\'s animate queue (' + e.message + ').'); }
@@ -2520,7 +2521,7 @@
       const j = JOBS.find(x => x.id === c.descJob);
       if (!j) { delete c.descJob; changed = true; continue; }                // taken off the queue elsewhere
       if (j.status === 'described' && j.prompt) {
-        Object.assign(c, { genPrompt: j.prompt, genPromptBy: 'claude', genPromptFor: j.sig || promptSig(c) }); delete c.descJob; delete c.descErr; changed = true; promptOpen = true;
+        Object.assign(c, { genPrompt: j.prompt, genPromptBy: 'claude', genPromptFor: j.sig || promptSig(c) }); delete c.descJob; delete c.descErr; changed = true; promptOpen = moreOpen = true;
         api('/api/animate/cancel', { id: j.id }).catch(() => {}); toast('Claude wrote the prompt from the photo.');
       } else if (j.status === 'failed') {
         c.descErr = j.error || 'no reason was given'; delete c.descJob; changed = true; api('/api/animate/cancel', { id: j.id }).catch(() => {});
@@ -2782,7 +2783,7 @@
     scriptFill(true);
     sel = null; T = 0; partnerLoad(); rtab = 'doc'; selKey = ''; renderAll(); save();
     const mv = P.clips.filter(c => c.move).length;
-    toast(S.scenes.length + ' scenes on the timeline' + (mv ? ', ' + mv + ' camera moves chosen (not queued)' : '') + '. What is still needed is under Whole video.');
+    toast(S.scenes.length + ' scenes on the timeline' + (mv ? ', ' + mv + ' camera moves chosen (not queued)' : '') + '. What is still needed is under Brand.');
   }
   // the voiceover and music forms take the script's words, unless something is typed there already
   function scriptFill(force) {
@@ -2903,7 +2904,8 @@
     const g = G(), nm = g.name.split(' '), has = total() > 0;
     $('#szName').textContent = nm[0]; $('#szRatio').textContent = nm[1] || ''; $('#szMeta').textContent = g.w + ' × ' + g.h + (has ? ' · ' + fmt(total()) : '');
     $('#empty').style.display = has ? 'none' : '';
-    $('#exportBtn').disabled = $('#sendBtn').disabled = $('#frameBtn').disabled = $('#previewBtn2').disabled = !has;
+    $('#exportBtn').disabled = $('#sendBtn').disabled = $('#frameBtn').disabled = $('#previewBtn2').disabled = $('#outBtn').disabled = !has;
+    { const fn = $('#fileName'), nmv = P.name || (P.cas && P.cas.title) || '', fb = $('#fileBtn'); if (fn.firstChild == null || fn.dataset.v !== nmv) { fn.dataset.v = nmv; fn.textContent = nmv || 'Untitled video'; } if (nmv) delete fb.dataset.none; else fb.dataset.none = '1'; }
     { const l = $('#sendBtn').querySelector('.vs-l2'), want = P.casBg ? 'Send back to CAS' : 'Send to CAS'; if (l && l.textContent !== want) l.textContent = want;
       $('#sendBtn').title = P.casBg ? 'Records this video at 9:16 and places it behind the design in CAS' + (P.casBg.name ? ' (' + P.casBg.name + ')' : '') : ''; }
     $('#undoBtn').disabled = !undo.length; $('#redoBtn').disabled = !redo.length;
@@ -2915,7 +2917,7 @@
   $('#undoBtn').innerHTML = ico('undo'); $('#redoBtn').innerHTML = ico('redo'); $('#splitBtn').innerHTML = ico('content_cut');
   $('#dupBtn').innerHTML = ico('content_copy'); $('#delBtn').innerHTML = ico('delete'); $('#homeBtn').innerHTML = ico('skip_previous');
   $('#safeBtn').innerHTML = ico('smartphone') + 'Safe zones';
-  $('#newBtn').innerHTML = sico('add_box'); $('#scriptBtn').innerHTML = sico('script'); $('#keysBtn').innerHTML = sico('keyboard'); $('#emptyUp').innerHTML = ico('upload') + 'Upload video or photos';
+  $('#newBtn').innerHTML = sico('add_box') + 'Start a new video'; $('#scriptBtn').innerHTML = sico('script') + 'Start from a video script'; $('#keysBtn').innerHTML = sico('keyboard'); $('#emptyUp').innerHTML = ico('upload') + 'Upload video or photos';
   $('#emptyUp').addEventListener('click', () => pickFiles('media'));
   // one small dialog for the questions the studio asks (the kit's card; Esc cancels). With `value`
   // it carries a field and answers with the text; without, it answers true. Cancelled, null.
@@ -2935,7 +2937,7 @@
   // CASV opens this page with #new=<ad set name>: the same question, and the name is what Send to
   // CAS suggests (P.name). A new video has no P.cas, so its Send to CAS is a new outbox video.
   const PREV = 'provident-video-project-prev';
-  const prevOn = () => { let ok = false; try { ok = !!localStorage.getItem(PREV); } catch (e) {} $('#prevBtn').hidden = !ok; };
+  const prevOn = () => { let ok = false; try { ok = !!localStorage.getItem(PREV); } catch (e) {} $('#prevBtn').hidden = $('#prevBtn2').hidden = !ok; };
   async function startNew(name, from, quiet) {
     if (total() && !quiet && !(await ask(from ? 'Start a new video for ' + from + '?' : 'Start a new video?',
       'The timeline is cleared for a new video. This one is kept: Reopen the last video brings it back' + (P.cas ? '' : ' — it has not been sent to CAS') + '. Everything you uploaded stays in the library.', 'Start new'))) return false;
@@ -2944,7 +2946,7 @@
     return true;
   }
   $('#newBtn').addEventListener('click', () => startNew());
-  $('#openBtn').innerHTML = sico('folder'); $('#openBtn').addEventListener('click', () => projIn.click()); $('#emptyOpen').addEventListener('click', () => projIn.click());
+  $('#openBtn').innerHTML = sico('folder') + 'Open a project file<s>.casv</s>'; $('#prevBtn2').innerHTML = ico('undo') + 'Reopen the last video'; $('#prevBtn2').addEventListener('click', () => $('#prevBtn').click()); $('#openBtn').addEventListener('click', () => projIn.click()); $('#emptyOpen').addEventListener('click', () => projIn.click());
   $('#scriptBtn').addEventListener('click', () => pickFiles('script')); $('#emptyScript').addEventListener('click', () => pickFiles('script'));
   scriptFill(false);
   $('#prevBtn').addEventListener('click', async () => {
@@ -2979,6 +2981,27 @@
     if (open) { pop.style.left = Math.max(12, Math.min(innerWidth - pop.offsetWidth - 12, r.right - pop.offsetWidth)) + 'px'; pop.style.top = Math.max(12, r.top - pop.offsetHeight - 8) + 'px'; }
   };
   $('#keys').addEventListener('toggle', popAt($('#keys'), $('#keysBtn')));
+  // THE TOP BAR'S TWO MENUS (2026-11-19 redesign): the video's name opens what used to be three
+  // unlabelled icons and the theme switch; Export holds the video and the single frame. The old
+  // buttons keep their ids, so their handlers are untouched; a click on a row closes its menu.
+  const popUnder = (pop, btn, left) => e => {
+    const open = e.newState === 'open', r = btn.getBoundingClientRect();
+    btn.setAttribute('aria-expanded', open);
+    if (open) { pop.style.left = Math.max(12, Math.min(innerWidth - pop.offsetWidth - 12, left ? r.left : r.right - pop.offsetWidth)) + 'px'; pop.style.top = (r.bottom + 8) + 'px'; }
+  };
+  $('#fileBtn').insertAdjacentHTML('beforeend', CHEV);
+  $('#filePop').addEventListener('toggle', e => { if (e.newState === 'open') $('#nameIn').value = P.name || (P.cas && P.cas.title) || ''; popUnder($('#filePop'), $('#fileBtn'), true)(e); });
+  $('#outPop').addEventListener('toggle', popUnder($('#outPop'), $('#outBtn')));
+  [$('#filePop'), $('#outPop')].forEach(p => p.addEventListener('click', e => { if (e.target.closest('.vs-mi')) p.hidePopover(); }));
+  $('#nameIn').addEventListener('input', e => { P.name = e.target.value.slice(0, 60); if (!P.name) delete P.name; const fn = $('#fileName'); fn.dataset.v = P.name || ''; fn.textContent = P.name || 'Untitled video'; if (P.name) delete $('#fileBtn').dataset.none; else $('#fileBtn').dataset.none = '1'; save(); });
+  $('#nameIn').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#filePop').hidePopover(); } e.stopPropagation(); });
+  // shortcuts from the right rail's empty state and the Audio tab into the other rail
+  document.addEventListener('click', e => {
+    let el;
+    if ((el = e.target.closest('[data-ltab]'))) { const b = document.querySelector('[data-tab="' + el.dataset.ltab + '"]'); if (b) b.click(); }
+    else if ((el = e.target.closest('[data-go2]'))) { rtab = el.dataset.go2; renderInspector(); }
+    else if ((el = e.target.closest('[data-mk]'))) { gtab = el.dataset.mk; rtab = 'gen'; document.body.dataset.pane = 'edit'; paintPane(); renderInspector(); }
+  });
   $('#mkBtn').innerHTML = sico('flag') + 'Markers';
   $('#mkPop').addEventListener('toggle', e => { if (e.newState === 'open') mkPaint(); popAt($('#mkPop'), $('#mkBtn'))(e); });
   $('#mkPop').addEventListener('click', e => {
@@ -2991,8 +3014,8 @@
   paintPane();
   $('#safeBtn').addEventListener('click', () => { showSafe = !showSafe; $('#safeBtn').setAttribute('aria-pressed', showSafe); if (showSafe) guideShow(); else guideHide(); });
   $('#zoIc').innerHTML = ico('zoom_out'); $('#ziIc').innerHTML = ico('zoom_in');
-  $('#frameBtn').innerHTML = ico('photo_camera') + '<span class="vs-l">Save frame</span>'; $('#exportBtn').innerHTML = ico('download') + '<span class="vs-l2">Export video</span>';
-  function paintTheme() { const light = document.documentElement.dataset.theme === 'light'; $('#themeBtn').innerHTML = ico(light ? 'dark_mode' : 'light_mode'); }
+  $('#frameBtn').innerHTML = ico('photo_camera') + 'Save this frame<s>PNG</s>'; $('#exportBtn').innerHTML = ico('download') + 'Export the video<s>MP4</s>'; $('#outBtn').innerHTML = ico('download') + '<span class="vs-l2">Export</span>' + CHEV;
+  function paintTheme() { const light = document.documentElement.dataset.theme === 'light'; $('#themeBtn').innerHTML = ico(light ? 'dark_mode' : 'light_mode') + (light ? 'Switch to the dark theme' : 'Switch to the light theme'); }
   if (localStorage.getItem(TKEY) === 'light') document.documentElement.dataset.theme = 'light';
   $('#themeBtn').addEventListener('click', () => {
     const r = document.documentElement; if (r.dataset.theme === 'light') delete r.dataset.theme; else r.dataset.theme = 'light';

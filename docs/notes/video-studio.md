@@ -805,3 +805,26 @@ only came back through CAS's Open in Video Studio (the inbox).
   replaced and PREV written. Not run: a real drop, a file carrying media, the empty-card link, a
   bot-made file (nothing in the bot bridge writes a `.casv` yet — a direct hand-over tool is a
   separate step, on `main`).
+
+## Redesign for clarity: named video, two menus, Selected · Brand · Queue (2026-11-19, by request)
+
+The user: "with all these new feature built the UX is so confusing". Plan shown first, then built.
+
+- **Top bar.** `#fileBtn` shows the video's name (`P.name`, else `P.cas.title`, else "Untitled
+  video") and opens `#filePop`: rename (`#nameIn`, writes `P.name`), Start a new video, Open a
+  project file, Start from a video script, Reopen the last video (`#prevBtn2` clicks `#prevBtn`),
+  the theme switch. `#outBtn` (Export) opens `#outPop`: Export the video, Save this frame. **The
+  old buttons keep their ids and handlers; they only moved into the menus** as `.vs-mi` rows.
+  `popUnder` places a menu under its button (`popAt` places above, for the timeline's popovers).
+- **Right rail tabs** read Selected · Brand · Queue (`rtab` values unchanged: sel / doc / gen).
+  Brand is the old Whole video; Queue is the old Generate, still tabbed Animate / Voiceover / Music.
+- **Nothing selected** offers Add footage / Add text / Add a graphic (`data-ltab` clicks the left
+  tab) and Logos and QR code (`data-go2`).
+- **Audio tab** has Voiceover and Music under "Or make one" (`data-mk` → `gtab`, `rtab = 'gen'`).
+- **Animate** shows the camera move, length and one Generate button; model, quality, extra
+  direction, people, the prompt and "Add it to the queue for Claude instead" are under More options
+  (`details[data-acc=more]`, `moreOpen`; opened when Claude is asked to write the prompt).
+- Verified on :8797 with real clicks: both menus, the tabs, the empty state, the Audio shortcuts,
+  the folded Animate (1374 → 1083 px), the top bar at 1327 and 1280 (no overflow, no overlap).
+  Not run: the light theme, phones, renaming by typing, an export from the new menu, the help
+  page's CASV frames (they show the old top bar and tab names).

@@ -467,7 +467,26 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 .vs-go .vs-link{margin-top:4px;text-align:left}
 .p-top .vs-tq{flex:none;gap:8px}
 .p-top #histGrp{margin-right:6px}
-.p-top #frameBtn{margin-right:6px}
+.p-top #outBtn{gap:8px}
+.p-top #outBtn .vs-chev,.vs-file .vs-chev{width:14px;height:14px;flex:none;opacity:.7}
+.p-top .vs-file{max-width:280px;min-width:0;padding:0 10px 0 12px;gap:6px;font-weight:600}
+.vs-file > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs-file[data-none] > span{font-weight:400;color:var(--ps-ink-2)}
+.vs-pop.vs-menu{width:272px;padding:8px}
+.vs-menu hr{border:0;border-top:1px solid var(--ps-hair);margin:6px 4px}
+.vs-mname{display:flex;flex-direction:column;gap:6px;padding:6px 6px 4px}
+.vs-mname label{font:500 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.vs-mi{display:flex;align-items:center;gap:10px;width:100%;min-height:38px;box-sizing:border-box;padding:0 10px;border:0;border-radius:10px;background:none;color:var(--ps-ink);font:400 13px/1.2 var(--ps-font);text-align:left;cursor:pointer}
+.vs-mi:hover:not(:disabled){background:var(--ps-fill)}
+.vs-mi:disabled{color:var(--ps-dim);cursor:default}
+.vs-mi[hidden]{display:none}
+.vs-mi s{margin-left:auto;text-decoration:none;font:400 11.5px/1 var(--ps-font);color:var(--ps-dim)}
+.vs-qa{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.vs-qa .p-ghost{box-shadow:inset 0 0 0 1px var(--ps-line);background:transparent}
+.vs-qa .p-ghost:hover{background:var(--ps-card)}
+.vs-mkl{display:block;margin-top:12px;font:500 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2)}
+.vs-mk2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.vs-mk2 > button{justify-content:center;min-width:0;padding:0 8px}
 .vs-rail.r .vs-cap{position:sticky;top:52px;z-index:1;background:var(--ps-sb);padding-top:2px;padding-bottom:10px;border-bottom:1px solid var(--ps-hair)}
 .vs-rail.r .vs-cap + .vs-sec{border-top:0}
 .vs-foot{position:sticky;bottom:0;z-index:1;margin-top:auto;background:var(--ps-sb);padding-top:12px;padding-bottom:12px;border-top:1px solid var(--ps-hair)}
@@ -556,8 +575,9 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   .p-top > #histGrp{order:3}
   .p-top > .vs-brk{display:block;order:4;flex-basis:100%;height:0}
   .p-top > #previewBtn2{margin-left:auto}
-  .p-top #exportBtn .vs-l2{display:none}
-  .p-top #exportBtn{width:36px;padding:0;justify-content:center}
+  .p-top #outBtn .vs-l2,.p-top #outBtn .vs-chev{display:none}
+  .p-top #outBtn{width:36px;padding:0;justify-content:center}
+  .p-top .vs-file{max-width:150px}
   .vs-body{display:contents}
   .vs-stage{order:1;height:58dvh;min-height:340px;flex:none}
   .vs-bar{order:2;grid-template-columns:auto 1fr auto;padding:0 12px;gap:8px}
@@ -615,25 +635,19 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 <path class="p-wm-d" d="M357.14,67.05c2.21,0,3.99-1.79,3.99-3.99s-1.79-3.99-3.99-3.99-3.99,1.79-3.99,3.99,1.79,3.99,3.99,3.99Z"/>
 </svg></a>
   <span class="vs-tag">CASV · prototype</span>
-  <div class="p-tgrp">
-    <button class="p-ghost p-ico-t" id="newBtn" title="Start a new video" aria-label="Start a new video"></button>
-    <button class="p-ghost p-ico-t" id="openBtn" title="Open a project file (.casv)" aria-label="Open a project file"></button>
-    <button class="p-ghost p-ico-t" id="scriptBtn" title="Start from a video script: choose the script (.md) and its brochure PDF" aria-label="Start from a video script"></button>
-  </div>
+  <button class="p-ghost vs-tq vs-file" id="fileBtn" popovertarget="filePop" aria-expanded="false" title="This video: rename it, start a new one or open another"><span id="fileName"></span></button>
   <div class="p-seg" id="sizeSeg" role="radiogroup" aria-label="Video size">
     <button data-size="9x16" role="radio"><span class="vs-l">Reel </span>9:16</button>
     <button data-size="1x1" role="radio"><span class="vs-l">Square </span>1:1</button>
   </div>
   <span class="vs-sp"></span>
   <i class="vs-brk"></i>
-  <button class="p-ghost p-ico-o vs-tq" id="themeBtn" title="Switch theme" aria-label="Switch theme"></button>
   <div class="p-tgrp" id="histGrp">
     <button class="p-ghost p-ico-t" id="undoBtn" title="Undo (⌘Z)" aria-label="Undo"></button>
     <button class="p-ghost p-ico-t" id="redoBtn" title="Redo (⇧⌘Z)" aria-label="Redo"></button>
   </div>
   <button class="p-ghost p-ico-t vs-tq" id="previewBtn2" title="See the video inside Facebook and Instagram" aria-label="Preview"></button>
-  <button class="p-ghost p-ico-t vs-tq" id="frameBtn" title="Save the current frame as a PNG" aria-label="Save frame"></button>
-  <button class="p-ghost p-ico-t" id="exportBtn" title="Record the video and save it to Downloads"></button>
+  <button class="p-ghost p-ico-t" id="outBtn" popovertarget="outPop" aria-expanded="false" title="Save the video or a single frame to Downloads"></button>
   <button class="p-btn p-ico-t" id="sendBtn" title="Record both sizes and hand them to CAS for the ad set"></button>
 </header>
 
@@ -667,7 +681,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   <i class="vs-rzx" id="libRz" role="separator" aria-orientation="vertical" aria-label="Library width" tabindex="0" title="Drag to make the library wider or narrower. Double-click to put it back."></i>
   <aside class="vs-rail r" aria-label="Settings">
     <div class="vs-rh"><div class="vs-seg" id="rtabs" role="tablist" aria-label="What to edit">
-      <button data-rtab="sel" role="tab">Selected</button><button data-rtab="doc" role="tab">Whole video</button><button data-rtab="gen" role="tab">Generate</button>
+      <button data-rtab="sel" role="tab">Selected</button><button data-rtab="doc" role="tab">Brand</button><button data-rtab="gen" role="tab">Queue</button>
     </div></div>
     <div id="insp"></div>
     <div id="gen" hidden></div>
@@ -705,6 +719,20 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 <div class="vs-tl" id="tl"><div class="vs-tl-in" id="tlin"></div></div>
 
 <div class="vs-pop vs-pop-mk" id="mkPop" popover></div>
+<div class="vs-pop vs-menu" id="filePop" popover>
+  <div class="vs-mname"><label for="nameIn">Name of this video</label><input class="p-in" id="nameIn" maxlength="60" placeholder="Untitled video" autocomplete="off" spellcheck="false"></div>
+  <hr>
+  <button class="vs-mi" id="newBtn"></button>
+  <button class="vs-mi" id="openBtn"></button>
+  <button class="vs-mi" id="scriptBtn" title="Choose the script (.md) and its brochure PDF"></button>
+  <button class="vs-mi" id="prevBtn2" hidden></button>
+  <hr>
+  <button class="vs-mi" id="themeBtn"></button>
+</div>
+<div class="vs-pop vs-menu" id="outPop" popover>
+  <button class="vs-mi" id="exportBtn" title="Record the video and save it to Downloads"></button>
+  <button class="vs-mi" id="frameBtn" title="Save the current frame as a PNG"></button>
+</div>
 <div class="vs-pop" id="keys" popover>
   <b>Shortcuts</b>
   <dl>
