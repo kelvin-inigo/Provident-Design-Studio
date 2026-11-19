@@ -895,5 +895,8 @@ Text is stored plain (`**` is the only markup), never HTML-escaped.
 - That copy is not signed in by itself (checked 2026-11-19: `auth status` loggedIn false). One-time:
   `python3 tools/video-dev/serve.py --claude-login` (runs `claude auth login`). Until then the clip
   reads "Claude is not signed in on this computer…" with that command.
-- Tested: the button, the writing state, the not-signed-in message, all from a real click. A
-  successful headless write is not tested yet (needs the sign-in).
+- Tested: the button, the writing state, the not-signed-in message, all from a real click. After
+  the sign-in (team plan): the couple test photo came back in 15 s (2,405 characters), and the
+  button on The Wilds p19 in 24 s (2,429), both describing the photo, all 14 headings, the move
+  phrase verbatim. The first try ran 2,625 characters, so the rules now aim for about 2,200 and an
+  over-cap prompt gets one text-only tightening pass (`step: shortening`) before it is refused.

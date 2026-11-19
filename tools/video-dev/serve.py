@@ -68,7 +68,7 @@ CASV_RULES = """These CASV rules override the framework:
 - People in it: {people}. If "no", PERFORMANCE reads "No people in frame; none appear."
 - AUDIO is always: "Natural sound of the environment in each scene, every interaction with the environment, accurate sound details." followed by the ambience you would pick.
 - POSITIVE LOCKS always ends: "No new people, objects, text or logos appear."
-- 2,500 characters at most for the whole prompt, all 14 headings in order."""
+- 2,500 characters is Higgsfield's hard cap: aim for about 2,200 for the whole prompt, all 14 headings in order. Keep each section to one or two tight sentences."""
 DESC_SCHEMA = {'type': 'object', 'required': ['prompt', 'sheet', 'words'], 'additionalProperties': False,
                'properties': {'prompt': {'type': 'string'}, 'sheet': {'type': 'string'}, 'words': {'type': 'string'}}}
 
@@ -102,18 +102,33 @@ def desc_run(jp):
                                    aspect=job.get('aspect') or '9:16', note=job.get('note') or '', people='yes' if job.get('people') else 'no')
                + '\n\nAnswer with the JSON only: "prompt" the finished prompt, "sheet" Pass 1 in short, "words" Pass 2.'
                + '\n\n--- THE SKILL ---\n' + skill)
-        r = subprocess.run([cb, '-p', ask, '--model', 'sonnet', '--output-format', 'json', '--json-schema', json.dumps(DESC_SCHEMA),
-                            '--allowedTools', 'Read', '--add-dir', QUEUE],
-                           capture_output=True, text=True, timeout=420, cwd=os.path.expanduser('~'), env=claude_env())
-        out = (r.stdout or '') + (r.stderr or '')
-        if 'Not logged in' in out or 'Please run /login' in out:
-            return save(status='failed', error=CLAUDE_LOGIN)
+        def run(q, tools):
+            r = subprocess.run([cb, '-p', q, '--model', 'sonnet', '--output-format', 'json', '--json-schema', json.dumps(DESC_SCHEMA)] + tools,
+                               capture_output=True, text=True, timeout=420, cwd=os.path.expanduser('~'), env=claude_env())
+            out = (r.stdout or '') + (r.stderr or '')
+            if 'Not logged in' in out or 'Please run /login' in out:
+                raise LookupError(CLAUDE_LOGIN)
+            try:
+                res = json.loads(r.stdout)
+                return res.get('structured_output') or json.loads(re.search(r'\{.*\}', res.get('result') or '', re.S).group(0))
+            except Exception:
+                raise LookupError('Claude gave no prompt back. ' + out.strip()[-240:])
         try:
-            res = json.loads(r.stdout)
-            w = res.get('structured_output') or json.loads(re.search(r'\{.*\}', res.get('result') or '', re.S).group(0))
-        except Exception:
-            return save(status='failed', error='Claude gave no prompt back. ' + out.strip()[-240:])
-        text = str(w.get('prompt') or '').strip()
+            w = run(ask, ['--allowedTools', 'Read', '--add-dir', QUEUE])
+            text = str(w.get('prompt') or '').strip()
+            # over the cap: one more pass that only tightens the words (no photo, so it is quick)
+            if len(text) > 2500:
+                save(step='shortening')
+                w2 = run('This Higgsfield prompt is %d characters; the cap is 2,500. Rewrite it to about 2,200 characters: keep all 14 headings '
+                         'in the same order, every fact, the CAMERA line\'s first sentence word for word, the AUDIO sentence and the last POSITIVE LOCKS '
+                         'sentence word for word; cut repetition and filler. Answer with the JSON only: "prompt" the shortened prompt, "sheet" and "words" '
+                         'copied from below.\n\nsheet: %s\nwords: %s\n\n--- THE PROMPT ---\n%s' % (len(text), w.get('sheet') or '', w.get('words') or '', text),
+                         [])
+                if len(str(w2.get('prompt') or '').strip()) <= 2500:
+                    w = w2
+                text = str(w.get('prompt') or '').strip()
+        except LookupError as e:
+            return save(status='failed', error=str(e))
         if len(text) > 2500:
             return save(status='failed', error='Claude wrote %d characters; Higgsfield takes 2,500. Press the button again.' % len(text))
         if 'SCENE CONTEXT' not in text or 'POSITIVE LOCKS' not in text:
