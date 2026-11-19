@@ -3359,7 +3359,9 @@
     } catch (e) {}
     const noPic = s.variants.map((v, vi) => vi).filter(vi => !has('adstudio-bg-' + vi));
     if (noPic.length) out.push(noPic.length === s.variants.length && s.variants.length === 1 ? 'no background photo' : 'no background photo on ' + noPic.map(lab).join(', '));
-    if (s.qr && s.qr.show && !has('adstudio-qr')) out.push('the QR code is switched on but none has been added');
+    // ADM & CN in place of the QR (CAS, 2026-11-18): the permit is what can be missing then
+    if (s.qr && s.qr.show && s.qr.mode === 'adm') { if (!String(s.qr.adm || '').replace(/\D/g, '')) out.push('ADM & CN is chosen but the ADM permit number is empty'); }
+    else if (s.qr && s.qr.show && !has('adstudio-qr')) out.push('the QR code is switched on but none has been added');
     try {
       const max = C.COVER_MAX || 40, over = [], names = { sq: '1:1', pt: '3:4', st: '9:16' };
       (this.renderVals().variantViews || []).forEach((vv, vi) => ['sq', 'pt', 'st'].forEach(k => {

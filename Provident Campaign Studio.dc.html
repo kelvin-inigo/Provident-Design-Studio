@@ -5523,6 +5523,11 @@ button.dk-row:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
 .dk-lgw .dk-logos{margin:0}
 .dk-lgw[data-open] .dk-logos{max-height:194px;overflow-y:auto;padding:6px 6px 6px 0;margin-right:-6px;scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent;overscroll-behavior:contain}
 .dk-lgw[data-open] .dk-lg-x{top:-3px;right:-3px}
+/* ADM & CN, in place of the QR: the permit field takes the segment's width; CN is fixed text */
+.dk-adm .dk-adm-in{width:196px;flex:none;height:36px;padding:0 12px;border:0;border-radius:8px;background:var(--ps-fill);color:var(--ps-ink);font:400 13px/1 var(--ps-font);font-variant-numeric:tabular-nums;outline:0}
+.dk-adm .dk-adm-in:focus{box-shadow:0 0 0 2px var(--ps-ink)}
+.dk-adm .dk-adm-in::placeholder{color:var(--ps-dim)}
+.dk-cn{width:196px;flex:none;padding:0 12px;box-sizing:border-box;font:400 13px/1 var(--ps-font);font-variant-numeric:tabular-nums;color:var(--ps-ink-2)}
 .dk-lg-q{display:flex;align-items:center;gap:8px;height:36px;margin:0 0 8px;padding:0 12px;border-radius:8px;background:var(--ps-fill);color:var(--ps-dim);box-sizing:border-box}
 .dk-lg-q:focus-within{box-shadow:0 0 0 2px var(--ps-ink)}
 .dk-lg-q svg{width:18px;height:18px;flex:none;fill:currentColor}
@@ -6483,11 +6488,18 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   </sc-if>
   <div class="dk-row"><span class="lm-l"><span class="tip tip-dark dk-tl" data-tip="{{ fontTip }}">Typeface</span><s>{{ fontLabel }}</s></span><div class="lm-seg dk-seg" role="radiogroup" aria-label="Typeface"><button onClick="{{ fontLatin }}" data-on="{{ fontLatinOn }}" role="radio" title="Google Sans Flex — Latin"><span class="dk-gl">Aa</span>English</button><button onClick="{{ fontArabic }}" data-on="{{ fontArabicOn }}" role="radio" title="Readex Pro — carries Arabic as well as Latin"><span class="dk-gl dk-ar">ع</span>Arabic</button></div></div>
   <div class="dk-blk" data-on="{{ qrVisibleOn }}">
-    <button onClick="{{ qrToggle }}" class="dk-row dk-sw" role="switch" aria-checked="{{ qrAria }}" data-on="{{ qrVisibleOn }}"><span class="lm-l">QR code<s>{{ dkQrSub }}</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
+    <button onClick="{{ qrToggle }}" class="dk-row dk-sw" role="switch" aria-checked="{{ qrAria }}" data-on="{{ qrVisibleOn }}"><span class="lm-l">{{ qrBlkLabel }}<s>{{ dkQrSub }}</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
     <sc-if value="{{ qrShowFlag }}" hint-placeholder-val="{{ true }}">
     <div class="dk-body">
+      <div class="dk-row dk-sub"><span class="lm-l">Print</span><div class="lm-seg dk-seg" role="radiogroup" aria-label="Print in the corner"><button onClick="{{ qrModeQr }}" data-on="{{ qrModeQrOn }}" role="radio" title="The project's QR code">QR code</button><button onClick="{{ qrModeAdm }}" data-on="{{ qrModeAdmOn }}" role="radio" title="The ADM permit and CN number, in place of the QR code">ADM &amp; CN</button></div></div>
+      <sc-if value="{{ qrModeQrFlag }}" hint-placeholder-val="{{ true }}">
       <div class="p-droprow dk-drop" title="{{ qrOneCode }}"><div class="p-drop p-drop-sq" data-done="{{ qrDoneOn }}"><image-slot id="adstudio-qr" shape="rounded" radius="8" placeholder="QR" data-nohint style="{{ qrSlotStyle }}"></image-slot><svg class="dk-ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><path d="M14 14h2v2h-2zM18 14h2M14 18h2M18 18h2v2"/></svg></div><div class="up-acts"><button data-up="replace" class="up-a" title="Choose a file from this computer"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M252.31-180Q222-180 201-201q-21-21-21-51.31v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h455.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-78.46q0-12.77 8.62-21.38 8.61-8.62 21.38-8.62t21.38 8.62q8.62 8.61 8.62 21.38v78.46Q780-222 759-201q-21 21-51.31 21H252.31ZM450-664.46l-76.92 76.92q-8.93 8.92-21.19 8.81-12.27-.12-21.58-9.43-8.69-9.3-9-21.07-.31-11.77 9-21.08l124.38-124.38q5.62-5.62 11.85-7.92 6.23-2.31 13.46-2.31t13.46 2.31q6.23 2.3 11.85 7.92l124.38 124.38q8.92 8.92 8.81 20.89-.12 11.96-8.81 21.26-9.31 9.31-21.38 9.62-12.08.31-21.39-9L510-664.46v306q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62t-21.38-8.62q-8.62-8.61-8.62-21.38v-306Z"/></svg><span class="up-new">Upload</span><span class="up-rep">Replace</span></button><button onClick="{{ qrRemove }}" class="up-a up-done up-rm" title="Remove this picture"><svg class="up-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="M292.31-140q-29.83 0-51.07-21.24Q220-182.48 220-212.31V-720h-10q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q197.25-780 210-780h150q0-14.69 10.35-25.04 10.34-10.34 25.03-10.34h169.24q14.69 0 25.03 10.34Q600-794.69 600-780h150q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q762.75-720 750-720h-10v507.69q0 29.83-21.24 51.07Q697.52-140 667.69-140H292.31ZM680-720H280v507.69q0 5.39 3.46 8.85t8.85 3.46h375.38q5.39 0 8.85-3.46t3.46-8.85V-720ZM427.54-288.62q8.61-8.63 8.61-21.38v-300q0-12.75-8.63-21.38-8.62-8.62-21.38-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.62 21.38 8.63 8.62 21.39 8.62 12.75 0 21.37-8.62Zm147.69 0q8.61-8.63 8.61-21.38v-300q0-12.75-8.62-21.38-8.63-8.62-21.39-8.62-12.75 0-21.37 8.62-8.61 8.63-8.61 21.38v300q0 12.75 8.63 21.38 8.62 8.62 21.38 8.62 12.75 0 21.37-8.62ZM280-720v520-520Z"/></svg>Remove</button></div></div>
       <sc-if value="{{ qrInfoOn }}" hint-placeholder-val="{{ false }}"><div class="dk-qrl" data-bad="{{ qrInfoBad }}"><p title="{{ qrInfoTip }}"><s>{{ qrInfoK }}</s><b>{{ qrInfo }}</b></p><sc-if value="{{ qrLinkOn }}" hint-placeholder-val="{{ false }}"><a class="dk-qrgo" href="{{ qrLinkHref }}" target="_blank" rel="noopener" title="{{ qrLinkTip }}"><svg class="dk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h227.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.39 8.62h-227.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-227.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v227.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.38-367.23q-8.3 8.31-20.88 8.5-12.58.19-21.27-8.5-8.69-8.69-8.69-21.08 0-12.38 8.69-21.07L718.15-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.85q15.46 0 25.81 10.34Q820-799.31 820-783.85V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg>Open link</a></sc-if></div></sc-if>
+      </sc-if>
+      <sc-if value="{{ qrModeAdmFlag }}" hint-placeholder-val="{{ false }}">
+      <label class="dk-row dk-sub dk-adm" title="{{ admHint }}"><span class="lm-l">ADM</span><input class="p-in dk-adm-in" value="{{ admVal }}" onInput="{{ admSet }}" inputmode="numeric" placeholder="Permit number" aria-label="ADM permit number" spellcheck="false" autocomplete="off"></label>
+      <div class="dk-row dk-sub"><span class="lm-l">CN</span><span class="dk-cn">{{ cnNo }}</span></div>
+      </sc-if>
       <div class="dk-row dk-sub"><span class="lm-l">Corner</span><div class="lm-seg dk-seg" role="radiogroup" aria-label="Corner"><button onClick="{{ qrLeft }}" data-on="{{ qrLeftOn }}" role="radio"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="6.5" y="13.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Left</button><button onClick="{{ qrRight }}" data-on="{{ qrRightOn }}" role="radio"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="13.5" y="13.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Right</button><button onClick="{{ qrTop }}" data-on="{{ qrTopOn }}" role="radio" title="Top right, in the wordmark's row"><svg class="dk-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="2"/><rect x="13.5" y="6.5" width="4" height="4" fill="currentColor" stroke="none"/></svg>Top</button></div></div>
     </div>
     </sc-if>
@@ -6620,7 +6632,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.sq.fgStyle }}"><div style="{{ v.sq.fgTintStyle }}"></div></div></div></sc-if>
-        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.sq.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.sq.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if><sc-if value="{{ admShow }}" hint-placeholder-val="{{ false }}"><div style="{{ v.sq.admBoxStyle }}"><sc-for list="{{ v.sq.admEls }}" as="ae" hint-placeholder-count="0"><div style="{{ ae.style }}">{{ ae.t }}</div></sc-for></div></sc-if>
       </div>
       <span class="p-meta">{{ v.sqMeta }} · <span class="p-cov tip" data-over="{{ v.sq.coverOver }}" data-tip="{{ v.sq.coverTip }}"><i><b style="{{ v.sq.coverBar }}"></b></i>{{ v.sq.coverLabel }}</span></span>
       <div class="p-szh" data-off="{{ v.ptOff }}"><b>Portrait</b><i>3:4</i><span class="p-szx"><sc-if value="{{ v.ptShow }}" hint-placeholder-val="{{ false }}"><button class="p-szb" data-on="{{ v.ptOvOn }}" onClick="{{ v.togglePtOv }}" title="{{ v.ptLinkTip }}" aria-label="{{ v.ptLinkTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M281.54-298.46q-75.34 0-128.44-53.1Q100-404.65 100-479.98q0-75.33 53.1-128.44 53.1-53.12 128.44-53.12h120.77q12.75 0 21.37 8.63 8.63 8.63 8.63 21.39 0 12.75-8.63 21.37-8.62 8.61-21.37 8.61H281.49q-50.34 0-85.91 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.91 35.58h120.82q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37-8.62 8.62-21.37 8.62H281.54ZM360-450q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37Q347.25-510 360-510h240q12.75 0 21.37 8.63 8.63 8.63 8.63 21.38 0 12.76-8.63 21.37Q612.75-450 600-450H360Zm197.69 151.54q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.39 0-12.75 8.63-21.37 8.62-8.61 21.37-8.61h120.82q50.34 0 85.91-35.58Q800-429.62 800-480q0-50.38-35.58-85.96-35.57-35.58-85.91-35.58H557.69q-12.75 0-21.37-8.63-8.63-8.63-8.63-21.38 0-12.76 8.63-21.37 8.62-8.62 21.37-8.62h120.77q75.34 0 128.44 53.1Q860-555.35 860-480.02q0 75.33-53.1 128.44-53.1 53.12-128.44 53.12H557.69Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M616.92-456.31 563.23-510h36q12.77 0 21.38 8.62 8.62 8.61 8.62 21.38 0 7.69-3.23 13.77-3.23 6.08-9.08 9.92Zm210 365.39q-8.69 8.69-21.07 8.69-12.39 0-21.08-8.69L90.92-784.77q-8.3-8.31-8.5-20.88-.19-12.58 8.5-21.27 8.7-8.7 21.08-8.7 12.38 0 21.08 8.7l693.84 693.84q8.31 8.31 8.5 20.89.2 12.57-8.5 21.27ZM281.54-298.46q-75.31 0-128.42-53.12Q100-404.69 100-480q0-66.69 42.96-117.04 42.96-50.34 107.81-60.8H260l56.31 56.3h-34.77q-50.39 0-85.96 35.58Q160-530.38 160-480q0 50.38 35.58 85.96 35.57 35.58 85.96 35.58h121.54q12.77 0 21.38 8.61 8.62 8.62 8.62 21.39 0 12.77-8.62 21.38-8.61 8.62-21.38 8.62H281.54ZM360.77-450q-12.77 0-21.38-8.62-8.62-8.61-8.62-21.38t8.62-21.38Q348-510 360.77-510h47.69l59 60H360.77Zm372.69 114.31q-6.69-10.54-4.38-22.69 2.3-12.16 13.23-18.47 26.46-16.23 42.07-43.34Q800-447.31 800-480q0-50.38-35.38-85.96-35.39-35.58-85.39-35.58H556.92q-12.77 0-21.38-8.61-8.62-8.62-8.62-21.39 0-12.77 8.62-21.38 8.61-8.62 21.38-8.62h122.31q74.92 0 127.85 53.12Q860-555.31 860-480q0 47.46-23.08 87.65-23.08 40.2-62.31 65.12-10.53 6.69-22.5 4.38-11.96-2.3-18.65-12.84Z"/></svg></button><sc-if value="{{ v.ptAlOn }}" hint-placeholder-val="{{ false }}"><button class="p-szb p-szb-al" data-on="{{ v.ptAlCtr }}" onClick="{{ v.ptAlFlip }}" title="{{ v.ptAlTip }}" aria-label="{{ v.ptAlTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M145.39-100q-12.77 0-21.39-8.62-8.61-8.61-8.61-21.38v-700q0-12.77 8.61-21.38 8.62-8.62 21.39-8.62 12.77 0 21.38 8.62 8.62 8.61 8.62 21.38v700q0 12.77-8.62 21.38-8.61 8.62-21.38 8.62Zm171.92-193.85q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h236.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Zm0-271.54q-20.77 0-35.58-14.8-14.8-14.81-14.8-35.58 0-20.77 14.8-35.58 14.81-14.8 35.58-14.8h476.92q20.77 0 35.58 14.8 14.8 14.81 14.8 35.58 0 20.77-14.8 35.58-14.81 14.8-35.58 14.8H317.31Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M450-130v-163.85H310.39q-20.77 0-35.58-14.8Q260-323.46 260-344.23q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450v-170.78H190.39q-20.77 0-35.58-14.8Q140-595 140-615.77q0-20.77 14.81-35.58 14.81-14.8 35.58-14.8H450V-830q0-12.77 8.62-21.38Q467.23-860 480-860t21.38 8.62Q510-842.77 510-830v163.85h259.61q20.77 0 35.58 14.8Q820-636.54 820-615.77q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510v170.78h139.61q20.77 0 35.58 14.8Q700-365 700-344.23q0 20.77-14.81 35.58-14.81 14.8-35.58 14.8H510V-130q0 12.77-8.62 21.38Q492.77-100 480-100t-21.38-8.62Q450-117.23 450-130Z"/></svg></button></sc-if><button class="p-szb" data-on="{{ v.bgPtOn }}" onClick="{{ v.toggleBgPt }}" title="{{ v.bgPtTip }}" aria-label="{{ v.bgPtTip }}"><svg class="" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h535.38Q778-820 799-799q21 21 21 51.31v535.38Q820-182 799-161q-21 21-51.31 21H212.31Zm0-60h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-535.38q0-4.62-3.85-8.46-3.84-3.85-8.46-3.85H212.31q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85ZM200-200v-560 560Zm106.16-90h350.76q10.85 0 16.08-9.85 5.23-9.84-1.62-19.07L576-446.69q-5.62-7.23-14.46-7.23-8.85 0-14.46 7.23l-97.85 127.46-65.54-84q-5.61-6.85-14.27-6.85-8.65 0-14.27 7.24l-63.07 83.92q-7.23 9.23-2 19.07 5.23 9.85 16.08 9.85Z"/></svg></button></sc-if><button class="p-szb p-szb-eye" data-on="{{ v.ptShowOn }}" onClick="{{ v.togglePtShow }}" title="{{ v.ptEyeTip }}" aria-label="{{ v.ptEyeTip }}"><svg class="i-off" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.08-615.08q24.38 24.39 37.69 59.27 13.31 34.89 10.07 70.04 0 11.54-8.3 19.54-8.31 8-19.85 8-11.54 0-19.54-8t-8-19.54q3.85-26.38-4.34-50-8.19-23.61-25.19-40.61t-41-25.81q-24-8.81-50.62-4.58-11.54.39-19.92-7.73-8.39-8.11-8.77-19.65-.39-11.54 7.42-19.93 7.81-8.38 19.35-8.76 34.92-4 70.19 9.11 35.27 13.12 60.81 38.65ZM480-720q-21.31 0-41.81 2.08-20.5 2.07-40.81 6.84-12.77 2.62-23-3.65t-14.07-18.04q-3.85-12.15 2.54-23.11 6.38-10.96 18.53-13.58 24.16-5.77 48.81-8.15Q454.85-780 480-780q128.92 0 236.85 67 107.92 67 165.99 181.31 4 7.61 5.81 15.34 1.81 7.73 1.81 16.35 0 8.62-1.5 16.35-1.5 7.73-5.5 15.34-18.38 38.46-44.69 71.73t-57.93 61.12q-9.3 8.31-21.26 6.88-11.97-1.42-19.66-11.96-7.69-10.54-6.38-22.61 1.31-12.08 10.61-20.39 27.08-24.54 49.39-53.65Q815.85-466.31 832-500q-50-101-144.5-160.5T480-720Zm0 500q-126.31 0-231.54-67.5Q143.23-355 81.16-465.31q-5-7.61-7.31-16.54-2.31-8.92-2.31-18.15 0-9.23 2-17.85 2-8.61 7-16.84 22.31-40.77 50.54-77.66 28.23-36.88 64.92-66.11l-90.31-90.93q-8.3-8.92-8.19-21.19.12-12.27 8.81-20.96 8.69-8.69 21.08-8.69 12.38 0 21.07 8.69l663.08 663.08q8.31 8.31 8.81 20.57.5 12.27-8.81 21.58-8.69 8.69-21.08 8.69-12.38 0-21.07-8.69L628.62-245.85q-35.39 13.69-72.74 19.77Q518.54-220 480-220ZM238.16-636.31q-35.16 27.16-63.2 61.42Q146.92-540.62 128-500q50 101 144.5 160.5T480-280q25.77 0 50.73-3.46 24.96-3.46 49.58-10.69L529.69-346q-12.15 5.31-24.27 7.19-12.11 1.89-25.42 1.89-68.08 0-115.58-47.5T316.92-500q0-13.31 2.08-25.42 2.08-12.12 7-24.27l-87.84-86.62ZM541-531Zm-131.77 65.77Z"/></svg><svg class="i-on" viewBox="0 -960 960 960" aria-hidden="true"><path d="M595.58-384.42q47.5-47.5 47.5-115.58t-47.5-115.58q-47.5-47.5-115.58-47.5t-115.58 47.5q-47.5 47.5-47.5 115.58t47.5 115.58q47.5 47.5 115.58 47.5t115.58-47.5ZM403.5-423.5Q372-455 372-500t31.5-76.5Q435-608 480-608t76.5 31.5Q588-545 588-500t-31.5 76.5Q525-392 480-392t-76.5-31.5ZM248.96-287.39q-104.73-67.38-167.19-177.3-5-8.62-7.31-17.35-2.3-8.73-2.3-17.96t2.3-17.96q2.31-8.73 7.31-17.35 62.46-109.92 167.19-177.3Q353.69-780 480-780q126.31 0 231.04 67.39 104.73 67.38 167.19 177.3 5 8.62 7.31 17.35 2.3 8.73 2.3 17.96t-2.3 17.96q-2.31 8.73-7.31 17.35-62.46 109.92-167.19 177.3Q606.31-220 480-220q-126.31 0-231.04-67.39ZM480-500Zm207.5 160.5Q782-399 832-500q-50-101-144.5-160.5T480-720q-113 0-207.5 59.5T128-500q50 101 144.5 160.5T480-280q113 0 207.5-59.5Z"/></svg></button></span></div>
@@ -6655,7 +6667,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.pt.fgStyle }}"><div style="{{ v.pt.fgTintStyle }}"></div></div></div></sc-if>
-        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.pt.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.pt.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if><sc-if value="{{ admShow }}" hint-placeholder-val="{{ false }}"><div style="{{ v.pt.admBoxStyle }}"><sc-for list="{{ v.pt.admEls }}" as="ae" hint-placeholder-count="0"><div style="{{ ae.style }}">{{ ae.t }}</div></sc-for></div></sc-if>
       </div>
       <span class="p-meta">1080 × 1440 · <span class="p-cov tip" data-over="{{ v.pt.coverOver }}" data-tip="{{ v.pt.coverTip }}"><i><b style="{{ v.pt.coverBar }}"></b></i>{{ v.pt.coverLabel }}</span></span>
       </sc-if>
@@ -6691,7 +6703,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.st.fgStyle }}"><div style="{{ v.st.fgTintStyle }}"></div></div></div></sc-if>
-        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.st.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.st.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if><sc-if value="{{ admShow }}" hint-placeholder-val="{{ false }}"><div style="{{ v.st.admBoxStyle }}"><sc-for list="{{ v.st.admEls }}" as="ae" hint-placeholder-count="0"><div style="{{ ae.style }}">{{ ae.t }}</div></sc-for></div></sc-if>
       </div>
       <span class="p-meta">{{ v.stMeta }} · <span class="p-cov tip" data-over="{{ v.st.coverOver }}" data-tip="{{ v.st.coverTip }}"><i><b style="{{ v.st.coverBar }}"></b></i>{{ v.st.coverLabel }}</span></span>
       </sc-if>
@@ -6727,7 +6739,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.ls.fgStyle }}"><div style="{{ v.ls.fgTintStyle }}"></div></div></div></sc-if>
-        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.ls.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if>
+        <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.ls.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if><sc-if value="{{ admShow }}" hint-placeholder-val="{{ false }}"><div style="{{ v.ls.admBoxStyle }}"><sc-for list="{{ v.ls.admEls }}" as="ae" hint-placeholder-count="0"><div style="{{ ae.style }}">{{ ae.t }}</div></sc-for></div></sc-if>
       </div>
       <span class="p-meta">1200 × 628 · <span class="p-cov tip" data-over="{{ v.ls.coverOver }}" data-tip="{{ v.ls.coverTip }}"><i><b style="{{ v.ls.coverBar }}"></b></i>{{ v.ls.coverLabel }}</span></span>
       </sc-if>
@@ -7218,7 +7230,9 @@ class CampaignStudio extends StudioBase {
       // changelog: it rides in the saved project and the session file, and it is never
       // undone — see `restore`. Both are stripped from `strip()` for the same reason.
       copyStatus: 'draft', copyLog: [],
-      qr: { show: true, corner: 'right' },
+      // `mode` 'adm' prints the ADM permit and CN numbers in the code's corner instead of the
+      // QR (missing = 'qr', so no saved project moves); `adm` is the permit, digits only
+      qr: { show: true, corner: 'right', mode: 'qr', adm: '' },
       // Co-branding is a fact about the campaign, not about one variant, so it lives
       // at project level beside the QR and one upload serves every variant and size.
       colog: { on: false, scale: 100, tint: true },
@@ -11229,6 +11243,49 @@ class CampaignStudio extends StudioBase {
   static qrTopRes(st, v, tk) {
     return st && st.qr && st.qr.show && st.qr.corner === 'top' && !tk.noQr && !CampaignStudio._look && v && v.logoPos === 'bottom' ? tk.qr + 80 : 0;
   }
+  // THE CODE'S BOX, in buildOps' frame (before mirrorOps): the QR square, or the ADM / CN
+  // block that takes its place. A right-corner box clears the Reels action rail; mirrored,
+  // the corner is chosen in the Latin frame and the rail's clearance goes on the side that
+  // will be the RIGHT after the mirror. Top right sits on the top margin, in the wordmark's row.
+  static qrBox(st, tk) {
+    const [pT, pR, pB, pL] = tk.pad, W = tk.W, H = tk.H, qs = tk.qr, top = st.qr.corner === 'top', left = st.qr.corner === 'left';
+    const qx = CampaignStudio.mirrored()
+      ? (top ? W - pL - qs : left ? Math.max(pR, tk.railR || 0) : W - pL - qs)
+      : (top ? W - pR - qs : left ? pL : W - Math.max(pR, tk.railR || 0) - qs);
+    return { qx, qy: top ? pT : H - pB - qs, qs, top, left };
+  }
+  // ── ADM & CN IN PLACE OF THE QR (2026-11-18, by request) ──────────────────────────────
+  // The QR block offers QR code | ADM & CN. ADM is the permit, typed per project (digits);
+  // CN is the company's licence, fixed. Chosen, the QR is not drawn and its corner carries the
+  // two numbers as tracked caps at the eyebrow size, Medium, in the canvas ink — ADM over CN,
+  // hugging the corner's outer edge, inside the QR's own box (two lines at the eyebrow lead are
+  // shorter than the code), so the clusters, scrims and the wordmark row clear it exactly as
+  // they clear the code. A blank ADM prints CN alone, as OPS's blank chip draws nothing.
+  static CN_NO = '6323926';
+  static admOn(st) { return !!(st && st.qr && st.qr.show && st.qr.mode === 'adm'); }
+  static admDigits(v) { return String(v == null ? '' : v).replace(/\D/g, '').slice(0, 24); }
+  static admLines(st) {
+    const a = CampaignStudio.admDigits(st.qr.adm), out = [];
+    if (a) out.push('ADM: ' + a);
+    out.push('CN: ' + CampaignStudio.CN_NO);
+    return out;
+  }
+  // text elements in canvas units (buildOps' frame); buildOps pushes them as ops and the
+  // preview draws them through elsView, so the two cannot disagree
+  admEls(st, tk, pal) {
+    const C = CampaignStudio, B = C.qrBox(st, tk), F = StudioBase.fontAsc();
+    const px = tk.eyebrow, ls = C.trackOf(px), lh = px * C.leadOf(1.25);
+    const lines = C.admLines(st), n = lines.length;
+    // the corner's outer edge, in the Latin frame: left for a left corner, otherwise right.
+    // Mirrored, mirrorOps (and mirView in the editor) reflects box and text together, so the
+    // block still hugs the outer edge without a second case here.
+    const hugL = B.left;
+    const y0 = B.top ? B.qy : B.qy + B.qs - n * lh;
+    return lines.map((t, i) => {
+      const w = this.meas(t, px, 500, false, ls) - ls;
+      return { k: 'text', x: hugL ? B.qx : B.qx + B.qs - w, y: y0 + i * lh + (lh - px * (F.a + F.d)) / 2 + px * F.a, px, weight: 500, fill: pal.ink, text: t, ls, hd: 0 };
+    });
+  }
   static railBox(tk, center, innerW, pL) {
     const r = tk.railR;
     if (!r) return { x0: pL, w: innerW };
@@ -12089,17 +12146,14 @@ class CampaignStudio extends StudioBase {
     // QR is pulled in past it — the same railR the bottom cluster respects.
     // A banner draws none: it is clicked, not scanned (see BANNER_TK).
     if (state.qr.show && !tk.noQr && !unb) {
-      const qs = tk.qr;
-      // Mirrored, the corner is chosen in the Latin frame (the mirror moves it) and the
-      // Reels rail's clearance goes on the side that will be the RIGHT after it.
-      // TOP RIGHT sits on the top margin, above the Reels rail's band, so it takes the plain margin
-      const top = state.qr.corner === 'top';
-      const qx = CampaignStudio.mirrored()
-        ? (top ? W - pL - qs : state.qr.corner === 'left' ? Math.max(pR, tk.railR || 0) : W - pL - qs)
-        : (top ? W - pR - qs : state.qr.corner === 'left' ? pL : W - Math.max(pR, tk.railR || 0) - qs);
-      const qy = top ? pT : H - pB - qs;
-      ops.push({ op: 'rect', x: qx, y: qy, w: qs, h: qs, fill: '#FFFFFF' });
-      if (assets.qr && assets.qr.img) ops.push({ op: 'image', img: assets.qr.img, url: assets.qr.u, x: qx, y: qy, w: qs, h: qs, clip: { x: qx, y: qy, w: qs, h: qs, r: 0 } });
+      // ADM & CN chosen: the two numbers take the code's corner and no code is drawn
+      if (CampaignStudio.admOn(state)) this.admEls(state, tk, pal).forEach(e => ops.push({ op: 'text', x: e.x, y: e.y, px: e.px, weight: e.weight, fill: e.fill, text: e.text, ls: e.ls }));
+      else {
+        // Mirrored, the corner is chosen in the Latin frame (the mirror moves it) — see qrBox
+        const { qx, qy, qs } = CampaignStudio.qrBox(state, tk);
+        ops.push({ op: 'rect', x: qx, y: qy, w: qs, h: qs, fill: '#FFFFFF' });
+        if (assets.qr && assets.qr.img) ops.push({ op: 'image', img: assets.qr.img, url: assets.qr.u, x: qx, y: qy, w: qs, h: qs, clip: { x: qx, y: qy, w: qs, h: qs, r: 0 } });
+      }
     }
     // `out` rides along only on a size that declares a file size, so every other size
     // returns exactly the shape it always has.
@@ -16450,7 +16504,11 @@ class CampaignStudio extends StudioBase {
         // edited separately takes its own logo and alignment without a component selected
         select: e => { if (e && e.stopPropagation) e.stopPropagation(); this.upd(x => { x.activeVi = vi; x.sel = null; x.focusSz = sizeKey; return x; }); },
         // a right-corner QR clears the Reels action rail, exactly as the op places it
-        qrStyle: { position: 'absolute', [s.qr.corner === 'top' ? 'top' : 'bottom']: cq(s.qr.corner === 'top' ? pT : pB), [s.qr.corner === 'left' ? 'left' : 'right']: cq(s.qr.corner === 'top' ? (mir ? pL : pR) : s.qr.corner === 'left' ? (mir ? Math.max(pR, tk.railR || 0) : pL) : (mir ? pL : Math.max(pR, tk.railR || 0))), width: cq(tk.qr), height: cq(tk.qr), borderRadius: 0, background: '#FFFFFF', pointerEvents: 'none', overflow: 'hidden', zIndex: 2 }
+        qrStyle: { position: 'absolute', [s.qr.corner === 'top' ? 'top' : 'bottom']: cq(s.qr.corner === 'top' ? pT : pB), [s.qr.corner === 'left' ? 'left' : 'right']: cq(s.qr.corner === 'top' ? (mir ? pL : pR) : s.qr.corner === 'left' ? (mir ? Math.max(pR, tk.railR || 0) : pL) : (mir ? pL : Math.max(pR, tk.railR || 0))), width: cq(tk.qr), height: cq(tk.qr), borderRadius: 0, background: '#FFFFFF', pointerEvents: 'none', overflow: 'hidden', zIndex: 2 },
+        // ADM & CN in the code's corner: buildOps' own elements (admEls), drawn by elsView; the
+        // mirror reflects them with the rest of the tree
+        admEls: CampaignStudio.admOn(s) && !tk.noQr && !(s.look && s.look.on) ? this.elsView(this.admEls(s, tk, pal), null, cq) : [],
+        admBoxStyle: { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2 }
       };
       // ARABIC: the same tree, mirrored — see CampaignStudio.mirrored(). The canvas box
       // itself is not mirrored (it sits in the plate); everything drawn inside it is.
@@ -17181,7 +17239,8 @@ class CampaignStudio extends StudioBase {
       infoStyle: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', borderRadius: '50%', border: 'none', background: 'var(--ps-accent-q)', color: 'var(--ps-ink)', fontSize: '10px', fontWeight: 500, cursor: 'help', flex: 'none', fontStyle: 'normal' },
       infoStyleDark: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', borderRadius: '50%', border: 'none', background: 'var(--ps-accent-q)', color: 'var(--ps-ink)', fontSize: '10px', fontWeight: 500, cursor: 'help', flex: 'none', fontStyle: 'normal' },
       guidesOn: this.props.showGuides ?? false,
-      qrShow: !!s.qr.show && !(s.look && s.look.on),
+      qrShow: !!s.qr.show && s.qr.mode !== 'adm' && !(s.look && s.look.on),
+      admShow: CampaignStudio.admOn(s) && !(s.look && s.look.on),
       lookOnOn: (s.look && s.look.on) ? '1' : undefined,
       lookOffOn: (s.look && s.look.on) ? undefined : '1',
       lookOnGo: () => this.lookToggle(true),
@@ -17227,7 +17286,8 @@ class CampaignStudio extends StudioBase {
           if (t === 'graphic' && !filled['adstudio-mod-' + selM.id]) need++;
         }
         const bgOk = !!filled['adstudio-bg-' + vi];
-        const qrNeed = !!(s.qr && s.qr.show) && !(s.look && s.look.on) && !filled['adstudio-qr'];
+        // ADM & CN chosen, the permit is the thing to fill in; otherwise the code's file
+        const qrNeed = !!(s.qr && s.qr.show) && !(s.look && s.look.on) && (s.qr.mode === 'adm' ? !CampaignStudio.admDigits(s.qr.adm) : !filled['adstudio-qr']);
         return {
           bgDoneOn: on('adstudio-bg-' + vi), bgDropLabel: lab('adstudio-bg-' + vi, 'Picture', 'a picture'),
           bgStDoneOn: on('adstudio-bg-' + vi + '-st'), bgStDropLabel: lab('adstudio-bg-' + vi + '-st', 'Picture', 'the 9:16 picture'),
@@ -17917,6 +17977,18 @@ class CampaignStudio extends StudioBase {
       // it used to stretch to its row's height, which made the square the tallest thing in the dock
       qrSlotStyle: { display: 'block', width: '100%', aspectRatio: '1 / 1' },
       qrLeft: () => this.upd(x => { x.qr.corner = 'left'; return x; }),
+      // QR code | ADM & CN — the same corner, one or the other
+      qrModeQr: () => this.upd(x => { x.qr.mode = 'qr'; return x; }),
+      qrModeAdm: () => this.upd(x => { x.qr.mode = 'adm'; return x; }),
+      qrModeQrOn: s.qr.mode !== 'adm' ? '1' : undefined,
+      qrModeAdmOn: s.qr.mode === 'adm' ? '1' : undefined,
+      qrModeQrFlag: s.qr.mode !== 'adm',
+      qrModeAdmFlag: s.qr.mode === 'adm',
+      qrBlkLabel: s.qr.mode === 'adm' ? 'ADM & CN' : 'QR code',
+      admVal: s.qr.adm || '',
+      admSet: e => { const d = CampaignStudio.admDigits(e.target.value); if (e.target.value !== d) e.target.value = d; this.upd(x => { x.qr.adm = d; return x; }); },
+      cnNo: CampaignStudio.CN_NO,
+      admHint: 'The ADM permit for this project, digits only. It prints over CN ' + CampaignStudio.CN_NO + ' in the corner below, on every ' + (CampaignStudio.isCarousel(s) ? 'page' : 'variant') + ', and the QR code is not printed.',
       qrRight: () => this.upd(x => { x.qr.corner = 'right'; return x; }),
       qrTop: () => this.upd(x => { x.qr.corner = 'top'; return x; }),
       qrLeftOn: s.qr.corner === 'left' ? '1' : undefined,

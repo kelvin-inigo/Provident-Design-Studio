@@ -209,6 +209,9 @@ in the hub opens them, and **Send** returns the design to the hub.
 - The logo (the `provident.` wordmark) and the QR code are added by the studio, not written. The
   QR's **Corner** is Left, Right (bottom) or Top (top right); the line under its picture says what
   the code opens, and **Open link** opens it (the DLD permit card names the project).
+- Instead of the QR, **Print › ADM & CN** prints "ADM: <permit>" over "CN: 6323926" in that corner
+  and hides the code. The ADM permit is typed per project (numbers only) — ask the user for it,
+  never invent one; CN is fixed.
 - Facts only from the brief (rule 3 above).
 
 ### CAS: the Copy card format

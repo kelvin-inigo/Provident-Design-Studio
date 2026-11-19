@@ -7,7 +7,7 @@
 @font-face{font-family:'Google Sans Flex';src:url('../../_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/assets/fonts/GoogleSansFlex-Variable.woff2') format('woff2');font-weight:1 1000}
 :root{--navy:#1A2942;--pnavy:#2F4960;--orange:#F3793C;--paper:#FAF8F4;--cream:#F4F1EC;--mist:#ECE7DF;--stone:#D4CFC4;--muted:#5E6573;--brass:#8C6F3F}
 @page{size:A4;margin:17mm 17mm 19mm;
-  @bottom-left{content:"Provident Design Studio  ·  Architecture  ·  Revision 1.14  ·  18 Nov 2026, 17:21 GST";font:300 7.5pt 'Google Sans Flex';color:#5E6573}
+  @bottom-left{content:"Provident Design Studio  ·  Architecture  ·  Revision 1.15  ·  18 Nov 2026, 17:38 GST";font:300 7.5pt 'Google Sans Flex';color:#5E6573}
   @bottom-right{content:counter(page);font:500 7.5pt 'Google Sans Flex';color:#1A2942}}
 @page cover{margin:0;@bottom-left{content:none}@bottom-right{content:none}}
 html{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -93,7 +93,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     </div>
   </div>
   <div class="foot">
-    <div><b>Current state as of 18th November 2026</b> · Revision 1.14<br>Changes are logged with a timestamp in section 17<br>Written for the AI engineering team · internal</div>
+    <div><b>Current state as of 18th November 2026</b> · Revision 1.15<br>Changes are logged with a timestamp in section 17<br>Written for the AI engineering team · internal</div>
     <div style="text-align:right">Repository <b>kelvin-inigo/Provident-Design-Studio</b><br>Live site provident-design-studio.vercel.app</div>
   </div>
 </section>
@@ -387,6 +387,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
         <li><b>Type ladder</b>: a minor third ×1.2 from a 24 px floor, <code>TYPE = [24, 28, 35, 41, 50, 59, 71, 85, 103, 123, 148, 177, 212]</code>.</li>
         <li><b>S / M / L / XL</b> steps the ladder by −1 to +2. They're applied only where layout is computed (<code>tkMod</code>), so the preview and the export can't drift apart.</li>
         <li><code>modLayout</code> → <code>buildOps</code> → <code>renderOpsToCanvas</code> / <code>renderOpsToSvg</code>. Changes are proven with an op census against the previous build.</li>
+        <li><b>QR code | ADM &amp; CN</b>: the QR block can print the ADM permit (typed, digits) over CN 6323926 (fixed) in the code's corner instead of the code. <code>qrBox</code> is the one source of that corner's box; <code>admEls</code> lays the two lines out for both renderers and the preview. State <code>qr.mode</code> / <code>qr.adm</code>.</li>
         <li><b>AED draws as the Dirham sign</b> (U+20C3). The copy keeps "AED"; <code>CampaignStudio.aed()</code> swaps it in <code>meas()</code>, both renderers and the editor's element views, and <code>'Dirham-Sans'</code> (<code>unicode-range: U+20C3</code>) leads every canvas stack. The SVG export embeds the 1 KB face when it is used.</li>
         <li><b>Carousel mode</b>: up to 10 pages. Each page is a variant with its own component list.</li>
         <li><b>Unbranded look</b>: tone, a five-role palette, Google Fonts, radius, blur and tracking. There's no wordmark or QR. It's set per project and can be mixed per audience.</li>
@@ -1009,6 +1010,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
   <p class="lede">This document follows the code. Every change to PDS that lands on <code>main</code> is written into the matching section in the same pass and logged here, newest first. Times are Gulf Standard Time (UTC+4).</p>
   <table>
     <tr><th style="width:11mm">Rev.</th><th style="width:30mm">Date and time</th><th>Change</th><th style="width:20mm">Sections</th><th style="width:15mm">Commit</th></tr>
+    <tr><td>1.15</td><td>18 Nov 2026, 17:38</td><td><b>CAS: ADM &amp; CN in place of the QR.</b> Print › QR code | ADM &amp; CN in the all-variants dock; ADM is typed per project (digits), CN is fixed (6323926); the code is not drawn. Copy check's pre-send list (<code>share-link.js</code> <code>rsPrecheck</code>) asks for the ADM number in that mode. QR-mode op census: 576 groups, 7,188 ops, 0 differing. No new service; Engine map unchanged.</td><td>5, 17</td><td>pending</td></tr>
     <tr><td>1.14</td><td>18 Nov 2026, 17:21</td><td><b>CAS: an animated export that stutters is recorded again.</b> The recording is real time (MediaRecorder), so a late tick or a stalled clip left a freeze in the file (measured on one 1:1 export: 19 repeated frames between 0:04 and 0:06, none clustered in its 9:16). <code>anRecord</code> now adds up the time lost between painted frames (<code>_anLast.lost</code>) and waits for <code>canplaythrough</code>; <code>anExport</code> records a size once more when more than 0.25 s was lost and keeps the smoother pass. No new service or route; the Engine map is unchanged.</td><td>5, 17</td><td><code>8452a0c</code></td></tr>
     <tr><td>1.13</td><td>18 Nov 2026, 17:00</td><td><b>CAS: Scaling and Scrim are open by default</b> in the Layout column (<code>data-def="1"</code> on both <code>details</code>). A computer that has already opened or closed one keeps its own choice (<code>adstudio-acc</code>). Chrome only: no canvas path, service or route changed, so the Engine map is unchanged.</td><td>5, 17</td><td><code>5efa337</code></td></tr>
     <tr><td>1.12</td><td>18 Nov 2026, 16:35</td><td><b>CAS: "AED" draws as the UAE Dirham sign</b> (U+20C3) on the canvas and in every export, from the vendored npm <code>dirham</code> 1.5.3 face (<code>vendor/dirham/</code>). Copy, Copy view, review links and ad text keep "AED". Op census with the swap off: 96 groups, 1,194 ops, 0 differing. CAS only; no new service, so the Engine map is unchanged.</td><td>3, 5, 17</td><td><code>5559d35</code></td></tr>

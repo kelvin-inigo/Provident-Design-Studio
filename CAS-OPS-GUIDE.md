@@ -621,7 +621,8 @@ steps: **Design › ENG copy check › Translation › Done**.
    Then pick who gets it (the content team for a copy check, a designer for Arabic, Animated and
    Video). After the first hand-off, **Send to…** stays in the **Ad set** tab's header. Sending
    to **Copy check** first lists anything missing: empty words, a page or
-   variant with no background photo, a QR code switched on with none added, or copy covering
+   variant with no background photo, a QR code switched on with none added (or an empty ADM
+   number when ADM & CN is chosen), or copy covering
    more than 40% of a canvas. Fix them, or press OK to send anyway. While the content team has
    it, the current bar turns amber and the step reads **Copy check**; the button moves on to
    **Create next audience** or **Make the Arabic**. **Back to design** is in the **Ad set** tab.
@@ -1078,6 +1079,12 @@ No API key or service is needed: Claude Code reads the screenshot.
     read off the code itself (for example *Opens trakheesi.dubailand.gov.ae/…*), with **Open link**
     beside it: it opens the code's page (the DLD permit card, which names the project) in a new tab.
     *No QR code found in this picture* means the file is probably the wrong one.
+  - **Print: QR code | ADM & CN.** Under the QR code switch, choose what goes in that corner.
+    **ADM & CN** prints the permit numbers instead of the code, and the code is not printed. Type
+    the project's **ADM** permit (numbers only; a pasted "ADM:" is dropped). **CN** is always
+    6323926. The corner shows *ADM: …* over *CN: 6323926* in small capitals, on the same side as
+    the Corner you pick. The switch's name changes to **ADM & CN**, and the panel says *1 to fill in*
+    until the ADM number is typed. Left empty, only the CN line prints.
   - **Typeface:** **English** or **Arabic**. Arabic mirrors the whole ad for right-to-left
     reading: a left-aligned design becomes right-aligned, the logo moves to
     the right (the photo is left as it is, so any sign or logo in it still reads correctly) and the QR code moves to the other corner (the code itself is not flipped, so it
@@ -1651,7 +1658,8 @@ This is the full editor.
 - **Image first:** copy should stay under about 40% of the canvas.
 - **9:16 margins:** the copy stays clear of Instagram's and Facebook's own buttons. The studio sets
   these margins for you.
-- **QR code:** small, in a bottom corner or top right. Banners don't have one.
+- **QR code:** small, in a bottom corner or top right. Banners don't have one. **ADM & CN** can
+  take its place: the two numbers print in the same corner and the code does not.
 
 You don't need to set these; the layouts already follow them.
 

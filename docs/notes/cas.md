@@ -4036,3 +4036,33 @@ spatial fault was found in single frames. My reading: a real-time hitch during t
   none in `vendor/`. Not built.
 - Not tested: an actual export after the change (needs sign-in and a clip). The script passes a
   syntax check only. Whether this was the glitch the user saw is not confirmed.
+
+# ADM & CN CAN TAKE THE QR'S CORNER (2026-11-18, by request)
+
+By request, "similar to the QR code": the All-variants dock's QR block now asks **Print: QR code |
+ADM & CN**. ADM & CN prints the project's ADM permit over the company's CN licence in the code's
+corner and does not draw the code. ADM is typed (digits only — `admDigits` strips anything else,
+so a pasted "ADM: 2026…" keeps its number); **CN is fixed, `CampaignStudio.CN_NO = '6323926'`**, the
+same number OPS's reel thumbnail carries.
+
+- **State:** `qr.mode` (`'qr'` | `'adm'`, missing = `'qr'`, so no saved project moves) and `qr.adm`
+  beside `qr.show` / `qr.corner`. The show switch still means local (printed) vs international
+  (nothing); the mode only chooses what is printed. Unbranded and banners print neither, as before.
+- **Geometry:** `CampaignStudio.qrBox(st, tk)` is now the ONE source of the code's box (buildOps'
+  frame, rail clearance and the mirror's corner swap included); the QR op reads it, and
+  `admEls(st, tk, pal)` lays the numbers out inside the same box: tracked caps (`trackOf`) at the
+  eyebrow size, Medium 500, `pal.ink`, ADM over CN on the eyebrow's 1.25 lead, hugging the
+  corner's outer edge (left corner → flush left, right and top → flush right), last line on the
+  box's bottom (bottom corners) or first on its top (Top). Two lines at the eyebrow lead are
+  shorter than the code, so every cluster, scrim and `qrTopRes` reserve that clears the code
+  clears them. A blank ADM prints CN alone (OPS's blank chip draws nothing either).
+- **Preview:** `admEls` through `elsView` in an inset-0 box beside each plate's `.qrbox`
+  (`admShow`, `v.<size>.admEls`); `mirView` reflects them with the tree, `mirrorOps` in the
+  export. `qrShow` is false in ADM mode.
+- **Needs:** the dock's "1 to fill in" and `rsPrecheck` (share-link.js, before Copy check) ask for
+  the ADM number in ADM mode instead of the QR file.
+- **Proven:** QR-mode op census against the pre-change file over 4 templates x dark/light x
+  left/centre x 6 sizes x 3 corners x Latin/Arabic = 576 groups, 7,188 ops, 0 differing (so the
+  `qrBox` refactor moved nothing). ADM mode, editor against export: left edges within 0.06 canvas
+  px in every corner and size, Arabic within 0.14; the right edge differs by about a pixel
+  because a DOM range includes the trailing tracking unit that no glyph fills.
