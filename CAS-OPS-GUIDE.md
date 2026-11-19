@@ -838,6 +838,14 @@ then switch to the Video Studio and press **Open it**. It replaces the project o
 asks first. The Drive copy is only as new as the last Send to CAS; choosing the two files by hand
 saves no project.
 
+In the Video Studio, the video's **name** (top left, beside the wordmark) is a menu: rename it,
+**Start a new video**, **Open a project file** (a `.casv` from Downloads or Drive; you can also
+drop one on the window), **Start from a video script**, **Reopen the last video**. **Export** holds
+**Export the video** and **Save this frame**. The right side reads **Selected · Brand · Queue**:
+Brand is the wordmark, collaboration logo and QR code; Queue is everything being generated.
+When the Grok bot has built a video for you, the Video Studio asks **Open … from the Grok bot?**;
+the video you had open is kept under Reopen the last video.
+
 **Everyone reviews it.** Click the video's tile. The window plays it, with **Reel 9:16 | Square 1:1**
 at the top.
 - **Comment on the timeline:** pause where something should change, write under **Comment at 0:12**

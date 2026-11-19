@@ -1447,3 +1447,28 @@ a real OPS reel-thumbnail project through Chrome (catalog 5.8 s cold, new projec
 tampered signature → 403 and an expired link → 410, and the SSE pair end to end. The stdio server
 is untouched in behaviour: `tools/list` grew by one tool and `studio_set_image` by one optional
 field. Setup and the sign-in reasoning for the team: `docs/grok-bot-setup.md`.
+
+# THE BOT BUILDS A CASV VIDEO AND HANDS IT OVER — `tools/studio-mcp/video.py` (2026-11-19)
+
+By request ("theres casv made by grok bots, or give them ability to handover me what they did").
+Four tools join the eight: `video_new`, `video_add_media`, `video_edit`, `video_hand_over`
+(`server.py` appends `video.tools(module)`; `remote.py` guards `file`, and adds a signed
+`project_link` to every `video_*` answer).
+
+- CASV is **not on main** (branch `video-studio`), so the tools do not serve it: they open the
+  page from CASV's own local server (`PROVIDENT_CASV_URL`, default `http://127.0.0.1:8794`) in a
+  **second headless Chrome** with a throwaway profile — never the designer's project. No server →
+  "The Video Studio is not running on the studio Mac"; a page without `VideoStudio.bot` → "older copy".
+- The page side is `VideoStudio.bot` in `video-studio.js` (that branch): `start`, `open`, `addMedia`,
+  `edit(ops)`, `summary`, `pack`. Files cross in 3 MB base64 pieces (`push` in, `chunk` out).
+- **The `.casv` under the projects folder is the truth.** Each call loads it when the page holds
+  another file or mtime, changes it, packs and rewrites it. A failed `edit` drops the page's copy.
+- **Hand-over** PUTs the file to CASV's `/api/outbox/back?id&title&from` — the inbox CAS's Open in
+  Video Studio uses. `from` makes CASV ask "Open … from the Grok bot?" and keep the open video as
+  the last video (the CAS path replaces and deletes unused media).
+- No generation, export or Send to CAS from the bot.
+- Verified by calling `core.call_tool` against a throwaway CASV on :8797: new, a photo from disk,
+  two clips + a text + the wordmark, a refused op, a re-read from the file, the hand-over row in
+  `_inbox/` (removed after). Not run: a video or sound file, an https url, the remote wrapper's
+  link, the prompt in a real CASV, a real Grok call. **Re-run `install-remote.sh` on the office
+  Mac** for the bot to get the tools.

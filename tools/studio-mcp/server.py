@@ -515,6 +515,8 @@ TOOLS = [
         "fn": t_export,
     },
 ]
+import video  # noqa: E402  the Video Studio (CASV) tools: build a video, hand it to the designer
+TOOLS += video.tools(sys.modules[__name__])
 BY_NAME = {t["name"]: t for t in TOOLS}
 
 INSTRUCTIONS = (
@@ -523,7 +525,9 @@ INSTRUCTIONS = (
     "studio_list_projects + studio_read_project for an existing .adstudio.json/.smpstudio.json) → studio_edit / studio_set_image → "
     "studio_preview to look at it → studio_export. Fill every required field; never invent listing numbers, "
     "prices or names — ask. Brand rules (fonts, colours, margins, layout) are enforced by the templates; "
-    "you supply words and pictures. Projects default to: " + OUT
+    "you supply words and pictures. Videos: video_new → video_add_media → video_edit → video_hand_over builds a "
+    "Video Studio (CASV) project and hands it to the designer to finish; you cannot generate, export or send a video. "
+    "Projects default to: " + OUT
 )
 
 

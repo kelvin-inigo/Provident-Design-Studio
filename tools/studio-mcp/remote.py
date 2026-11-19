@@ -124,7 +124,7 @@ def guard(name, args):
     for k in ("path", "out_dir"):
         if args.get(k):
             args[k] = inside(args[k], k)
-    if name == "studio_set_image" and args.get("file") and not args.get("url"):
+    if name in ("studio_set_image", "video_add_media") and args.get("file") and not args.get("url"):
         args["file"] = inside(args["file"], "file")   # a render or an earlier upload; anything else comes by url
     return args
 
@@ -154,6 +154,16 @@ def enrich(name, args, res, base):
         d["links"] = links
         d["links_note"] = "The links open without signing in and last %d days. The files stay in %s on the studio Mac." % (LINK_DAYS, d.get("out_dir") or OUT)
         content[0]["text"] = json.dumps(d, indent=1, ensure_ascii=False)
+    elif name.startswith("video_") and content and content[0].get("type") == "text":
+        try:
+            d = json.loads(content[0]["text"])
+        except ValueError:
+            return res
+        u = link(d.get("project_file") or "", base) if d.get("project_file") else None
+        if u:
+            d["project_link"] = u
+            d["project_link_note"] = "The .casv project file; Open a project file in the Video Studio opens it. The link lasts %d days." % LINK_DAYS
+            content[0]["text"] = json.dumps(d, indent=1, ensure_ascii=False)
     elif name == "studio_preview":
         try:
             pdir = os.path.join(os.path.dirname(core._abs(args.get("path"))), "_previews")

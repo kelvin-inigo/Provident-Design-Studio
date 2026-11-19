@@ -293,6 +293,12 @@
    "to": "mcp",
    "check": "mcp",
    "carries": "Studio tools over https"
+  },
+  {
+   "from": "mcp",
+   "to": "casv",
+   "check": "casv",
+   "carries": "Bot video tools, hand-over to the designer"
   }
  ]
 }
