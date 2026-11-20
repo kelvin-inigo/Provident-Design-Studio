@@ -204,3 +204,30 @@ working at all".
   (red bar moving); enlarged Feed live (972×972); CT preview live with no pointer; `bgClip`
   deleted from the project → reopened → uploaded by itself ("saved with the project on Drive"); no
   console errors.
+
+## EXTEND TO 9:16 BEFORE GENERATING (2026-11-20, by request)
+
+"can you make sure that CASV feature is also here" (annotated screenshot of Generate from the
+photo). CASV's extension (`video-studio` branch, `docs/notes/video-studio.md`) now runs for CAS too.
+- **Generate from the photo › Extend to 9:16** (Yes / No) shows only when the variant's photo is
+  wider than 9:16 (×1.03), Yes by default (`_anG.ext`, per session like the other settings).
+  `anAsp(vi)` reads the photo's aspect from the sidecar (`StudioBase.img`, cached), at most every
+  1.5 s, and redraws only when it changes.
+- **Yes:** `anFrameExt` sends the whole photo at full width, centred between flat #808080 bands
+  (1080×1920), with `extend: true` and `ext: {y, h}` to `/api/animate/job`. Nothing new on the
+  server: CASV's `hf_run` already extends (Nano Banana 2.1, 2k), pastes the photo back over the
+  band and animates that frame; `/api/animate/cost` adds the extension. The page's estimate adds
+  `AN_EXT_CR` (2). The confirm reads "…, extended to 9:16 first"; while working, the poll copies the
+  server's `step`, so the job reads "Nano Banana is extending the photo to 9:16 first" until it
+  moves on. **No:** `anFrame`, the old centre crop.
+- The clip then shows more of the photo than the 9:16 still (the whole width), by design: the
+  ask was to stop the crop. The 1:1 plays the clip's centre as before.
+- **Verified** (Chrome, share-dev :8790 serving main, the CASV server :8794 from the worktree,
+  test sign-in, a generated 1800×1200 photo): the row and note show, estimate ~10.75 (Kling 5 s
+  Draft 8.75 + 2); **See the price** → Higgsfield's real price 10.75, the job file has `extend`,
+  `ext {y: 600, h: 720}`, the frame grey above and below; **No** → 8.75, no extend; both cancelled
+  (files removed, nothing spent); no console errors. Hunks only in the `an*` methods and the
+  Background template, none in buildOps or the renderers.
+- Not run: a paid generation from CAS (the same server path as CASV's p4 test, which was paid and
+  placed), a photo with its own 9:16 slot (`bgSep`: the frame still comes from the shared photo, as
+  before).

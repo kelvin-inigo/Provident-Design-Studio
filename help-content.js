@@ -228,6 +228,7 @@
       steps: [
         { t: '**Background image › Background › Video**. **Add a video**: **Generate from the photo**, **Upload a clip**, or **Edit in CASV**.', f: 'cas-design' },
         { t: '**Generate from the photo** shows **See the price** first and spends nothing until **Generate · N credits**. It needs CASV running on the same computer.' },
+        { t: 'A photo wider than 9:16 shows **Extend to 9:16**. **Yes** (the default) has Nano Banana 2.1 add more of the scene above and below it before the clip is made, so nothing is cropped (2 credits more). **No** crops the centre.' },
         { t: '**Share › Animated › Export animated** records the 1:1 and 9:16 as MP4. Keep the tab in front.' }
       ] },
 

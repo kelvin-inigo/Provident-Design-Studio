@@ -1010,6 +1010,10 @@ What's on the screen, from left to right:
     It takes a few minutes and lands on the design by itself; keep working. The clip is made at
     9:16 from the photo (the 1:1 plays its centre). It needs CASV running on the same computer,
     signed in to Higgsfield.
+    - **Extend to 9:16** shows when the photo is wider than 9:16 (a landscape photo). **Yes**, the
+      default: nothing is cropped. Nano Banana 2.1 adds more of the scene above and below the photo
+      first, keeping the photo itself as it is, then the clip is made from that taller frame. It adds
+      2 credits, included in **See the price**. **No** crops the centre of the photo to 9:16, as before.
   - **Upload a clip:** an MP4 from this computer (Higgsfield or anything else).
   - **Edit in CASV:** like Edit in Photoshop. CASV opens a fresh video with only this photo (no
     wordmark, and its library shows only this video's media). Edit it, then press **Send back to

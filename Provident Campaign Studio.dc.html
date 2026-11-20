@@ -7044,6 +7044,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
                     <div class="an-mvs" role="radiogroup" aria-label="Camera move"><sc-for list="{{ anMoves }}" as="mv" hint-placeholder-count="8"><button onClick="{{ mv.pick }}" data-on="{{ mv.on }}" class="an-mv" role="radio" aria-checked="{{ mv.aria }}">{{ mv.label }}</button></sc-for></div>
                     <div class="an-gen-2"><div><span class="an-gen-l">Length</span><div class="p-tabs"><button onClick="{{ anSetD5 }}" data-on="{{ anD5 }}">5 s</button><button onClick="{{ anSetD10 }}" data-on="{{ anD10 }}">10 s</button></div></div>
                     <div><span class="an-gen-l">Quality</span><div class="p-tabs"><button onClick="{{ anSetDraft }}" data-on="{{ anDraft }}" title="720p, fewer credits">Draft</button><button onClick="{{ anSetFull }}" data-on="{{ anFull }}" title="1080p">Full</button></div></div></div>
+                    <sc-if value="{{ anWideOn }}" hint-placeholder-val="{{ false }}"><span class="an-gen-l">Extend to 9:16</span><div class="p-tabs"><button onClick="{{ anSetExtY }}" data-on="{{ anExtY }}">Yes</button><button onClick="{{ anSetExtN }}" data-on="{{ anExtN }}">No</button></div><p class="an-gen-n">{{ anExtNote }}</p></sc-if>
                     <span class="an-gen-l">Model</span>
                     <div class="p-tabs"><sc-for list="{{ anModels }}" as="md" hint-placeholder-count="3"><button onClick="{{ md.pick }}" data-on="{{ md.on }}" title="{{ md.tip }}">{{ md.label }}</button></sc-for></div>
                     <button onClick="{{ anGenGo }}" class="p-ghost an-go an-wide">{{ anPriceLabel }}</button>
@@ -12975,9 +12976,26 @@ class CampaignStudio extends StudioBase {
   // [key, label, Higgsfield model, credits a second Draft, Full] — CASV's GEN_MODELS figures
   static AN_MODELS = [['kling', 'Kling', 'kling3_0', 1.75, 2], ['cinema', 'Cinema', 'cinematic_studio_video_v2', 1.5, 2], ['seedance', 'Seedance', 'seedance_2_5', 7, 16]];
   static anCasv() { let u = ''; try { u = localStorage.getItem('provident-casv-local') || ''; } catch (e) {} return (u || 'http://localhost:8794').replace(/\/+$/, ''); }
-  anG() { return this._anG || (this._anG = { move: 'push_in', dur: 5, model: 'kling', mode: 'std' }); }
+  anG() { return this._anG || (this._anG = { move: 'push_in', dur: 5, model: 'kling', mode: 'std', ext: true }); }
   anGSet(k, v) { this.anG()[k] = v; this.forceUpdate(); }
-  anGCredits() { const g = this.anG(), m = CampaignStudio.AN_MODELS.find(x => x[0] === g.model) || CampaignStudio.AN_MODELS[0]; return +(g.dur * m[g.mode === 'pro' ? 4 : 3]).toFixed(2); }
+  anGCredits() { const g = this.anG(), m = CampaignStudio.AN_MODELS.find(x => x[0] === g.model) || CampaignStudio.AN_MODELS[0]; return +(g.dur * m[g.mode === 'pro' ? 4 : 3] + (this.anExtOn(this.state.activeVi || 0) ? CampaignStudio.AN_EXT_CR : 0)).toFixed(2); }
+  // EXTEND TO 9:16 (2026-11-20, CASV's feature, by request): a photo wider than 9:16 is not centre-cropped.
+  // It goes to CASV's server whole, between flat grey bands (`ext` = the band), and the server has
+  // Nano Banana 2.1 paint the bands with more of the scene, pastes the photo back over the middle and
+  // makes the clip from that frame. The extension is priced in the same total. Per session, like the rest.
+  static AN_EXT_CR = 2;
+  // the variant's photo aspect (width / height), read once per photo; 0 while unknown
+  anAsp(vi) {
+    const A = this._anAsp || (this._anAsp = {}), now = Date.now();
+    if (!(A['t' + vi] > now - 1500)) {
+      A['t' + vi] = now;
+      StudioBase.sidecar().then(sc => { const v = sc && sc['adstudio-bg-' + vi], u = v && (typeof v === 'string' ? v : v.u); return u ? StudioBase.img(u) : null; })
+        .then(im => { const a = im && im.naturalHeight ? im.naturalWidth / im.naturalHeight : 0; if (a !== (A[vi] || 0)) { A[vi] = a; this.forceUpdate(); } }).catch(() => {});
+    }
+    return A[vi] || 0;
+  }
+  anWide(vi) { return this.anAsp(vi) > 1080 / 1920 * 1.03; }
+  anExtOn(vi) { return this.anWide(vi) && this.anG().ext !== false; }
   // jobs by pid|variant, kept so a reload picks a running generation up again
   anJobs() {
     if (!this._anJobs) { try { this._anJobs = JSON.parse(localStorage.getItem('provident-cas-hfjobs') || '{}') || {}; } catch (e) { this._anJobs = {}; } }
@@ -13002,21 +13020,33 @@ class CampaignStudio extends StudioBase {
     x.drawImage(im, (1080 - iw * sc) / 2, (1920 - ih * sc) / 2, iw * sc, ih * sc);
     return k.toDataURL('image/jpeg', .92);
   }
+  // a photo wider than 9:16: whole, at full width, centred between flat grey bands (what Nano Banana fills)
+  async anFrameExt(vi) {
+    const assets = await this.loadAssets(this.state), a = assets['bg' + vi], im = a && a.img;
+    const iw = im && (im.naturalWidth || im.width), ih = im && (im.naturalHeight || im.height);
+    if (!iw || !ih || iw / ih <= 1080 / 1920 * 1.03) return null;
+    const h = Math.round(1080 * ih / iw), y = Math.round((1920 - h) / 2);
+    const k = document.createElement('canvas'); k.width = 1080; k.height = 1920;
+    const x = k.getContext('2d'); x.fillStyle = '#808080'; x.fillRect(0, 0, 1080, 1920);
+    x.drawImage(im, 0, y, 1080, h);
+    return { photo: k.toDataURL('image/jpeg', .92), ext: { y, h } };
+  }
   static anId() { return (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)).slice(-12); }
   async anGen() {
     const vi = this.state.activeVi || 0, pid = this._anPid || this.state.pid || '', key = pid + '|' + vi, g = this.anG();
     const mv = CampaignStudio.AN_MOVES.find(m => m[0] === g.move) || CampaignStudio.AN_MOVES[0];
     const md = CampaignStudio.AN_MODELS.find(m => m[0] === g.model) || CampaignStudio.AN_MODELS[0];
     this.anJobSet(key, { status: 'pricing' });
-    const photo = await this.anFrame(vi).catch(() => '');
+    const ex = g.ext !== false ? await this.anFrameExt(vi).catch(() => null) : null;
+    const photo = ex ? ex.photo : await this.anFrame(vi).catch(() => '');
     if (!photo) { this.anJobSet(key, { status: 'failed', error: 'Add a background photo first: the clip is made from it.' }); return; }
     const id = CampaignStudio.anId(), v = (this.state.variants || [])[vi] || {};
     try {
-      const r = await this.anApi('/api/animate/job', { id, name: (this.state.campaign || 'CAS') + ' ' + (v.name || ''), move: mv[1], prompt: CampaignStudio.AN_PROMPT.replace('{move}', mv[2]), duration: g.dur, model: md[2], mode: g.mode, aspect: '9:16', photo });
+      const r = await this.anApi('/api/animate/job', { id, name: (this.state.campaign || 'CAS') + ' ' + (v.name || ''), move: mv[1], prompt: CampaignStudio.AN_PROMPT.replace('{move}', mv[2]), duration: g.dur, model: md[2], mode: g.mode, aspect: '9:16', photo, extend: ex ? true : undefined, ext: ex ? ex.ext : undefined });
       if (r.error) throw new Error(r.error);
       const q = await this.anApi('/api/animate/cost', { id });
       if (q.error) { this.anApi('/api/animate/cancel', { id }).catch(() => {}); this.anJobSet(key, { status: 'failed', error: q.error }); return; }
-      this.anJobSet(key, { id, status: 'confirm', credits: q.credits, move: mv[1], dur: g.dur });
+      this.anJobSet(key, { id, status: 'confirm', credits: q.credits, move: mv[1], dur: g.dur, ext: ex ? 1 : undefined });
     } catch (e) {
       this.anJobSet(key, { status: 'failed', error: 'CASV is not running on this computer (' + CampaignStudio.anCasv() + '). Start it, then try again.' });
     }
@@ -13027,7 +13057,7 @@ class CampaignStudio extends StudioBase {
     try {
       const r = await this.anApi('/api/animate/run', { id: j.id });
       if (r.error) throw new Error(r.error);
-      this.anJobSet(key, Object.assign({}, j, { status: 'working', at: Date.now() })); this.anWatch();
+      this.anJobSet(key, Object.assign({}, j, { status: 'working', at: Date.now(), step: j.ext ? 'extending' : '' })); this.anWatch();
     } catch (e) { this.anJobSet(key, { status: 'failed', error: 'Could not start it: ' + e.message }); }
   }
   // Cancel (asking the price, or the yes) withdraws the job; Stop waiting (generating, or waiting
@@ -13058,7 +13088,7 @@ class CampaignStudio extends StudioBase {
         const s = jobs.find(x => x.id === j.id);
         if (!s) { this.anJobSet(key, { status: 'failed', error: 'CASV no longer has this job.' }); continue; }
         if (s.status === 'failed') { this.anJobSet(key, { status: 'failed', error: s.error || 'Higgsfield could not make it.' }); continue; }
-        if (s.status !== 'done') continue;
+        if (s.status !== 'done') { if ((s.step || '') !== (j.step || '')) this.anJobSet(key, Object.assign({}, j, { step: s.step || '' })); continue; }
         try {
           const res = await fetch(CampaignStudio.anCasv() + '/api/animate/file?id=' + j.id);
           if (!res.ok) throw new Error(res.status);
@@ -13123,9 +13153,9 @@ class CampaignStudio extends StudioBase {
       anIdleOn: st === 'pricing' || st === 'working' || st === 'casv' || st === 'confirm' ? undefined : '1',
       anJobHead: st === 'pricing' ? 'Asking Higgsfield for the price' : st === 'working' ? 'Generating with Higgsfield' : st === 'casv' ? 'Waiting for CASV' : '',
       anJobSub: st === 'pricing' ? 'Nothing is spent yet.'
-        : st === 'working' ? (j.move || '') + ', ' + (j.dur || '') + ' s \u00b7 usually a few minutes. It lands here by itself; keep working.'
+        : st === 'working' ? (j.step === 'extending' ? 'Nano Banana is extending the photo to 9:16 first. ' : '') + (j.move || '') + ', ' + (j.dur || '') + ' s \u00b7 usually a few minutes. It lands here by itself; keep working.'
         : st === 'casv' ? 'Edit the video there, then press Send back to CAS. It lands here by itself.'
-        : st === 'confirm' ? (j.move || '') + ', ' + (j.dur || '') + ' s \u00b7 ' + j.credits + ' credits from your Higgsfield plan.' : '',
+        : st === 'confirm' ? (j.move || '') + ', ' + (j.dur || '') + ' s' + (j.ext ? ', extended to 9:16 first' : '') + ' \u00b7 ' + j.credits + ' credits from your Higgsfield plan.' : '',
       anBusyX: st === 'pricing' ? 'Cancel' : 'Stop waiting',
       anYesLabel: st === 'confirm' ? 'Generate \u00b7 ' + j.credits + ' credits' : 'Generate',
       anWaysHead: has ? 'Replace it' : 'Add a video',
@@ -13138,6 +13168,11 @@ class CampaignStudio extends StudioBase {
       anDraft: g.mode !== 'pro' ? '1' : undefined, anFull: g.mode === 'pro' ? '1' : undefined,
       anSetDraft: () => this.anGSet('mode', 'std'), anSetFull: () => this.anGSet('mode', 'pro'),
       anPriceLabel: 'See the price \u00b7 ~' + this.anGCredits() + ' credits',
+      anWideOn: open && this.anWide(vi) ? '1' : undefined,
+      anExtY: g.ext !== false ? '1' : undefined, anExtN: g.ext === false ? '1' : undefined,
+      anSetExtY: () => this.anGSet('ext', true), anSetExtN: () => this.anGSet('ext', false),
+      anExtNote: g.ext !== false ? 'The photo is wider than the video, so it is not cropped: Nano Banana 2.1 adds more of the scene above and below it first, then the clip is made. The photo itself stays as it is. ' + CampaignStudio.AN_EXT_CR + ' credits.'
+        : 'The photo is centre-cropped to 9:16.',
       anGenGo: () => this.anGen(), anGenYes: () => this.anGenRun(), anGenNo: () => this.anGenCancel(),
       anToCasv: () => this.anToCasv()
     };
