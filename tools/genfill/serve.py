@@ -229,16 +229,17 @@ def run_nano(jid, folder, canvas, mask, aspect, res, prompt, n):
             return set_job(jid, state='failed', error=out[-300:] or 'Higgsfield did not take the mask.')
         text = NANO_PROMPT + ((' Also: ' + prompt.strip()) if prompt.strip() else '')
         jobs = []
+        # the mask is a reference object; an upload's source type is media_input (job | media_input | video_input …)
         for k in range(n):
             set_job(jid, step='Sending to Nano Banana' + (' (%d of %d)' % (k + 1, n) if n > 1 else ''))
             rc, out = hf('generate', 'create', NANO, '--prompt', text, '--image-references', cid,
-                         '--mask', json.dumps({'id': mid, 'type': 'image'}), '--is_inpaint', 'true',
+                         '--mask', json.dumps({'id': mid, 'type': 'media_input'}), '--is_inpaint', 'true',
                          '--aspect_ratio', aspect, '--resolution', res, '--seed', str(random.randint(1, 2 ** 31 - 1)), timeout=180)
             g = hf_uuid(out)
             if rc or not g:
                 if jobs:
                     break                         # keep what is already paid for
-                return set_job(jid, state='failed', error=out[-300:] or 'Higgsfield did not start the job.')
+                return set_job(jid, state='failed', error=out[:900] or 'Higgsfield did not start the job.')
             jobs.append(g)
         good = []
         for k, g in enumerate(jobs):
