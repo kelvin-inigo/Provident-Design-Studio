@@ -3118,11 +3118,19 @@
   // &back=1 (2026-11-17): CAS's Edit in CASV, like Edit in Photoshop. A fresh canvas — no question,
   // the open video kept as the last one, no wordmark (the video goes BEHIND a CAS design), the
   // library showing only this video's media — and the top button becomes Send back to CAS.
-  { const m = /^#new=([^&]*)(?:&photo=([a-z0-9]{4,16}))?(&back=1)?$/.exec(location.hash || '');
+  // &qr=<id> (2026-11-20): the ad set's QR code (CAS's Ad set settings), parked the same way —
+  // the new video's QR code starts as it, kept in the project like an uploaded one
+  { const m = /^#new=([^&]*)(?:&photo=([a-z0-9]{4,16}))?(?:&qr=([a-z0-9]{4,16}))?(&back=1)?$/.exec(location.hash || '');
     if (m) { history.replaceState(null, '', location.pathname + location.search); let nm = ''; try { nm = decodeURIComponent(m[1]); } catch (e) {}
       setTimeout(async () => {
-        const back = !!(m[3] && m[2]);
-        if (!(await startNew(nm, nm || 'CAS', back)) || !m[2]) return;
+        const back = !!(m[4] && m[2]);
+        if (!(await startNew(nm, nm || 'CAS', back))) return;
+        if (m[3]) try {
+          const r = await fetch('/api/inbox/photo?id=' + m[3]); if (!r.ok) throw new Error(r.status);
+          const u = await new Promise((ok, no) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.onerror = no; r.blob().then(b => fr.readAsDataURL(b), no); });
+          mark(); P.brand.qr = { name: (nm ? nm + ' ' : '') + 'QR code', u }; save(); renderAll();
+        } catch (e) { toast('The ad set’s QR code from CAS could not be opened (' + e.message + ').'); }
+        if (!m[2]) return;
         if (back) { P.casBg = { id: m[2], name: nm, media: [] }; P.brand.on = false; save(); renderAll(); }
         try {
           const r = await fetch('/api/inbox/photo?id=' + m[2]); if (!r.ok) throw new Error(r.status);
