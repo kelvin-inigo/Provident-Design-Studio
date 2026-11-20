@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generative fill for CAS — a loopback helper that extends a photo to a canvas with Adobe Firefly.
 
-STAGED PROTOTYPE (branch `cas-genfill`, 2026-11-20). Not on main, not on the live site.
+Added 2026-11-20 (staged on branch `cas-genfill`, merged to main the same day). Notes: docs/notes/cas-genfill.md.
 
     python3 tools/genfill/serve.py            # serves http://127.0.0.1:7315
 

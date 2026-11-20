@@ -1,10 +1,11 @@
-# CAS Generative fill (Firefly) — STAGED on branch `cas-genfill` (2026-11-20)
+# CAS Generative fill (Firefly) — on `main` since 2026-11-20 (staged on `cas-genfill` first)
 
 By request: "a generative layer in CAS … snap edge to edge … let the user choose a focal point … a
 modal editor with Firefly controls, in PDS UI and UX. Stage this concept and let's test it first."
-Not on `main`, not on the live site, not pushed. Merging needs the user's yes, and then the
-architecture PDF (new helper, new external service), `engine-map.json`, `CAS-OPS-GUIDE.md` and
-`GROK-BOT-INSTRUCTIONS.md` are updated in the same pass.
+Tested on the branch, then merged to `main` the same day by request ("I need it on the main vercel
+live app"), with architecture PDF Revision 1.25, `engine-map.json` (parts `genfill`, `adobe`; check
+`genfill` under Check this Mac), `CAS-OPS-GUIDE.md` §12 and `GROK-BOT-INSTRUCTIONS.md`. On the live
+site the button only works on a computer running the helper.
 
 ## What it is
 

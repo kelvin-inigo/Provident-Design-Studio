@@ -1,4 +1,4 @@
-/* Generative fill — CAS's Firefly modal. STAGED PROTOTYPE (branch `cas-genfill`, 2026-11-20).
+/* Generative fill — CAS's Firefly modal. Added 2026-11-20 (staged on `cas-genfill`, then merged). Notes: docs/notes/cas-genfill.md.
  *
  * A photo dropped on a variant rarely has the shape of every size it feeds. This modal puts the photo in
  * the size's frame, snapped edge to edge on the axis that fits (a square in a 9:16 fills the WIDTH and

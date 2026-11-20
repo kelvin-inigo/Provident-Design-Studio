@@ -4081,3 +4081,8 @@ same number OPS's reel thumbnail carries.
   `qrBox` refactor moved nothing). ADM mode, editor against export: left edges within 0.06 canvas
   px in every corner and size, Arabic within 0.14; the right edge differs by about a pixel
   because a DOM range includes the trailing tracking unit that no glyph fills.
+
+## Generative fill (2026-11-20)
+
+The **Generate** button in the Photo row and its Firefly editor (`genfill.js`, helper
+`tools/genfill/serve.py` on :7315). Full record in `docs/notes/cas-genfill.md`.

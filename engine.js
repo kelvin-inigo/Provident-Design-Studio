@@ -67,7 +67,7 @@
     { k: 'home', n: 'Home', f: 'index.html · engine.js', d: 'Next up, Status, Projects, Access and this page. Runs no studio code.' },
     { k: 'server', n: 'Server and sign-in', f: 'api/share.py · api/gauth.py · access.js', d: 'Google sign-in, roles, Roam notes, Arabic copy by Claude, the hub keys and this feed. Vercel Python.' },
     { k: 'kit', n: 'Shared runtime and design system', f: 'runtime.js · studio-base.js · share-link.js · ui-design-system/', d: 'Storage, workspaces, ad set reviews on Drive, the chrome tokens both studios mirror.' },
-    { k: 'agents', n: 'Agents and helpers', f: 'tools/studio-mcp · .claude/skills · tools/rembg', d: 'The studio tools for Claude and the Grok bot, the skills, cut-outs and the Photoshop round trip.' },
+    { k: 'agents', n: 'Agents and helpers', f: 'tools/studio-mcp · .claude/skills · tools/rembg · tools/genfill', d: 'The studio tools for Claude and the Grok bot, the skills, cut-outs, Generative fill and the Photoshop round trip.' },
     { k: 'docs', n: 'Docs', f: 'docs/notes · docs/architecture · CAS-OPS-GUIDE.md', d: 'Every decision since August, the architecture reference, the guide the team reads.' }
   ];
 
@@ -150,7 +150,7 @@
       .catch(function () { E.health.hub = { s: 'bad', t: 'Not reachable at ' + hn }; }).then(done);
     if (!mac) return;
     // this Mac's helpers: CORS where they send it, else an opaque answer still proves they run
-    [['rembg', 'http://127.0.0.1:7311/health'], ['ps', 'http://127.0.0.1:7312/health'], ['casv', 'http://localhost:8794/api/outbox/list'], ['mcp', 'http://127.0.0.1:7313/health']].forEach(function (x) {
+    [['rembg', 'http://127.0.0.1:7311/health'], ['ps', 'http://127.0.0.1:7312/health'], ['casv', 'http://localhost:8794/api/outbox/list'], ['mcp', 'http://127.0.0.1:7313/health'], ['genfill', 'http://127.0.0.1:7315/health']].forEach(function (x) {
       E.health[x[0]] = { s: 'wait', t: 'Checking…' };
       timed(x[1]).then(function (y) { E.health[x[0]] = y.r.ok ? { s: 'ok', t: 'Running · ' + y.ms + ' ms' } : { s: 'warn', t: 'HTTP ' + y.r.status }; })
         .catch(function () { return timed(x[1], { mode: 'no-cors' }).then(function (y) { E.health[x[0]] = { s: 'ok', t: 'Running · ' + y.ms + ' ms' }; }); })
@@ -303,7 +303,7 @@
     if (k === 'anthropic' || k === 'roam') return L[k] || { s: 'wait', t: E.at ? 'Not reported' : 'Checking…' };
     if (k === 'hubkeys') { var ks = L.keys || {}; return L.keys ? (ks.HUB_PUSH_KEY ? { s: 'ok', t: 'Push key set' } : { s: 'off', t: 'HUB_PUSH_KEY not set' }) : { s: 'wait', t: 'Checking…' }; }
     if (k === 'grok') { var m = E.health.mcp; return m ? (m.s === 'ok' ? { s: 'ok', t: 'remote.py is running here' } : { s: 'off', t: 'Runs from the office Mac' }) : { s: 'off', t: 'Runs from the office Mac' }; }
-    if (['rembg', 'ps', 'casv', 'mcp'].indexOf(k) >= 0 && !E.health[k]) return { s: 'off', t: 'Not checked: press Check this Mac' };
+    if (['rembg', 'ps', 'casv', 'mcp', 'genfill'].indexOf(k) >= 0 && !E.health[k]) return { s: 'off', t: 'Not checked: press Check this Mac' };
     return E.health[k] || { s: 'wait', t: 'Checking…' };
   }
   function paintMap() {
