@@ -64,12 +64,14 @@ HF_SIGNIN = "Higgsfield's tool is not signed in on this computer. In Terminal: h
 HF_MISSING = "Higgsfield's tool is not on this computer. In Terminal: npm i -g @higgsfield/cli, then higgsfield auth login"
 HF_STATE = {'at': 0, 'v': None}
 QUOTES = {}
-NANO_PROMPT = ("Outpaint this photograph. Repaint only the area that is white in the mask, so the photo continues "
-               "seamlessly past its edges into a complete, believable scene. Match the existing perspective, horizon "
-               "line, vanishing points, lens, lighting direction, time of day, colour grade, grain and level of detail "
-               "exactly; continue architecture, water, landscape, foliage and sky naturally and in scale. Keep every "
-               "unmasked pixel unchanged. No text, lettering, logos, watermarks, frames, borders or collage seams. "
-               "Photorealistic.")
+NANO_PROMPT = ("Outpaint this photograph to fill the whole canvas. The areas that are white in the mask are EMPTY CANVAS, "
+               "prefilled only with stretched, streaked edge colour: replace them completely with new scenery that "
+               "continues outward from the photo's edges, as if the camera had a wider lens. Do not repeat, mirror or "
+               "duplicate anything that is already in the photo: no second copy of its buildings, water, beach, trees, "
+               "sun or subject. Match the existing perspective, horizon line, vanishing points, lens, lighting "
+               "direction, time of day, colour grade, grain and level of detail exactly, and keep every line that "
+               "crosses the photo's edge continuous. Keep the black (unmasked) part of the photo unchanged. No text, "
+               "lettering, logos, watermarks, frames, borders or visible seams. Photorealistic.")
 
 
 def claude_bin():

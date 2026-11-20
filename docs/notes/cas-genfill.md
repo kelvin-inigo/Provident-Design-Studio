@@ -87,3 +87,29 @@ By request: "give option to choose from higgsfield or firefly" plus "/impeccable
   - `nanoPlan` is correct for all five sizes.
   - At 375 px nothing scrolls sideways.
 - **Merged to main 2026-11-20 by request ("push now"), before a real Nano Banana generation** (2 credits). `generate cost` accepts the mask object without validating its shape, so the first real run is what proves it.
+
+## First real Nano Banana run, and the fix (2026-11-20)
+
+The first real result (an Avenew Dubai Islands story) came back with a **second, sharpened copy of the
+lagoon** under the photo and extra towers above it, plus hard lines at both seams. The user's words: "I just
+want to retain the original photo, and just extend it".
+
+- **Cause:** the bands were prefilled with a blurred, enlarged copy of the whole photo (the preview's look).
+  Nano Banana read that blur as a scene and rendered it sharp. The original was then pasted back with a
+  hard edge.
+- **Fix:**
+  - **Prefill:** the bands are now the photo's two outermost rows and columns stretched to the edges
+    (softened), over the photo's average colour (`smear`).
+  - **Mask:** it reaches 3% into the photo on each generated side, at least 8 px (`overlap`), so the model
+    blends across the edge.
+  - **Paste-back:** `finish` fades the original over that strip with a linear alpha ramp. Firefly keeps its
+    hard paste, because Generative Expand keeps the pixels.
+  - **Prompt:** it now says the white areas are empty canvas, and that nothing in the photo may be
+    repeated, mirrored or duplicated.
+- **Proven without credits:** a stand-in helper captured the real request (a 1152 × 2048 frame plus its
+  mask) and returned the frame. The prefill, mask, overlap and fade all came out as intended. How good the
+  extension looks is up to the model, so it is not proven.
+- **Fallback if Nano Banana still invents:** Higgsfield's `flux_2_pro_outpaint` takes exact expand pixels
+  per side, like Firefly: about 2.6 credits for +400/+400 on a 1200² and 3.5 for +1500/+1500, per the
+  connector's estimate. The CLI's `generate cost` for it is broken: it asks for `input_width` and then
+  rejects that parameter.

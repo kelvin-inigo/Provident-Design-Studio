@@ -213,7 +213,7 @@
     NANO_RATIOS.forEach(function (q) { var d = Math.abs(Math.log((q[0] / q[1]) / r)); if (!best || d < best.d) best = { q: q, d: d }; });
     var R = best.q[0] / best.q[1], cw = L.ow, ch = L.oh;
     if (best.d > 0.004) { if (R > r) cw = Math.round(L.oh * R); else ch = Math.round(L.ow / R); }
-    return { aspect: best.q[0] + ':' + best.q[1], cw: cw, ch: ch, px: Math.floor((cw - L.ow) / 2), py: Math.floor((ch - L.oh) / 2) };
+    return { aspect: best.q[0] + ':' + best.q[1], cw: cw, ch: ch, px: Math.floor((cw - L.ow) / 2), py: Math.floor((ch - L.oh) / 2), fade: true };
   }
 
   function sidesText(ex) {
@@ -479,19 +479,46 @@
         return { req: { image: c.toDataURL('image/jpeg', 0.95), w: L.sw, h: L.sh, expand: L.ex, variations: st.vars },
           plan: { cw: L.ow, ch: L.oh, px: 0, py: 0 } };
       }
-      // the whole frame at the model's nearest shape: the bands roughed in, the photo placed; and its mask
+      // The whole frame at the model's nearest shape, the photo placed, and a mask of what to paint.
+      // The bands are PREFILLED BY SMEARING THE PHOTO'S OUTER PIXELS outward: the model gets the colours
+      // to continue and no scene to copy. (A blurred copy of the whole photo here came back as a second,
+      // sharpened lagoon, 2026-11-20.) The mask reaches a little into the photo on each generated side
+      // (OVERLAP) so the model blends across the edge; finish() fades the original over that strip.
       var P = nanoPlan(L), u = Math.min(1, NANO_UP / Math.max(P.cw, P.ch));
       var w = Math.round(P.cw * u), h = Math.round(P.ch * u);
       var x0 = (P.px + L.ex.left) * u, y0 = (P.py + L.ex.top) * u, pw = L.sw * u, phh = L.sh * u;
       var cnv = document.createElement('canvas'); cnv.width = w; cnv.height = h;
       var cx = cnv.getContext('2d'); cx.imageSmoothingQuality = 'high';
-      rough(cx, w, h, 0, 0, w, h, L, Math.round(Math.max(w, h) / 40));
-      cx.drawImage(st.img, x0, y0, pw, phh);
-      var msk = document.createElement('canvas'); msk.width = w; msk.height = h;
+      smear(cx, w, h, x0, y0, pw, phh);
+      var ov = overlap(L, u), msk = document.createElement('canvas'); msk.width = w; msk.height = h;
       var mx = msk.getContext('2d'); mx.fillStyle = '#fff'; mx.fillRect(0, 0, w, h);
-      mx.fillStyle = '#000'; mx.fillRect(Math.ceil(x0), Math.ceil(y0), Math.floor(pw) - 1, Math.floor(phh) - 1);
+      mx.fillStyle = '#000';
+      mx.fillRect(Math.ceil(x0 + ov.l), Math.ceil(y0 + ov.t), Math.floor(pw - ov.l - ov.r) - 1, Math.floor(phh - ov.t - ov.b) - 1);
       return { req: { engine: 'nano', canvas: cnv.toDataURL('image/jpeg', 0.94), mask: msk.toDataURL('image/png'), aspect: P.aspect,
         resolution: NANO_RES, prompt: q('guide').value.trim(), variations: st.vars }, plan: P };
+    }
+
+    // How far the model may paint into the photo on each generated side (and how wide the fade is), in
+    // the units given by k: 3% of the photo's side, at least 8 px at 1x.
+    function overlap(L, k) {
+      var o = function (n, d) { return n > 0 ? Math.max(8, d * 0.03) * k : 0; };
+      return { l: o(L.ex.left, L.sw), r: o(L.ex.right, L.sw), t: o(L.ex.top, L.sh), b: o(L.ex.bottom, L.sh) };
+    }
+
+    // The prefill: the photo, its outer rows and columns stretched to the canvas edges (softened), and the
+    // photo's average colour under the corners.
+    function smear(cx, w, h, x0, y0, pw, phh) {
+      var a = document.createElement('canvas'); a.width = a.height = 1;
+      var ac = a.getContext('2d'); ac.drawImage(st.img, 0, 0, 1, 1); var d = ac.getImageData(0, 0, 1, 1).data;
+      cx.fillStyle = 'rgb(' + d[0] + ',' + d[1] + ',' + d[2] + ')'; cx.fillRect(0, 0, w, h);
+      var I = st.img, sx = I.naturalWidth / pw, sy = I.naturalHeight / phh, e = 2;   // the 2 outermost display px
+      cx.save(); cx.filter = 'blur(' + Math.max(2, Math.round(Math.max(w, h) / 220)) + 'px)';
+      if (y0 > 0) cx.drawImage(I, 0, 0, I.naturalWidth, e * sy, x0, 0, pw, y0 + 1);
+      if (y0 + phh < h) cx.drawImage(I, 0, I.naturalHeight - e * sy, I.naturalWidth, e * sy, x0, y0 + phh - 1, pw, h - y0 - phh + 1);
+      if (x0 > 0) cx.drawImage(I, 0, 0, e * sx, I.naturalHeight, 0, y0, x0 + 1, phh);
+      if (x0 + pw < w) cx.drawImage(I, I.naturalWidth - e * sx, 0, e * sx, I.naturalHeight, x0 + pw - 1, y0, w - x0 - pw + 1, phh);
+      cx.restore();
+      cx.drawImage(I, x0, y0, pw, phh);
     }
 
     function generate() {
@@ -540,7 +567,21 @@
         var c = document.createElement('canvas'); c.width = w; c.height = h;
         var x = c.getContext('2d'); x.imageSmoothingQuality = 'high';
         x.drawImage(gen, P.px * g, P.py * g, outW, outH, 0, 0, w, h);
-        x.drawImage(st.img, L.ex.left * g * sc, L.ex.top * g * sc, L.sw * g * sc, L.sh * g * sc);
+        var k = g * sc, rx = L.ex.left * k, ry = L.ex.top * k, rw = L.sw * k, rh = L.sh * k;
+        if (P.cw === L.ow && P.ch === L.oh && !P.fade) {
+          x.drawImage(st.img, rx, ry, rw, rh);              // Firefly: its expand keeps the pixels; a hard paste
+        } else {
+          // Nano Banana: the original, faded over the strip the model was allowed to blend into
+          var o = overlap(L, k), t = document.createElement('canvas'); t.width = Math.ceil(rw); t.height = Math.ceil(rh);
+          var tc = t.getContext('2d'); tc.imageSmoothingQuality = 'high'; tc.drawImage(st.img, 0, 0, rw, rh);
+          tc.globalCompositeOperation = 'destination-in';
+          [['l', 0, 0, o.l, 0], ['r', rw, 0, rw - o.r, 0], ['t', 0, 0, 0, o.t], ['b', 0, rh, 0, rh - o.b]].forEach(function (z) {
+            if (!o[z[0]]) return;
+            var gr = tc.createLinearGradient(z[1], z[2], z[3], z[4]); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,1)');
+            tc.fillStyle = gr; tc.fillRect(0, 0, rw, rh);
+          });
+          x.drawImage(t, rx, ry);
+        }
         var out = c.toDataURL('image/jpeg', 0.92);
         return loadImg(out).then(function (im) { return { url: out, img: im, w: w, h: h }; });
       });
