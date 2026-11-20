@@ -453,6 +453,12 @@ button{font-family:inherit}
 .vs button svg.i{width:16px; height:16px}
 .vs button:hover{color:var(--ps-ink)}
 .vs button[aria-pressed="true"]{background:var(--ps-fill-on); color:var(--ps-ink)}
+.tk-vs{margin-left:auto}
+.tk-vs a{display:inline-flex; align-items:center; height:30px; padding:0 14px; border-radius:var(--ps-pill); color:var(--ps-ink-2); font:500 13px/1 var(--ps-font); text-decoration:none}
+.tk-vs a:hover{color:var(--ps-ink)}
+.tk-vs a[aria-current]{background:var(--ps-fill-on); color:var(--ps-ink)}
+.tk-vs a:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px}
+@media (max-width:760px){ .tk-vs{margin-left:0} }
 .sx-act{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; margin:-2px 0 16px}
 .fc{display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 6px 0 11px; border:0; border-radius:var(--ps-pill); background:var(--ps-fill-on); color:var(--ps-ink); font:500 12.5px/1 var(--ps-font); cursor:pointer}
 .fc svg.i{width:14px; height:14px; padding:2px; box-sizing:content-box; border-radius:50%; color:var(--ps-ink-2)}
@@ -976,7 +982,6 @@ body{-webkit-tap-highlight-color:transparent;
     </svg></a>
   <nav class="uh-nav" aria-label="Main">
     <a href="#/" data-nav="home">Home</a>
-    <a href="#/status" data-nav="status">Status</a>
     <a href="#/tracker" data-nav="tracker">Tracker</a>
     <a href="#/projects" data-nav="projects">Projects</a>
     <a href="#/access" data-nav="access">Access <span class="uh-n" id="acc-n" hidden></span></a>
@@ -1041,7 +1046,7 @@ body{-webkit-tap-highlight-color:transparent;
    - provident-acc-me: the account access.js last confirmed, and access.js itself (home mode);
    - provident-drive-who: the Google account, when nothing else is known;
    - recents in IndexedDB (provident-design-studio, recents:<studio>), never created from here.
-   Routes are hash routes: #/ Home, #/status, #/item/<cas|ops>/<id>, #/new, #/access, #/engine (engine.js),
+   Routes are hash routes: #/ Home, #/tracker (Progress; ?v=kanban the board, once Status; #/status lands there), #/item/<cas|ops>/<id>, #/new, #/access, #/engine (engine.js),
    #/help (help.js; ?a=<cas|ops|home>, ?q=, #/help/<guide>). */
 (function(){
   'use strict';
@@ -1256,16 +1261,16 @@ body{-webkit-tap-highlight-color:transparent;
       '<p>Use your Provident Google account. What is waiting on you, and what is with others, follows your role.</p>' +
       (acc ? '<div class="qk-a"><button class="b b-p b-lg" type="button" data-sign="in"' + (phase === 'busy' ? ' disabled' : '') + '>' + (phase === 'busy' ? 'Signing in…' : 'Sign in with Google') + '</button></div>' : '') + '</div></div>';
     if (!studiosFor(r).length) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>Your role doesn’t follow campaigns or posts</h3>' +
-      '<p>Status lists them for the people who work on them. To follow every campaign without changing anything, ask the admin to give your role “View ad sets” under Access › Roles.</p></div></div>';
+      '<p>Tracker lists them for the people who work on them. To follow every campaign without changing anything, ask the admin to give your role “View ad sets” under Access › Roles.</p></div></div>';
     if (!data.known) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>' + (busy ? 'Reading your work from Google Drive\u2026' : 'Connect Google Drive') + '</h3>' +
       '<p>' + (busy ? 'Campaigns and posts are kept on the team\u2019s Drive. This takes a few seconds the first time.' : 'Campaigns and posts are kept on the team\u2019s Drive. Connect it once on this computer and ' + (where === 'status' ? 'every campaign and post you can see is on this board.' : 'what is waiting on you, and what is with others, appears here.')) + '</p>' +
       (busy ? '' : '<div class="qk-a"><button class="b b-p b-lg" type="button" data-drive>Connect Google Drive' + ico('r') + '</button></div>') + '</div></div>';
     var o = data.others.length, cs = canStart(r);
     return '<div class="qk"><span class="qk-o">' + ico('check') + '</span><div><h3>You’re clear</h3>' +
-      '<p>' + (viewOnly() ? (o ? (o === 1 ? 'One campaign is' : o + ' campaigns are') + ' in progress. You follow them on Status; nothing there waits on you.' : 'No campaign is in progress right now.')
+      '<p>' + (viewOnly() ? (o ? (o === 1 ? 'One campaign is' : o + ' campaigns are') + ' in progress. You follow them on Tracker; nothing there waits on you.' : 'No campaign is in progress right now.')
         : o ? (o === 1 ? 'One campaign or post is' : o + ' campaigns and posts are') + ' with others. Nothing needs you until someone hands it back.' : 'Nothing is in flight right now.') + '</p>' +
-      (!cs.length && viewOnly() && o ? '<div class="qk-a"><a class="b b-p b-lg" href="#/status">See Status' + ico('r') + '</a></div>' : '') +
-      (cs.length ? '<div class="qk-a"><a class="b b-p b-lg" href="' + (cs.length > 1 ? '#/new' : STUDIO[cs[0]].start) + '">Start something' + ico('r') + '</a><a class="b b-l" href="#/status">See Status</a></div>' : '') + '</div></div>';
+      (!cs.length && viewOnly() && o ? '<div class="qk-a"><a class="b b-p b-lg" href="#/tracker?v=kanban">See the board' + ico('r') + '</a></div>' : '') +
+      (cs.length ? '<div class="qk-a"><a class="b b-p b-lg" href="' + (cs.length > 1 ? '#/new' : STUDIO[cs[0]].start) + '">Start something' + ico('r') + '</a><a class="b b-l" href="#/tracker?v=kanban">See the board</a></div>' : '') + '</div></div>';
   }
   function freshLine(){
     if (!data.known) return '';
@@ -1299,7 +1304,7 @@ body{-webkit-tap-highlight-color:transparent;
     var r = data.r, list = data.mine, hr = new Date().getHours();
     var vn = viewerName();
     var hi = 'Good ' + (hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening') + (vn ? ', ' + esc(first(vn)) : '') + '.';
-    var n = list.length, tail = !me || !me.email ? 'Sign in to see what is waiting on you.' : !studiosFor(r).length ? 'Nothing is waiting on you.' : !data.known ? 'Your queue fills in from Status.' : !n ? 'Nothing is waiting on you.' : (n === 1 ? 'One thing is' : n + ' things are') + ' waiting on you.';
+    var n = list.length, tail = !me || !me.email ? 'Sign in to see what is waiting on you.' : !studiosFor(r).length ? 'Nothing is waiting on you.' : !data.known ? 'Your queue fills in from Tracker.' : !n ? 'Nothing is waiting on you.' : (n === 1 ? 'One thing is' : n + ' things are') + ' waiting on you.';
     if (cur >= n) cur = Math.max(0, n - 1);
     var top = list[cur], fd = flip; flip = 0;
     // the greeting spans the page; the side column starts level with Next up (2026-11-03)
@@ -1340,7 +1345,7 @@ body{-webkit-tap-highlight-color:transparent;
       h += '<ol class="rows">' + rest.filter(function(x){ return homeF === 'all' || homeF === x.studio; }).map(function(x){ return row(x); }).join('') + '</ol></section>';
     }
     if (data.others.length){
-      h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" id="h-oth" style="color:var(--ps-ink-2)">' + (viewOnly() ? 'In progress' : 'With others') + '<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/status">All on Status</a></div><ol class="rows">' +
+      h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" id="h-oth" style="color:var(--ps-ink-2)">' + (viewOnly() ? 'In progress' : 'With others') + '<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">All on the board</a></div><ol class="rows">' +
         data.others.slice(0, 5).map(function(x){ return row(x, true); }).join('') + '</ol></section>';
     }
     h += freshLine();
@@ -1350,14 +1355,14 @@ body{-webkit-tap-highlight-color:transparent;
     // where everything is: the four stages, each with the work actually in it
     if (data.known){
       var both = studiosFor(r).length > 1;
-      h += '<section class="pan"><div class="sh">Where everything is<small>' + data.rows.length + ' in motion</small><span class="sp"></span><a class="b b-l" href="#/status">Status</a></div><ol class="flw">';
+      h += '<section class="pan"><div class="sh">Where everything is<small>' + data.rows.length + ' in motion</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">The board</a></div><ol class="flw">';
       MOVING.forEach(function(s){
         var c = data.rows.filter(function(x){ return x.stage === s.k; }).sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
         var a = c.filter(function(x){ return x.studio === 'cas'; }).length, o = c.length - a;
         var late = c.filter(function(x){ var d = due(x.due); return d && d.k === 'late'; }).length;
         var sub = !c.length ? 'Nothing here' : both ? [a ? a + (a === 1 ? ' ad set' : ' ad sets') : '', o ? o + (o === 1 ? ' post' : ' posts') : ''].filter(Boolean).join(' · ') : whoOf(s);
         var stack = c.slice(0, 3).map(function(x){ return '<span class="fl-t"' + (x.mine ? ' data-me' : '') + '>' + rd(x, 30) + '</span>'; }).join('') + (c.length > 3 ? '<span class="fl-more">+' + (c.length - 3) + '</span>' : '');
-        h += '<li style="--c:' + s.c + '"' + (c.length ? '' : ' data-empty') + '><a href="#/status?stage=' + s.k + '" aria-label="' + s.n + ': ' + c.length + (late ? ', ' + late + ' overdue' : '') + '">' +
+        h += '<li style="--c:' + s.c + '"' + (c.length ? '' : ' data-empty') + '><a href="#/tracker?v=kanban&stage=' + s.k + '" aria-label="' + s.n + ': ' + c.length + (late ? ', ' + late + ' overdue' : '') + '">' +
           '<i class="fl-d"></i><span class="fl-n"><b>' + s.n + '</b><small>' + sub + (late ? '<em>' + late + ' overdue</em>' : '') + '</small></span>' +
           '<span class="fl-s" aria-hidden="true">' + stack + '</span><span class="fl-c">' + c.length + '</span></a></li>';
       });
@@ -1388,7 +1393,7 @@ body{-webkit-tap-highlight-color:transparent;
   function kb(n){ n = +n || 0; return n > 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB'; }
   function viewFiles(id){
     var x = get('ops', id), F = window.providentPostFeed, back = '<a class="b b-q fz-back" href="#/">' + ico('l') + 'Home</a>';
-    if (!x) return back + '<div class="qk" style="margin-top:16px"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>' + (data.known ? 'This post isn\u2019t ready' : 'Reading your posts\u2026') + '</h3><p>' + (data.known ? 'It may have been sent back, or it is not on Status any more.' : 'One moment.') + '</p></div></div>';
+    if (!x) return back + '<div class="qk" style="margin-top:16px"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>' + (data.known ? 'This post isn\u2019t ready' : 'Reading your posts\u2026') + '</h3><p>' + (data.known ? 'It may have been sent back, or it is not on Tracker any more.' : 'One moment.') + '</p></div></div>';
     var L = FL[id];
     if (!L && F && F.files) { L = FL[id] = { busy: true }; F.files(id).then(function(r){ FL[id] = { files: r.files, folder: r.rs.folder }; redraw(); }).catch(function(e){ FL[id] = { err: (e && e.message) || 'Google Drive refused.' }; redraw(); }); }
     L = L || {};
@@ -1515,7 +1520,7 @@ body{-webkit-tap-highlight-color:transparent;
       '<div class="tk-who"><h3>' + esc(x.name) + '</h3><div class="tk-m">' + esc(x.step || '') + (x.sub ? ' · ' + esc(x.sub) : '') + '</div>' +
         (x.brand || x.auds ? '<div class="tk-m">' + [({ provident: 'Branded', unbranded: 'Unbranded', mixed: 'Branded and unbranded' })[x.brand] || '', x.auds ? x.auds + (x.auds > 1 ? ' audiences' : ' audience') : ''].filter(Boolean).join(' · ') + '</div>' : '') + '</div>';
     if (x.open) h += '<div class="tk-q">A ticket, not an ad set yet. Its deliverables appear once a designer picks it up.</div>';
-    else if (!d) h += '<div class="tk-q">Open Status once on this computer to read its deliverables.</div>';
+    else if (!d) h += '<div class="tk-q">Open the Kanban once on this computer to read its deliverables.</div>';
     else {
       h += '<div class="tk-g" role="table" aria-label="Deliverables"><span></span>' + TK_DL.map(function(k){ return '<span class="tk-hd">' + k[1] + '</span>'; }).join('') +
         [['e', 'EN', 'English'], ['a', 'AR', 'Arabic']].map(function(l){ return '<span class="tk-ln">' + l[1] + '</span>' + TK_DL.map(function(k){ return tkCell(d[k[0]] && d[k[0]][l[0]], l[2]); }).join(''); }).join('') + '</div>' +
@@ -1535,9 +1540,16 @@ body{-webkit-tap-highlight-color:transparent;
       '<div class="tk-side"><a class="b b-g" href="' + href(x) + '"' + tgt(x) + '>Open the post</a></div>';
     return h + '</article>';
   }
+  // TWO VIEWS (2026-11-20, by request): Progress (the rows above, the default) and Kanban (what
+  // was Status, every control kept); the switch is two links, so each view has its own address
+  function tkSwitch(kb){
+    return '<div class="vs tk-vs" role="group" aria-label="View">' + [['#/tracker', 'Progress', !kb], ['#/tracker?v=kanban', 'Kanban', kb]].map(function(t){
+      return '<a href="' + t[0] + '"' + (t[2] ? ' aria-current="page"' : '') + '>' + t[1] + '</a>'; }).join('') + '</div>';
+  }
   function viewTracker(q){
+    if (q.v === 'kanban') return viewStatus(q);
     var ss = studiosFor(data.r), v = q.v === 'posts' || ss.indexOf('cas') < 0 ? 'posts' : 'launch';
-    var h = '<div class="sx-head"><div><h1 class="h1">Tracker</h1><p class="lede">' + (v === 'launch' ? 'Every campaign and what it still needs, in English and Arabic.' : 'Every organic post and the step it is at.') + '</p></div></div>';
+    var h = '<div class="sx-head"><div><h1 class="h1">Tracker</h1><p class="lede">' + (v === 'launch' ? 'Every campaign and what it still needs, in English and Arabic.' : 'Every organic post and the step it is at.') + '</p></div>' + tkSwitch(false) + '</div>';
     if (!data.known || !me || !me.email || !ss.length) return h + quiet('status');
     if (ss.length > 1) h += '<div class="flt" role="group" aria-label="Show">' + [['launch', 'Launch', 'cas'], ['posts', 'Organic posts', 'ops']].map(function(t){
       var c = data.rows.filter(function(x){ return x.studio === t[2]; }).length;
@@ -1548,10 +1560,10 @@ body{-webkit-tap-highlight-color:transparent;
     return h + '<div class="tk">' + rows.map(v === 'launch' ? tkCampaign : tkPost).join('') + '</div>' + freshLine();
   }
 
-  // ═════ STATUS ═════
+  // ═════ TRACKER › KANBAN (was Status, its own page until 2026-11-20) ═════
   function viewStatus(q){
     var r = data.r, both = studiosFor(r).length > 1;
-    var h = '<div class="sx-head"><div><h1 class="h1">Status</h1><p class="lede">' + (both ? 'Every campaign and post in one place, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign in one place, from ticket to ready.' : studiosFor(r).length ? 'Your organic posts, from draft to ready.' : 'Campaigns and posts, from ticket or draft to ready.') + '</p></div></div>';
+    var h = '<div class="sx-head"><div><h1 class="h1">Tracker</h1><p class="lede">' + (both ? 'Every campaign and post on one board, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign on one board, from ticket to ready.' : studiosFor(r).length ? 'Your organic posts on one board, from draft to ready.' : 'Campaigns and posts, from ticket or draft to ready.') + '</p></div>' + tkSwitch(true) + '</div>';
     if (!data.known || !me || !me.email || !studiosFor(r).length) return h + quiet('status');
     var all = sxClosed ? data.rows.concat(data.closed) : data.rows, stg = sxClosed ? STAGES : MOVING;
     var hubN = all.filter(function(x){ return x.hub; }).length;
@@ -1729,7 +1741,7 @@ body{-webkit-tap-highlight-color:transparent;
         '<span class="door-f"><small>' + (r === 'smm' ? 'Drafts a post for the designers' : 'Usually a draft from social media') + '</small><span class="door-go">' + (r === 'smm' ? 'Draft a post' : 'Start a post') + ico('r') + '</span></span></span></a>'
     };
     var waiting = data.mine.filter(function(x){ return x.stage === 'new'; }).length;
-    return '<div class="nw nw-w"><h1 class="h1">What are you starting?</h1><p class="lede">Each opens in its own studio, and both show up on Status.</p><div class="doors"' + (ok.length < 2 ? ' style="grid-template-columns:minmax(0,560px)"' : '') + '>' + ok.map(function(k){ return doors[k]; }).join('') + '</div>' +
+    return '<div class="nw nw-w"><h1 class="h1">What are you starting?</h1><p class="lede">Each opens in its own studio, and both show up on Tracker.</p><div class="doors"' + (ok.length < 2 ? ' style="grid-template-columns:minmax(0,560px)"' : '') + '>' + ok.map(function(k){ return doors[k]; }).join('') + '</div>' +
       (waiting ? '<p class="door-alt">' + ico('tray') + '<span>Picking up something already filed? <a href="#/">' + waiting + (waiting === 1 ? ' item is' : ' items are') + ' waiting on your Home</a>.</span></p>' : '') + '</div>';
   }
 
@@ -1761,6 +1773,9 @@ body{-webkit-tap-highlight-color:transparent;
     var hs = location.hash.replace(/^#\/?/, ''), q = {}, path = hs.split('?')[0], parts = path.split('/');
     (hs.split('?')[1] || '').split('&').forEach(function(p){ var kv = p.split('='); if (kv[0]) q[kv[0]] = decodeURIComponent(kv[1] || ''); });
     var nav = parts[0] || 'home', html, pg = $('pg');
+    // STATUS LIVES IN TRACKER (2026-11-20, by request): its board is Tracker's Kanban view; an old
+    // #/status link (post-flow.js, bookmarks, the help capture) lands there, its ?stage= kept
+    if (nav === 'status') { nav = 'tracker'; q.v = 'kanban'; try { history.replaceState(null, '', '#/tracker?v=kanban' + (q.stage ? '&stage=' + encodeURIComponent(q.stage) : '')); } catch (x) {} }
     // a role that only opens the engine (AI Engineers) lands there instead of an empty home
     if (nav === 'home' && !parts[0] && seesEngine() && !isAdmin() && !designs().length && !canStart(data.r).length && (rawRole() === 'ai' || /^x-/.test(rawRole() || ''))) nav = 'engine';
     var host = null;
@@ -1768,10 +1783,9 @@ body{-webkit-tap-highlight-color:transparent;
     var hctx = nav === 'help' && window.providentHelp ? helpCtx() : null, hk = hctx ? parts.join('/') + '|' + [hctx.out, hctx.admin, hctx.raw].join('|') : '';
     if (hctx) { html = pg._hk === hk && !anim ? null : window.providentHelp.render(parts.slice(1), q, hctx); }
     else if (gated()) { html = viewGate(); nav = 'gate'; }
-    else if (nav === 'status') html = viewStatus(q);
     else if (nav === 'tracker') html = viewTracker(q);
-    else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops') && !sees(parts[1])) { html = viewStatus(q); nav = 'status'; }
-    else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops')) { html = ''; host = parts[1]; openItem(parts[1], decodeURIComponent(parts.slice(2).join('/'))); nav = 'status'; }
+    else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops') && !sees(parts[1])) { q.v = 'kanban'; html = viewTracker(q); nav = 'tracker'; }
+    else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops')) { html = ''; host = parts[1]; openItem(parts[1], decodeURIComponent(parts.slice(2).join('/'))); nav = 'tracker'; }
     else if (nav === 'new' && parts[1] === 'cas' && canStart(data.r).indexOf('cas') >= 0) { html = ''; host = 'plan'; mountPlan(); drawPlanPage(); }
     else if (nav === 'new') html = viewNew();
     else if (nav === 'access') html = viewAccess();
@@ -1813,10 +1827,10 @@ body{-webkit-tap-highlight-color:transparent;
     $('mn-n').textContent = nm || 'Not signed in'; $('mn-e').textContent = me && me.email || 'Use your Provident Google account';
     $('mn-r').textContent = data.r ? (roleLabel(rawRole()) || roleLabel(data.r)) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
     var mx = $('mn-x'); mx.hidden = !acc; mx.textContent = phase === 'in' ? 'Sign out' : 'Sign in with Google'; mx.dataset.sign = phase === 'in' ? 'out' : 'in';
-    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', status: 'Status \u2014 Provident Design Studio', tracker: 'Tracker \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio', engine: 'Engine \u2014 Provident Design Studio', help: 'Help \u2014 Provident Design Studio' }[nav];
+    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', tracker: 'Tracker \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio', engine: 'Engine \u2014 Provident Design Studio', help: 'Help \u2014 Provident Design Studio' }[nav];
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
-    if (nav === 'status' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
+    if (nav === 'tracker' && q.v === 'kanban' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
     if (nav === 'home') { desk(); skyPaint(); if (anim || !skyT0) skyT0 = Date.now(); var sk = $('sky'), ago0 = Date.now() - skyT0; if (sk && ago0 < SKY_ENTRY) { sk.setAttribute('data-in', ''); sk.style.setProperty('--ent', -ago0 + 'ms'); } }
     if (nav === 'projects') loadDesk(paintProjects);
     if (nav === 'engine' && seesEngine()) window.providentEngine.mount(pg);
@@ -1824,7 +1838,7 @@ body{-webkit-tap-highlight-color:transparent;
     if (nav !== 'help' && window.providentHelp) window.providentHelp.stop();
     // coming back from filing, a campaign or post page, read the queues afresh: a ticket filed
     // a moment ago, or a step taken there, is on the board at once (2026-11-03)
-    if ((nav === 'status' || nav === 'tracker' || nav === 'home') && /^(new|item)/.test(lastNav) && !host) refreshAll(true);
+    if ((nav === 'tracker' || nav === 'home') && /^(new|item)/.test(lastNav) && !host) refreshAll(true);
     lastNav = host ? (host === 'plan' ? 'new' : 'item') : nav;
   }
   var lastNav = '';
@@ -1865,7 +1879,7 @@ body{-webkit-tap-highlight-color:transparent;
   });
   // Status redrawn in place, the focus put back on the control that was pressed
   function sxDraw(fk){
-    if (!/^#\/status/.test(location.hash)) return;
+    if (!/^#\/tracker\?(.*&)?v=kanban/.test(location.hash)) return;
     route();
     var el = fk && document.querySelector('[data-fk="' + String(fk).replace(/["\\]/g, '\\$&') + '"]'); if (el) el.focus();
   }
@@ -1899,7 +1913,7 @@ body{-webkit-tap-highlight-color:transparent;
   // ── THE WORK: the studios' own pages and readers, with a stand-in for the studio engine ──────
   // The stand-ins are where an action needs the studio: CAS's pick-up waits in localStorage and
   // opens CAS (rsPickCheck takes it from there); OPS's Open and Start the design open OPS.
-  var CAS_ENG = { state: {}, host: { setState: function(st, cb){ if (st && st.splashView === 'all') location.hash = '#/new/cas'; else if (st && st.splashView === 'rev') location.hash = '#/status'; if (cb) cb(); }, forceUpdate: function(){} },
+  var CAS_ENG = { state: {}, host: { setState: function(st, cb){ if (st && st.splashView === 'all') location.hash = '#/new/cas'; else if (st && st.splashView === 'rev') location.hash = '#/tracker?v=kanban'; if (cb) cb(); }, forceUpdate: function(){} },
     confirmDiscard: function(){ return true; }, markSaved: function(){},
     // this computer's saved Campaign projects (the desk's list), for Add a project and Use an existing design
     savedRecents: function(){ return (deskRows || []).filter(function(x){ return x.k === 'cas'; }).map(function(x){ return Object.assign({}, x.r, { pid: x.r.pid || x.r.state.pid }); }); },
@@ -1944,8 +1958,8 @@ body{-webkit-tap-highlight-color:transparent;
   function launch(t){
     var K = window.providentDsKit; if (!K || !K.api || t.disabled) return;
     var post = t.dataset.op === 'rsposted', word = post ? 'Posted' : 'Launch';
-    if (!window.confirm(post ? 'Mark ' + t.dataset.nm + ' as posted?\n\nUse it once the post is published. It closes the post, takes it off your queue and moves it to Closed on Status. The log says you marked it.'
-      : 'Launch ' + t.dataset.nm + '?\n\nIt marks the campaign as running, takes it off your queue and moves it to Closed on Status. The log says you launched it.')) return;
+    if (!window.confirm(post ? 'Mark ' + t.dataset.nm + ' as posted?\n\nUse it once the post is published. It closes the post, takes it off your queue and moves it to Closed on Tracker’s Kanban. The log says you marked it.'
+      : 'Launch ' + t.dataset.nm + '?\n\nIt marks the campaign as running, takes it off your queue and moves it to Closed on Tracker’s Kanban. The log says you launched it.')) return;
     t.disabled = true; t.lastChild.textContent = post ? 'Closing\u2026' : 'Launching\u2026';
     var nw = acc && acc.now ? acc.now() : null, by = (me && me.name) || (typeof StudioBase !== 'undefined' && StudioBase.shareName && StudioBase.shareName()) || 'Performance marketing';
     K.api(t.dataset.op || 'rslaunch', { id: t.dataset.launch }, { by: by, em: (nw && nw.email) || (me && me.email) || '' })
@@ -2036,24 +2050,24 @@ body{-webkit-tap-highlight-color:transparent;
   function mountPlan(){ if (window.providentPlan) window.providentPlan.mount(CAS_ENG); }
   function drawPlanPage(){
     var r = data.r, pm = r === 'pm', waiting = data.rows.filter(function(x){ return x.studio === 'cas' && x.open; }).length;
-    $('np-lede').textContent = pm ? 'Name it, add the brief and who it\u2019s for, then file it as a ticket. A designer picks it up from Status.'
+    $('np-lede').textContent = pm ? 'Name it, add the brief and who it\u2019s for, then file it as a ticket. A designer picks it up from Tracker.'
       : 'Name it, add the brief and who it\u2019s for. File it as a ticket for a designer, or start designing it yourself.';
-    var F = [['var(--ps-dim)', 'Ticket', pm ? 'Filed here. It waits on Status until a designer picks it up.' : 'Filed here. Start designing picks it up at once.'],
+    var F = [['var(--ps-dim)', 'Ticket', pm ? 'Filed here. It waits on Tracker until a designer picks it up.' : 'Filed here. Start designing picks it up at once.'],
       ['var(--ps-link)', 'Design', 'Each audience is its own project, in English first.'],
       ['var(--ps-warn)', 'Copy check', 'The content team checks the English, then the Arabic translation.'],
       ['var(--ps-good)', 'Ready', 'Performance marketing downloads the package for every audience.']];
     $('np-side').innerHTML = '<section class="pan"><div class="sh">How it moves</div><ol class="np-flow">' + F.map(function(f){ return '<li><i style="--c:' + f[0] + '"></i><span><b>' + f[1] + '</b><small>' + f[2] + '</small></span></li>'; }).join('') + '</ol></section>' +
-      (!pm && waiting ? '<section class="pan"><div class="sh">Already filed<small>' + waiting + '</small></div><p class="lede" style="margin:0;font-size:14px">' + (waiting === 1 ? 'One ticket is' : waiting + ' tickets are') + ' waiting for a designer. <a class="b b-l" href="#/status?stage=new">See them on Status</a></p></section>' : '');
+      (!pm && waiting ? '<section class="pan"><div class="sh">Already filed<small>' + waiting + '</small></div><p class="lede" style="margin:0;font-size:14px">' + (waiting === 1 ? 'One ticket is' : waiting + ' tickets are') + ' waiting for a designer. <a class="b b-l" href="#/tracker?v=kanban&stage=new">See them on the board</a></p></section>' : '');
   }
   // the mounted pages' own Back goes to the board here, not to their studio list
   document.addEventListener('click', function(e){
     var b = e.target.closest && e.target.closest('#cas-host [data-a="back"], #ops-host [data-ps="back"]');
-    if (b) { e.preventDefault(); e.stopPropagation(); location.hash = '#/status'; return; }
+    if (b) { e.preventDefault(); e.stopPropagation(); location.hash = '#/tracker?v=kanban'; return; }
     // Remove from this list / Delete (after their confirm) leave the page for the studio's own
     // list; here the board takes over once the page has closed
     var x = e.target.closest && e.target.closest('#cas-host [data-a="rm"], #cas-host [data-a="delset"], #ops-host [data-ps="remove"], #ops-host [data-ps="delete"]');
     if (x) { var n = 0, w = setInterval(function(){ if (++n > 40 || !/^#\/item\//.test(location.hash)) return clearInterval(w);
-      if (!document.querySelector('#cas-host [data-a="back"], #ops-host [data-ps="back"]')) { clearInterval(w); location.hash = '#/status'; refreshAll(true); } }, 250); }
+      if (!document.querySelector('#cas-host [data-a="back"], #ops-host [data-ps="back"]')) { clearInterval(w); location.hash = '#/tracker?v=kanban'; refreshAll(true); } }, 250); }
   }, true);
   // the studios write the queue through StudioBase.inboxSave; here that is the signal to re-draw
   var inboxSave0 = StudioBase.inboxSave;
@@ -2063,7 +2077,7 @@ body{-webkit-tap-highlight-color:transparent;
     clearTimeout(rdT);
     rdT = setTimeout(function(){
       var hs = location.hash.replace(/^#\/?/, '').split('/')[0] || 'home';
-      if (hs !== 'home' && hs !== 'status' && hs !== 'files') return;   // the item pages draw themselves
+      if (hs !== 'home' && hs !== 'tracker' && hs !== 'files') return;   // the item pages draw themselves
       var a = document.activeElement; if (a && a.id === 'sx-q') return;   // never under someone typing
       if (sxMenu) return;   // nor under an open Status menu
       route();
@@ -2161,7 +2175,7 @@ body{-webkit-tap-highlight-color:transparent;
   var pjF = 'all', pjQ = '';
   function viewProjects(){
     var r = data.r, ks = designs(); void r;
-    if (!ks.length) return '<h1 class="h1">Projects</h1><div class="qk pj-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>No projects for your role</h3><p>Your work comes to you as review links and on Status.</p></div></div>';
+    if (!ks.length) return '<h1 class="h1">Projects</h1><div class="qk pj-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>No projects for your role</h3><p>Your work comes to you as review links and on Tracker.</p></div></div>';
     return '<h1 class="h1">Projects</h1><p class="lede">Every project saved on this computer, newest first. Open one to keep designing.</p>' +
       '<div class="pj-tools">' + (ks.length > 1 ? '<div class="flt" role="group" aria-label="Show" id="pj-f"></div>' : '') +
         '<div class="pj-open">' + ks.map(function(k){ return '<a class="b b-g" href="' + STUDIO[k].file + '#view=open">' + ico('out') + (k === 'cas' ? 'Open a project file' : 'Open a post file') + '</a>'; }).join('') + '</div>' +

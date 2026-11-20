@@ -17,7 +17,7 @@
   var AREAS = [
     { k: 'cas', n: 'CAS + CASV', long: 'Campaign Ads Studio and the Video Studio', desc: 'Meta ads in every size, the ad set from ticket to package, and its video.' },
     { k: 'ops', n: 'OPS', long: 'Organic Post Studio', desc: 'Feed and story posts from locked templates, Draft › Design › Copy check › Ready.' },
-    { k: 'home', n: 'Home', long: 'The home page', desc: 'Next up, Status, New, Projects, Access and the Engine: one page for both studios.' }
+    { k: 'home', n: 'Home', long: 'The home page', desc: 'Next up, Tracker, New, Projects, Access and the Engine: one page for both studios.' }
   ];
 
   // what each role is told first: its one-line job, and the articles that start it
@@ -53,16 +53,16 @@
         { t: '**Next up** is the one campaign or post most worth doing now: its picture, its step, who sent it and when it is due, and one button that moves it on.', f: 'home', s: 'next' },
         { t: '**‹ ›** (or the arrow keys) flip through the rest of what waits on you.', f: 'home', s: 'flip' },
         { t: '**Also waiting on you** lists the rest. Filter it by **Campaign ads** or **Organic posts**. **With others** is what you sent on and are waiting for.', f: 'home-list', s: 'also' },
-        { t: '**Where everything is** counts each stage, **New**, **Design**, **Copy check** and **Ready**. Click a stage to open Status on it.', f: 'home', s: 'where' },
+        { t: '**Where everything is** counts each stage, **New**, **Design**, **Copy check** and **Ready**. Click a stage to open Tracker’s Kanban on it.', f: 'home', s: 'where' },
         { t: '**Pick up where you left off** at the foot holds your last saved projects.', f: 'home-desk', s: 'desk' }
       ],
       more: ['Home reads the campaigns and posts from Google Drive itself, about every minute while it is open. **Refresh** reads them now.', 'The first time on a computer it asks you to **Connect Google Drive**.'] },
 
     { id: 'home-status', area: 'home', group: 'Getting around', who: ['all'], min: 3,
-      title: 'Find anything on Status',
-      sum: 'One board for both studios, in four stages, with filters that remember how you like it.',
+      title: 'Find anything on Tracker',
+      sum: 'Tracker’s Kanban (once Status): one board for both studios, in four stages, with filters that remember how you like it.',
       steps: [
-        { t: 'Open **Status** in the top bar. Every campaign and post sits in its stage: **New**, **Design**, **Copy check**, **Ready**.', f: 'status', s: 'board' },
+        { t: 'Open **Tracker** in the top bar and press **Kanban** at its top right (**Progress**, the default, shows each campaign’s deliverables and each post’s steps as rows). Every campaign and post sits in its stage: **New**, **Design**, **Copy check**, **Ready**.', f: 'status', s: 'board' },
         { t: '**Only what waits on me** and **Find by name** narrow the board. A card with a blue ring and **Waits on you** is yours.', f: 'status', s: 'tools' },
         { t: '**Filter** opens **Stage**, **Due** and **From**. Each filter in force becomes a chip under the tools; click one to drop it, or **Clear all**.', f: 'status-filter', s: 'menu' },
         { t: '**Board | List** switches to a compact list you can sort by any heading. **View** holds Sort by, Group by and Density.', f: 'status-list', s: 'list' },
@@ -393,10 +393,10 @@
   var VIEWS = [
     { id: 'v-home', area: 'home', n: 'Home', who: ['all'], f: 'home', pins: [
       ['next', 'Next up', 'The one thing most worth doing, with one button.'],
-      ['where', 'Where everything is', 'Each stage and what is in it; click to open Status there.'],
+      ['where', 'Where everything is', 'Each stage and what is in it; click to open Tracker’s Kanban there.'],
       ['new', 'New', 'Follows your role: a campaign, a post, or a ticket.'],
-      ['nav', 'The pages', 'Home, Status, Projects, Help, and Access or Engine when your role has them.']] },
-    { id: 'v-status', area: 'home', n: 'Status', who: ['all'], f: 'status', pins: [
+      ['nav', 'The pages', 'Home, Tracker, Projects, Help, and Access or Engine when your role has them.']] },
+    { id: 'v-status', area: 'home', n: 'Tracker › Kanban', who: ['all'], f: 'status', pins: [
       ['tools', 'Narrow it', 'Only what waits on me, Find by name, the kind chips, Filter.'],
       ['board', 'The board', 'New, Design, Copy check, Ready. Click a card for its page.']] },
     { id: 'v-adset', area: 'cas', n: 'An ad set page', who: ['design-cas', 'tickets', 'pm', 'view-adsets', 'ct'], f: 'item-cas', pins: [

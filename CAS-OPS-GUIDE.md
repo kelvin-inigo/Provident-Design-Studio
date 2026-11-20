@@ -108,7 +108,7 @@ say so and point to the step above.
 - Open `index.html` (the **home page**; on the website it is the first page) in **Chrome** or
   **Edge**. Everything that waits on someone — tickets, hand-offs, copy checks, packages — is
   managed here for both studios. The studios themselves are for designing: opened with nothing in
-  them, CAS and OPS bring you to the home's **Projects**, and their sidebar's **Home**, **Status**,
+  them, CAS and OPS bring you to the home's **Projects**, and their sidebar's **Home**, **Status** (Tracker's Kanban),
   **Projects** and **Access** all come back to this page. The home page has these tabs at the top:
   - **Home** shows **Next up**: the one campaign or post most worth doing now, with its picture,
     its step and one button that opens it in its studio. **‹ ›** (or the arrow keys) flip through
@@ -116,14 +116,17 @@ say so and point to the step above.
     and **With others**. On the right, **Where everything is** shows each stage (**New**,
     **Design**, **Copy check**, **Ready**) with the work in it, and **Your studios**. Your last
     saved projects sit at the bottom under **Pick up where you left off**.
-  - **Tracker** (top bar, after Status) is Status as rows. **Launch** lists every campaign by its
+  - **Tracker** has two views, switched at its top right: **Progress** (the default) and
+    **Kanban**. Status is no longer its own page: its board, with every control, is Tracker's
+    **Kanban**, and an old Status link opens it. Wherever this guide says *Status*, it means
+    **Tracker › Kanban**. **Progress** shows the work as rows. **Launch** lists every campaign by its
     due date with what it still needs in English and Arabic: **Static**, **Animated**, **MVP video**
     and **Copy**, each **Done**, **1 of 2** (audiences), **Missing** or **Not needed**, and how many
     are done in all. **Organic posts** lists every post with its picture and its four steps
     (**Draft**, **Design**, **Copy check**, **Ready**). It only shows; **Open the ad set**, **Open
     the ticket** or **Open the post** takes you to its page. A campaign shows its deliverables
-    once Status has been read on that computer.
-  - **Status** is one board for both studios, in the same four stages. **Only what waits on me**
+    once the Kanban has been read on that computer.
+  - **Kanban** (once **Status**) is one board for both studios, in the same four stages. **Only what waits on me**
     and **Find by name** narrow it, and so do the kind chips (**Everything**, **Campaign ads**,
     **Organic posts**, and **Content Hub** when the hub has posts) and **Filter** (see *Organising
     Status* below). Click a card for its page — the same page the studios had:
@@ -207,8 +210,8 @@ use your **@providentestate.com** account. What you see next depends on what the
 | **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. Their home's **Next up** is the posts ready to publish: **Open the files** shows every exported image with **Download** each and **Download all**, and **Posted** closes the post once it is published (on Next up and on every row of Also waiting on you). **With others** lists the posts with the designer or the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
 | **Content team · English** | Only what is handed to them, from both studios, on the home page and Status (nobody else's work). A post waiting on their copy check carries the check in its own page (the words beside every page); they never open the OPS editor — a link into OPS brings them to the post's page. A campaign waiting on you opens its content-team link in a new tab, where only **Approve English copy** shows. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links. Opening CAS itself goes to the home page. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
-| **Everyone but the admin** | The top bar shows only the pages you use: **Home**, **Status** and **Help** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your Google account photo, or your initials). |
-| **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Status**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
+| **Everyone but the admin** | The top bar shows only the pages you use: **Home**, **Tracker** and **Help** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your Google account photo, or your initials). |
+| **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Tracker**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
 | **Digital Marketing Team** | Runs the same campaigns as the Meta ads on email, SMS and WhatsApp. It sees and does exactly what **Performance marketing** does (above): file tickets, follow campaigns on Status, open an ad set's performance-marketing link to see the finished ads, change words in **Edit text**, download and **Launch**. It has its own name and its own column (**Digital**) under Access › Roles. |
 | **AI Engineers** | The **Engine** page on the home (they land on it): how PDS is built, every commit and every deployment, live. They also have **View ad sets** (below) from the start: campaigns on Status, read-only, no posts, no editor. marketing.ads@ and ai.engineer1@ are let in as AI Engineers from the start. |
 | **A role the admin named** | A team that fits none of the above (for example Video production). It opens only what the admin ticks for it under Access › Roles; until then Home and Status are there but list no campaigns or posts. |
@@ -701,9 +704,9 @@ Things to know:
   content team's words go on top of the latest design.
 - A review started before ad sets (one project) opens as an ad set of one, with its old links.
 
-### Status: every campaign (the home page)
+### Status: every campaign (Tracker › Kanban on the home page)
 
-The home page's **Status** lists every campaign filed, picked up or
+The home page's **Tracker › Kanban** (once **Status**) lists every campaign filed, picked up or
 opened as the designer on this computer: **Open tickets** first (waiting for a designer), then
 **In design**, then **Package ready**. **New ticket** files one. An open ticket's page shows its
 brief, files, deadline and audiences, and **Pick up**. A ticket filed on another computer is
@@ -1523,13 +1526,13 @@ folder**. **Notify me** turns on a Chrome notification when the post moves on.
 A post opened from a file, or made before this, says **Not on Drive** with **Save to Drive** (a
 social media manager sees **Send to designer**, which saves it and hands it on in one click).
 
-**Status** (the home page) shows every post in the Drive folder with the campaigns, in four
+**Tracker › Kanban** (the home page; once **Status**) shows every post in the Drive folder with the campaigns, in four
 columns — New (drafts), Design, Copy check, Ready. **Show closed** (beside Only what waits on
 me, with its count) adds a fifth, **Closed**: every campaign that performance marketing launched
 and every post marked posted, the newest first, with how long ago. It is off until you turn it on,
 and this computer remembers your choice.
 
-**Organising Status.** The row under the kind chips holds the controls; the layout choices are
+**Organising the Kanban (Status).** The row under the kind chips holds the controls; the layout choices are
 remembered on this computer, the filters last for the visit.
 - **Overdue** (the button with the red dot and the count; it appears only when something is
   overdue) decides where overdue work goes: **In its own lane** (the default: one **Overdue** lane

@@ -860,3 +860,15 @@ recaptured at device pixel ratio 2 (the 1.25× set went soft under the camera's 
 watched-segments fill was proven with `provident-help-seen` seeded in the review capture. Not
 re-reviewed after these three.
 
+
+## Tracker absorbs Status (2026-11-20)
+
+Tracker (`#/tracker`, added the same morning as Status-as-rows) and Status looked too alike, so by
+request Status became Tracker's **Kanban** view: a **Progress | Kanban** switch (`tkSwitch`, two
+links, `.tk-vs`) at the head's right. **Progress** (Launch deliverables EN/AR, Organic posts' steps)
+stays the default; **Kanban** is `viewStatus` unchanged, every control kept (its Board | List
+included), under the Tracker title. Status left the top bar. `#/status` is rewritten in `route()`
+to `#/tracker?v=kanban` with `history.replaceState` (its `?stage=` kept), so post-flow.js's
+hand-back, `tools/help-capture/capture.py` and old bookmarks still land; `sxDraw` and `redraw()`
+now key on the tracker route. The help frames named `status*` still show the old top bar and
+title until they are recaptured.
