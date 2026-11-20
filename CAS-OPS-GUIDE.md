@@ -889,6 +889,11 @@ still says [NEED: …].
 photo** choose a **Camera move** (each button plays the move on the photo), **Length**, **Model**,
 **Quality**, an optional **Extra direction**, and **People in it** (**Yes** when the photo has
 people, so their faces and clothes are kept and only small movements are asked for).
+- **Extend to 9:16** (or **1:1** in a Square video) shows when the photo is wider than the video, for
+  example a landscape photo in a Reel, and is on (**Yes**) by default: instead of cropping the sides,
+  Nano Banana 2.1 adds more of the scene above and below the photo, then the clip is made from that.
+  The photo itself is kept exactly as it is. It adds 2 credits, included in the total you confirm.
+  **No** crops the photo to the frame as the canvas shows it.
 - **Prompt** shows exactly what Higgsfield gets, in 14 parts (scene, references, location, first
   frame, format, optics, camera, action, performance, physics, lighting, audio, style, and what
   must not change). The studio fills it from the choices above (**The studio's template**); type in

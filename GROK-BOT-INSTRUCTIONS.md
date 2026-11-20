@@ -159,7 +159,7 @@ exports download as a zip. The studios fit tablets and phones.
   takes the video-script skill's .md and its brochure PDF and lays out a first cut; **Whole video ›
   From the script** lists what is still needed. **Animate this photo** on a photo clip: camera move,
   length, model, quality, **People in it**, and a **Prompt** box with the 14-part Higgsfield prompt
-  (the studio's template, editable). **Have Claude write it from the photo** is free and comes back
+  (the studio's template, editable). A photo wider than the video gets **Extend to 9:16 · Yes** by default: Nano Banana 2.1 adds sky and ground above and below it instead of cropping (2 credits, in the same total). **Have Claude write it from the photo** is free and comes back
   in about a minute (Claude Code signed in once with `serve.py --claude-login`); **Generate now** shows the credits first. If
   CASV says its local server is an older copy, restart `python3 tools/video-dev/serve.py`.
 - **Drive follows Status.** **Remove** on a project or a video, and the ad set's **Delete for

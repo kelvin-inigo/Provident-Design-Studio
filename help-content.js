@@ -277,6 +277,7 @@
       sum: 'Pick a camera move, check the prompt Higgsfield gets, then generate.',
       steps: [
         { t: 'Select a photo on the timeline. Under **Selected › Animate this photo**, choose a **Camera move** (each button plays the move on your photo), then **Length**, **Model** and **Quality**.', f: 'casv-anim', s: 'moves' },
+        { t: 'A photo wider than the video (a landscape photo, or a 3:4 one in a Reel) shows **Extend to 9:16**, set to **Yes**: nothing is cropped. Nano Banana 2.1 first adds more of the scene above and below the photo (more sky, more ground or water), then the clip is made from that. The photo itself stays exactly as it is, and it adds 2 credits. **No** crops it to the frame as the canvas shows it.' },
         { t: 'Set **People in it** to **Yes** when the photo has people, so the prompt keeps their faces, hair and clothes and asks only for small movements.', f: 'casv-prompt', s: 'people' },
         { t: '**Prompt** is exactly what Higgsfield gets, in 14 parts: the scene, camera, action, light, sound, and what must not change. The studio fills it from your choices, and you can type in it.', f: 'casv-prompt', s: 'prompt' },
         { t: 'For a prompt written from what is actually in the picture, press **Have Claude write it from the photo**, just under **Length**. Claude looks at the photo and the prompt comes back in about a minute, marked **Written by Claude from the photo**. It is free.', f: 'casv-prompt', s: 'write' },
