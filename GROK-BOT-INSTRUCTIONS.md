@@ -207,7 +207,7 @@ in the hub opens them, and **Send** returns the design to the hub.
 | a project isn't in Projects | only saved projects are listed; press **Save** |
 | Home or Status says the sign-in ran out | press **Sign in again** (or **Refresh**) |
 | an agent photo keeps its background | background removal isn't running on that computer; ask the designer who set it up, or upload a cut-out PNG |
-| a photo doesn't fill a size (a square photo on a 9:16) | in CAS press **Generate** on the photo: pick the size, drag the crosshair onto what must stay in view, **Generate**, then **Use on** that size. Adobe Firefly fills the rest. It needs the helper running on that computer (`python3 tools/genfill/serve.py` from the PDS folder) |
+| a photo doesn't fill a size (a square photo on a 9:16) | in CAS press **Generate** on the photo: pick the size, drag the crosshair onto what must stay in view, **Generate**, then **Use on** that size. The **Engine** is Nano Banana 2.1 through Higgsfield (default, its price shows on the button, 2 credits per variation) or Adobe Firefly. It needs the helper running on that computer (`python3 tools/genfill/serve.py` from the PDS folder) |
 | the top bar is cut off | make the window wider |
 | export is blocked | a required field is empty: a property page needs its own QR code and a listing number |
 

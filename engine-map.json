@@ -55,7 +55,7 @@
    "id": "genfill",
    "lane": "mac",
    "name": "Generative fill helper",
-   "about": "tools/genfill · 127.0.0.1:7315",
+   "about": "tools/genfill · 127.0.0.1:7315 · Nano Banana or Firefly",
    "check": "genfill"
   },
   {
@@ -152,6 +152,13 @@
    "lane": "cloud",
    "name": "Adobe Firefly",
    "about": "Generative Expand, through the Adobe connector on the designer's Claude account",
+   "check": "genfill"
+  },
+  {
+   "id": "higgsfield",
+   "lane": "cloud",
+   "name": "Higgsfield",
+   "about": "Nano Banana 2.1 for Generative fill (the default engine), priced in credits",
    "check": "genfill"
   },
   {
@@ -337,6 +344,12 @@
    "to": "adobe",
    "check": "genfill",
    "carries": "Upload, Generative Expand, download"
+  },
+  {
+   "from": "genfill",
+   "to": "higgsfield",
+   "check": "genfill",
+   "carries": "Nano Banana 2.1: frame and mask up, filled frame back (Higgsfield's CLI)"
   }
  ]
 }

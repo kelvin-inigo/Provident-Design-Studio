@@ -83,7 +83,7 @@ moves, because it records where the folder is.
 |---|---|---|
 | Background removal | `sh tools/rembg/install.sh` | cuts agent photos out automatically in OPS. Downloads about 1.1 GB once |
 | Edit in Photoshop | `sh tools/photoshop/install.sh` | the **Photoshop** / **Illustrator** button on a picture |
-| Generative fill (CAS) | none: start it with `python3 tools/genfill/serve.py` when you need it | the **Generate** button on the photo. Needs Claude Code signed in on the computer, with the Adobe connector on your Claude account |
+| Generative fill (CAS) | none: start it with `python3 tools/genfill/serve.py` when you need it | the **Generate** button on the photo. Nano Banana needs Higgsfield's tool signed in (`higgsfield auth login`); Firefly needs Claude Code signed in, with the Adobe connector on your Claude account |
 
 Run these from inside the folder (`cd "$HOME/Documents/Provident Design Studio"` first).
 
@@ -1713,21 +1713,27 @@ This is the full editor.
     partner mark or graphic stays vector. Save it there as SVG with the same name (⌘S, then OK
     on the SVG options). Saving as `.ai` does not come back.
 - **Generate (CAS, Generative fill):** fills the rest of a size's frame around your photo with
-  Adobe Firefly, so a square photo can fill a 9:16 or a 1.91:1 without stretching or cropping.
+  AI, so a square photo can fill a 9:16 or a 1.91:1 without stretching or cropping.
   Press **Generate** in the Photo row (after **Reframe**).
-  - Pick the size at the top (1:1, 3:4, 9:16, 1.91:1, 2:1). The photo snaps edge to edge; the
-    blurred bands marked *Firefly fills this* are what will be generated.
+  - Pick the **Engine**: **Nano Banana 2.1** (Google, through Higgsfield; the default; its card
+    shows the price, e.g. *2 credits each*) or **Firefly** (Adobe, on your Adobe account). The
+    editor remembers your pick. A card that can't run says what to set up.
+  - Pick the size (1:1, 3:4, 9:16, 1.91:1, 2:1). The photo snaps edge to edge; the blurred bands
+    marked *Nano Banana fills this* (or *Firefly fills this*) are what will be generated.
   - Drag the **crosshair** onto what must stay in view (the building, the person); arrow keys
     nudge it. Drag the photo to move it in the frame. **Photo size** shrinks it so every side is
-    filled. **Show copy margins** shows where the ad's copy sits.
-  - Choose 1, 2 or 3 **Variations**, press **Generate** (about a minute), pick one, then
+    filled. **Copy margins** shows where the ad's copy sits.
+  - With Nano Banana you can **Describe the surroundings** (optional): "more sky, no people".
+  - Choose 1, 2 or 3 **Variations**. With Nano Banana the button shows the total
+    (**Generate · 6 credits**), and nothing is spent until you press it. Press **Generate**
+    (about a minute), pick one, then
     **Use on 9:16** (or the size you chose). That size gets its own photo, like **Edit
     separately**; the main photo and the other sizes stay as they were. Re-link the size to go
     back to the shared photo. **Use on 1:1** replaces the main photo.
   - It needs the helper running on that computer: in Terminal, from the PDS folder,
     `python3 tools/genfill/serve.py`. Without it **Generate** in the editor is greyed out and
-    says so. It uses the Adobe account connected to your Claude account; each run spends Adobe
-    generative credits.
+    says so. Nano Banana spends Higgsfield credits on the account signed in on that computer;
+    Firefly spends Adobe generative credits on the Adobe account connected to your Claude account.
 - **Quality and privacy:** uploads are kept at up to 3840 px, so exports never upscale, and the
   photo's location data is removed.
 

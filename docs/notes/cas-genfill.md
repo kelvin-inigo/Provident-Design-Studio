@@ -86,4 +86,4 @@ By request: "give option to choose from higgsfield or firefly" plus "/impeccable
   - The engine choice drives the button, band label, prompt box and variations line.
   - `nanoPlan` is correct for all five sizes.
   - At 375 px nothing scrolls sideways.
-- **Not yet verified: a real Nano Banana generation** (2 credits). `generate cost` accepts the mask object without validating its shape, so the first real run is what proves it.
+- **Merged to main 2026-11-20 by request ("push now"), before a real Nano Banana generation** (2 credits). `generate cost` accepts the mask object without validating its shape, so the first real run is what proves it.
