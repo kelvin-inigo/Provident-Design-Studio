@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Generative fill for CAS — a loopback helper that extends a photo to a canvas with Adobe Firefly.
+"""Generative fill for CAS — a loopback helper that extends a photo to a size's frame.
+
+TWO ENGINES (2026-11-20, by request: "give option to choose from higgsfield or firefly")
+  nano     Nano Banana 2.1 (Google) through Higgsfield's command-line tool, the same tool and sign-in
+           CASV uses (`npm i -g @higgsfield/cli`, `higgsfield auth login` once). CAS sends the whole
+           frame (photo placed, empty bands) plus a mask of the bands; the model repaints only the mask
+           (`is_inpaint`). It costs Higgsfield credits, so CAS prices it first (/quote) and the button
+           carries the price. The default.
+  firefly  Photoshop's Generative Expand through headless Claude Code and the Adobe connector (below).
+
 
 Added 2026-11-20 (staged on branch `cas-genfill`, merged to main the same day). Notes: docs/notes/cas-genfill.md.
 
@@ -18,8 +27,11 @@ Like the cut-out service it is a CAPABILITY: with the helper off, CAS's modal st
 layout, and says Generate is unavailable.
 
 API (JSON, CORS open, loopback only)
-  GET  /health                -> {ok, claude}
-  POST /expand                {image: dataURL (jpeg/png), expand: {left,right,top,bottom}, variations: 1-3}
+  GET  /health                -> {ok, claude, model, higgsfield: ok|signin|missing}
+  GET  /quote?n=1-3&res=2k    -> {credits, each}           (Higgsfield's own estimate; spends nothing)
+  POST /expand  firefly:      {image: dataURL (jpeg/png), expand: {left,right,top,bottom}, variations: 1-3}
+                nano:         {engine: "nano", canvas: dataURL, mask: dataURL (png, white = paint),
+                               aspect: "9:16", resolution: "2k", prompt: "", variations: 1-3}
                               -> {job}
   GET  /job/<id>              -> {state: queued|running|done|failed, step, results: [dataURL], error}
 """
@@ -35,6 +47,7 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.request
 import uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -44,6 +57,19 @@ WORK = os.path.join(tempfile.gettempdir(), 'pds-genfill')
 JOBS = {}
 LOCK = threading.Lock()
 MAX_BODY = 40 * 1024 * 1024
+HF = shutil.which('higgsfield') or os.path.expanduser('~/.local/node/bin/higgsfield')
+NANO = 'nano_banana_2_1'
+NANO_RATIOS = ('1:1', '3:2', '2:3', '4:3', '3:4', '4:5', '5:4', '9:16', '16:9', '21:9')
+HF_SIGNIN = "Higgsfield's tool is not signed in on this computer. In Terminal: higgsfield auth login"
+HF_MISSING = "Higgsfield's tool is not on this computer. In Terminal: npm i -g @higgsfield/cli, then higgsfield auth login"
+HF_STATE = {'at': 0, 'v': None}
+QUOTES = {}
+NANO_PROMPT = ("Outpaint this photograph. Repaint only the area that is white in the mask, so the photo continues "
+               "seamlessly past its edges into a complete, believable scene. Match the existing perspective, horizon "
+               "line, vanishing points, lens, lighting direction, time of day, colour grade, grain and level of detail "
+               "exactly; continue architecture, water, landscape, foliage and sky naturally and in scale. Keep every "
+               "unmasked pixel unchanged. No text, lettering, logos, watermarks, frames, borders or collage seams. "
+               "Photorealistic.")
 
 
 def claude_bin():
@@ -147,6 +173,99 @@ def run(jid, folder, name, mime, w, h, expand, n):
         set_job(jid, state='failed', error='The helper hit an error: %s' % e)
 
 
+def hf(*args, timeout=120):
+    if not os.path.exists(HF):
+        return 1, HF_MISSING
+    try:
+        r = subprocess.run([HF, *args, '--json', '--no-color'], capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return 1, 'Higgsfield did not answer in time.'
+    out = ((r.stdout or '') + (r.stderr or '')).strip()
+    if r.returncode and re.search(r'auth login|No workspace|not logged|unauthor', out, re.I):
+        return 1, HF_SIGNIN
+    return r.returncode, out
+
+
+def hf_state():
+    """ok | signin | missing, re-checked at most once a minute (the token call is a network round trip)."""
+    if HF_STATE['v'] and time.time() - HF_STATE['at'] < 60:
+        return HF_STATE['v']
+    if not os.path.exists(HF):
+        v = 'missing'
+    else:
+        rc, _ = hf('auth', 'token', timeout=20)
+        v = 'ok' if rc == 0 else 'signin'
+    HF_STATE.update(at=time.time(), v=v)
+    return v
+
+
+def hf_uuid(out):
+    m = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', out)
+    return m.group(0) if m else ''
+
+
+def quote(n, res):
+    """Higgsfield's estimate for one image at this resolution, times n. Spends nothing; cached per resolution."""
+    if res not in QUOTES:
+        rc, out = hf('generate', 'cost', NANO, '--prompt', 'quote', '--resolution', res, '--aspect_ratio', '9:16', timeout=40)
+        m = re.search(r'"credits(?:_exact)?"\s*:\s*([0-9.]+)', out)
+        if rc or not m:
+            raise RuntimeError(out[-300:] or 'Higgsfield gave no price.')
+        QUOTES[res] = float(m.group(1))
+    each = QUOTES[res]
+    return {'each': each, 'credits': round(each * n, 2)}
+
+
+def run_nano(jid, folder, canvas, mask, aspect, res, prompt, n):
+    try:
+        set_job(jid, state='running', step='Uploading the frame to Higgsfield', started=time.time())
+        rc, out = hf('upload', 'create', os.path.join(folder, canvas), timeout=120)
+        cid = hf_uuid(out)
+        if rc or not cid:
+            return set_job(jid, state='failed', error=out[-300:] or 'Higgsfield did not take the frame.')
+        rc, out = hf('upload', 'create', os.path.join(folder, mask), timeout=120)
+        mid = hf_uuid(out)
+        if rc or not mid:
+            return set_job(jid, state='failed', error=out[-300:] or 'Higgsfield did not take the mask.')
+        text = NANO_PROMPT + ((' Also: ' + prompt.strip()) if prompt.strip() else '')
+        jobs = []
+        for k in range(n):
+            set_job(jid, step='Sending to Nano Banana' + (' (%d of %d)' % (k + 1, n) if n > 1 else ''))
+            rc, out = hf('generate', 'create', NANO, '--prompt', text, '--image-references', cid,
+                         '--mask', json.dumps({'id': mid, 'type': 'image'}), '--is_inpaint', 'true',
+                         '--aspect_ratio', aspect, '--resolution', res, '--seed', str(random.randint(1, 2 ** 31 - 1)), timeout=180)
+            g = hf_uuid(out)
+            if rc or not g:
+                if jobs:
+                    break                         # keep what is already paid for
+                return set_job(jid, state='failed', error=out[-300:] or 'Higgsfield did not start the job.')
+            jobs.append(g)
+        good = []
+        for k, g in enumerate(jobs):
+            set_job(jid, step='Nano Banana is painting the edges' + (' (%d of %d)' % (k + 1, len(jobs)) if len(jobs) > 1 else ''))
+            hf('generate', 'wait', g, '--timeout', '6m', '--interval', '3s', '--quiet', timeout=400)
+            rc, out = hf('generate', 'get', g, timeout=60)
+            try:
+                d = json.loads(out)
+                u, status, err = d.get('result_url') or '', d.get('status') or '', d.get('error') or d.get('failure_reason') or ''
+            except ValueError:
+                u, status, err = '', '', out[-200:]
+            if not re.match(r'^https://\S+\.(png|jpe?g|webp)(\?|$)', u):
+                if not good and k == len(jobs) - 1:
+                    return set_job(jid, state='failed', error='Nano Banana did not finish%s.' % ((': ' + str(err)) if err else (' (%s)' % status if status else '')))
+                continue
+            set_job(jid, step='Downloading the result')
+            with urllib.request.urlopen(u, timeout=120) as r:
+                b = r.read()
+            kind = 'png' if b[:4] == b'\x89PNG' else 'webp' if b[8:12] == b'WEBP' else 'jpeg'
+            good.append('data:image/%s;base64,%s' % (kind, base64.b64encode(b).decode()))
+        if not good:
+            return set_job(jid, state='failed', error='Nano Banana returned no picture.')
+        set_job(jid, state='done', step='Done', results=good, took=round(time.time() - JOBS[jid]['started'], 1))
+    except Exception as e:  # noqa: BLE001
+        set_job(jid, state='failed', error='The helper hit an error: %s' % e)
+
+
 class H(BaseHTTPRequestHandler):
     def log_message(self, fmt, *a):
         sys.stderr.write('[genfill] ' + (fmt % a) + '\n')
@@ -175,7 +294,15 @@ class H(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path.startswith('/health'):
-            return self._send(200, {'ok': True, 'claude': bool(claude_bin()), 'model': MODEL})
+            return self._send(200, {'ok': True, 'claude': bool(claude_bin()), 'model': MODEL, 'higgsfield': hf_state()})
+        if self.path.startswith('/quote'):
+            qs = dict(x.split('=', 1) for x in (self.path.split('?', 1) + [''])[1].split('&') if '=' in x)
+            res = qs.get('res') if qs.get('res') in ('1k', '2k', '4k') else '2k'
+            n = max(1, min(3, int(qs.get('n') or 1))) if str(qs.get('n') or '1').isdigit() else 1
+            try:
+                return self._send(200, quote(n, res))
+            except RuntimeError as e:
+                return self._send(502, {'error': str(e)})
         m = re.match(r'^/job/([0-9a-f]{12})$', self.path)
         if m:
             with LOCK:
@@ -196,6 +323,11 @@ class H(BaseHTTPRequestHandler):
             return self._send(413, {'error': 'The photo is too large to send.'})
         try:
             body = json.loads(self.rfile.read(n))
+        except ValueError:
+            return self._send(400, {'error': 'Bad request.'})
+        if body.get('engine') == 'nano':
+            return self.nano(body)
+        try:
             m = re.match(r'^data:(image/(png|jpeg));base64,(.+)$', body.get('image') or '', re.S)
             if not m:
                 return self._send(400, {'error': 'Send the photo as a PNG or JPEG data URL.'})
@@ -220,8 +352,38 @@ class H(BaseHTTPRequestHandler):
         threading.Thread(target=run, args=(jid, folder, name, m.group(1), w, h, expand, nvar), daemon=True).start()
         self._send(200, {'job': jid})
 
+    def nano(self, body):
+        st = hf_state()
+        if st != 'ok':
+            return self._send(409, {'error': HF_SIGNIN if st == 'signin' else HF_MISSING})
+        files = {}
+        for key in ('canvas', 'mask'):
+            m = re.match(r'^data:image/(png|jpeg);base64,(.+)$', body.get(key) or '', re.S)
+            if not m:
+                return self._send(400, {'error': 'Send the %s as a PNG or JPEG data URL.' % key})
+            files[key] = (('png' if m.group(1) == 'png' else 'jpg'), base64.b64decode(m.group(2)))
+        aspect = body.get('aspect') if body.get('aspect') in NANO_RATIOS else None
+        if not aspect:
+            return self._send(400, {'error': 'Nano Banana cannot make that shape.'})
+        res = body.get('resolution') if body.get('resolution') in ('1k', '2k', '4k') else '2k'
+        nvar = max(1, min(3, int(body.get('variations') or 1)))
+        prompt = str(body.get('prompt') or '')[:400]
+        jid = uuid.uuid4().hex[:12]
+        folder = os.path.join(WORK, jid)
+        os.makedirs(folder, exist_ok=True)
+        names = {}
+        for key, (ext, raw) in files.items():
+            names[key] = key + '.' + ext
+            with open(os.path.join(folder, names[key]), 'wb') as f:
+                f.write(raw)
+        with LOCK:
+            JOBS[jid] = {'state': 'queued', 'step': 'Queued', 'results': [], 'error': '', 'engine': 'nano', 'started': time.time()}
+        threading.Thread(target=run_nano, args=(jid, folder, names['canvas'], names['mask'], aspect, res, prompt, nvar), daemon=True).start()
+        self._send(200, {'job': jid})
+
 
 if __name__ == '__main__':
     os.makedirs(WORK, exist_ok=True)
-    print('Generative fill helper on http://127.0.0.1:%d  (Claude Code: %s, model %s)' % (PORT, claude_bin() or 'NOT FOUND', MODEL))
+    print('Generative fill helper on http://127.0.0.1:%d  (Firefly via Claude Code: %s, model %s · Nano Banana via Higgsfield: %s)'
+          % (PORT, claude_bin() or 'NOT FOUND', MODEL, hf_state()))
     ThreadingHTTPServer(('127.0.0.1', PORT), H).serve_forever()

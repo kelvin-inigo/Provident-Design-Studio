@@ -55,3 +55,35 @@ Limits: Generative Expand takes ≤ 4096 px per side; the frame is capped there 
   Adobe Developer client id/secret).
 - Speed: ~50s is mostly Claude orchestrating; `GENFILL_MODEL=haiku` may cut it.
 - "Generate all sizes" in one go, and whether 1:1 should ever replace the main photo.
+
+## Two engines and the redesign (branch `cas-genfill-engines`, 2026-11-20)
+
+By request: "give option to choose from higgsfield or firefly" plus "/impeccable redesign" of the editor.
+
+- **Engine** is the first choice in the rail, as two option cards (a radiogroup):
+  - **Nano Banana 2.1** (Google, through Higgsfield) is the default.
+  - **Firefly** is the second option.
+  - The last pick is remembered per browser (`provident-genfill-engine`).
+  - Each card states what it needs when it can't run (sign-in, install). The Nano Banana card always shows Higgsfield's own price ("2 credits each", read from `/quote`, never hard-coded).
+- **Nano Banana path:**
+  - CAS composes the whole frame at the nearest shape the model makes (`nanoPlan`: 1:1, 3:4, 9:16 exact; 1.91:1 and 2:1 composed at 16:9 with the extra rows split top and bottom), with the bands roughed in from the blurred photo, at 2048 long side.
+  - It sends that plus a PNG mask (white = paint, the photo black).
+  - The helper uploads both with `higgsfield upload create`, then runs `generate create nano_banana_2_1 --image-references <id> --mask '{"id":<id>,"type":"image"}' --is_inpaint true --aspect_ratio … --resolution 2k --seed …` once per variation, then `wait`, `get` (`result_url`) and a download.
+  - CAS crops back to the frame and pastes the original photo over the middle, the same as Firefly.
+  - "Describe the surroundings" (optional, 400 characters) is appended to a fixed outpaint prompt. It shows for Nano Banana only, because Generative Expand takes no prompt.
+  - The button carries the price ("Generate · 6 credits" for 3 variations).
+- **Redesign:**
+  - Sentence-case section heads at 14/600 replace the tracked uppercase labels, which DESIGN.md bans in the chrome.
+  - The band label is now "Nano Banana fills this" (sentence case, with a spark), no longer a tracked caps pill.
+  - The kit's own switch (fill track, resting tint for the chosen tab) replaces CAS's `p-seg`; ghost pills replace `p-ghost`.
+  - The selection ring, slider and progress bar take `--ps-link`, not the resting navy (which was under 3:1 against the card).
+  - The radio ring uses `--ps-dim` (3:1+).
+  - Results sit at the top of the rail with numbered thumbnails.
+  - A caption on the stage gives the size and pixels.
+  - The summary ("Adds 467 px above · 466 px below") sits over the button.
+- **Verified** (worktree on :8796, helper on :7316, both themes, 375 px):
+  - Contrast: every text at least 4.5:1 and the radio ring at least 3:1, on the chosen and unchosen cards.
+  - The engine choice drives the button, band label, prompt box and variations line.
+  - `nanoPlan` is correct for all five sizes.
+  - At 375 px nothing scrolls sideways.
+- **Not yet verified: a real Nano Banana generation** (2 credits). `generate cost` accepts the mask object without validating its shape, so the first real run is what proves it.
