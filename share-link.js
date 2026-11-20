@@ -385,7 +385,7 @@
   const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
-    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending', 'video', 'broad', 'dl', 'grant', 'areq'].forEach(k => { o[k] = rs[k]; });
+    const o = {}; ['rid', 'kind', 'folder', 'name', 'product', 'created', 'by', 'drive', 'eng_only', 'items', 'plan', 'ticket', 'picked', 'reply', 'tpl', 'phases', 'phase0', 'brand', 'live', 'posted', 'pending', 'video', 'broad', 'dl', 'grant', 'areq', 'qr'].forEach(k => { o[k] = rs[k]; });
     o.hist = (rs.hist || []).slice(-60);
     if (role === 'dd') o.tok = rs.tok;
     return o;
@@ -621,6 +621,18 @@
       if (body.brand === 'provident' || body.brand === 'unbranded' || body.brand === 'mixed') {
         if ((rs.brand || 'provident') !== body.brand) chg.push(body.brand === 'unbranded' ? 'Made the ad set unbranded — new projects open without the Provident brand' : body.brand === 'mixed' ? 'Mixed the ad set’s brand — every audience can also run unbranded' : 'Made the ad set branded — new projects open with the Provident brand');
         rs.brand = body.brand;
+      }
+      // THE AD SET'S QR CODE (2026-11-20, by request): uploaded once in Ad set settings; every CAS
+      // design in the ad set fills its QR from it when opened (rsQrApply) and a new CASV video
+      // starts with it. `rs.qr = { u (PNG data URL, at most 600 px), name, id, by, at }`; null clears
+      // it (the designs keep the copy they took). `id` is the version each design remembers.
+      if ('qr' in body) {
+        const q = body.qr;
+        if (q === null) { if (rs.qr) chg.push('Removed the ad set’s QR code'); delete rs.qr; }
+        else if (q && typeof q.u === 'string' && /^data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(q.u) && q.u.length < 400000) {
+          chg.push(rs.qr ? 'Replaced the ad set’s QR code — every design takes the new one when opened' : 'Added the ad set’s QR code — every design takes it when opened');
+          rs.qr = { u: q.u, name: String(q.name || 'QR code').replace(/\s+/g, ' ').trim().slice(0, 80), id: dsRand(8), by, at: dsNow() };
+        } else throw dsFail(400, 'The QR code must be a PNG or JPEG picture under 300 KB.');
       }
       // Claude's reply, kept on the ad set so every audience (and every designer) fills from it
       if (typeof body.reply === 'string') rs.reply = body.reply.slice(0, 200000);
@@ -2106,6 +2118,7 @@
       // the file from before the last save, and pulling it would undo that save here
       if (r.rev > S.rev) await this.shPull();
       else if (r.rev === S.rev && r.n !== S.n) await this.shPull(true);
+      this.rsQrApply();
     } catch (e) {
       if (/expired|never made/.test(e.message || '')) { S.err = e.message; if (S.ui) S.ui.status('error', e.message); }
     } finally { if (this._sh) this._sh.polling = false; }
@@ -2555,18 +2568,42 @@
   // has a project stays (move the project with Change audience, or remove it, first), and its
   // Arabic stays on while it has an Arabic project. Opened from Status (an ad set's page and an
   // open ticket) and from the Ad set tab. Resolves to the saved ad set, or null on Cancel.
+  // a QR picture as a PNG data URL, at most 600 px on its long side, drawn on white (no smoothing)
+  function qrPng(f) {
+    return new Promise((ok, no) => {
+      const url = URL.createObjectURL(f), im = new Image();
+      im.onload = () => { try {
+        const w = im.naturalWidth || 600, h = im.naturalHeight || 600, k = Math.min(1, 600 / Math.max(w, h)), c = document.createElement('canvas');
+        c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k));
+        const x = c.getContext('2d'); x.fillStyle = '#ffffff'; x.fillRect(0, 0, c.width, c.height); x.imageSmoothingEnabled = k < 1; x.drawImage(im, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url); ok(c.toDataURL('image/png'));
+      } catch (e) { URL.revokeObjectURL(url); no(e); } };
+      im.onerror = () => { URL.revokeObjectURL(url); no(new Error('unreadable')); };
+      im.src = url;
+    });
+  }
+  // the ad set's QR as a JPEG data URL on white — what CASV's local inbox takes
+  function qrJpeg(u) {
+    return new Promise((ok, no) => {
+      const im = new Image();
+      im.onload = () => { try { const c = document.createElement('canvas'); c.width = im.naturalWidth || 600; c.height = im.naturalHeight || 600;
+        const x = c.getContext('2d'); x.fillStyle = '#ffffff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(im, 0, 0); ok(c.toDataURL('image/jpeg', 0.95)); } catch (e) { no(e); } };
+      im.onerror = () => no(new Error('unreadable'));
+      im.src = u;
+    });
+  }
   function rsSettings(rs, save, o) {
     injectCss();
     o = o || {};
     const items = (rs.items || []).filter(x => x.market && x.aud), tk = rs.ticket || {}, ticket = o.ticket !== false;
     const has = (m, a, l, ph) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l) && (!ph || phOf(rs, x) === ph));
     let cells = rsCells(rs);
-    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on), broad: (rs.broad || []).slice() };
+    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on), broad: (rs.broad || []).slice(), qr: rs.qr && rs.qr.u ? { u: rs.qr.u, name: rs.qr.name || 'QR code' } : null, qrv: 0 };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
     // each phase is a field holding its name; what is typed there renames it on Save (d.phn)
     d.phn = {}; const phL = k => k in d.phn ? phClean(d.phn[k]) : phN(k);
-    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.phases.map(phL), d.brand, d.video, d.broad.slice().sort()]);
+    const sig = () => JSON.stringify([d.name.trim(), d.product, d.deadline, d.brief, cells.map(c => [c.market, c.aud, c.arb, c.arb ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0).sort() : []]), d.phases, d.phases.map(phL), d.brand, d.video, d.broad.slice().sort(), d.qrv]);
     const ord = () => { const as = [BROAD].concat(AUDS[d.product], ['Family', 'Investor', 'Hybrid']); cells.sort((x, y) => (MARKETS.indexOf(x.market) - MARKETS.indexOf(y.market)) || (audOrd(as, x.aud) - audOrd(as, y.aud))); };
     ord();
     const was = sig();
@@ -2581,6 +2618,9 @@
       (ticket ? '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="3" placeholder="The script, fact sheet or brief"></textarea></label>' : '') +
       // VIDEO (2026-11-13): the ad set also delivers a video, made in the Video Studio; Status then shows an Add video placeholder
       (phOk ? '<div class="rsp-f"><span id="rss-vid-l" title="The ad set also delivers a video, made in the Video Studio (CASV). Status shows an Add video placeholder until it is added.">Video</span><div class="p-tabs rsp-vid" role="radiogroup" aria-labelledby="rss-vid-l"></div></div>' : '') +
+      // QR CODE (2026-11-20): one for the whole ad set — every design and a new CASV video take it
+      (phOk ? '<div class="rsp-f rss-qrf"><span id="rss-qr-l" title="One QR code for the whole ad set. Every design in it takes this QR when it is opened, and a new video made in CASV starts with it. A design keeps the last one it took if this is removed.">QR code</span><div class="rss-qr" role="group" aria-labelledby="rss-qr-l"></div>' +
+        '<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" data-qrin hidden></div>' : '') +
       (phOk ? '<div class="rsp-g rss-phs"><span title="Each phase is its own package of every planned audience, with its own projects and its own tab on Status">Phases</span><div class="rsp-tg" data-g="ph"></div>' +
         '<div class="rss-phx"><input class="p-in" data-phx-in maxlength="40" placeholder="Name a phase, e.g. Ad Fatigue 03" aria-label="A phase of your own" autocomplete="off" spellcheck="false"><button type="button" class="p-ghost" data-phx="">Add phase</button></div></div>' : '') +
       '<div class="rss-plan"><div class="rss-ph"><b>Audiences</b><span class="rsp-n"></span></div>' +
@@ -2598,6 +2638,10 @@
       if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded') + bt('mixed', 'Mixed');
       const vt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.video === k) + '" data-vidon="' + (k ? '1' : '0') + '"' + (d.video === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       if ($('.rsp-vid')) $('.rsp-vid').innerHTML = vt(false, 'No video') + vt(true, 'Includes a video');
+      if ($('.rss-qr')) $('.rss-qr').innerHTML = d.qr
+        ? '<img class="rss-qri" alt="" src="' + esc(d.qr.u) + '"><span class="rss-qrt"><b>' + esc(d.qr.name) + '</b><s>Every design and a new CASV video take this QR</s></span>' +
+          '<button type="button" class="p-ghost" data-qr="up">Replace</button><button type="button" class="p-ghost" data-qr="rm">Remove</button>'
+        : '<span class="rss-qrt rss-qr0"><s>None yet — upload it once and every design in the ad set takes it</s></span><button type="button" class="p-ghost" data-qr="up">Upload a QR code</button>';
       const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud).filter(a => a === audRoot(a)));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
@@ -2639,6 +2683,12 @@
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-phx-in]')) { e.preventDefault(); phAdd(); } });
     el.addEventListener('input', e => { const k = e.target.dataset && e.target.dataset.phn; if (k) { d.phn[k] = e.target.value; e.target.size = Math.max(6, e.target.value.length + 1); st(''); } });
     el.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset && e.target.dataset.phn) { e.preventDefault(); e.target.blur(); } });
+    // the QR picture, kept as a PNG of at most 600 px on the ad set itself (like CASV's own QR)
+    el.addEventListener('change', async e => {
+      const f = e.target.matches && e.target.matches('[data-qrin]') && e.target.files && e.target.files[0]; if (!f) return;
+      try { d.qr = { u: await qrPng(f), name: f.name.replace(/\.[^.]+$/, '').slice(0, 80) || 'QR code' }; d.qrv++; st(''); draw(); }
+      catch (er) { st('That picture could not be read. Upload a PNG, JPEG or SVG of the QR code.'); }
+    });
     const toggle = (g, v) => {
       const ms = [...new Set(cells.map(c => c.market))], as = [...new Set(cells.map(c => c.aud))], list = g === 'm' ? ms : as, on = list.indexOf(v) >= 0;
       if (on) {
@@ -2679,6 +2729,8 @@
           st(''); draw(); return;
         }
         if (b.dataset.vidon) { d.video = b.dataset.vidon === '1'; st(''); draw(); return; }
+        if (b.dataset.qr === 'up') { $('[data-qrin]').value = ''; $('[data-qrin]').click(); return; }
+        if (b.dataset.qr === 'rm') { d.qr = null; d.qrv++; st(''); draw(); return; }
         if (b.dataset.ph) {
           const k = b.dataset.ph;
           if (d.phases.length === 1) return st('Keep at least one phase.');
@@ -2716,7 +2768,7 @@
             const p = { name: d.name, product: d.product, plan: cells.map(c => { const o = { market: c.market, aud: c.aud, arb: c.arb }, off = c.arb && phOk ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0) : [];
               if (off.length) o.arbOff = off; return o; }) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
-            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; p.broad = d.broad.filter(k => d.phases.indexOf(k) >= 0); const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; if (d.video !== !!(rs.video && rs.video.on)) p.video = d.video; }
+            if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; p.broad = d.broad.filter(k => d.phases.indexOf(k) >= 0); const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; if (d.video !== !!(rs.video && rs.video.on)) p.video = d.video; if (d.qrv) p.qr = d.qr ? { u: d.qr.u, name: d.qr.name } : null; }
             close(await save(p));
           } catch (er) { btns.forEach(x => { x.disabled = false; }); b.textContent = 'Save changes'; st(er.message || String(er)); }
         }
@@ -3280,6 +3332,23 @@
   };
 
   // ---- the studio: a project that is in an ad set ----
+  // THE AD SET'S QR, IN EVERY DESIGN (2026-11-20, by request): a CAS design in an ad set with a
+  // QR (Ad set settings) takes it into its own QR slot once per version, after a poll has settled
+  // the design's own pictures — so it is saved with the design, exported, and seen on Status. The
+  // version taken is kept in the design (`qr.rsq`); a QR replaced by hand in one design stays
+  // until the ad set's QR changes again.
+  SP.rsQrApply = function () {
+    const S = this._sh, q = S && S.rs && S.rs.qr, C = IS();
+    if (!q || !q.u || !q.id || isPost(S.rs) || this.shApp() !== 'provident-ad-studio' || !this.upd || S.busy || S.applying) return;
+    if (S.role !== 'dd' && S.role !== 'edit') return;
+    if (!C || !C.ready || !C.ready() || !C.putUrl) return;
+    const cur = C.getRec('adstudio-qr'), had = (this.state.qr || {}).rsq;
+    if (S.qrDone === q.id || (had === q.id && cur && cur.u)) return;
+    S.qrDone = q.id;
+    if (!(cur && cur.u === q.u)) C.putUrl('adstudio-qr', q.u);
+    this.upd(x => { x.qr = Object.assign({}, x.qr, { rsq: q.id }); return x; });
+    if (had !== q.id && S.ui) S.ui.flash('QR code filled from ' + (S.rs.name || 'the ad set'));
+  };
   SP.rsItem = function () { const S = this._sh; return S && S.rs ? (S.rs.items || []).find(x => x.sid === S.id) || null : null; };
   SP.rsSet = function (rs, role) {
     const S = this._sh; if (!S || rs === undefined) return;
@@ -3989,6 +4058,9 @@
     if (!p.photos) p.photos = (async () => {
       const out = {};
       await pool(Object.keys(p.imgs || {}), 3, async sl => { const r = await fetchRec(this.tok, p.imgs[sl], sid); if (r) out[sl] = r; });
+      // the ad set's QR (Ad set settings) before the design has been opened to take it (rsQrApply)
+      const q = this.rs && this.rs.qr;
+      if (q && q.u && q.id && !isPost(this.rs) && ((p.st && p.st.qr) || {}).rsq !== q.id) out['adstudio-qr'] = { u: q.u, s: 1, x: 0, y: 0 };
       return out;
     })();
     return p.photos;
@@ -5575,7 +5647,15 @@
       try { seen = new Set(await ids()); }
       catch (er) { return st('The Video Studio is not running on this computer. Start it, then press Make a new one again.'); }
       // #new: CASV starts a new video (asking first, keeping the one open as its last video), named after the ad set
-      window.open(CASV_PAGE() + '#new=' + encodeURIComponent(rs.name || ''), '_blank');
+      // the ad set's QR (Ad set settings) goes with it: parked on CASV's inbox as a JPEG on white,
+      // named by &qr= — CASV puts it on the new video's QR code
+      let qid = '';
+      if (rs.qr && rs.qr.u) try {
+        const id = Math.random().toString(36).slice(2, 12), photo = await qrJpeg(rs.qr.u);
+        const r = await fetch(CASV_AT() + '/api/inbox/photo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, photo }) });
+        if (r.ok) qid = id;
+      } catch (er) {}
+      window.open(CASV_PAGE() + '#new=' + encodeURIComponent(rs.name || '') + (qid ? '&qr=' + qid : ''), '_blank');
       el.querySelectorAll('.vdo-opt').forEach(x => { x.disabled = true; });
       st('The Video Studio is open in a new tab. Make the video there and press Send to CAS — it comes back here. You can also close this and press Add video later.', false);
       clearInterval(poll);
@@ -8114,6 +8194,12 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .rss-phx{display:flex;gap:8px;max-width:420px}
 .rss-phx .p-in{flex:1;min-width:0;height:34px;font-size:13px}
 .rss-phx .p-ghost{flex:none;height:34px}
+.rss-qr{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.rss-qri{width:56px;height:56px;flex:none;object-fit:contain;border-radius:var(--ps-r-sm);background:#ffffff;box-shadow:inset 0 0 0 1px var(--ps-line)}
+.rss-qrt{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1 1 180px}
+.rss-qrt b{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rss-qrt s{text-decoration:none;font:400 12px/1.35 var(--ps-font);color:var(--ps-dim)}
+.rss-qr .p-ghost{flex:none;height:34px}
 .rss-q{grid-template-columns:repeat(2,minmax(0,1fr))}
 .rss-q .rsp-prod,.rss-q .rsp-brand{width:max-content}
 .rss-pc button[data-reach]{width:auto;height:26px;margin-left:6px;padding:0 10px;border-radius:9999px;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 12px/1 var(--ps-font)}

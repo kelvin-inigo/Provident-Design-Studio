@@ -781,6 +781,12 @@ its designs, each design's look (branded or unbranded) and its languages.
   It won't drop an audience that already has a project, or switch off Arabic where there is an
   Arabic project: move the project with **Change audience**, or remove it, first. Also in the Ad
   set tab, under **Audiences**.
+- **One QR code for the whole ad set:** **Ad set settings** › **QR code** › **Upload a QR code**
+  (**Replace** / **Remove** once there is one), then **Save changes**. Every design in the ad set
+  takes it into its QR the next time it is opened ("QR code filled from …"), Status and its
+  downloads already show it, and **Make a new one in CASV** starts the new video with it. A design
+  whose QR you replace by hand keeps that one until the ad set's QR changes. Removing the ad
+  set's QR leaves each design with the last one it took.
 - **Ad set links:** one row per team, with **Copy link**.
 - **Each link is for its own team.** The content team's link opens for the content team (English
   or Arabic), performance marketing's for performance marketing and the Digital Marketing Team, the

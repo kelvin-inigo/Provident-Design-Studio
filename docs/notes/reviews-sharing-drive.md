@@ -2480,3 +2480,39 @@ status of the adset and maybe add the activity window".
   a limited role with no campaign capability to the home); an old share-store ad set.
 - **Seen, not changed:** the admin's "Viewing as" bar overflows a 375px page by 20px with a long
   role name; the Access tab's pending count measured 3.41:1 in the light theme.
+
+## ONE QR CODE PER AD SET (2026-11-20, by request)
+
+"On an ad set setting level, the option to upload a single QR code, then it auto loads on all the
+QR codes it needs to appear, so design and video."
+
+- **Ad set settings › QR code** (Drive ad sets only, like Brand and Video): Upload a QR code /
+  Replace / Remove. `qrPng` makes a PNG of at most 600 px on white (CASV's own rule); `d.qrv`
+  counts changes so `sig()` sees them; Save sends `p.qr` (`null` clears).
+- **Stored on the ad set**: `rs.qr = { u, name, id, by, at }` through the edit op (PNG or JPEG data
+  URL under 400,000 chars, else a 400). `id` (dsRand) is the version. `dsPub` publishes `qr`. The
+  Activity says Added / Replaced / Removed the ad set's QR code.
+- **Every design takes it when opened** (`SP.rsQrApply`, called at the end of each `shPoll`, so
+  after `rsSet` and the design's own picture pull): CAS only, not a post, role `dd` or `edit`, the
+  image-slot store hydrated, not busy/applying. It `putUrl`s `adstudio-qr` (so the share layer
+  saves it to the design's Drive file like any upload) and writes `qr.rsq = id` into the design's
+  state; `S.qrDone` stops a second run in the same tab. A design already on that `id` with a QR is
+  left alone, so a QR replaced by hand stays until the ad set's QR changes. Removing the ad set's
+  QR clears nothing. `qr.show` and the QR | ADM & CN mode are not touched.
+- **Status before the design is opened**: `RV.photos` adds the ad set's QR as `adstudio-qr` for a
+  design whose `qr.rsq` is not the current `id`, so tiles, the big view and downloads show it.
+  `p.photos` is cached until the design's pictures change — a QR replaced on the ad set shows on
+  Status after a reload.
+- **Video**: Make a new one in CASV POSTs the QR as a JPEG (`qrJpeg`) to CASV's existing
+  `/api/inbox/photo` with a random `[a-z0-9]{10}` id and opens `#new=<name>&qr=<id>`. CASV (branch
+  `video-studio`) accepts `&qr=` between `&photo=` and `&back=1`, reads the JPEG and sets
+  `P.brand.qr = { name: '<ad set> QR code', u }`. An existing CASV video reopened from CAS is not
+  changed. An older CASV without the change ignores the whole hash (its regex fails), so the new
+  video then opens without the ad set's name.
+- **Verified** (dev server, patched copy of share-link.js exposing the dialog): upload of a 900 px
+  PNG → 600 px thumbnail and name; Save sends a PNG data URL; reopened with a QR, unchanged Save
+  sends nothing, Remove sends `qr: null`. `rsQrApply` on the CAS page filled `adstudio-qr`, wrote
+  `qr.rsq`, flashed once, and did nothing on two more calls. CASV on :8794 opened with
+  `#new=Test set&qr=<id>` (after its Start new question) holding `P.brand.qr` as a JPEG.
+  **Not run**: the edit op against the Drive stand-in or real Drive, Status rendering with the
+  fallback, a real designer reopening an existing design.

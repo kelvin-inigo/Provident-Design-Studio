@@ -132,6 +132,9 @@ exports download as a zip. The studios fit tablets and phones.
   keep the tab in front, Chrome). The content team's Edit text previews are badged and play on their own too. If none of this shows for an older design, its video was added before clips were saved to Drive: the designer opens the project once on the computer it was added on, and it goes up by itself.
 - **Phases** are rounds of the whole campaign (Teaser, Launch, Price Drop, Ad Fatigue 01… any name):
   **Add phase** on Status, or in **Ad set settings**, where phases are also renamed.
+- **One QR for the whole ad set:** **Ad set settings** › **QR code** › **Upload a QR code**, then
+  **Save changes**. Every design takes it when it is next opened, Status shows it, and a new video
+  from **Make a new one in CASV** starts with it. No need to upload the QR in each design.
 - **Branded | Unbranded | Mixed** under **Brand** in **Ad set settings**. Unbranded: no wordmark or
   QR, own colours and fonts. Mixed: on Status each design has an **Unbranded** row under its
   **Branded** one, with **Start the unbranded**.
