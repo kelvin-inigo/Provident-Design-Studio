@@ -29,6 +29,7 @@ A="<this skill's folder>/scripts/animate.py"
 python3 "$A" list                     # queued jobs and prompts to write, one JSON object per line
 python3 "$A" prompt <id> <file.json>  # store the prompt you wrote ({"prompt", "sheet", "words"})
 python3 "$A" start <id> <job_id>      # mark as generating
+python3 "$A" extended <id> <image_url> # extend jobs: paste the photo back over Nano Banana's frame
 python3 "$A" done  <id> <video_url>   # download the MP4, mark done (the studio then places it)
 python3 "$A" fail  <id> <reason>      # mark failed; the studio shows the reason on the clip
 ```
@@ -37,7 +38,8 @@ python3 "$A" fail  <id> <reason>      # mark failed; the studio shows the reason
 
 1. **Read the queue.** `python3 "$A" list`. Each line has `id`, `status`, `photo_path`, `prompt`,
    `duration` (seconds), `aspect` (`9:16` or `1:1`), `mode` (`std` or `pro`), `model`,
-   `write_prompt`, and from CASV also `move`, `move_phrase`, `note` and `people`. No lines: say so and stop.
+   `write_prompt`, and from CASV also `move`, `move_phrase`, `note`, `people`, and for a photo wider than
+   the video `extend: true` with `ext` and `extend_prompt` (step 4b). No lines: say so and stop.
 
 2. **Write the prompts from the photos** (every line with `write_prompt: true`; free, no credits).
    The studio's server now writes prompt-to-write jobs itself within a minute (Claude Code
@@ -51,6 +53,9 @@ python3 "$A" fail  <id> <reason>      # mark failed; the studio shows the reason
    - **`note`** (if any) is the user's extra direction: work it into SCENE CONTEXT or ACTION.
    - **`people: false`** means the user sees no one: PERFORMANCE reads "No people in frame; none
      appear." If you do see people, write them in anyway and say so in the report.
+   - **`extend: true`**: the grey bands are not part of the shot; Nano Banana fills them with more of
+     the same sky and ground first. Write LOCATION MAP and FIRST FRAME for that taller frame and never
+     mention bands or borders.
    - **AUDIO** is always: "Natural sound of the environment in each scene, every interaction with
      the environment, accurate sound details." followed by the ambience you would pick (the user's
      standing sound rule).
@@ -76,10 +81,21 @@ python3 "$A" fail  <id> <reason>      # mark failed; the studio shows the reason
    then one `media_confirm` with all the media ids (`type: "image"`). Proceed only when every
    PUT returned 200.
 
+4b. **Extend wide photos first** (every job with `extend: true`). Its `photo_path` is the whole photo
+   centred between flat grey bands. `generate_image` with `model: "nano_banana_2_1"`,
+   `prompt` = the job's `extend_prompt` verbatim, `aspect_ratio` = the job's `aspect`,
+   `resolution: "2k"`, and the uploaded photo as its image reference (check the model's media role
+   with `models_explore` once if unsure). Wait for it, then `python3 "$A" extended <id> <image url>`:
+   it pastes the original photo back over the middle and prints the start frame's path. Upload that
+   file (as in step 4) and use its media id as the video's `start_image` in step 5. About 2 credits
+   each; include them in step 3's total. If it fails, `fail` the job with the reason; do not animate
+   the grey-banded frame.
+
 5. **Generate.** Settings come from the job's `model` and `mode`; nothing else varies.
 
    Every job: `prompt` = the job's `prompt` verbatim (for a job you wrote in step 2, the prompt you stored), `duration` = the job's `duration`,
-   `aspect_ratio` = the job's `aspect`, `medias` = `[{ "role": "start_image", "value": "<media id>" }]`.
+   `aspect_ratio` = the job's `aspect`, `medias` = `[{ "role": "start_image", "value": "<media id>" }]`
+   (for an extend job, the extended frame from step 4b, never the grey-banded photo).
 
    | job `model` | job `mode` | extra params | size | credits per second |
    |---|---|---|---|---|

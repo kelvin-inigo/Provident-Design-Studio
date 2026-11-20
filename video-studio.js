@@ -109,7 +109,18 @@
     ].map(s => s[0] + '\n' + s[1]).join('\n\n');
   }
   // what a written prompt was written for; when these change, the prompt is flagged (not dropped)
-  const promptSig = c => [c.move, c.genDur || 5, P.size, c.people ? 1 : 0].join('|');
+  const promptSig = c => [c.move, c.genDur || 5, P.size, c.people ? 1 : 0].concat(c.genExt !== false && wideOf(c) ? ['ext'] : []).join('|');
+  // EXTEND FIRST (2026-11-20, by request: a landscape photo was cropped to 9:16 before Higgsfield
+  // saw it). A photo wider than the video is sent whole, full width and centred, with flat grey
+  // bands above and below; the server has Nano Banana 2.1 paint those bands (more sky, more ground),
+  // pastes the original photo back over the middle so it cannot drift, and animates that. On by
+  // default for wide photos; Fill the frame, Zoom and the sliders do not apply to it.
+  const EXT_CR = 2;                                   // Nano Banana 2.1 at 2k, priced 2026-11-20
+  const EXT_GREY = '#808080';                         // a working file for the model, never artwork
+  function photoAspect(c) { const m = media[c.mid], im = m && imgFor(m); return im && im.naturalWidth ? im.naturalWidth / im.naturalHeight : 0; }
+  const wideOf = c => { const g = G(), a = photoAspect(c); return a > g.w / g.h * 1.03; };
+  const extOn = c => wideOf(c) && c.genExt !== false;
+  function extBox(c) { const g = G(), h = Math.round(g.w / photoAspect(c)); return { y: Math.round((g.h - h) / 2), h }; }
   const promptOf = c => c.genPromptBy && c.genPrompt ? c.genPrompt : promptFor(c);
   const ANIMS = [['none', 'None'], ['fade', 'Fade'], ['rise', 'Rise'], ['lines', 'Line by line'], ['words', 'Word by word']];
   const LBL = 92;
@@ -2089,6 +2100,7 @@
     if (b.dataset.gm) { mark(); it.genModel = b.dataset.gm; renderAll(); return; }
     if (b.dataset.gq) { mark(); it.genMode = b.dataset.gq; renderAll(); return; }
     if (b.dataset.gp) { mark(); it.people = b.dataset.gp === '1'; renderAll(); return; }
+    if (b.dataset.gx) { mark(); it.genExt = b.dataset.gx === '1'; renderAll(); return; }
     if (b.id === 'descBtn') return descSend(it);
     if (b.id === 'descCancel') { const id = it.descJob; mark(); delete it.descJob; JOBS = JOBS.filter(j => j.id !== id); api('/api/animate/cancel', { id }).catch(() => {}); renderAll(); return; }
     if (b.id === 'promptReset') { mark(); delete it.genPrompt; delete it.genPromptBy; delete it.genPromptFor; delete it.descErr; renderAll(); return; }
@@ -2362,7 +2374,7 @@
   // [key, label, Higgsfield model id, credits per second Draft, Full] — measured 2026-11-13, sound ON (clips are generated with their own sound since the same day)
   const GEN_MODELS = [['seedance', 'Seedance 2.5', 'seedance_2_5', 7, 16], ['kling', 'Kling 3.0', 'kling3_0', 1.75, 2], ['cinema', 'Cinema Studio', 'cinematic_studio_video_v2', 1.5, 2]];
   function genModel(c) { return GEN_MODELS.find(m => m[0] === c.genModel) || GEN_MODELS[0]; }
-  function genCredits(c) { return +((c.genDur || 5) * genModel(c)[c.genMode === 'pro' ? 4 : 3]).toFixed(2); }
+  function genCredits(c) { return +((c.genDur || 5) * genModel(c)[c.genMode === 'pro' ? 4 : 3] + (extOn(c) ? EXT_CR : 0)).toFixed(2); }
   // THE ANIMATE PANEL, ONE STATE AT A TIME (2026-11-17, by request: "confusing to use"). With no
   // job the panel is the form, and the one thing still missing is said beside the buttons. Once a
   // job exists the form gives way to a status card: what was asked for, where it stands, how long
@@ -2373,7 +2385,7 @@
   // the tool waits 25 minutes at most, so a job still "working" after 40 has lost its worker (the server was restarted)
   const jobStale = j => j.status === 'working' && Date.now() / 1000 - (j.started || j.at || 0) > 2400;
   const jobSince = j => { const t0 = (j.status === 'working' && j.started) || j.at || 0, d = Math.max(0, Math.floor(Date.now() / 1000 - t0)); return !t0 ? '' : d < 3600 ? Math.floor(d / 60) + ':' + String(d % 60).padStart(2, '0') : d < 172800 ? Math.round(d / 3600) + ' h' : Math.round(d / 86400) + ' days'; };
-  const jobStep = j => ({ sending: 'Sending the photo to Higgsfield', rendering: 'Higgsfield is rendering the clip', downloading: 'Downloading the finished clip' })[j.step] || 'Higgsfield is rendering the clip';
+  const jobStep = j => ({ extending: 'Nano Banana is extending the photo to ' + (P.size === '1x1' ? '1:1' : '9:16'), sending:'Sending the photo to Higgsfield', rendering: 'Higgsfield is rendering the clip', downloading: 'Downloading the finished clip' })[j.step] || 'Higgsfield is rendering the clip';
   function queueLine(id) {            // "2nd of 3 waiting · 1 generating"
     const w = JOBS.filter(j => j.status === 'queued').sort((a, b) => (a.at || 0) - (b.at || 0)), g = JOBS.filter(j => j.status === 'working' && !jobStale(j)).length;
     const i = w.findIndex(j => j.id === id), ord = n => n + (n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th');
@@ -2402,6 +2414,9 @@
       (st === 'failed' ? '<div class="vs-job" data-st="failed"><b>That did not work</b><span class="vs-note">' + esc(j.error || 'No reason was given.') + ' Change anything below and try again.</span></div>' : '') +
       '<div class="vs-f"><label>Camera move' + (it.move ? '' : ' <s>choose one</s>') + '</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + dis + '><i class="vs-mvp" aria-hidden="true"><u data-m="' + m[0] + '" style="' + mvBg + '"></u></i><span>' + m[1] + '</span></button>').join('') + '</div></div>' +
       row('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + '>' + d + ' s</button>').join('') + '</div>') +
+      (wideOf(it) ? row('Extend to ' + (P.size === '1x1' ? '1:1' : '9:16'), '<div class="vs-seg">' + [[1, 'Yes'], [0, 'No']].map(q => '<button data-gx="' + q[0] + '"' + ((extOn(it) ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+        '<span class="vs-note">' + (extOn(it) ? 'The photo is wider than the video, so it is not cropped: Nano Banana 2.1 adds more of the scene above and below it first, then the clip is made. The photo itself stays as it is. ' + EXT_CR + ' credits.'
+          : 'The photo is cropped to the frame as it shows on the canvas.') + '</span>' : '') +
       promptBox(it) +
       '<div class="vs-go"><div class="vs-jl"><span>' + (!it.move ? 'Choose a camera move to continue' : it.descJob ? 'Waiting for Claude\'s prompt' : what) + '</span><time>' + (it.move ? 'about ' + genCredits(it) + ' credits' : '') + '</time></div>' +
         '<button class="p-btn p-sm" id="animNow"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (st === 'failed' ? 'Try again' : 'Generate') + '</button>' +
@@ -2442,9 +2457,14 @@
       '</div></details>';
   }
   // the start frame: the photo exactly as this clip frames it, at the video's size
+  // (or, when it is extended first, whole and centred between the grey bands)
   function frameFor(c) {
     const m = media[c.mid], im = m && imgFor(m); if (!im || !im.complete || !im.naturalWidth) return null;
     const g = G(), k = document.createElement('canvas'); k.width = g.w; k.height = g.h;
+    if (extOn(c)) {
+      const x = k.getContext('2d'), b = extBox(c); x.fillStyle = EXT_GREY; x.fillRect(0, 0, g.w, g.h);
+      x.drawImage(im, 0, b.y, g.w, b.h); return k.toDataURL('image/jpeg', .92);
+    }
     const x = k.getContext('2d'); x.fillStyle = ART.ground; x.fillRect(0, 0, g.w, g.h);
     const fill = c.fit !== 'fit', sc = (fill ? Math.max(g.w / im.naturalWidth, g.h / im.naturalHeight) : Math.min(g.w / im.naturalWidth, g.h / im.naturalHeight)) * (c.z || 100) / 100;
     const dw = im.naturalWidth * sc, dh = im.naturalHeight * sc;
@@ -2453,7 +2473,8 @@
   }
   // what every job carries so Claude can write the prompt for exactly these settings
   const jobBase = (c, mv) => ({ name: media[c.mid].name, move: mv[1], move_phrase: mv[2], duration: c.genDur || 5, aspect: P.size === '1x1' ? '1:1' : '9:16',
-    note: String(c.moveNote || '').trim(), people: !!c.people, sig: promptSig(c), model: genModel(c)[2], mode: c.genMode === 'pro' ? 'pro' : 'std' });
+    note: String(c.moveNote || '').trim(), people: !!c.people, sig: promptSig(c), model: genModel(c)[2], mode: c.genMode === 'pro' ? 'pro' : 'std',
+    extend: extOn(c) || undefined, ext: extOn(c) ? extBox(c) : undefined });
   async function descSend(c) {
     const mv = MOVES.find(x => x[0] === c.move); if (!media[c.mid] || !mv) return;
     const photo = frameFor(c); if (!photo) { toast('The photo is still loading. Try again in a moment.'); return; }

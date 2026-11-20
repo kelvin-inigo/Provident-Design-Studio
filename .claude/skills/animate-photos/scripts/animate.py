@@ -4,6 +4,8 @@
     animate.py list                      queued jobs and prompts to write, one JSON object per line
     animate.py prompt <id> <file.json>   store the prompt Claude wrote from the photo ({prompt, sheet, words})
     animate.py start <id> <job_id>       mark a job as generating (remember Higgsfield's job id)
+    animate.py extended <id> <image_url> download Nano Banana's extended frame, paste the photo back over
+                                         its middle, and print the start-frame path to upload (extend jobs)
     animate.py done  <id> <video_url>    download the finished MP4 and mark the job done
     animate.py fail  <id> <reason...>    mark a job failed, with the reason the studio will show
     animate.py where                     print the queue folder
@@ -80,6 +82,25 @@ def main():
         j.update(status='working', job_id=a[2])
         json.dump(j, open(p, 'w'), indent=1)
         print('working', a[1])
+    elif cmd == 'extended' and len(a) == 3:
+        p, j = load(q, a[1])
+        if not a[2].startswith('https://'):
+            sys.exit('The image URL must be https://')
+        ext = (a[2].split('?')[0].rsplit('.', 1)[-1] or 'png').lower()[:4]
+        raw = os.path.join(q, a[1] + '.ext-raw.' + ext)
+        req = urllib.request.Request(a[2], headers={'User-Agent': 'video-studio-animate'})
+        with urllib.request.urlopen(req, timeout=120) as r, open(raw, 'wb') as f:
+            f.write(r.read())
+        box = j.get('ext') or {}
+        out = os.path.join(q, a[1] + '.ext.jpg')
+        serve = os.path.join(os.path.dirname(q), 'tools', 'video-dev', 'serve.py')     # one copy of the paste
+        r = __import__('subprocess').run([sys.executable, serve, '--merge-ext', os.path.join(q, j['photo']), raw,
+                                          str(int(box.get('y') or 0)), str(int(box.get('h') or 0)), out], capture_output=True, text=True)
+        if r.returncode or not os.path.exists(out):
+            sys.exit('Could not paste the photo back: ' + (r.stderr or r.stdout)[-300:])
+        j['start'] = a[1] + '.ext.jpg'
+        json.dump(j, open(p, 'w'), indent=1)
+        print(out, '(' + r.stdout.strip() + ')')
     elif cmd == 'done' and len(a) == 3:
         p, j = load(q, a[1])
         if not a[2].startswith('https://'):

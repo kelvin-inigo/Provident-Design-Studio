@@ -66,9 +66,71 @@ CASV_RULES = """These CASV rules override the framework:
 - The clip is {duration} seconds at {aspect}: ACTION's three beats add up to {duration} seconds.
 - Extra direction from the user (work it into SCENE CONTEXT or ACTION; empty means none): "{note}"
 - The user's People setting says: {people}. The photo wins: describe every person you actually see (ACTIVE REFERENCES, PERFORMANCE, POSITIVE LOCKS). Only if you see no one does PERFORMANCE read "No people in frame; none appear."
+- {frame}
 - AUDIO is always: "Natural sound of the environment in each scene, every interaction with the environment, accurate sound details." followed by the ambience you would pick.
 - POSITIVE LOCKS always ends: "No new people, objects, text or logos appear."
 - 2,500 characters is Higgsfield's hard cap: aim for about 2,200 for the whole prompt, all 14 headings in order. Keep each section to one or two tight sentences."""
+EXT_RULE = ('The flat grey bands above and below the photo are not part of the shot: before the video is made, Nano Banana fills them '
+            'with more of the same scene (more sky above, more ground, water or foreground below). Write LOCATION MAP and FIRST FRAME '
+            'for that taller frame, with the photo in the middle, and never mention grey bands, borders or letterboxing.')
+# EXTEND FIRST (2026-11-20): a photo wider than the video comes centred between flat grey bands
+# (job['ext'] = its {y, h} at the video's size). Nano Banana 2.1 paints the bands; the original photo
+# is then pasted back over the middle, feathered at the seams, so its pixels cannot drift. Needs
+# Pillow for the paste; without it the painted frame is used as it comes.
+EXT_MODEL = 'nano_banana_2_1'
+EXT_PROMPT = ('Outpaint this image to a full vertical {aspect} frame. The middle band is a real photograph: keep it exactly as it is, '
+              'in the same place and at the same size, with every detail, colour and line unchanged. Only replace the flat grey bands '
+              'above and below it: continue the scene naturally upward (more of the same sky) and downward (more of the same ground, '
+              'water or foreground), matching perspective, light, colour, grain and focus so the seams cannot be seen. No new people, '
+              'objects, text or logos; no borders, no frames.')
+
+
+def ext_args(job, photo):
+    return [EXT_MODEL, '--prompt', EXT_PROMPT.format(aspect=job.get('aspect') or '9:16'), '--aspect_ratio', job.get('aspect') or '9:16',
+            '--resolution', '2k', '--image', photo]
+
+
+def ext_merge(padded, painted, y, h, out, feather=32):
+    """Paste the photo band of `padded` back over `painted` (resized to the padded size), feathered."""
+    try:
+        from PIL import Image, ImageDraw, ImageFilter
+    except ImportError:
+        shutil.copyfile(painted, out)
+        return False
+    base = Image.open(padded).convert('RGB')
+    top = Image.open(painted).convert('RGB').resize(base.size, Image.LANCZOS)
+    if h <= 2 * feather:                   # no band given: use the painted frame as it comes
+        top.save(out, quality=94)
+        return False
+    m = Image.new('L', base.size, 0)
+    ImageDraw.Draw(m).rectangle([0, y + feather, base.size[0], y + h - feather], fill=255)
+    m = m.filter(ImageFilter.GaussianBlur(feather / 2))
+    top.paste(base, (0, 0), m)
+    top.save(out, quality=94)
+    return True
+
+
+def ext_run(job):
+    """Extend the job's photo. Returns (start-frame file name, None) or (None, reason)."""
+    photo = os.path.join(QUEUE, job['photo'])
+    rc, out = hf('generate', 'create', *ext_args(job, photo), timeout=180)
+    m = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', out)
+    if rc or not m:
+        return None, 'Nano Banana could not extend the photo: ' + (out or 'no job id came back')[-240:]
+    hf('generate', 'wait', m.group(0), '--timeout', '6m', '--interval', '3s', '--quiet', timeout=400)
+    rc, out = hf('generate', 'get', m.group(0))
+    u, ext = hf_result(out, 'png|jpg|jpeg|webp')
+    if rc or not u:
+        return None, 'Nano Banana did not return the extended photo: ' + (out or '')[-240:]
+    raw = os.path.join(QUEUE, job['id'] + '.ext-raw.' + ext)
+    with urllib.request.urlopen(u, timeout=120) as r, open(raw, 'wb') as f:
+        shutil.copyfileobj(r, f)
+    name = job['id'] + '.ext.jpg'
+    box = job.get('ext') or {}
+    ext_merge(photo, raw, int(box.get('y') or 0), int(box.get('h') or 0), os.path.join(QUEUE, name))
+    return name, None
+
+
 DESC_SCHEMA = {'type': 'object', 'required': ['prompt', 'sheet', 'words'], 'additionalProperties': False,
                'properties': {'prompt': {'type': 'string'}, 'sheet': {'type': 'string'}, 'words': {'type': 'string'}}}
 
@@ -99,7 +161,8 @@ def desc_run(jp):
                'skill below: Pass 1 analysis sheet, Pass 2 word bank, Pass 3 the prompt with all 14 headings, and its checks.\n\n'
                % os.path.join(QUEUE, job['photo'])
                + CASV_RULES.format(move_phrase=job.get('move_phrase') or job.get('move') or '', duration=job.get('duration') or 5,
-                                   aspect=job.get('aspect') or '9:16', note=job.get('note') or '', people='yes' if job.get('people') else 'no')
+                                   aspect=job.get('aspect') or '9:16', note=job.get('note') or '', people='yes' if job.get('people') else 'no',
+                                   frame=EXT_RULE if job.get('extend') else 'The photo fills the frame exactly as you see it.')
                + '\n\nAnswer with the JSON only: "prompt" the finished prompt, "sheet" Pass 1 in short, "words" Pass 2.'
                + '\n\n--- THE SKILL ---\n' + skill)
         def run(q, tools):
@@ -212,8 +275,15 @@ def hf_run(jp):
     def save(**k):
         job = json.load(open(jp)); job.update(k); json.dump(job, open(jp, 'w'), indent=1); return job
     try:
-        job = save(step='sending', started=int(time.time()))
-        rc, out = hf('generate', 'create', *hf_args(job, os.path.join(QUEUE, job['photo'])), timeout=300)
+        job = save(started=int(time.time()))
+        if job.get('extend') and not job.get('start'):
+            job = save(step='extending')
+            name, err = ext_run(job)
+            if err:
+                return save(status='failed', error=err)
+            job = save(start=name)
+        job = save(step='sending')
+        rc, out = hf('generate', 'create', *hf_args(job, os.path.join(QUEUE, job.get('start') or job['photo'])), timeout=300)
         m = re.search(r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}', out)
         if rc or not m:
             return save(status='failed', error=(out or 'no job id came back')[-300:])
@@ -415,7 +485,9 @@ class H(SimpleHTTPRequestHandler):
             open(os.path.join(QUEUE, jid + '.jpg'), 'wb').write(base64.b64decode(m.group(1)))
             # kind 'describe' (CASV, 2026-11-19): no video, only a prompt Claude writes from the photo
             # (status describe -> described); `read` on a video job asks Claude to write it first
-            job = {k: body.get(k) for k in ('id', 'name', 'move', 'move_phrase', 'prompt', 'duration', 'aspect', 'mode', 'model', 'note', 'people', 'sig', 'read', 'kind')}
+            job = {k: body.get(k) for k in ('id', 'name', 'move', 'move_phrase', 'prompt', 'duration', 'aspect', 'mode', 'model', 'note', 'people', 'sig', 'read', 'kind', 'extend', 'ext')}
+            if job.get('extend'):                    # the same words /animate-photos sends to Nano Banana
+                job['extend_prompt'] = EXT_PROMPT.format(aspect=job.get('aspect') or '9:16')
             job = {k: v for k, v in job.items() if v is not None}
             job.update(status='describe' if job.get('kind') == 'describe' else 'queued', photo=jid + '.jpg', at=int(time.time()))
             json.dump(job, open(jp, 'w'), indent=1)
@@ -485,16 +557,23 @@ class H(SimpleHTTPRequestHandler):
                 m = re.search(r'"credits(?:_exact)?"\s*:\s*([0-9.]+)', out) or re.search(r'([0-9]+(?:\.[0-9]+)?)\s*credits', out, re.I)
                 if rc or not m:
                     return self._json(200, {'error': out[-300:] or 'Higgsfield gave no price.'})
-                return self._json(200, {'id': jid, 'credits': float(m.group(1))})
+                credits = float(m.group(1))
+                if job.get('extend'):                # the extension is priced and shown in the same total
+                    rc, out = hf('generate', 'cost', *ext_args(job, os.path.join(QUEUE, job['photo'])))
+                    m = re.search(r'"credits(?:_exact)?"\s*:\s*([0-9.]+)', out)
+                    if rc or not m:
+                        return self._json(200, {'error': out[-300:] or 'Higgsfield gave no price for the extension.'})
+                    credits += float(m.group(1))
+                return self._json(200, {'id': jid, 'credits': round(credits, 2)})
             job['status'] = 'working'
             json.dump(job, open(jp, 'w'), indent=1)
             threading.Thread(target=hf_run, args=(jp,), daemon=True).start()
             return self._json(200, job)
         if path in ('/api/animate/placed', '/api/animate/cancel') and os.path.exists(jp):
             if path.endswith('cancel'):
-                for ext in ('.json', '.jpg', '.mp4'):
+                for f in glob.glob(os.path.join(QUEUE, jid + '.*')):     # .json .jpg .mp4 and the extension's files
                     try:
-                        os.remove(os.path.join(QUEUE, jid + ext))
+                        os.remove(f)
                     except OSError:
                         pass
                 return self._json(200, {'id': jid, 'status': 'cancelled'})
@@ -609,5 +688,10 @@ if __name__ == '__main__':
     if '--claude-login' in sys.argv:          # sign Claude Code in once, so the studio can write prompts from photos
         cb = claude_bin()
         sys.exit(subprocess.call([cb, 'auth', 'login'], env=claude_env()) if cb else 'Claude Code is not on this computer.')
+    if '--merge-ext' in sys.argv:             # /animate-photos: paste the photo back over Nano Banana's frame
+        i = sys.argv.index('--merge-ext')
+        padded, painted, y, h, out = sys.argv[i + 1:i + 6]
+        print('merged' if ext_merge(padded, painted, int(y), int(h), out) else 'used as it came (no Pillow, or no band)')
+        sys.exit(0)
     print('Video Studio on http://localhost:%d/' % PORT, flush=True)
     ThreadingHTTPServer(('127.0.0.1', PORT), H).serve_forever()

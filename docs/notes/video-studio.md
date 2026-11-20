@@ -900,3 +900,30 @@ Text is stored plain (`**` is the only markup), never HTML-escaped.
   button on The Wilds p19 in 24 s (2,429), both describing the photo, all 14 headings, the move
   phrase verbatim. The first try ran 2,625 characters, so the rules now aim for about 2,200 and an
   over-cap prompt gets one text-only tightening pass (`step: shortening`) before it is refused.
+
+## Extend to 9:16 before animating (2026-11-20, by request)
+A landscape photo came out cropped: `frameFor` drew the clip's own framing (Fill the frame) into the
+1080×1920 start frame, so Higgsfield never saw the sides. Now a photo wider than the video
+(`wideOf`: photo aspect over the canvas aspect ×1.03, so 3:4 counts for 9:16) shows **Extend to
+9:16 · Yes / No** under Length, Yes by default (`genExt`).
+- **The start frame** is the whole photo at full width, centred, between flat grey bands
+  (`EXT_GREY` #808080, a working file for the model, never artwork); Fill the frame, Zoom and the
+  sliders do not apply. The job carries `extend: true` and `ext: {y, h}` (the band).
+- **The server** (`hf_run`, step `extending`) runs Nano Banana 2.1 (`nano_banana_2_1`, 2k, the
+  job's aspect, `EXT_PROMPT`), downloads it, and pastes the original photo back over the middle
+  with a 32 px feather (`ext_merge`, Pillow; without Pillow the painted frame is used as it comes),
+  so the photo's pixels cannot drift. That `<id>.ext.jpg` is the video's start image (`start`).
+  Cancel removes every `<id>.*` file.
+- **Price**: the cost check adds the extension (2 credits at 2k; 1.5 at 1k) to the video's total,
+  so the confirm reads e.g. 37 credits for a 5 s Draft. `EXT_CR` shows it in the panel.
+- **Claude's prompt**: describe jobs get the grey-banded frame plus `EXT_RULE` (write LOCATION MAP
+  and FIRST FRAME for the taller frame, never mention bands). The prompt's `sig` gains `|ext`, so
+  switching Extend flags the prompt as written for other settings.
+- **/animate-photos**: step 4b runs the same `extend_prompt` (stored on the job) through
+  `generate_image`, then `animate.py extended <id> <url>` calls `serve.py --merge-ext` (one copy of
+  the paste) and the extended frame is uploaded as `start_image`.
+- Tested: trial on a Dubai skyline photo (band re-rendered at offset 0,0, mean difference ~9/255
+  before the paste-back); on The Wilds p4 (3:4) from a real click: the row, Claude's prompt
+  ("…with more sky above and more pool below"), the confirm at 37 credits, then the server's
+  `ext_run` alone in 30 s (2 credits): more sky and pool, no visible seams. The video itself was
+  not generated (Cancel). Not handled: photos taller than the video (would need left/right).
