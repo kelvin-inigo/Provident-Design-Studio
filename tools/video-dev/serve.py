@@ -65,7 +65,7 @@ CASV_RULES = """These CASV rules override the framework:
 - The camera move is the user's. CAMERA starts with this move phrase as written: "{move_phrase}". Add only the shadow-side placement and the colour words. Do not pick another move.
 - The clip is {duration} seconds at {aspect}: ACTION's three beats add up to {duration} seconds.
 - Extra direction from the user (work it into SCENE CONTEXT or ACTION; empty means none): "{note}"
-- People in it: {people}. If "no", PERFORMANCE reads "No people in frame; none appear."
+- The user's People setting says: {people}. The photo wins: describe every person you actually see (ACTIVE REFERENCES, PERFORMANCE, POSITIVE LOCKS). Only if you see no one does PERFORMANCE read "No people in frame; none appear."
 - AUDIO is always: "Natural sound of the environment in each scene, every interaction with the environment, accurate sound details." followed by the ambience you would pick.
 - POSITIVE LOCKS always ends: "No new people, objects, text or logos appear."
 - 2,500 characters is Higgsfield's hard cap: aim for about 2,200 for the whole prompt, all 14 headings in order. Keep each section to one or two tight sentences."""
