@@ -4621,7 +4621,20 @@
       const chk = r === 'ct' && !open && !lv ? (rs.items || []).filter(it => it.design && !it.copy && ctLangOk(it) && toMine(it)) : [];
       const chkAr = chk.length && chk.every(it => it.lang === 'ARB'), chkEn = chk.length && chk.every(it => it.lang !== 'ARB');
       const chkSub = chk.length ? chk.length + (chkAr ? ' Arabic' : chkEn ? ' English' : '') + (chk.length > 1 ? ' designs' : ' design') + ' to check' : '';
+      // THE TRACKER'S DELIVERABLES (2026-11-20): per kind, how many audiences have it in English
+      // and in Arabic ([done, of]), off the same dlRows the ad set's Deliverables card reads; copy
+      // is the English copy check and the Arabic translation
+      const dl = open ? null : {};
+      if (dl) {
+        const add = (k, l, c) => { if (c.na) return; const z = dl[k] = dl[k] || { e: [0, 0], a: [0, 0] }; z[l][1]++; if (c.on) z[l][0]++; };
+        auds.forEach(a => {
+          dlRows(rs, a).forEach(rw => rw.cells.forEach((c, i) => add(rw.k, i ? 'a' : 'e', c)));
+          add('copy', 'e', { on: !!(a.eng && a.eng.copy) });
+          if (!a.engOnly) add('copy', 'a', { on: !!(a.arb && a.arb.copy) });
+        });
+      }
       return {
+        dlv: dl, brand: rs.brand || '', auds: auds.length,
         studio: 'cas', id: x.id, name: rs.name || 'Campaign', mine: !!rsMine(rs), ready: !!(ov && ov.ready) && !lv, open,
         live: lv ? lv.at || 1 : 0, launch: ov && ov.ready && !lv && isDs(lid) ? lid : '',
         step: open ? 'Ticket' : lv ? 'Launched' : ov.ready ? 'Ready to run' : chk.length ? (chkAr ? STEP_LABELS[2] : STEP_LABELS[1]) : STEP_LABELS[k] || 'Design',

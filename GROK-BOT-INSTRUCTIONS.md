@@ -43,6 +43,7 @@ Everything that waits on someone — tickets, hand-offs, copy checks, packages, 
 |---|---|
 | what to do next | home › **Home** › **Next up** (‹ › flips through it); **Also waiting on you** under it |
 | every campaign and post | home › **Status**: **New**, **Design**, **Copy check**, **Ready**; **Show closed** adds **Closed** |
+| every campaign's deliverables, EN and AR | home › **Tracker** › **Launch**: **Static**, **Animated**, **MVP video**, **Copy** — **Done**, **n of m** audiences, **Missing**, **Not needed**; **Organic posts** shows each post's four steps |
 | overdue work on Status | **Overdue** button (red dot, count): **In its own lane** (default, an **Overdue** lane folded at the end), **In its stage**, or **Hidden** |
 | narrow Status | kind chips; **Filter** › **Stage**, **Due** (Overdue, Due this week, Due later, No date), **From**; **Only what waits on me**; **Find by name**. They combine; each shows as a chip to remove, or **Clear all** |
 | change how Status looks | **Board \| List**; **View** › **Sort by** (Due date, Name, Last updated, Stage), **Group by** (Stage, From, Kind), **Density** (Comfortable, Compact); the arrow on a column folds it |

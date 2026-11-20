@@ -116,6 +116,13 @@ say so and point to the step above.
     and **With others**. On the right, **Where everything is** shows each stage (**New**,
     **Design**, **Copy check**, **Ready**) with the work in it, and **Your studios**. Your last
     saved projects sit at the bottom under **Pick up where you left off**.
+  - **Tracker** (top bar, after Status) is Status as rows. **Launch** lists every campaign by its
+    due date with what it still needs in English and Arabic: **Static**, **Animated**, **MVP video**
+    and **Copy**, each **Done**, **1 of 2** (audiences), **Missing** or **Not needed**, and how many
+    are done in all. **Organic posts** lists every post with its picture and its four steps
+    (**Draft**, **Design**, **Copy check**, **Ready**). It only shows; **Open the ad set**, **Open
+    the ticket** or **Open the post** takes you to its page. A campaign shows its deliverables
+    once Status has been read on that computer.
   - **Status** is one board for both studios, in the same four stages. **Only what waits on me**
     and **Find by name** narrow it, and so do the kind chips (**Everything**, **Campaign ads**,
     **Organic posts**, and **Content Hub** when the hub has posts) and **Filter** (see *Organising
