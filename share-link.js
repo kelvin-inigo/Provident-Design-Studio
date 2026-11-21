@@ -4720,10 +4720,12 @@
         const an = x.anim || {}, anOn = (a, l) => a.items.some(it => an[it.sid] && (l === 'a' ? it.lang === 'ARB' : it.lang !== 'ARB'));
         auds.forEach(a => {
           const vd = hasVid(a);
+          // ENGLISH ONLY (2026-11-21, by request): the MVP video and the copy are counted in English
+          // only; the Arabic words come from the Google Translate rail
           dlRows(rs, a).forEach(rw => rw.cells.forEach((c, i) => { const l = i ? 'a' : 'e';
+            if (rw.k === 'video' && l === 'a') return;
             add(rw.k, l, !c.na && ((rw.k === 'video' && vd) || (rw.k === 'anim' && anOn(a, l))) ? { on: true } : c); }));
           add('copy', 'e', { on: !!(a.eng && a.eng.copy) });
-          if (!a.engOnly) add('copy', 'a', { on: !!(a.arb && a.arb.copy) });
         });
       }
       return {

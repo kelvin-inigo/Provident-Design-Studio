@@ -906,4 +906,11 @@ All audiences video read MVP video 2 of 2; Palm Springs with a "Launch · Local 
   `rvSum`: variants with a video background), and `inboxCas` ticks Animated for a design in the
   language of that project. Verified on the stand-in: one English project marked → Ellington's
   Animated went 0 of 2 → 1 of 2.
+- Same day, "MVP is english only as well as copy, arabic does from google translate rail, so in
+  that case redesign this UI": `inboxCas` stops adding Arabic to `video` and `copy`; `TK_EN` in
+  index.html draws each as one `.tk-c[data-en]` (grid-row: span 2, "English only" caption) in the EN
+  row and nothing in the AR row; on a phone (`.tk-gm`) it spans both language columns. `tkCount`
+  counts them once, so VAULT's ring reads n of 6. Checked by running `tkCampaign` headless (jsc)
+  with VAULT's numbers (6 desktop cells, 2 spanning, ring 4 of 6); the Browser pane was blocked by a
+  page-opened popup, so not yet looked at on screen.
 
