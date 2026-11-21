@@ -298,6 +298,10 @@ button{font-family:inherit}
 .row-t a{display:block; font:500 15px/1.3 var(--ps-font); color:var(--ps-ink); text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .row-t a:hover{text-decoration:underline; text-underline-offset:3px}
 .row-m{display:flex; align-items:center; gap:8px 12px; margin-top:6px; flex-wrap:wrap; font:400 13px/1.3 var(--ps-font); color:var(--ps-ink-2)}
+.row-nt,.nx-nt{margin:6px 0 0; max-width:62ch; font:400 13px/1.45 var(--ps-font); color:var(--ps-ink); display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden}
+.nx-nt{margin-top:10px; font-size:14px}
+.row-nt q,.nx-nt q{quotes:'\201C' '\201D'}
+.row-nt span,.nx-nt span{color:var(--ps-dim)}
 .row-m b{font-weight:500; color:var(--ps-ink)}
 .row-m .dot{width:3px; height:3px; border-radius:50%; background:var(--ps-dim)}
 .th{display:grid; place-items:center; width:var(--w,56px)}
@@ -1333,7 +1337,7 @@ body{-webkit-tap-highlight-color:transparent;
       h += '<article class="nx"' + (fd ? ' data-flip style="--d:' + fd + '"' : '') + '><a href="' + itemLink(top) + '" tabindex="-1" aria-hidden="true">' + rd(top, 250, true) + '</a><div class="nx-b">' +
         '<div class="nx-src">' + mk(top.studio) + dueEl(top) + '</div>' +
         '<h3><a href="' + itemLink(top) + '">' + esc(top.name) + '</a></h3>' +
-        '<p class="lede" style="font-size:13px;margin-top:10px"><b style="font-weight:500;color:var(--ps-ink)">' + esc(top.step || '') + '</b>' + (top.sub ? ' · ' + esc(top.sub) : '') + (top.from ? ' · from ' + esc(top.from) : '') + (top.at ? ', ' + esc(ago(top.at)) : '') + '</p>' +
+        '<p class="lede" style="font-size:13px;margin-top:10px"><b style="font-weight:500;color:var(--ps-ink)">' + esc(top.step || '') + '</b>' + (top.sub ? ' · ' + esc(top.sub) : '') + (top.from ? ' · from ' + esc(top.from) : '') + (top.at ? ', ' + esc(ago(top.at)) : '') + '</p>' + noteEl(top, 'nx-nt') +
         (st.length && sg.length ? '<ol class="nx-steps" style="--n:' + st.length + '">' + st.map(function(l, i){
           var copy = top.studio === 'ops' ? i === 2 : i === 1 || i === 2, v = sg[i];
           return '<li data-s="' + (v === 'done' ? 'done' : v === 'cur' ? (copy ? 'warn' : 'cur') : 'todo') + '"><span>' + esc(l) + '</span></li>';
@@ -1450,10 +1454,12 @@ body{-webkit-tap-highlight-color:transparent;
   function postedBtn(x, cls){ return '<button class="' + cls + '" type="button" data-launch="' + esc(x.id) + '" data-op="rsposted" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>Posted</span></button>'; }
   // a ready post's images, for social media (post-flow.js providentPostFeed.download)
   function dlOf(x){ return data.r === 'smm' && x.studio === 'ops' && x.ready && x.dl; }
+  // A HAND-OFF'S NOTE (2026-11-21, by request): what the sender wrote for this person, quoted under the line
+  function noteEl(x, cls){ return x && x.note && x.note.t ? '<p class="' + cls + '"><q>' + esc(x.note.t) + '</q>' + (x.note.by ? ' <span>\u2014 ' + esc(x.note.by) + '</span>' : '') + '</p>' : ''; }
   function row(x, other){
     var link = itemLink(x);
     return '<li class="row"><a class="th" style="--w:' + (other ? 44 : 56) + 'px" href="' + link + '" tabindex="-1" aria-hidden="true">' + rd(x, other ? 44 : 56) + '</a><div class="row-t"><a href="' + link + '">' + esc(x.name) + '</a>' +
-      '<div class="row-m">' + mkOf(x) + segs(x) + '<span><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (other ? '' : x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</span></div></div>' +
+      '<div class="row-m">' + mkOf(x) + segs(x) + '<span><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (other ? '' : x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</span></div>' + (other ? '' : noteEl(x, 'row-nt')) + '</div>' +
       // a row's actions: open it, and (2026-11-04, by request) social media's Posted and
       // performance marketing's Launch, as on Next up
       dueEl(x) + (other ? '' : '<span class="row-a">' + (dlOf(x) ? '<a class="b b-g" href="#/files/' + encodeURIComponent(x.dl) + '">Open the files</a>' : '<a class="b b-g" href="' + href(x) + '"' + tgt(x) + '>' + esc(x.verb || 'Open') + '</a>') +

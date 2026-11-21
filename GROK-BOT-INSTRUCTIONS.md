@@ -116,6 +116,12 @@ exports download as a zip. The studios fit tablets and phones.
   with a line saying what was sent, when and who has it. Each project on the ad set page
   (Tracker › **Open the ad set**) also has its own **Send to…** button. A missing-items check before a copy check
   shows in the dialog: **Fix it first** or **Send anyway**.
+- The person picker has an optional **Note for them** box; **Design** (back to design) and a reopened copy
+  check ask **What needs changing?** in the list instead (no one to pick). The note shows on the
+  tile, in the **Ad set** tab and in the recipient's queue on Home.
+- **Undo** on the line saying what was sent puts the project back where it was: for the person who
+  sent it, within 30 minutes, until someone moves it on. A Chrome alert or Paid Ads Hub message
+  already sent is not recalled.
 - **Tracker** says **Signed off · N deliverables missing** when an ad set is approved but still
   lacks deliverables (Animated, MVP video…); it does not block the package.
 - **Ad set settings** has two tabs: **Campaign** (name, product, brand, deadline, brief, video,

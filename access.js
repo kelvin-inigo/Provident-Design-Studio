@@ -727,11 +727,14 @@
     if (list.length > 1) list = list.filter(p => p.email !== mine).concat(list.filter(p => p.email === mine));
     // a finished post goes back to whoever drafted it, unless someone else is picked
     const pre = k === 'smm' && it && it.draft && it.draft.em ? it.draft.em : '';
-    const to = await pickDlg({ T, list, err, k, pre, title: opt.title || T.head, lead: opt.lead || '', go: opt.go || 'Send', back: !!opt.back });
+    const o = { T, list, err, k, pre, title: opt.title || T.head, lead: opt.lead || '', go: opt.go || 'Send', back: !!opt.back, note: !!opt.note, noteV: opt.noteV || '' };
+    const to = await pickDlg(o);
     if (to === undefined) return null;
     // Back (2026-11-21): Send to… shows its task list again
     if (to === 'back') return 'back';
     if (to) out.to = { email: to.email, name: to.name || '' };
+    // A NOTE FOR THEM (2026-11-21, by request): typed under the people, sent with the step
+    if (o.note && o.noteV.trim()) out.note = o.noteV.trim();
     return out;
   }
   function pickDlg(o) {
@@ -746,6 +749,7 @@
             '<span class="acx-av">' + avIn(p.name, p.email) + '</span><span class="acx-pk-t"><b>' + esc(nameOf(p)) + (p.email === mine ? ' <s>you</s>' : '') + '</b><small>' + esc(p.email) + '</small><small>' + esc(SEGL[p.role] || ROLE[p.role] || '') +
             (p.last ? ' · last in ' + esc(when(p.last)) : ' · not signed in yet') + '</small></span><i class="acx-pk-r" aria-hidden="true">' + ic('check') + '</i></button>').join('') + '</div>'
             : '<p class="acx-pk-l">' + esc(o.err || ('Nobody is on the ' + o.T.word + ' yet. The admin adds people in Access.')) + ' It goes to the whole ' + esc(o.T.word) + ' instead.</p>') +
+          (o.note ? '<label class="acx-pk-nl" for="acx-pk-nt">Note for them <s>optional</s></label><textarea id="acx-pk-nt" class="acx-pk-nt" rows="2" maxlength="300" placeholder="Anything they should know before they start">' + esc(o.noteV) + '</textarea>' : '') +
           '<div class="acx-row acx-pk-f">' + (o.back ? '<button type="button" class="acx-ghost acx-pk-bk" data-pk="back">' + ic('back') + 'Back</button>' : '') + '<button type="button" class="acx-ghost" data-pk="no">Cancel</button><button type="button" class="acx-btn" data-pk="go">' + ic('send') +
           esc(o.list.length && sel ? o.go + ' to ' + nameOf(o.list.find(p => p.email === sel) || {}).split(' ')[0] : o.go) + '</button></div></div>';
       };
@@ -762,12 +766,13 @@
           sel = n.dataset.e; draw2(); const b = w.querySelector('[data-e="' + CSS.escape(sel) + '"]'); if (b) b.focus(); return;
         }
         if (e.key === 'Tab') {
-          const f = [...w.querySelectorAll('button')].filter(b => !b.hasAttribute('data-e') || b.dataset.e === sel);
+          const f = [...w.querySelectorAll('button,textarea')].filter(b => !b.hasAttribute('data-e') || b.dataset.e === sel);
           const i = f.indexOf(document.activeElement);
           if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
           else if (!e.shiftKey && (i < 0 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
         }
       };
+      w.addEventListener('input', e => { if (e.target.id === 'acx-pk-nt') o.noteV = e.target.value; });
       w.addEventListener('click', e => {
         if (e.target === w) return done(undefined);
         const p = e.target.closest('[data-e]'); if (p) { sel = p.dataset.e; draw2(); const b = w.querySelector('[data-e="' + CSS.escape(sel) + '"]'); if (b) b.focus(); return; }
@@ -882,6 +887,11 @@ html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-
 .acx-pk-in{width:min(440px,100%);max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;padding:24px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font)}
 .acx-pk h2{font:500 20px/1.25 var(--ps-font);margin:0 0 6px}
 .acx-pk-l{font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2);margin:0 0 16px}
+.acx-pk-nl{display:block;margin:16px 0 6px;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
+.acx-pk-nl s{text-decoration:none;font-weight:400;color:var(--ps-dim)}
+.acx-pk-nt{display:block;margin:0 0 20px;box-sizing:border-box;width:100%;min-height:64px;resize:vertical;padding:10px 12px;border:0;border-radius:12px;background:var(--ps-fill);font:400 14px/1.45 var(--ps-font);color:var(--ps-ink)}
+.acx-pk-nt::placeholder{color:var(--ps-dim)}
+.acx-pk-nt:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .acx-pk-list{display:grid;gap:8px;margin:14px 0 20px}
 .acx-pk-p{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:0;cursor:pointer;
   background:var(--ps-fill);color:var(--ps-ink);font:inherit;box-shadow:inset 0 0 0 1px transparent;transition:background-color var(--ps-motion) var(--ps-ease)}
@@ -895,6 +905,7 @@ html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-
 .acx-pk-p[data-on] .acx-pk-r{background:var(--ps-link);box-shadow:none;color:var(--ps-app)}
 .acx-pk-f{display:flex;gap:8px;justify-content:flex-end}
 .acx-pk-bk{margin-right:auto;display:inline-flex;align-items:center;gap:4px}.acx-pk-bk .acx-i{width:18px;height:18px}
+@media (max-width:480px){.acx-pk-f{flex-wrap:wrap}.acx-pk-f [data-pk=go]{order:-1;flex:1 1 100%;justify-content:center}.acx-pk-f [data-pk=no]{flex:1 1 0;justify-content:center}.acx-pk-bk{margin-right:0;flex:1 1 0;justify-content:center}}
 .acx-pk .acx-av{width:36px;height:36px}
 #acx{position:fixed;inset:0;z-index:4000;display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);background:var(--ps-app);color:var(--ps-ink);font-family:var(--ps-font);overflow:auto}
 #acx .acx-l{display:flex;flex-direction:column;min-height:100vh;padding:40px clamp(28px,6vw,72px);box-sizing:border-box}

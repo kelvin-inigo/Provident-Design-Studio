@@ -645,6 +645,13 @@ steps: **Design › ENG copy check › Translation › Done**.
    sent, when, and who has it. Each project on the ad set page (Tracker › **Open the ad set**)
    also has its own **Send to…** button, so you can hand work on without opening the studio; the
    line saying what was sent stays on that page until you leave it.
+   Under the people there is a **Note for them** box (optional): what they should know before
+   they start. **Design** (back to design) and a reopened copy check have no one to pick, since they go
+   back to whoever did that step, so they ask **What needs changing?** in the list instead.
+   The note shows on the project's tile, in the **Ad set** tab and in that person's queue on Home.
+   Sent it to the wrong task or person? Press **Undo** on the line saying what was sent. It
+   puts the project back where it was, for 30 minutes, as long as nobody has moved it on since.
+   A Chrome alert already shown stays, and so does a message already posted to the Paid Ads Hub.
    Sending to **Copy check** from the studio first lists, in the dialog, anything missing: empty
    words, a page or variant with no background photo, a QR code switched on with none added (or
    an empty ADM number when ADM & CN is chosen), or copy covering more than 40% of a canvas.

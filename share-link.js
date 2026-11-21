@@ -439,6 +439,9 @@
   // back what the earlier one replaced.
   let dsQueue = Promise.resolve();
   const field0 = act => (DS_STEP[act] || [])[1];
+  // what a step can put back (it.undo.was), how long Undo stays offered, and a note's length
+  const UNDO_MS = 30 * 60 * 1000, NOTE_MAX = 300;
+  const undoWas = it => ({ design: it.design || null, copy: it.copy || null, task: it.task || null, to: it.to || null, note: it.note || null });
   const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1, rsvideo: 1, rsreq: 1, rsgrant: 1 };
   function dsApi(op, q, body) {
     if (!DS_WRITES[op]) return dsApi1(op, q, body);
@@ -476,16 +479,43 @@
       // PICK THE NEXT TASK (2026-11-16, by request): the designer sends a project to any task, in any
       // order. Arabic, Animated, Video and Done land here; Copy check and Design are the steps below.
       // It records where the work is (it.task) and who has it (it.to); no sign-off moves.
+      // UNDO A SEND (2026-11-21, by request): each step keeps what the project was before it
+      // (it.undo); the person who sent it can put it back within UNDO_MS, as long as nobody has moved
+      // it on since. The send leaves the history (hist) so receipts and counts read as before; the
+      // log keeps both lines.
+      if (body.act === 'undo') {
+        if (isPost(R.rs)) throw dsFail(400, 'Unknown step.');
+        const usid = body.p || R.sid, ui = (R.rs.items || []).find(x => x.sid === usid);
+        if (!ui) throw dsFail(404, 'That project is not in this ad set.');
+        const u = ui.undo, by = dsWho(body.by), now = dsNow();
+        if (!u || now - u.at > UNDO_MS) throw dsFail(409, 'It can no longer be undone. Use Send to… to move it instead.');
+        if (u.role !== R.role || u.by !== by || (u.em && body.em && u.em !== String(body.em).toLowerCase()) || (body.at && Number(body.at) !== u.at)) throw dsFail(409, 'It has moved on since it was sent, so it can’t be undone.');
+        ['design', 'copy'].forEach(f => { ui[f] = u.was[f] || null; });
+        ['task', 'to', 'note'].forEach(f => { if (u.was[f]) ui[f] = u.was[f]; else delete ui[f]; });
+        delete ui.undo;
+        const hs = R.rs.hist || [];
+        for (let i = hs.length - 1; i >= 0; i--) if (hs[i].sid === usid && hs[i].at === u.at && hs[i].act === u.act) { hs.splice(i, 1); break; }
+        dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(ui, R.rs), text: 'Undid “' + u.text + '”' }]);
+        await dsWrite(R.rid, R.rs);
+        return { rs: pub() };
+      }
+      // A NOTE WITH THE HAND-OFF (2026-11-21, by request): what the next person should know, typed
+      // in the picker (or in Send to…'s Back to design row). It sits on the project (it.note) until
+      // the next step moves it, and rides in the history entry so the Chrome alert can say it.
+      const note = String(body.note || '').replace(/\s+/g, ' ').trim().slice(0, NOTE_MAX);
       if (body.act === 'task') {
         if (isPost(R.rs) || R.role !== 'dd') throw dsFail(403, 'Your link cannot change that step.');
         const k = String(body.k || ''), tsid = body.p || R.sid, ti = (R.rs.items || []).find(x => x.sid === tsid);
         if (!TASK_L[k] || k === 'design' || k === 'copy') throw dsFail(400, 'Unknown task.');
         if (!ti) throw dsFail(404, 'That project is not in this ad set.');
-        const by = dsWho(body.by), now = dsNow(), to = body.to && typeof body.to === 'object' && body.to.email ? body.to : null;
+        const by = dsWho(body.by), now = dsNow(), to = body.to && typeof body.to === 'object' && body.to.email ? body.to : null, was = undoWas(ti);
         ti.task = { k, by, at: now };
         ti.to = to ? { email: String(to.email).toLowerCase().slice(0, 120), name: String(to.name || '').slice(0, 80), by, at: now } : null;
-        R.rs.hist = (R.rs.hist || []).concat({ act: 'task-' + k, by, at: now, sid: tsid }).slice(-400);
-        dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(ti, R.rs), text: (k === 'done' ? 'Marked it done' : 'Sent it to ' + TASK_L[k]) + (ti.to ? ' → ' + (ti.to.name || ti.to.email) : '') }]);
+        if (note && k !== 'done') ti.note = { t: note, by, at: now }; else delete ti.note;
+        R.rs.hist = (R.rs.hist || []).concat(Object.assign({ act: 'task-' + k, by, at: now, sid: tsid }, ti.note ? { note } : {})).slice(-400);
+        const text = (k === 'done' ? 'Marked it done' : 'Sent it to ' + TASK_L[k]) + (ti.to ? ' → ' + (ti.to.name || ti.to.email) : '');
+        ti.undo = { act: 'task-' + k, by, em: String(body.em || '').toLowerCase().slice(0, 120), at: now, role: R.role, text, was };
+        dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(ti, R.rs), text: text + (ti.note ? ' — “' + note + '”' : '') }]);
         await dsWrite(R.rid, R.rs);
         return { rs: pub() };
       }
@@ -497,7 +527,7 @@
       const by = dsWho(body.by), now = dsNow(), field = st[1], done = st[2], arb = it.lang === 'ARB';
       // WHO IT GOES TO (2026-10-30): a step sent on names the person who picks it up next
       // (body.to, chosen in the hand-off picker); a step sent back goes to whoever did it last
-      const em = String(body.em || '').trim().toLowerCase().slice(0, 120), prev = it[field];
+      const em = String(body.em || '').trim().toLowerCase().slice(0, 120), prev = it[field], was = undoWas(it);
       it[field] = done ? Object.assign({ by, at: now }, em ? { em } : {}) : null;
       delete it.task;   // a step moves the work: the task picked before no longer says where it is
       const to = body.to && typeof body.to === 'object' && body.to.email ? body.to : null;
@@ -519,10 +549,12 @@
         await dsWrite(R.rid, R.rs);
         return { rs: pub() };
       }
-      R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
+      if (note) it.note = { t: note, by, at: now }; else delete it.note;
+      R.rs.hist = (R.rs.hist || []).concat(Object.assign({ act: body.act, by, at: now, sid }, note ? { note } : {})).slice(-400);
       const text = body.act === 'approved' ? (arb ? 'Marked the Arabic approved — signed off before the review' : 'Marked it approved — signed off before the review') : field === 'design' ? (done ? (arb ? 'Arabic laid out, ready for the translation check' : 'Marked the design done') : (arb ? 'Sent the Arabic back to design' : 'Sent it back to design'))
         : (done ? (arb ? 'Approved the translation' : 'Approved the English copy') : (arb ? 'Reopened the translation check' : 'Reopened the copy check'));
-      dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it, R.rs), text: text + toLine }]);
+      it.undo = { act: body.act, by, em, at: now, role: R.role, text: text + toLine, was };
+      dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it, R.rs), text: text + toLine + (note ? ' — “' + note + '”' : '') }]);
       if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
       await dsWrite(R.rid, R.rs);
       return { rs: pub() };
@@ -3293,7 +3325,15 @@
     const t = new Date(h.at || 0), today = new Date().toDateString() === t.toDateString();
     const when = today ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : dayS(h.at) + ', ' + t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const what = k === 'copy' ? (it.lang === 'ARB' ? 'Translation check' : 'Copy check') : TASK_L[k] || 'the next step';
-    return { k, what, by: h.by || '', when, who: k === 'done' ? '' : it.to ? (it.to.email === myEmail() ? 'you' : toName(it)) : '' };
+    return { k, what, by: h.by || '', when, who: k === 'done' ? '' : it.to ? (it.to.email === myEmail() ? 'you' : toName(it)) : '',
+      note: it.note && it.note.at === h.at ? it.note.t : '', undo: canUndo(it, h) ? h.at : 0 };
+  }
+  // UNDO IS OFFERED (2026-11-21, by request) to the person who sent it, while the project has not
+  // moved on and the store's window (UNDO_MS) has a minute left; the store checks again
+  function canUndo(it, h) {
+    const u = it && it.undo;
+    if (!u || (h && (u.at !== h.at || u.act !== h.act))) return false;
+    return u.by === dsWho(StudioBase.shareName() || 'Someone') && Date.now() - u.at < UNDO_MS - 60000;
   }
   window.providentHandOff = handOffFor;
   // SEND TO COPY CHECK TELLS ROAM (2026-11-09): a CAS ad set project sent to the content team
@@ -3442,7 +3482,7 @@
       const what = { 'design-done': it && it.lang === 'ARB' ? 'laid out the Arabic' : 'marked the design done', 'design-open': 'sent it back to design',
         'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', approved: 'marked it approved (signed off before the review)', add: 'added a project', start: 'started the ad set' }[h.act]
         || (/^task-/.test(h.act) && TASK_L[h.act.slice(5)] ? (h.act === 'task-done' ? 'marked it done' : 'sent it to ' + TASK_L[h.act.slice(5)]) : 'changed a step');
-      const t = h.by + ' ' + what + (lab ? ' · ' + lab : '');
+      const t = h.by + ' ' + what + (lab ? ' · ' + lab : '') + (h.note ? ' — “' + h.note + '”' : '');
       if (ui) ui.flash(t);
       sysNotify((now.name || 'Ad set') + ' · review', t, 'rs-' + h.at);
     });
@@ -3562,8 +3602,14 @@
     miss = miss || [];
     return new Promise(res => {
       const el = document.createElement('div'); el.className = 'shl-dlg';
-      let ask = '', away = false, focusK = '';
-      const askHtml = k => k === 'done'
+      let ask = '', away = false, focusK = '', noteV = '';
+      // BACK HAS NO PICKER (it goes to whoever did it last), so its note is asked in its own row
+      const noteRow = k => k === 'design' || (k === 'copy' && !!it.copy);
+      const askHtml = k => noteRow(k)
+        ? '<div class="sto-ask" role="group" aria-label="' + esc(R[k][0]) + '"><label for="sto-nt">' + (k === 'design' ? 'What needs changing?' : 'What should they check again?') + ' <s>optional</s></label>' +
+          '<textarea id="sto-nt" rows="2" maxlength="300" placeholder="' + (k === 'design' ? 'The headline is too long on the 9:16' : 'The price changed to AED 1.2M') + '">' + esc(noteV) + '</textarea>' +
+          '<div><button type="button" class="p-ghost" data-ask="no">Cancel</button><button type="button" class="p-btn" data-ask="go">' + (k === 'design' ? 'Send back' : 'Reopen it') + '</button></div></div>'
+        : k === 'done'
         ? '<div class="sto-ask" role="group" aria-label="Mark it done?"><p>Mark it done? Nothing will be left to do on ' + esc(itemLabel(it)) + '.</p><div><button type="button" class="p-ghost" data-ask="no">Not yet</button><button type="button" class="p-btn" data-ask="go">Mark done</button></div></div>'
         : '<div class="sto-ask" data-warn="1" role="group" aria-label="Before it goes to the content team"><p>Before it goes to the content team, this is missing:</p><ul>' + miss.map(m => '<li>' + esc(m) + '</li>').join('') +
           '</ul><div><button type="button" class="p-ghost" data-ask="no">Fix it first</button><button type="button" class="p-btn" data-ask="go">Send anyway</button></div></div>';
@@ -3575,7 +3621,7 @@
             return '<button type="button" class="sto-o" data-k="' + k + '"' + (here ? ' disabled aria-current="true"' : '') + (ask === k ? ' aria-expanded="true"' : '') + '><b>' + R[k][0] + '</b><s>' + R[k][1] + '</s>' + (here ? '<i>Here now</i>' : '') + '</button>' + (ask === k ? askHtml(k) : '');
           }).join('') + '</div></div>').join('') +
           '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button></div></div>';
-        const f = (focusK && el.querySelector(ask ? '[data-ask="go"]' : '[data-k="' + focusK + '"]')) || el.querySelector('.sto-o:not([disabled])');
+        const f = (focusK && el.querySelector(ask ? '#sto-nt,[data-ask="go"]' : '[data-k="' + focusK + '"]')) || el.querySelector('.sto-o:not([disabled])');
         if (f) f.focus();
       };
       const close = v => { document.removeEventListener('keydown', key, true); el.remove(); try { if (from && from.isConnected) from.focus(); } catch (e) {} res(v); };
@@ -3590,14 +3636,16 @@
         dlgTrap(el, e);
       };
       document.addEventListener('keydown', key, true);
+      el.addEventListener('input', e => { if (e.target.id === 'sto-nt') noteV = e.target.value; });
       const go = async k => {
         const act = stoAct(it, k);
         // the person, in the same place: the task list steps aside until the picker answers
         away = true; el.classList.add('sto-away');
-        const ho = await handOffFor(rs, it, act, { back: true, lead: 'Send to ' + R[k][0] + ' · ' + itemLabel(it) + '. They get a Chrome alert if they have this ad set open; either way it waits in their queue on Home.' });
+        const ho = await handOffFor(rs, it, act, { back: true, note: k !== 'done', noteV, lead: 'Send to ' + R[k][0] + ' · ' + itemLabel(it) + '. They get a Chrome alert if they have this ad set open; either way it waits in their queue on Home.' });
         away = false; el.classList.remove('sto-away');
         if (ho === 'back') { ask = ''; focusK = k; draw(); return; }
         if (!ho) return close(null);
+        if (noteRow(k) && noteV.trim()) ho.note = noteV.trim();
         close({ act, ho, k });
       };
       el.addEventListener('click', e => {
@@ -3608,13 +3656,25 @@
         if (b.dataset.ask === 'go') return go(ask);
         const k = b.dataset.k; if (!k) return;
         // Done, and a copy check with something missing, ask in their own row first
-        if ((k === 'done' || (k === 'copy' && !it.copy && miss.length)) && ask !== k) { ask = k; focusK = k; return draw(); }
+        if ((k === 'done' || noteRow(k) || (k === 'copy' && !it.copy && miss.length)) && ask !== k) { ask = k; focusK = k; return draw(); }
         go(k);
       });
       document.body.appendChild(el); draw();
     });
   }
   window.providentSendTo = sendToDlg;
+  // UNDO A SEND from the Ad set tab: the project goes back to where it was; the flash says so
+  SP.rvUndo = async function (sid, at) {
+    const S = this._sh; if (!S || this._rvBusy) return;
+    const it = ((S.rs || {}).items || []).find(x => x.sid === sid), roam = it && it.undo && it.undo.act === 'design-done';
+    this._rvBusy = 'undo:' + sid; this.adtRender(); this.forceUpdate();
+    try {
+      const r = await api('rsstep', { id: S.id }, { act: 'undo', p: sid, at: Number(at) || undefined, by: StudioBase.shareName() || 'Someone', em: myEmail() || undefined });
+      this.rsSet(r.rs);
+      S.ui.flash('Undone · ' + (it ? itemLabel(it) : 'the project') + ' is back where it was' + (roam ? '. The Paid Ads Hub message stays' : ''));
+    } catch (e) { S.ui.flash(e.message || String(e)); }
+    finally { this._rvBusy = null; this.adtRender(); this.forceUpdate(); const f = document.querySelector('.adt [data-send],.adt .adt-go'); if (f) f.focus(); }
+  };
   SP.sendTo = async function (sid) {
     const S = this._sh, rs = S && S.rs, it = rs && (rs.items || []).find(x => x.sid === (sid || S.id));
     if (!it || this._rvBusy) return;
@@ -3762,7 +3822,9 @@
         '<p class="adt-now" data-s="' + (done ? 'done' : 'prog') + '"><i></i>' + esc(now) + '</p>' + (() => {
           // the receipt of the last hand-off: it stays here after the flash has gone
           const rc = lastSend(rs, it); if (!rc) return '';
-          return '<p class="adt-rc">' + esc((rc.k === 'design' ? 'Sent back to design' : rc.k === 'done' ? 'Marked done' : 'Sent to ' + rc.what) + (rc.by ? ' by ' + rc.by : '') + ' · ' + rc.when + (rc.who ? ' · with ' + rc.who : '')) + '</p>';
+          return '<p class="adt-rc">' + esc((rc.k === 'design' ? 'Sent back to design' : rc.k === 'done' ? 'Marked done' : 'Sent to ' + rc.what) + (rc.by ? ' by ' + rc.by : '') + ' · ' + rc.when + (rc.who ? ' · with ' + rc.who : '')) +
+            (rc.undo && !busy ? ' <button type="button" class="adt-undo" data-undo="' + esc(it.sid) + '" data-at="' + rc.undo + '">Undo</button>' : '') + '</p>' +
+            (rc.note ? '<p class="adt-nt"><q>' + esc(rc.note) + '</q></p>' : '');
         })() + '</div>' +
         '<div class="adt-acts">' + (rs.tok && rs.tok.dd && !it.copy ? '<button type="button" class="adt-q" data-act="approved:' + esc(it.sid) + '" title="For an ad already signed off outside the review: marks it approved without the content team"' + (busy ? ' disabled' : '') + '>Already approved</button>' : '') +
         (back ? '<button type="button" class="adt-q" data-act="' + back.act + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + esc(back.label) + '</button>' : '') +
@@ -3822,6 +3884,7 @@
       return;
     }
     if (b.dataset.act) return this.rvStep(b.dataset.act);
+    if (b.dataset.undo) return this.rvUndo(b.dataset.undo, b.dataset.at);
     if (b.dataset.send) return this.sendTo(b.dataset.send);
     if (b.dataset.next) return this.rsNext(b.dataset.next);
     if (!rs || !rs.tok) return;
@@ -4853,7 +4916,9 @@
         segs: open ? [] : ov.steps.map(s => s.s), steps: STEP_LABELS,
         verb: open ? 'Pick up the ticket' : r === 'ct' ? (chkAr ? 'Check the translation' : 'Check the copy') : r === 'pm' ? 'Open the package' : viewOnly() ? 'View the ad set' : 'Open the design',
         due: t.deadline || '', from: last ? last.by : rs.by || '', at: Math.max(x.mod || 0, rs.created || 0, last ? last.at : 0),
-        thumb: x.thumb || '', ratio: 1, href: file + '#share=' + encodeURIComponent(link)
+        thumb: x.thumb || '', ratio: 1, href: file + '#share=' + encodeURIComponent(link),
+        // the note of the latest hand-off to this person (2026-11-21, by request)
+        note: open || !em ? null : (rs.items || []).filter(it => it.note && it.note.t && it.to && it.to.email === em).sort((p, q) => q.note.at - p.note.at).map(it => ({ t: it.note.t, by: it.note.by || '' }))[0] || null
       };
     });
     StudioBase.inboxSave('cas', rows, { email: em, role: r, name: StudioBase.shareName ? StudioBase.shareName() : '' });
@@ -5452,11 +5517,24 @@
       const sb = this.el.querySelector('.rvd-snd[data-sid="' + CSS.escape(it.sid) + '"]'); if (sb) { sb.disabled = true; sb.lastChild.textContent = 'Sending…'; }
       try {
         const out = await api('rsstep', { id: this.sel }, Object.assign({ act: tkk ? 'task' : r.act, p: it.sid, by }, tkk ? { k: tkk } : {}, r.ho));
-        this.sentNote = { sid: it.sid, t: stepFlash(r.act, tkk, r.ho, false) + ' · ' + itemLabel(it) };
+        const ni = ((out.rs || {}).items || []).find(x => x.sid === it.sid);
+        this.sentNote = { sid: it.sid, t: stepFlash(r.act, tkk, r.ho, false) + ' · ' + itemLabel(it), at: ni && canUndo(ni) ? ni.undo.at : 0 };
         if (r.act === 'design-done') roamNote(out.rs || rs, it.sid, r.ho, msg => { this.sentNote = { sid: it.sid, t: msg, bad: true }; this.draw(); });
       } catch (er) { this.sentNote = { sid: it.sid, t: 'Not sent: ' + (er.message || String(er)), bad: true }; }
       await again();
       const f = this.el.querySelector('.rvd-snd[data-sid="' + CSS.escape(it.sid) + '"]') || this.el.querySelector('.rvd-sent'); if (f) f.focus();
+      return;
+    }
+    // UNDO (2026-11-21, by request): the receipt's own button puts the project back where it was
+    if (a === 'undo') {
+      const sid = t.dataset.sid, rs = this.det && this.det.rs, it = rs && (rs.items || []).find(x => x.sid === sid), roam = it && it.undo && it.undo.act === 'design-done';
+      t.disabled = true; t.textContent = 'Undoing…';
+      try {
+        await api('rsstep', { id: this.sel }, { act: 'undo', p: sid, at: Number(t.dataset.at) || undefined, by, em: myEmail() || undefined });
+        this.sentNote = { sid, t: 'Undone · ' + (it ? itemLabel(it) : 'the project') + ' is back where it was' + (roam ? '. The Paid Ads Hub message stays' : '') };
+      } catch (er) { this.sentNote = { sid, t: 'Not undone: ' + (er.message || String(er)), bad: true }; }
+      await again();
+      const f = this.el.querySelector('.rvd-snd[data-sid="' + CSS.escape(sid) + '"]') || this.el.querySelector('.rvd-sent'); if (f) f.focus();
       return;
     }
     if (a === 'approve' && window.confirm(APPROVE_Q(t.dataset.lab))) {
@@ -6075,12 +6153,15 @@
       '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button>') + '</div></div>' +
       '</header>';
     // THE PHASE (2026-11-16): its tabs, the four steps and what waits lead the column they govern
-    const sent = this.sentNote && (rs.items || []).some(x => x.sid === this.sentNote.sid) ? '<p class="rvd-sent" tabindex="-1" role="' + (this.sentNote.bad ? 'alert' : 'status') + '"' + (this.sentNote.bad ? ' data-bad="1"' : '') + '><i></i>' + esc(this.sentNote.t) + '</p>' : '';
+    const sent = this.sentNote && (rs.items || []).some(x => x.sid === this.sentNote.sid) ? '<p class="rvd-sent" tabindex="-1" role="' + (this.sentNote.bad ? 'alert' : 'status') + '"' + (this.sentNote.bad ? ' data-bad="1"' : '') + '><i></i><span>' + esc(this.sentNote.t) + '</span>' +
+      (() => { const ui = this.sentNote.at && (rs.items || []).find(x => x.sid === this.sentNote.sid); return ui && canUndo(ui) && ui.undo.at === this.sentNote.at && !ro ? '<button type="button" class="rvd-undo" data-a="undo" data-sid="' + esc(ui.sid) + '" data-at="' + ui.undo.at + '">Undo</button>' : ''; })() + '</p>' : '';
     const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + sent + '</section>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     // A TILE SAYS WHO HAS IT (2026-11-21, /impeccable critique): the task it was sent to and the person
+    // A HAND-OFF'S NOTE (2026-11-21, by request) under the tile's state, until the next step moves it
+    const itNote = it => it.note && it.note.t ? '<q class="rvd-nt" title="' + esc('Note from ' + (it.note.by || 'the sender') + ': ' + it.note.t) + '">' + esc(it.note.t) + '</q>' : '';
     const itState = it => { const tk = taskOf(it), w = it.to ? ' · with ' + (it.to.email === myEmail() ? 'you' : toName(it)) : '';
-      return tk ? (tk === 'done' ? 'Done' : TASK_L[tk] + w) : it.copy ? 'Copy approved' : it.design ? (it.lang === 'ARB' ? 'Translation check' : 'Copy check') + w : 'In design' + w; };
+      return tk ? (tk === 'done' ? 'Done' : TASK_L[tk] + w) : !it.design ? 'In design' + w : it.copy ? 'Copy approved' : it.design ? (it.lang === 'ARB' ? 'Translation check' : 'Copy check') + w : 'In design' + w; };
     const cells = rsCellsIn(rs, tab);
     // (a view-only role sees a slot nothing fills yet as a plain "Not made yet", never a way to start it)
     const roSlot = (lab, why) => '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lab + '</b><s>' + (why || 'Not made yet') + '</s></span></div>';
@@ -6099,11 +6180,11 @@
       // view only: the same tile, as a picture and its state — not a button, no way into the studio, no menu
       if (ro) return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + '><span class="rva-pj rva-pj-ro">' +
         '<span class="rva-lt-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span>' +
-        '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u>' +
+        '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u>' + itNote(it) +
         ((pj.sum || {}).anim ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '') + '</span></span></div>';
       return '<div class="rva-lt"' + (it.copy ? ' data-ok="1"' : '') + (this.edit === it.sid ? ' data-ed="1"' : '') + '><button type="button" class="rva-pj" data-a="proj" data-sid="' + esc(it.sid) + '"' + (dead ? ' disabled title="This project has expired; the record is kept"' : ' title="Open in the studio"') + '>' +
         '<span class="rva-lt-th">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="">' : '') + '</span>' +
-        '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u>' +
+        '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u>' + itNote(it) +
         ((pj.sum || {}).anim ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '') + '</span>' + ico('ext') + '</button>' +
         (this.edit === it.sid ? this.relabHtml(it, rs)
           : '<details class="rvd-mn" name="rvd-mn"><summary title="Change its audience, mark it approved, or remove it" aria-label="' + esc('Actions for ' + itemLabel(it)) + '">' + MORE + '</summary><span class="rvd-mnl"><button type="button" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
@@ -7945,6 +8026,10 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .adt-h h2 s{margin-left:6px;text-decoration:none;font-weight:400;color:var(--ps-ink-2)}
 .adt-now{display:flex;align-items:center;gap:8px;margin:4px 0 0;font:400 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .adt-rc{margin:4px 0 0 16px;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.adt-undo{margin:0 0 0 4px;padding:0 2px;border:0;background:none;font:500 12.5px/1.4 var(--ps-font);color:var(--ps-ink);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.adt-undo:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px;border-radius:4px}
+.adt-nt{margin:4px 0 0 16px;max-width:60ch;font:400 13px/1.45 var(--ps-font);color:var(--ps-ink-2)}
+.adt-nt q{quotes:'“' '”'}
 .adt-now i{width:8px;height:8px;border-radius:50%;background:var(--ps-warn);flex:none}
 .adt-now[data-s="done"] i{background:var(--ps-good)}
 .adt-acts{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
@@ -8151,6 +8236,12 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-sent{display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:10px 14px;border-radius:12px;background:var(--ps-fill);font:500 13.5px/1.4 var(--ps-font);color:var(--ps-ink)}
 .rvd-sent i{width:8px;height:8px;flex:none;border-radius:50%;background:var(--ps-good)}
 .rvd-sent[data-bad] i{background:var(--ps-bad)}
+.rvd-sent span{flex:1 1 auto;min-width:0}
+.rvd-undo{flex:none;margin:-4px -6px -4px 0;padding:4px 10px;border:0;border-radius:9999px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line);font:500 13px/1.3 var(--ps-font);color:var(--ps-ink);cursor:pointer}
+.rvd-undo:hover{background:var(--ps-fill-h)}
+.rvd-undo:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rvd-undo[disabled]{opacity:.6;cursor:default}
+.rvd-nt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;margin:4px 0 0;font:400 12px/1.4 var(--ps-font);font-style:normal;color:var(--ps-ink-2);quotes:'“' '”'}
 .rvd-sent:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-snd{flex:1 1 100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;margin:0 8px 8px;padding:0 14px;border:none;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink);font:600 13.5px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
 .rvd-snd:hover:not(:disabled){background:var(--ps-fill-h)}
@@ -8420,6 +8511,11 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .sto-ask ul{margin:0;padding:0 0 0 18px;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
 .sto-ask[data-warn] ul li::marker{color:var(--ps-warn)}
 .sto-ask div{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.sto-ask label{font:500 13.5px/1.3 var(--ps-font);color:var(--ps-ink)}
+.sto-ask label s{text-decoration:none;font-weight:400;color:var(--ps-dim)}
+.sto-ask textarea{display:block;box-sizing:border-box;width:100%;min-height:60px;resize:vertical;padding:10px 12px;border:0;border-radius:10px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-line);font:400 14px/1.45 var(--ps-font);color:var(--ps-ink)}
+.sto-ask textarea::placeholder{color:var(--ps-dim)}
+.sto-ask textarea:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .sto-o[aria-expanded="true"]{background:var(--ps-fill-h)}
 .shl-dlg.sto-away{background:none}
 .shl-dlg.sto-away > .shl-dlg-c{visibility:hidden}

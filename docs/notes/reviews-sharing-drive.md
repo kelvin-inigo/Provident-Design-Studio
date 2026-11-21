@@ -2579,5 +2579,33 @@ approved, then `.rvd-mnd` and Remove. The send handler disables the button ("Sen
 (no `window.alert`, Roam's failure too), awaits `again()` and focuses the tile's button. In the
 dialog the current step is `background: --ps-fill` with ink-2 text and the expanded row `--ps-fill-h`
 — rings are focus only. Still not built: Undo (the store has no "previous task") and a note to
-the person picked (`rsstep` has no field for it).
+the person picked (`rsstep` has no field for it). SUPERSEDED: both built in Revision 1.38, below.
+
+## 2026-11-21 (evening) — Undo after a send, and a note with the hand-off (Revision 1.38)
+
+By request ("Yes, add both"), closing the two items the second critique left. **Drive store only**
+(`dsApi1` `rsstep` in share-link.js); the legacy KV `rs_step` in api/share.py ignores `note` and
+has no `undo`, and the UI only offers Undo when the returned item carries `it.undo`.
+
+- **Undo.** Every non-post step snapshots the fields it can change into `it.undo`
+  (`{act, by, em, at, role, text, was:{design, copy, task, to, note}}`, `undoWas`). `act:'undo'`
+  restores them when the same role and name (and address, when both sides send one) asks within
+  `UNDO_MS` (30 min) and, if the client sends `at`, it matches. Any later step overwrites
+  `it.undo`, so "moved on since" falls out of that. It splices the send out of `hist` (so
+  `lastSend`, counts and alerts read as if it never happened) and logs `Undid “…”`; the log
+  keeps both lines. The client's `canUndo` hides the button a minute early. It cannot recall a
+  Chrome alert or the Roam (Paid Ads Hub) post from `design-done`; the flash says the latter stays.
+- **Note.** `body.note` (whitespace-collapsed, `NOTE_MAX` 300) becomes `it.note = {t, by, at}`
+  until the next step clears it (Done never keeps one), and rides on the `hist` entry so
+  `notifySteps` quotes it in the flash and Chrome alert. It is typed in access.js `pickDlg`
+  (`opt.note`, value kept in `o.noteV` across the picker's redraws) or, for Back to design and
+  Reopen copy check, where `teamFor` names no team and the picker never opens, in Send to…'s
+  own ask row (`noteRow`). Shown: `.rvd-nt` on the tile (two-line clamp), `.adt-nt` under the
+  Ad set tab receipt, and `note` on the CAS inbox row → Home's `.nx-nt` / `.row-nt`, only for the
+  person it was sent to.
+- In passing: a tile whose design was reopened says **In design** instead of Copy approved, and
+  the picker's three footer buttons wrap at ≤480px (Back was clipped off-screen at 375).
+- Tested on the dev server's seed: note through the picker and through Back to design, Undo
+  restoring a signed-off project exactly, the note on Home's Next up. The CAS editor's Ad set
+  tab path (`rvUndo`, `.adt-nt`) could not be opened locally (the studio redirects to Projects).
 
