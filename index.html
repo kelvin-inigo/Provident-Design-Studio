@@ -1507,8 +1507,8 @@ body{-webkit-tap-highlight-color:transparent;
   function tkDay(d){ return d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }) : ''; }
   function tkCell(v, lang){
     if (!v || !v[1]) return '<div class="tk-c" data-s="na" title="Not needed"><span class="tk-lb">Not needed</span></div>';
-    if (v[0] >= v[1]) return '<div class="tk-c" data-s="done" title="Done' + (v[1] > 1 ? ' for all ' + v[1] + ' audiences' : '') + '">' + TK_TICK + '<span class="tk-lb">Done</span></div>';
-    if (v[0]) return '<div class="tk-c" data-s="part" title="' + v[0] + ' of ' + v[1] + ' audiences done">' + v[0] + '<span class="tk-lb">&nbsp;of ' + v[1] + '</span><span class="tk-sm">/' + v[1] + '</span></div>';
+    if (v[0] >= v[1]) return '<div class="tk-c" data-s="done" title="Done' + (v[1] > 1 ? ' for all ' + v[1] + ' designs' : '') + '">' + TK_TICK + '<span class="tk-lb">Done</span></div>';
+    if (v[0]) return '<div class="tk-c" data-s="part" title="' + v[0] + ' of ' + v[1] + ' designs done">' + v[0] + '<span class="tk-lb">&nbsp;of ' + v[1] + '</span><span class="tk-sm">/' + v[1] + '</span></div>';
     return '<div class="tk-c" data-s="miss" title="Not done yet' + (lang ? ' in ' + lang : '') + '"><span class="tk-lb">Missing</span></div>';
   }
   function tkCount(d){ var n = 0, of = 0; TK_DL.forEach(function(k){ var z = d[k[0]]; if (z) ['e', 'a'].forEach(function(l){ if (z[l] && z[l][1]) { of++; if (z[l][0] >= z[l][1]) n++; } }); }); return { n: n, of: of }; }
@@ -1519,7 +1519,9 @@ body{-webkit-tap-highlight-color:transparent;
     var d = x.dlv, k = d ? tkCount(d) : null, p = k && k.of ? Math.round(k.n / k.of * 100) : 0;
     var h = '<article class="tk-r"' + (isLate(x) && !x.ready ? ' data-hot' : '') + '>' + tkWhen(x, 'no deadline on the ticket') +
       '<div class="tk-who"><h3>' + esc(x.name) + '</h3><div class="tk-m">' + esc(x.step || '') + (x.sub ? ' · ' + esc(x.sub) : '') + '</div>' +
-        (x.brand || x.auds ? '<div class="tk-m">' + [({ provident: 'Branded', unbranded: 'Unbranded', mixed: 'Branded and unbranded' })[x.brand] || '', x.auds ? x.auds + (x.auds > 1 ? ' audiences' : ' audience') : ''].filter(Boolean).join(' · ') + '</div>' : '') + '</div>';
+        (x.brand || x.auds ? '<div class="tk-m">' + [({ provident: 'Branded', unbranded: 'Unbranded', mixed: 'Branded and unbranded' })[x.brand] || '', x.auds ? x.auds + (x.auds > 1 ? ' audiences' : ' audience') : '',
+          // DESIGNS COUNTED (2026-11-21, by request): an audience's further designs and unbranded version (dsg, from CAS's queue)
+          x.dsg && x.dsg !== x.auds ? x.dsg + ' designs' : ''].filter(Boolean).join(' · ') + '</div>' : '') + '</div>';
     if (x.open) h += '<div class="tk-q">A ticket, not an ad set yet. Its deliverables appear once a designer picks it up.</div>';
     else if (!d) h += '<div class="tk-q">Open the Kanban once on this computer to read its deliverables.</div>';
     else {

@@ -125,8 +125,12 @@ say so and point to the step above.
     **Filter**, **Only what waits on me** and **Show closed**. What you pick stays when you switch
     views. **Progress** shows the work as rows. It lists every campaign by its
     due date with what it still needs in English and Arabic: **Static**, **Animated**, **MVP video**
-    and **Copy**, each **Done**, **1 of 2** (audiences), **Missing** or **Not needed**, and how many
+    and **Copy**, each **Done**, **1 of 2** (designs), **Missing** or **Not needed**, and how many
     are done in all, and every organic post with its picture and its four steps
+    A campaign's line says how many audiences and designs it has (**1 audience · 4 designs**: an
+    audience's **Design 2**, **3**… and its unbranded version are designs of it). A video added in
+    the ad set's **Video** section counts as **MVP video** for the audience it was added for, or for
+    every audience when added for **All audiences**.
     (**Draft**, **Design**, **Copy check**, **Ready**). It only shows; **Open the ad set**, **Open
     the ticket** or **Open the post** takes you to its page. A campaign shows its deliverables
     once the Kanban has been read on that computer.

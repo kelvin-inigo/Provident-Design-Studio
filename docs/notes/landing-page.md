@@ -888,3 +888,17 @@ Organic posts chip and drops the query, and with both kinds showing the rows sit
 newest). `sxDraw` now redraws on any `#/tracker` route. Verified on the share-dev stand-in
 (15 rows): kind, search, waits-on-me and a Stage facet narrow Progress; the search and chips carry
 into Kanban; desktop and phone width.
+
+## Tracker counts designs and the ad set's video (2026-11-21)
+
+By request, on The Vault by Imtiaz (one audience, Local · Broad, with Design 1–4 and a video in
+its Video section): "count this as MVP video in the tracker" and "quantify [the designs] on the
+tracker". `inboxCas` (share-link.js): a video in `rs.video.list` ticks MVP video in both languages
+for every design of the audience it was added for (`lblRoot`: the label without " · Design n" /
+" · Unbranded"), or every audience when its `aud` is empty (All audiences); a manual tick still
+counts. `auds` is now distinct phase · market · `audRoot(aud)`; `dsg` is every `rsAuds` entry.
+`tkCampaign` prints "n audiences · m designs" when they differ; cell titles say designs. The
+counts refresh the next time a computer reads Status. Verified on the stand-in: Ellington with an
+All audiences video read MVP video 2 of 2; Palm Springs with a "Launch · Local · Family" video read
+3 of 7 EN (Family, its Unbranded and Design 2) and "5 audiences · 7 designs".
+

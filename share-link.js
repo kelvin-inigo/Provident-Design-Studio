@@ -4701,17 +4701,26 @@
       // THE TRACKER'S DELIVERABLES (2026-11-20): per kind, how many audiences have it in English
       // and in Arabic ([done, of]), off the same dlRows the ad set's Deliverables card reads; copy
       // is the English copy check and the Arabic translation
+      // THE AD SET'S VIDEO COUNTS AS ITS MVP VIDEO, AND DESIGNS ARE COUNTED AS DESIGNS (2026-11-21, by
+      // request): a video in the ad set's Video section ticks MVP video, in both languages, for the
+      // audience it was added for (every design and the unbranded version of that audience), or for
+      // every audience when it was added for All audiences. A manual tick still counts. Each cell
+      // counts designs (an audience's "· Design 2", "· Unbranded" are designs of it); the row also
+      // says how many audiences that is (dsg: designs, auds: audiences).
+      const vids = open ? [] : vidList(rs), lblRoot = s => String(s || '').replace(/ · Unbranded$/, '').replace(/ · Design \d+$/, '');
+      const hasVid = a => vids.some(v => !v.aud || lblRoot(v.aud) === lblRoot(a.label));
       const dl = open ? null : {};
       if (dl) {
         const add = (k, l, c) => { if (c.na) return; const z = dl[k] = dl[k] || { e: [0, 0], a: [0, 0] }; z[l][1]++; if (c.on) z[l][0]++; };
         auds.forEach(a => {
-          dlRows(rs, a).forEach(rw => rw.cells.forEach((c, i) => add(rw.k, i ? 'a' : 'e', c)));
+          const vd = hasVid(a);
+          dlRows(rs, a).forEach(rw => rw.cells.forEach((c, i) => add(rw.k, i ? 'a' : 'e', rw.k === 'video' && vd && !c.na ? { on: true } : c)));
           add('copy', 'e', { on: !!(a.eng && a.eng.copy) });
           if (!a.engOnly) add('copy', 'a', { on: !!(a.arb && a.arb.copy) });
         });
       }
       return {
-        dlv: dl, brand: rs.brand || '', auds: auds.length,
+        dlv: dl, brand: rs.brand || '', dsg: auds.length, auds: new Set(auds.map(a => a.phase + '|' + a.market + '|' + audRoot(a.aud))).size,
         studio: 'cas', id: x.id, name: rs.name || 'Campaign', mine: !!rsMine(rs), ready: !!(ov && ov.ready) && !lv, open,
         live: lv ? lv.at || 1 : 0, launch: ov && ov.ready && !lv && isDs(lid) ? lid : '',
         step: open ? 'Ticket' : lv ? 'Launched' : ov.ready ? 'Ready to run' : chk.length ? (chkAr ? STEP_LABELS[2] : STEP_LABELS[1]) : STEP_LABELS[k] || 'Design',
