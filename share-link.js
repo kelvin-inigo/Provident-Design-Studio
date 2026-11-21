@@ -2634,9 +2634,9 @@
         '<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" data-qrin hidden></div>' : '') +
       '</div>' +
       '<div class="rss-pane" id="rss-pp" role="tabpanel" aria-labelledby="rss-tp" data-pane-p hidden>' +
-      (phOk ? '<div class="rsp-g rss-phs"><span title="Each phase is its own package of every planned audience, with its own projects and its own tab on Status">Phases</span><div class="rsp-tg" data-g="ph"></div>' +
+      (phOk ? '<div class="rsp-g rss-phs"><span title="Each phase is its own package of every planned audience, with its own projects and its own tab on the ad set page">Phases</span><div class="rsp-tg" data-g="ph"></div>' +
         '<div class="rss-phx"><input class="p-in" data-phx-in maxlength="40" placeholder="Name a phase, e.g. Ad Fatigue 03" aria-label="A phase of your own" autocomplete="off" spellcheck="false"><button type="button" class="p-ghost" data-phx="">Add phase</button></div>' +
-        '<p class="rss-help">Each phase is its own package of every planned audience, with its own tab on Status. <b>Broad</b> runs a phase with one Broad audience per market, in English and Arabic, and no audience-based designs.</p></div>' : '') +
+        '<p class="rss-help">Each phase is its own package of every planned audience, with its own tab on the ad set page. <b>Broad</b> runs a phase with one Broad audience per market, in English and Arabic, and no audience-based designs.</p></div>' : '') +
       '<div class="rss-plan"><div class="rss-ph"><b>Audiences</b><span class="rsp-n"></span></div>' +
       '<div class="rsp-more"><div class="rsp-g"><span>Markets</span><div class="rsp-tg" data-g="m"></div></div><div class="rsp-g"><span>Audiences</span><div class="rsp-tg" data-g="a"></div></div></div>' +
       '<div class="rsp-tiles" role="list"></div></div></div>' +
@@ -2652,7 +2652,7 @@
       if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded') + bt('mixed', 'Mixed');
       // what the chosen brand means, in view (it lived only in a tooltip)
       if ($('[data-brhelp]')) $('[data-brhelp]').textContent = ({ provident: 'New projects open with the Provident brand.', unbranded: 'New projects open on the unbranded look: no wordmark, no QR, their own colours and fonts.',
-        mixed: 'Every audience is branded and can also run unbranded, with its own words. Start the unbranded on Status copies its branded design.' })[d.brand] + ' Projects already made keep their own.';
+        mixed: 'Every audience is branded and can also run unbranded, with its own words. Start the unbranded on the ad set page copies its branded design.' })[d.brand] + ' Projects already made keep their own.';
       const vt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.video === k) + '" data-vidon="' + (k ? '1' : '0') + '"' + (d.video === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       if ($('.rsp-vid')) $('.rsp-vid').innerHTML = vt(false, 'No video') + vt(true, 'Includes a video');
       if ($('.rss-qr')) $('.rss-qr').innerHTML = d.qr
@@ -5366,7 +5366,7 @@
     const a = t.dataset.a;
     // a view-only role: the view's own controls and nothing else, whatever the page happens to hold
     if (viewOnly() && !window.providentAccess.viewOk(a)) return;
-    if (a === 'back') { this.sel = null; this.det = null; this.addOpen = false; this.load(); }
+    if (a === 'back') { this.sel = null; this.det = null; this.addOpen = false; this.sentNote = null; this.load(); }
     if (a === 'newt') { const h = this.eng.host; if (h) h.setState({ splashView: 'all' }, () => setTimeout(() => { const i = document.querySelector('.rsp [data-f="name"]'); if (i) { i.scrollIntoView({ block: 'center' }); i.focus(); } }, 60)); return; }
     if (a === 'pick') { const dd = (this.det && this.det.dd) || this.sel; t.disabled = true; t.lastChild.textContent = 'Opening…'; if (!pickUp(this.eng, dd)) { t.disabled = false; t.lastChild.textContent = 'Pick up'; } return; }
     if (a === 'open') window.open(rsLink(this.sel), '_blank', 'noopener');
@@ -5446,13 +5446,17 @@
       const r = await sendToDlg(rs, it, []); if (!r) return;
       const tkk = /^task-/.test(r.act) ? r.act.slice(5) : '';
       askNotify();
+      // WHILE IT SAVES, AND AFTER (2026-11-21, second critique): the tile's button says Sending…; the
+      // receipt stays until the page is left or the next send (no timer), a failure shows there in
+      // place of a browser alert, and focus lands back on the tile the work left from
+      const sb = this.el.querySelector('.rvd-snd[data-sid="' + CSS.escape(it.sid) + '"]'); if (sb) { sb.disabled = true; sb.lastChild.textContent = 'Sending…'; }
       try {
         const out = await api('rsstep', { id: this.sel }, Object.assign({ act: tkk ? 'task' : r.act, p: it.sid, by }, tkk ? { k: tkk } : {}, r.ho));
-        if (r.act === 'design-done') roamNote(out.rs || rs, it.sid, r.ho, msg => window.alert(msg));
         this.sentNote = { sid: it.sid, t: stepFlash(r.act, tkk, r.ho, false) + ' · ' + itemLabel(it) };
-        again();
-        clearTimeout(this._sentT); this._sentT = setTimeout(() => { this.sentNote = null; const n = this.el.querySelector('.rvd-sent'); if (n) n.remove(); }, 9000);
-      } catch (er) { window.alert(er.message || String(er)); }
+        if (r.act === 'design-done') roamNote(out.rs || rs, it.sid, r.ho, msg => { this.sentNote = { sid: it.sid, t: msg, bad: true }; this.draw(); });
+      } catch (er) { this.sentNote = { sid: it.sid, t: 'Not sent: ' + (er.message || String(er)), bad: true }; }
+      await again();
+      const f = this.el.querySelector('.rvd-snd[data-sid="' + CSS.escape(it.sid) + '"]') || this.el.querySelector('.rvd-sent'); if (f) f.focus();
       return;
     }
     if (a === 'approve' && window.confirm(APPROVE_Q(t.dataset.lab))) {
@@ -6071,7 +6075,7 @@
       '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button>') + '</div></div>' +
       '</header>';
     // THE PHASE (2026-11-16): its tabs, the four steps and what waits lead the column they govern
-    const sent = this.sentNote && (rs.items || []).some(x => x.sid === this.sentNote.sid) ? '<p class="rvd-sent" role="status"><i></i>' + esc(this.sentNote.t) + '</p>' : '';
+    const sent = this.sentNote && (rs.items || []).some(x => x.sid === this.sentNote.sid) ? '<p class="rvd-sent" tabindex="-1" role="' + (this.sentNote.bad ? 'alert' : 'status') + '"' + (this.sentNote.bad ? ' data-bad="1"' : '') + '><i></i>' + esc(this.sentNote.t) + '</p>' : '';
     const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + sent + '</section>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     // A TILE SAYS WHO HAS IT (2026-11-21, /impeccable critique): the task it was sent to and the person
@@ -6102,9 +6106,12 @@
         '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u>' +
         ((pj.sum || {}).anim ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '') + '</span>' + ico('ext') + '</button>' +
         (this.edit === it.sid ? this.relabHtml(it, rs)
-          : '<details class="rvd-mn" name="rvd-mn"><summary title="Send it on, change its audience, mark it approved, or remove it" aria-label="' + esc('Actions for ' + itemLabel(it)) + '">' + MORE + '</summary><span class="rvd-mnl">' + ((rs.tok || {}).dd ? '<button type="button" data-a="sendto" data-sid="' + esc(it.sid) + '">Send to…</button>' : '') + '<button type="button" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
+          : '<details class="rvd-mn" name="rvd-mn"><summary title="Change its audience, mark it approved, or remove it" aria-label="' + esc('Actions for ' + itemLabel(it)) + '">' + MORE + '</summary><span class="rvd-mnl"><button type="button" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
             (it.copy ? '' : '<button type="button" data-a="approve" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '" title="For an ad already signed off outside the review: marks it approved without the content team">Already approved</button>') +
-            '<button type="button" class="rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span></details>') + '</div>';
+            '<span class="rvd-mnd" role="separator"></span><button type="button" class="rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span></details>') +
+        // SEND TO… IN VIEW (2026-11-21, second critique): the step that moves the work on is a button on
+        // the tile, not the first line of its ⋯ menu beside Remove
+        ((rs.tok || {}).dd && this.edit !== it.sid && !dead ? '<button type="button" class="rvd-snd" data-a="sendto" data-sid="' + esc(it.sid) + '" aria-label="' + esc('Send ' + itemLabel(it) + ' to…') + '">' + PICO.go.replace('<svg', '<svg aria-hidden="true"') + '<span>Send to…</span></button>' : '') + '</div>';
     };
     // A MIXED AD SET: every branded audience can also run unbranded. Until it does, the card ends
     // on one placeholder that copies its English design (in a new window) onto the unbranded look
@@ -7993,7 +8000,7 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rss-ph b{font:500 13px/1.2 var(--ps-font);color:var(--ps-ink-2)}
 .rss-ph .rsp-n{font:400 12px/1.2 var(--ps-font);color:var(--ps-dim)}
 .rss .rsp-more{padding:14px}
-.rss-has{font:italic 400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.rss-has{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
 .rss .rsp-tile{flex-wrap:wrap;align-content:flex-start}
 .rss-arp{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:10px;border-top:1px solid var(--ps-hair)}
 .rss-arp>span{font:500 12px/1 var(--ps-font);color:var(--ps-ink-2);margin-right:2px}
@@ -8143,6 +8150,15 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-now{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding:16px 0 0;border-top:1px solid var(--ps-hair);font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .rvd-sent{display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:10px 14px;border-radius:12px;background:var(--ps-fill);font:500 13.5px/1.4 var(--ps-font);color:var(--ps-ink)}
 .rvd-sent i{width:8px;height:8px;flex:none;border-radius:50%;background:var(--ps-good)}
+.rvd-sent[data-bad] i{background:var(--ps-bad)}
+.rvd-sent:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rvd-snd{flex:1 1 100%;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:36px;margin:0 8px 8px;padding:0 14px;border:none;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink);font:600 13.5px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+.rvd-snd:hover:not(:disabled){background:var(--ps-fill-h)}
+.rvd-snd:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rvd-snd:disabled{opacity:.6;cursor:default}
+.rvd-snd svg{width:16px;height:16px;fill:currentColor}
+.rvd-mnd{display:block;height:1px;margin:4px 6px;background:var(--ps-hair)}
+@media (min-width:700px){.shl-dlg-c.rss{height:min(760px,calc(100vh - 32px))}}
 .rvd-now>i{width:8px;height:8px;border-radius:50%;background:var(--ps-dim)}
 .rvd-now[data-s="ready"]>i{background:var(--ps-good)}
 .rvd-wk{margin-right:4px;color:var(--ps-dim)}
@@ -8348,7 +8364,7 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .sho .shl-acts{margin-top:20px}
 .sho[data-busy] .shl-go{display:none}
 /* PHASES (2026-10-30): a tab per package on an ad set's page, and the start phase on the setup */
-.rvd-phs{display:flex;align-items:flex-end;flex-wrap:wrap;gap:4px 22px;margin:0 0 20px;border-bottom:1px solid var(--ps-hair)}
+.rvd-phs{display:flex;align-items:flex-end;flex-wrap:wrap;gap:4px 22px;margin:0 0 20px;padding-bottom:2px;border-bottom:1px solid var(--ps-hair)}
 .rvd-pt{display:inline-flex;align-items:center;gap:8px;height:40px;margin:0 0 -1px;padding:0 2px;border:none;border-bottom:2px solid transparent;background:none;color:var(--ps-ink-2);font:500 14px/1 var(--ps-font);cursor:pointer;white-space:nowrap;transition:color var(--ps-motion,.15s) var(--ps-ease,ease),border-color var(--ps-motion,.15s) var(--ps-ease,ease)}
 .rvd-pt:hover{color:var(--ps-ink)}
 .rvd-pt[aria-selected="true"]{color:var(--ps-ink);border-bottom-color:var(--ps-ink)}
@@ -8404,7 +8420,7 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .sto-ask ul{margin:0;padding:0 0 0 18px;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
 .sto-ask[data-warn] ul li::marker{color:var(--ps-warn)}
 .sto-ask div{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-.sto-o[aria-expanded="true"]{box-shadow:inset 0 0 0 1px var(--ps-ink)}
+.sto-o[aria-expanded="true"]{background:var(--ps-fill-h)}
 .shl-dlg.sto-away{background:none}
 .shl-dlg.sto-away > .shl-dlg-c{visibility:hidden}
 .sto .shl-acts{margin-top:20px}
@@ -8414,7 +8430,9 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .sto-o i{grid-column:2;grid-row:1/span 2;font:500 12px/1 var(--ps-font);font-style:normal;color:var(--ps-ink-2)}
 .sto-o:hover:not([disabled]){background:var(--ps-fill-h)}
 .sto-o:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
-.sto-o[disabled]{cursor:default;box-shadow:inset 0 0 0 1px var(--ps-ink)}
+.sto-o[disabled]{cursor:default;background:var(--ps-fill);box-shadow:none}
+.sto-o[disabled] b,.sto-o[disabled] s{color:var(--ps-ink-2)}
+.sto-o s{line-height:1.45}
 .dlv{display:grid;gap:8px}
 .dlv-r{display:grid;grid-template-columns:minmax(96px,1fr) minmax(0,1fr) minmax(0,1fr);gap:8px;align-items:center}
 .dlv-h span{font:500 12px/1 var(--ps-font);letter-spacing:.06em;text-transform:uppercase;color:var(--ps-ink-2)}

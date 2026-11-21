@@ -642,8 +642,9 @@ steps: **Design › ENG copy check › Translation › Done**.
    Then pick who gets it, in the same dialog (the content team for a copy check, a designer for
    Arabic, Animated and MVP video); **Back** returns to the list. After the first hand-off,
    **Send to…** stays in the **Ad set** tab's header, and a line under the step says what was
-   sent, when, and who has it. **Send to…** is also in each project's **⋯** menu on the ad set
-   page (Tracker › **Open the ad set**), so you can hand work on without opening the studio.
+   sent, when, and who has it. Each project on the ad set page (Tracker › **Open the ad set**)
+   also has its own **Send to…** button, so you can hand work on without opening the studio; the
+   line saying what was sent stays on that page until you leave it.
    Sending to **Copy check** from the studio first lists, in the dialog, anything missing: empty
    words, a page or variant with no background photo, a QR code switched on with none added (or
    an empty ADM number when ADM & CN is chosen), or copy covering more than 40% of a canvas.

@@ -113,8 +113,8 @@ exports download as a zip. The studios fit tablets and phones.
   **Done** (which asks **Mark done?** first). Then, in the same dialog, it asks who gets it: the
   content team for a check, a designer for Arabic, Animated and MVP video, nobody for Done;
   **Back** returns to the list. After the first hand-off it stays in the **Ad set** tab's header,
-  with a line saying what was sent, when and who has it. It is also in each project's **⋯** menu
-  on the ad set page (Tracker › **Open the ad set**). A missing-items check before a copy check
+  with a line saying what was sent, when and who has it. Each project on the ad set page
+  (Tracker › **Open the ad set**) also has its own **Send to…** button. A missing-items check before a copy check
   shows in the dialog: **Fix it first** or **Send anyway**.
 - **Tracker** says **Signed off · N deliverables missing** when an ad set is approved but still
   lacks deliverables (Animated, MVP video…); it does not block the package.

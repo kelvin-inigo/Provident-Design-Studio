@@ -928,3 +928,8 @@ Polish (Revision 1.36): every `.sh` section label is `role="heading" aria-level=
 went h1 → h3); `.flt button` and `.tg` get the 2px ink focus ring; below 480px `.uh-nav` fades its
 right 32px (mask) so the scrolled-off links read as more.
 
+Second critique (Revision 1.37): `isLate` now skips a CAS row that is ready (`x.ready` or
+`stageOf(x) === 'ready'`), so Home's board and the Kanban's Overdue lane agree with Progress; an
+OPS post ready past its date still counts (publishing is late). Progress rows' links have an
+aria-label with the campaign or post name.
+

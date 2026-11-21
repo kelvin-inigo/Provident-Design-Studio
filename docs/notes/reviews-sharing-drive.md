@@ -2571,3 +2571,13 @@ sits after it. `.rss` is a scrolling flex column, so its children need `flex-shr
 switch squashes. The brand note lives inside the Brand field. The discard footer makes **Keep
 editing** the filled button and **Discard** a quiet ghost in `--ps-bad`. `p.rvd-fx` capped at 62ch.
 
+Second critique (Revision 1.37, 25/40, new issues): Send to… moved out of the tile's ⋯ menu onto
+the tile as `.rvd-snd` (fill pill, full width under the thumbnail; designer links only, not on an
+expired project or while Change audience is open). The ⋯ menu keeps Change audience / Already
+approved, then `.rvd-mnd` and Remove. The send handler disables the button ("Sending…"), keeps
+`sentNote` with no timer (cleared on Back), shows failures as `.rvd-sent[data-bad]` role=alert
+(no `window.alert`, Roam's failure too), awaits `again()` and focuses the tile's button. In the
+dialog the current step is `background: --ps-fill` with ink-2 text and the expanded row `--ps-fill-h`
+— rings are focus only. Still not built: Undo (the store has no "previous task") and a note to
+the person picked (`rsstep` has no field for it).
+

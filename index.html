@@ -1179,7 +1179,10 @@ body{-webkit-tap-highlight-color:transparent;
   var KIND = { cas: 'Campaign ads', ops: 'Organic posts', hub: 'Content Hub' };
   // a closed row has no due state: it is never overdue and never matches a due filter
   function dueK(x){ if (x.stage === 'closed') return ''; var d = due(x.due); return !d ? 'none' : d.n < 0 ? 'late' : d.n < 7 ? 'week' : 'later'; }
-  function isLate(x){ return dueK(x) === 'late'; }
+  // A SIGNED-OFF AD SET IS NOT LATE (2026-11-21, /impeccable critique): its deadline was for the
+  // package, which is in, so Home's board and the Kanban's Overdue lane agree with Progress. A post
+  // ready to publish past its date still is late: publishing is the job left.
+  function isLate(x){ return !(x.studio === 'cas' && (x.ready || stageOf(x) === 'ready')) && dueK(x) === 'late'; }
   // FROM is the row's own field (who last handed it on; the hub's posts say Content Hub)
   function fromK(x){ return String(x.from || '').trim(); }
   function fromN(k){ return !k ? 'No one yet' : /^you$/i.test(k) ? 'You' : k; }
@@ -1369,7 +1372,7 @@ body{-webkit-tap-highlight-color:transparent;
       MOVING.forEach(function(s){
         var c = data.rows.filter(function(x){ return x.stage === s.k; }).sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
         var a = c.filter(function(x){ return x.studio === 'cas'; }).length, o = c.length - a;
-        var late = c.filter(function(x){ var d = due(x.due); return d && d.k === 'late'; }).length;
+        var late = c.filter(isLate).length;
         var sub = !c.length ? 'Nothing here' : both ? [a ? a + (a === 1 ? ' ad set' : ' ad sets') : '', o ? o + (o === 1 ? ' post' : ' posts') : ''].filter(Boolean).join(' · ') : whoOf(s);
         var stack = c.slice(0, 3).map(function(x){ return '<span class="fl-t"' + (x.mine ? ' data-me' : '') + '>' + rd(x, 30) + '</span>'; }).join('') + (c.length > 3 ? '<span class="fl-more">+' + (c.length - 3) + '</span>' : '');
         h += '<li style="--c:' + s.c + '"' + (c.length ? '' : ' data-empty') + '><a href="#/tracker?v=kanban&stage=' + s.k + '" aria-label="' + s.n + ': ' + c.length + (late ? ', ' + late + ' overdue' : '') + '">' +
@@ -1554,7 +1557,7 @@ body{-webkit-tap-highlight-color:transparent;
         TK_DL.map(function(k){ return '<span class="tk-lbl">' + k[1] + '</span>' + (TK_EN[k[0]] ? tkCell(d[k[0]] && d[k[0]].e, 'English', 1, k[1]) : tkCell(d[k[0]] && d[k[0]].e, 'English', 0, k[1]) + tkCell(d[k[0]] && d[k[0]].a, 'Arabic', 0, k[1])); }).join('') + '</div>';
     }
     h += '<div class="tk-side">' + (k ? '<div class="tk-rd"><span class="tk-ring" style="--p:' + p + '"></span><span><b>' + k.n + ' of ' + k.of + '</b><small>' + (k.of && k.n === k.of ? 'all delivered' : 'deliverables in') + '</small></span></div>' : '') +
-      '<a class="b b-g" href="' + href(x) + '"' + tgt(x) + '>' + (x.open ? 'Open the ticket' : 'Open the ad set') + '</a></div>';
+      '<a class="b b-g" href="' + href(x) + '"' + tgt(x) + ' aria-label="' + esc((x.open ? 'Open the ticket: ' : 'Open the ad set: ') + x.name) + '">' + (x.open ? 'Open the ticket' : 'Open the ad set') + '</a></div>';
     return h + '</article>';
   }
   function tkPost(x){
@@ -1563,7 +1566,7 @@ body{-webkit-tap-highlight-color:transparent;
       '<div class="tk-who">' + (x.thumb ? '<img class="tk-th" src="' + esc(x.thumb) + '" alt="">' : '<span class="tk-th"></span>') + '<div><h3>' + esc(x.name) + '</h3><div class="tk-m">' + (x.hub ? 'Content Hub' : 'Organic post') + '</div></div></div>' +
       '<div><ol class="tk-st" aria-label="Steps">' + steps.map(function(s, j){ var v = segs[j] || 'pend'; return '<li data-s="' + (v === 'done' ? 'done' : v === 'pend' || v === 'todo' ? 'todo' : 'cur') + '"><i></i>' + esc(s) + '</li>'; }).join('') + '</ol>' +
       '<div class="tk-now"><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + '</div></div>' +
-      '<div class="tk-side"><a class="b b-g" href="' + href(x) + '"' + tgt(x) + '>Open the post</a></div>';
+      '<div class="tk-side"><a class="b b-g" href="' + href(x) + '"' + tgt(x) + ' aria-label="' + esc('Open the post: ' + x.name) + '">Open the post</a></div>';
     return h + '</article>';
   }
   // TWO VIEWS (2026-11-20, by request): Progress (the rows above, the default) and Kanban (what
