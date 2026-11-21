@@ -2776,7 +2776,8 @@
     };
     const from = document.activeElement;
     return new Promise(res => {
-      const close = v => { document.removeEventListener('keydown', key, true); el.remove(); try { if (from && from.isConnected) from.focus(); } catch (x) {} res(v); };
+      const unfit = vvFit(el);
+      const close = v => { unfit(); document.removeEventListener('keydown', key, true); el.remove(); try { if (from && from.isConnected) from.focus(); } catch (x) {} res(v); };
       const leave = () => { if (sig() === was || asking) return close(null); asking = true; acts(); };
       const key = e => {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (asking) { asking = false; acts(); const g = $('[data-go]'); if (g) g.focus(); } else leave(); return; }
@@ -2846,7 +2847,9 @@
         }
       });
       draw();
-      setTimeout(() => { const i = $('[data-f="name"]'); if (i) i.focus(); }, 0);
+      // A FINGER, NOT A KEYBOARD (2026-11-21, phone critique): on a touch screen the keyboard does not
+      // rise on its own; focus starts on the dialog's first tab instead of the Name field
+      setTimeout(() => { const i = coarse() ? el.querySelector('.rss-tabs [data-pane]') : $('[data-f="name"]'); if (i) i.focus(); }, 0);
     });
   }
   // Drive keeps the whole plan on the ad set; the old share store keeps the name and product, the
@@ -3587,6 +3590,16 @@
     if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
     else if (!e.shiftKey && (i < 0 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
   }
+  // ON A PHONE (2026-11-21, phone critique): a dialog sits on the visible part of the screen, so the
+  // on-screen keyboard never hides its buttons (iOS shrinks the visual viewport, not the layout one)
+  const coarse = () => { try { return matchMedia('(pointer:coarse)').matches; } catch (e) { return false; } };
+  function vvFit(el) {
+    const vv = window.visualViewport; if (!vv) return () => {};
+    const fit = () => { if (innerWidth > 640) { el.style.top = el.style.height = el.style.bottom = ''; return; } el.style.top = vv.offsetTop + 'px'; el.style.height = vv.height + 'px'; el.style.bottom = 'auto'; };
+    vv.addEventListener('resize', fit); vv.addEventListener('scroll', fit); fit();
+    return () => { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); };
+  }
+  window.providentVvFit = vvFit;
   function sendToDlg(rs, it, miss) {
     injectCss();
     const arb = it.lang === 'ARB', tk = taskOf(it), cur = tk || (!it.design ? 'design' : !it.copy ? 'copy' : ''), from = document.activeElement;
@@ -3601,7 +3614,7 @@
     const groups = [['Next', ['copy', 'arabic', 'animated', 'video'].filter(k => !(arb && k === 'arabic'))], ['Back', ['design']], ['Finish', ['done']]];
     miss = miss || [];
     return new Promise(res => {
-      const el = document.createElement('div'); el.className = 'shl-dlg';
+      const el = document.createElement('div'); el.className = 'shl-dlg shl-sheet';
       let ask = '', away = false, focusK = '', noteV = '';
       // BACK HAS NO PICKER (it goes to whoever did it last), so its note is asked in its own row
       const noteRow = k => k === 'design' || (k === 'copy' && !!it.copy);
@@ -3624,7 +3637,8 @@
         const f = (focusK && el.querySelector(ask ? '#sto-nt,[data-ask="go"]' : '[data-k="' + focusK + '"]')) || el.querySelector('.sto-o:not([disabled])');
         if (f) f.focus();
       };
-      const close = v => { document.removeEventListener('keydown', key, true); el.remove(); try { if (from && from.isConnected) from.focus(); } catch (e) {} res(v); };
+      const unfit = vvFit(el);
+      const close = v => { unfit(); document.removeEventListener('keydown', key, true); el.remove(); try { if (from && from.isConnected) from.focus(); } catch (e) {} res(v); };
       const key = e => {
         if (away) return;
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (ask) { const k = ask; ask = ''; focusK = k; draw(); } else close(null); return; }
@@ -3649,7 +3663,8 @@
         close({ act, ho, k });
       };
       el.addEventListener('click', e => {
-        if (e.target === el) return close(null);
+        // a tap beside the sheet never throws away a note being written
+        if (e.target === el) { if (noteV.trim()) { const t = el.querySelector('#sto-nt'); if (t) t.focus(); return; } return close(null); }
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.x) return close(null);
         if (b.dataset.ask === 'no') { const k = ask; ask = ''; focusK = k; return draw(); }
@@ -5352,7 +5367,7 @@
     const p = b.provident || 0, u = b.unbranded || 0;
     if (!p && !u) return '';
     const k = p && u ? 'mixed' : u ? 'unbranded' : 'provident';
-    const lab = { provident: 'Provident', unbranded: 'Unbranded', mixed: 'Mixed' }[k];
+    const lab = { provident: 'Branded', unbranded: 'Unbranded', mixed: 'Mixed' }[k];   // the settings' own words (2026-11-21)
     const tip = k === 'mixed' ? p + ' Provident, ' + u + ' Unbranded' : k === 'provident' ? 'Branded: Provident wordmark and QR' : 'Unbranded: no Provident wordmark or QR';
     return '<span class="rva-br" data-k="' + k + '" title="' + tip + '">' + lab + '</span>';
   }
@@ -5525,6 +5540,8 @@
       const f = this.el.querySelector('.rvd-snd[data-sid="' + CSS.escape(it.sid) + '"]') || this.el.querySelector('.rvd-sent'); if (f) f.focus();
       return;
     }
+    // on a phone the receipt is a bar at the foot of the screen: its × puts it away
+    if (a === 'sentx') { this.sentNote = null; this.draw(); return; }
     // UNDO (2026-11-21, by request): the receipt's own button puts the project back where it was
     if (a === 'undo') {
       const sid = t.dataset.sid, rs = this.det && this.det.rs, it = rs && (rs.items || []).find(x => x.sid === sid), roam = it && it.undo && it.undo.act === 'design-done';
@@ -6150,11 +6167,12 @@
       })() +
       (ro ? '<span class="rvd-ro" title="Your role follows ad sets: their designs, steps and activity. Nothing here can be changed or downloaded.">' + EYE + 'View only</span>'
         : (url ? '<a class="p-ghost" href="' + esc(drv) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
-      '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button>') + '</div></div>' +
+      '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '<span class="rvd-icl">Settings</span></button>') + '</div></div>' +
       '</header>';
     // THE PHASE (2026-11-16): its tabs, the four steps and what waits lead the column they govern
     const sent = this.sentNote && (rs.items || []).some(x => x.sid === this.sentNote.sid) ? '<p class="rvd-sent" tabindex="-1" role="' + (this.sentNote.bad ? 'alert' : 'status') + '"' + (this.sentNote.bad ? ' data-bad="1"' : '') + '><i></i><span>' + esc(this.sentNote.t) + '</span>' +
-      (() => { const ui = this.sentNote.at && (rs.items || []).find(x => x.sid === this.sentNote.sid); return ui && canUndo(ui) && ui.undo.at === this.sentNote.at && !ro ? '<button type="button" class="rvd-undo" data-a="undo" data-sid="' + esc(ui.sid) + '" data-at="' + ui.undo.at + '">Undo</button>' : ''; })() + '</p>' : '';
+      (() => { const ui = this.sentNote.at && (rs.items || []).find(x => x.sid === this.sentNote.sid); return ui && canUndo(ui) && ui.undo.at === this.sentNote.at && !ro ? '<button type="button" class="rvd-undo" data-a="undo" data-sid="' + esc(ui.sid) + '" data-at="' + ui.undo.at + '">Undo</button>' : ''; })() +
+      '<button type="button" class="rvd-sentx" data-a="sentx" aria-label="Dismiss">' + ico('x') + '</button></p>' : '';
     const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + sent + '</section>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     // A TILE SAYS WHO HAS IT (2026-11-21, /impeccable critique): the task it was sent to and the person
@@ -8542,6 +8560,44 @@ button.dlv-c:focus-visible{outline:2px solid var(--ps-ink);outline-offset:1px}
 .dlv-c[data-na]{box-shadow:none;padding-left:0}
 .rvd-dl{display:block;margin-top:6px;font:400 12px/1.2 var(--ps-font);color:var(--ps-ink-2)}
 .shl-dlg-c.rss{overflow-x:hidden}
+/* PHONE (2026-11-21, /impeccable critique of the phone view): every dialog is a sheet from the foot
+   of the screen, its buttons pinned to the bottom (vvFit keeps the sheet above the keyboard); the
+   send receipt is a bar over the page, above Home's tab bar (--tabbar-h), with Undo and a ×; a
+   finger gets 44px targets and 16px fields (no iOS zoom) */
+.rvd-sentx{display:none;place-items:center;flex:none;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:none;color:var(--ps-ink-2);cursor:pointer}
+.rvd-sentx .rva-i{width:20px;height:20px;fill:currentColor}
+.rvd-sentx:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
+.rvd-icl{display:none}
+@media (max-width:640px){
+  .shl-dlg{place-items:end stretch;padding:12px 0 0}
+  .shl-dlg > .shl-dlg-c,.shl-dlg > .shl-dlg-c.sto,.shl-dlg > .shl-dlg-c.rss,.shl-dlg > .shl-dlg-c.shl-wide,.shl-dlg > .shl-dlg-c.sho{width:100%;max-width:none;max-height:100%;overflow-y:auto;border-radius:20px 20px 0 0;padding:20px 16px 0;box-shadow:0 -1px 0 var(--ps-line)}
+  .shl-dlg > .shl-dlg-c.rss{height:auto}
+  .shl-dlg > .shl-dlg-c > .shl-acts{position:sticky;bottom:0;z-index:2;flex-wrap:wrap;margin:16px -16px 0;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--ps-card);box-shadow:0 -1px 0 var(--ps-line)}
+  .shl-dlg > .shl-dlg-c > .shl-acts > button{flex:1 1 0;justify-content:center}
+  .rss-foot{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px)) !important}
+  .shl-dlg > .shl-dlg-c.rss > .rss-foot{margin-left:-16px;margin-right:-16px;padding-left:16px;padding-right:16px}
+  .rvd-sent{position:fixed;left:12px;right:12px;bottom:calc(12px + var(--tabbar-h,0px));z-index:70;margin:0;padding:4px 4px 4px 14px;background:var(--ps-card);box-shadow:0 10px 30px rgba(0,0,0,.28),inset 0 0 0 1px var(--ps-line)}
+  .rvd-sentx{display:grid}
+  .rvd-undo{min-height:44px;margin:0;padding:0 16px}
+  .rvd-icl{display:inline}
+  .rvd-ha .rvd-ic{width:auto;padding:0 14px;gap:6px}
+  .rva-lt-t u{font-size:12px}
+  .rva-br{font-size:12px}
+  .rss .rsp-brand,.rss .rsp-vid,.rss .rsp-prod{display:flex;width:100%;max-width:100%;box-sizing:border-box}
+  .rss .rsp-brand button,.rss .rsp-vid button,.rss .rsp-prod button{flex:1 1 0;min-width:0;padding:0 8px;justify-content:center}
+}
+@media (pointer:coarse){
+  .rvd-snd,.p-btn,.p-ghost,.rvd-undo,.rss-tabs [role=tab],.rsp-prod button,.rsp-brand button,.rsp-vid button,.acx-btn,.acx-ghost{min-height:44px}
+  .rsp-prod,.rss-tabs,.rsp-brand,.rsp-vid{height:auto}
+  .rvd-mn>summary{width:44px;height:44px}
+  .rvd-out summary{padding:12px 2px}
+  .rva-bt summary{padding:12px 0}
+  .rss-pc button{width:40px;height:40px}
+  .rsp-l.rsp-ar{min-width:44px;min-height:44px}
+  .rva-gd-sw{position:relative}
+  .rva-gd-sw::after{content:"";position:absolute;inset:-15px -4px}
+  .p-in,input.p-in,textarea.p-in,select.p-in,.rss input,.rss textarea,.sto-ask textarea{font-size:16px !important}
+}
 `;
     document.head.appendChild(s);
   }

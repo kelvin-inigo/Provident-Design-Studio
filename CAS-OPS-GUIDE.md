@@ -193,6 +193,13 @@ say so and point to the step above.
   **Undo** and **Redo**. On a phone the step that moves the work on (**Add to an ad set**,
   **Save to Drive** and the like) sits at the foot of the screen, over **Components /
   Component / Layout** (CAS) or **Template / Slide** (OPS).
+- **The home site on a phone** (Home, Tracker, an ad set's page): the menu (**Home**, **Tracker**,
+  **Projects**, **Access**, **Help**) is a bar at the foot of the screen. Home shows what waits on
+  you, then **Where everything is**, then the rest. **Tracker** shows one short card per campaign
+  with what is missing in words; **Show the deliverables** opens the English and Arabic grid.
+  **Send to…**, the person picker and **Settings** open as sheets from the bottom, their buttons
+  always in view, even with the keyboard up. After a send, the line saying what was sent sits just
+  above the menu bar, with **Undo** and a **×** to put it away.
 - Keep both `.dc.html` files in this folder. They load their scripts and fonts from here, and the
   two studios link to each other.
 - People show with their Google account photo wherever their initials were (the account menu, Status cards, Access, the hand-off picker, the activity logs). Someone who hasn't signed in since 11 November 2026 still shows initials until they next sign in.

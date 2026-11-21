@@ -122,6 +122,10 @@ exports download as a zip. The studios fit tablets and phones.
 - **Undo** on the line saying what was sent puts the project back where it was: for the person who
   sent it, within 30 minutes, until someone moves it on. A Chrome alert or Paid Ads Hub message
   already sent is not recalled.
+- **On a phone** the home site's menu is a bar at the foot of the screen; **Tracker** shows one short
+  card per campaign with what is missing, and **Show the deliverables** opens the grid. **Send to…**,
+  the person picker and **Settings** slide up from the bottom with their buttons always in view;
+  after a send, the line with **Undo** sits just above the menu bar.
 - **Tracker** says **Signed off · N deliverables missing** when an ad set is approved but still
   lacks deliverables (Animated, MVP video…); it does not block the package.
 - **Ad set settings** has two tabs: **Campaign** (name, product, brand, deadline, brief, video,

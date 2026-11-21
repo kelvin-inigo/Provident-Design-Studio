@@ -935,6 +935,74 @@ body[data-gate] .uh-nav,body[data-gate] #newbtn,body[data-gate] #meav,body[data-
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{-webkit-tap-highlight-color:transparent;
   padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+
+/* ═════ PHONE (2026-11-21, /impeccable critique of the phone view, 22/40) ═════
+   The site was a desktop layout that reflowed. On a phone now: the main nav is a tab bar at the
+   foot of the screen (thumb reach, every destination visible, a one-row header that no longer
+   follows the page down); every control a finger uses is at least 44px; inputs are 16px so iOS
+   does not zoom; Home puts the board before the recent projects; Tracker shows one short row per
+   campaign with its deliverables on demand. --tabbar-h tells share-link.js's bottom bars where to sit. */
+@media (max-width:640px){
+  :root{--tabbar-h:calc(60px + env(safe-area-inset-bottom,0px))}
+  .p-top{position:static; flex-wrap:nowrap; padding-top:10px; padding-bottom:10px}
+  .uh-nav{position:fixed; left:0; right:0; bottom:0; z-index:60; order:0; width:auto; display:flex; justify-content:space-around; gap:2px;
+    padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px)); border-radius:0; background:var(--ps-card); box-shadow:0 -1px 0 var(--ps-line);
+    -webkit-mask-image:none; mask-image:none; overflow:visible}
+  .uh-nav a{position:relative; flex:1 1 0; min-width:0; height:44px; padding:0 2px; gap:0; justify-content:center; font-size:12px; border-radius:12px; white-space:nowrap}
+  .uh-nav a:last-child{margin-right:0}
+  .uh-nav .uh-n{position:absolute; top:1px; right:2px; min-width:16px; height:16px; padding:0 4px; font-size:10.5px}
+  .pg{padding-bottom:calc(32px + var(--tabbar-h))}
+  .ft{padding-bottom:calc(24px + var(--tabbar-h))}
+  .pm,.pm[data-r]{bottom:calc(12px + var(--tabbar-h))}
+  .tst{bottom:calc(12px + var(--tabbar-h)) !important}
+  /* Home: Next up, then what waits on you, then the board; the rest after it */
+  .hm{display:flex; flex-direction:column; gap:0}
+  .hm > .sky{margin-bottom:28px}
+  .eg-toasts{bottom:calc(12px + var(--tabbar-h)) !important}
+  .hm-main,.hm-side{display:contents}
+  .hm-main > .oth,.hm-main > .fresh,.hm-main > .desk{order:2}
+  .hm-side > *{order:3; margin-top:16px}
+  .hm-side > .pan:first-child{order:1; margin:28px 0 8px}
+  .hm-main > .oth,.hm-main > .desk{margin-top:28px}
+  .pan > .sh{flex-wrap:wrap; row-gap:4px}
+  /* Next up's step labels fit their bar */
+  .nx-steps{gap:4px}
+  .nx-steps li span{font-size:12px; line-height:1.2; letter-spacing:0; white-space:normal; overflow-wrap:anywhere}
+  /* Tracker: one short row per campaign, deliverables on a tap */
+  .tk-r{gap:12px; padding:16px}
+  .tk-when{display:flex; align-items:baseline; flex-wrap:wrap; gap:4px 10px}
+  .tk-when b{display:inline; margin:0; font-size:14px; font-weight:500; letter-spacing:0}
+  .tk-when small{display:inline}
+  .tk-who h3{font-size:17px}
+  .tk-ms,.tk-xp{display:flex}
+  .tk-shw{display:none}
+  .tk-r > .tk-gm{display:none}
+  .tk-r[data-open] > .tk-gm{display:grid; grid-template-columns:minmax(72px,1fr) minmax(0,88px) minmax(0,88px)}
+  .tk-hd,.tk-gm .tk-hd{font-size:12px}
+  .tk-side{flex-direction:row; align-items:center; justify-content:space-between; flex-wrap:wrap}
+  .tk-side .b{flex:1 1 auto}
+  .tk-rd{flex:none}
+}
+@media (min-width:641px){ .tk-ms,.tk-xp{display:none} }
+.tk-ms{align-items:center; gap:8px; margin:0; font:400 14px/1.4 var(--ps-font); color:var(--ps-ink)}
+.tk-ms i{width:7px; height:7px; flex:none; border-radius:50%; background:var(--ps-warn)}
+.tk-ms[data-ok] i{background:var(--ps-good)}
+.tk-xp{align-items:center; justify-content:space-between; width:100%; min-height:44px; padding:0 14px; border:0; border-radius:12px; background:var(--ps-fill); color:var(--ps-ink); font:500 14px/1 var(--ps-font); cursor:pointer}
+.tk-xp svg{width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2; transition:transform var(--ps-motion) var(--ps-ease)}
+.tk-xp[aria-expanded="true"] svg{transform:rotate(180deg)}
+.tk-xp:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px}
+/* a finger, not a pointer: 44px targets; text links keep their look and grow an invisible hit area */
+@media (pointer:coarse){
+  .b,.vs button,.vs a,.flt a,.flt button,.tg,.srch,#themebtn,.uh-me{min-height:44px}
+  .b-l{min-height:0}
+  #themebtn,.uh-me,#newbtn{min-width:44px; flex:none}
+  .icb{width:44px; height:44px}
+  .uh-nav a{min-height:40px}
+  .srch input,input,textarea,select{font-size:16px}
+  .b-l,.fresh a,.desk-more a,.row-t a,.p-wm{position:relative}
+  .b-l::after,.fresh a::after,.desk-more a::after,.p-wm::after{content:""; position:absolute; inset:-14px -6px}
+  .row-t a::after{content:""; position:absolute; inset:-12px 0}
+}
 </style>
 </head>
 <body class="p-shell">
@@ -1541,17 +1609,34 @@ body{-webkit-tap-highlight-color:transparent;
   function tkWhen(x, word){
     return '<div class="tk-when">' + (x.due ? '<b>' + esc(tkDay(x.due)) + '</b>' + (x.ready ? '<small>Deadline</small>' : dueEl(x)) : '<b class="tk-nd">No date</b><small>' + word + '</small>') + '</div>';
   }
+  // which campaigns' deliverables are open on a phone, kept across the Tracker's redraws
+  var tkOpen = {};
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-tkx]'); if (!b) return;
+    var id = b.getAttribute('data-tkx'), a = b.closest('.tk-r'), op = !tkOpen[id];
+    if (op) tkOpen[id] = 1; else delete tkOpen[id];
+    if (a) a.toggleAttribute('data-open', op);
+    b.setAttribute('aria-expanded', String(op)); b.firstChild.textContent = (op ? 'Hide' : 'Show') + ' the deliverables';
+  });
   function tkCampaign(x){
     var d = x.dlv, k = d ? tkCount(d) : null, p = k && k.of ? Math.round(k.n / k.of * 100) : 0;
-    var h = '<article class="tk-r"' + (isLate(x) && !x.ready ? ' data-hot' : '') + '>' + tkWhen(x, 'no deadline on the ticket') +
+    var h = '<article class="tk-r"' + (isLate(x) && !x.ready ? ' data-hot' : '') + (tkOpen[x.id] ? ' data-open' : '') + '>' + tkWhen(x, 'no deadline on the ticket') +
       // SIGNED OFF IS NOT EVERYTHING DELIVERED (2026-11-21, /impeccable critique, by choice: warn,
       // don't block): a ready ad set with deliverables still missing says so, in the warning colour
       '<div class="tk-who"><h3>' + esc(x.name) + '</h3><div class="tk-m">' + (x.ready && k && k.of && k.n < k.of
-        ? 'Signed off · <span class="tk-short"><i></i>' + (k.of - k.n) + (k.of - k.n === 1 ? ' deliverable' : ' deliverables') + ' missing</span>'
+        ? 'Signed off<span class="tk-shw"> · <span class="tk-short"><i></i>' + (k.of - k.n) + (k.of - k.n === 1 ? ' deliverable' : ' deliverables') + ' missing</span></span>'
         : esc(x.step || '') + (x.sub ? ' · ' + esc(x.sub) : '')) + '</div>' +
         (x.brand || x.auds ? '<div class="tk-m">' + [({ provident: 'Branded', unbranded: 'Unbranded', mixed: 'Branded and unbranded' })[x.brand] || '', x.auds ? x.auds + (x.auds > 1 ? ' audiences' : ' audience') : '',
           // DESIGNS COUNTED (2026-11-21, by request): an audience's further designs and unbranded version (dsg, from CAS's queue)
           x.dsg && x.dsg !== x.auds ? x.dsg + ' designs' : ''].filter(Boolean).join(' · ') + '</div>' : '') + '</div>';
+    // A PHONE ROW (2026-11-21, phone critique): what is missing, in words, and the grid on a tap
+    if (d && k && k.of) {
+      var miss = [];
+      TK_DL.forEach(function(t){ var z = d[t[0]]; if (!z) return; (TK_EN[t[0]] ? [['e', '']] : [['e', ' EN'], ['a', ' AR']]).forEach(function(l){ var v = z[l[0]]; if (v && v[1] && v[0] < v[1]) miss.push(t[1] + l[1]); }); });
+      var op = !!tkOpen[x.id];
+      h += '<p class="tk-ms"' + (miss.length ? '' : ' data-ok') + '><i></i><span>' + (miss.length ? esc(miss.length + ' missing: ' + miss.join(', ')) : 'Everything delivered') + '</span></p>' +
+        '<button type="button" class="tk-xp" data-tkx="' + esc(x.id) + '" aria-expanded="' + op + '">' + (op ? 'Hide' : 'Show') + ' the deliverables<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
+    }
     if (x.open) h += '<div class="tk-q">A ticket, not an ad set yet. Its deliverables appear once a designer picks it up.</div>';
     else if (!d) h += '<div class="tk-q">Its deliverables aren’t on this computer yet. <a href="#/tracker?v=kanban">Open the Kanban</a> to load them.</div>';
     else {
@@ -1893,6 +1978,8 @@ body{-webkit-tap-highlight-color:transparent;
     $('mn-r').textContent = data.r ? (roleLabel(rawRole()) || roleLabel(data.r)) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
     var mx = $('mn-x'); mx.hidden = !acc; mx.textContent = phase === 'in' ? 'Sign out' : 'Sign in with Google'; mx.dataset.sign = phase === 'in' ? 'out' : 'in';
     document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', tracker: 'Tracker \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio', engine: 'Engine \u2014 Provident Design Studio', help: 'Help \u2014 Provident Design Studio' }[nav];
+    // the ad set or post page is not the Tracker in the browser's tab list (2026-11-21, phone critique)
+    if (/^#\/item\//.test(location.hash)) document.title = (/^#\/item\/ops\//.test(location.hash) ? 'Post' : 'Ad set') + ' \u2014 Provident Design Studio';
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'tracker' && q.v === 'kanban' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
@@ -2292,7 +2379,8 @@ body{-webkit-tap-highlight-color:transparent;
   }
   function paintDesk(){
     var sec = $('desk'); if (!sec || !deskRows || !deskRows.length) return;
-    var show = deskRows.slice(0, DESK_MAX), more = deskRows.length - show.length;
+    // a phone shows four: the board and the queue come first (2026-11-21, phone critique)
+    var show = deskRows.slice(0, matchMedia('(max-width:640px)').matches ? 4 : DESK_MAX), more = deskRows.length - show.length;
     $('desk-n').textContent = deskRows.length;
     $('reel').innerHTML = show.map(function(x){ return tileHtml(x); }).join('');
     $('desk-more').hidden = !more;

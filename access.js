@@ -754,7 +754,9 @@
           esc(o.list.length && sel ? o.go + ' to ' + nameOf(o.list.find(p => p.email === sel) || {}).split(' ')[0] : o.go) + '</button></div></div>';
       };
       const from = document.activeElement;
-      const done = v => { document.removeEventListener('keydown', key, true); w.remove(); if (v !== 'back') { try { if (from && from.isConnected) from.focus(); } catch (x) {} } res(v); };
+      // ON A PHONE (2026-11-21): the sheet sits on the visible screen, above the keyboard (share-link.js)
+      const unfit = window.providentVvFit ? window.providentVvFit(w) : () => {};
+      const done = v => { unfit(); document.removeEventListener('keydown', key, true); w.remove(); if (v !== 'back') { try { if (from && from.isConnected) from.focus(); } catch (x) {} } res(v); };
       // KEYBOARD (2026-11-21): Escape closes (or goes Back from Send to…), the arrows move the
       // choice through the people as a radio group does, and Tab stays inside the dialog
       const key = e => {
@@ -774,7 +776,8 @@
       };
       w.addEventListener('input', e => { if (e.target.id === 'acx-pk-nt') o.noteV = e.target.value; });
       w.addEventListener('click', e => {
-        if (e.target === w) return done(undefined);
+        // a tap beside it never throws away a note being written
+        if (e.target === w) { if (o.noteV && o.noteV.trim()) { const t = w.querySelector('#acx-pk-nt'); if (t) t.focus(); return; } return done(undefined); }
         const p = e.target.closest('[data-e]'); if (p) { sel = p.dataset.e; draw2(); const b = w.querySelector('[data-e="' + CSS.escape(sel) + '"]'); if (b) b.focus(); return; }
         const b = e.target.closest('[data-pk]'); if (!b) return;
         if (b.dataset.pk === 'no') return done(undefined);
@@ -905,6 +908,10 @@ html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-
 .acx-pk-p[data-on] .acx-pk-r{background:var(--ps-link);box-shadow:none;color:var(--ps-app)}
 .acx-pk-f{display:flex;gap:8px;justify-content:flex-end}
 .acx-pk-bk{margin-right:auto;display:inline-flex;align-items:center;gap:4px}.acx-pk-bk .acx-i{width:18px;height:18px}
+@media (max-width:640px){.acx-pk{place-items:end stretch;padding:12px 0 0}.acx-pk-in{width:100%;max-height:100%;border-radius:20px 20px 0 0;padding:20px 16px 0}
+.acx-pk-f{position:sticky;bottom:0;z-index:2;margin:0 -16px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--ps-card);box-shadow:0 -1px 0 var(--ps-line)}
+.acx-pk-nt{margin-bottom:16px}}
+@media (pointer:coarse){.acx-pk-nt{font-size:16px}.acx-pk-f button{min-height:44px}}
 @media (max-width:480px){.acx-pk-f{flex-wrap:wrap}.acx-pk-f [data-pk=go]{order:-1;flex:1 1 100%;justify-content:center}.acx-pk-f [data-pk=no]{flex:1 1 0;justify-content:center}.acx-pk-bk{margin-right:0;flex:1 1 0;justify-content:center}}
 .acx-pk .acx-av{width:36px;height:36px}
 #acx{position:fixed;inset:0;z-index:4000;display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);background:var(--ps-app);color:var(--ps-ink);font-family:var(--ps-font);overflow:auto}

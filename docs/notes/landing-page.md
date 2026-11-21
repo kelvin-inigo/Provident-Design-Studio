@@ -933,3 +933,31 @@ Second critique (Revision 1.37): `isLate` now skips a CAS row that is ready (`x.
 OPS post ready past its date still counts (publishing is late). Progress rows' links have an
 aria-label with the campaign or post name.
 
+## 2026-11-21 (evening) — the phone view (Revision 1.39)
+
+/impeccable critique of the phone view scored 22/40: a desktop layout that reflowed. Fixed, by
+request ("run all of them"), in one PHONE block at the end of index.html's styles plus a
+`pointer:coarse` block (and their twins in share-link.js and access.js):
+
+- **Tab bar.** At ≤640px `.uh-nav` is `position:fixed` at the foot (60px + safe area,
+  `--tabbar-h`), every link `flex:1`, 12px, the Access count an absolute corner bubble (inline it
+  ran "ProjectsAccess" together). The header is `position:static` there (was a 107px sticky band).
+  Anything fixed at the bottom lifts by `--tabbar-h`: `.pm` (Filter sheet), `.tst`, the Engine's
+  `.eg-toasts` (with `!important`, its CSS is injected by engine.js) and `.rvd-sent`.
+- **Home order** without touching the render: `.hm` becomes a flex column and `.hm-main` /
+  `.hm-side` `display:contents`; `order` puts the side's first `.pan` (Where everything is) after
+  Also waiting on you, then With others, the fresh line, Pick up where you left off (4 tiles on a
+  phone, `paintDesk`), then Access and Your studios. `.hm > .sky` needed its own margin: the old
+  `-18px` leaned on the grid gap and the Next up heading slid under the greeting.
+- **Tracker phone row.** `tkCampaign` adds `.tk-ms` (what is missing, in words: "Animated EN,
+  MVP video") and `.tk-xp` (Show/Hide the deliverables, `aria-expanded`); the grid `.tk-gm` shows
+  only with `[data-open]`; `tkOpen` keeps it open across redraws. The hide rule for wider screens
+  is `@media (min-width:641px)`: a plain `display:none` after the phone block won and hid them.
+  "· N deliverables missing" is wrapped in `.tk-shw` and hidden on a phone (the line below says it).
+- **Touch.** 44px minimums by `min-height` (beats every fixed `height` without a specificity
+  fight); text links (`.b-l`, Refresh, See all, row titles, the wordmark, "Use another account")
+  keep their look and get an absolutely positioned `::after` hit area; inputs 16px.
+- Measured after: no sideways scroll at 320/375/414; no control under 24px except the search
+  input, whose 44px label takes the tap; every field 16px; cards ~190px (were ~485). Desktop
+  unchanged (nav in the sticky header, full grid, no phone row).
+
