@@ -62,7 +62,7 @@
       title: 'Find anything on Tracker',
       sum: 'Tracker’s Kanban (once Status): one board for both studios, in four stages, with filters that remember how you like it.',
       steps: [
-        { t: 'Open **Tracker** in the top bar and press **Kanban** at its top right (**Progress**, the default, shows each campaign’s deliverables and each post’s steps as rows). Every campaign and post sits in its stage: **New**, **Design**, **Copy check**, **Ready**.', f: 'status', s: 'board' },
+        { t: 'Open **Tracker** in the top bar and press **Kanban** at its top right (**Progress**, the default, shows each campaign’s deliverables and each post’s steps as rows; the chips, search and **Filter** above work on both views). Every campaign and post sits in its stage: **New**, **Design**, **Copy check**, **Ready**.', f: 'status', s: 'board' },
         { t: '**Only what waits on me** and **Find by name** narrow the board. A card with a blue ring and **Waits on you** is yours.', f: 'status', s: 'tools' },
         { t: '**Filter** opens **Stage**, **Due** and **From**. Each filter in force becomes a chip under the tools; click one to drop it, or **Clear all**.', f: 'status-filter', s: 'menu' },
         { t: '**Board | List** switches to a compact list you can sort by any heading. **View** holds Sort by, Group by and Density.', f: 'status-list', s: 'list' },

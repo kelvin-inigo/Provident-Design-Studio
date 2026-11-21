@@ -238,6 +238,7 @@ button{font-family:inherit}
 .flt a small{font:400 12.5px/1 var(--ps-font); color:var(--ps-dim); font-variant-numeric:tabular-nums}
 .flt a[aria-pressed="true"] small{color:var(--ps-ink-2)}
 .tk{display:grid; gap:12px; margin-top:6px}
+.tk-sec + .tk-sec{margin-top:32px}
 .tk-r{display:grid; grid-template-columns:124px minmax(0,1fr) minmax(0,2.1fr) 184px; gap:20px; align-items:start; padding:20px 22px; border-radius:var(--ps-r-lg); background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-line)}
 .tk-r[data-hot]{box-shadow:inset 0 0 0 1px var(--ps-line), inset 3px 0 0 var(--ps-bad)}
 .tk-when b{display:block; margin-bottom:8px; font:400 20px/1.15 var(--ps-font); letter-spacing:-.01em}
@@ -1546,28 +1547,14 @@ body{-webkit-tap-highlight-color:transparent;
     return '<div class="vs tk-vs" role="group" aria-label="View">' + [['#/tracker', 'Progress', !kb], ['#/tracker?v=kanban', 'Kanban', kb]].map(function(t){
       return '<a href="' + t[0] + '"' + (t[2] ? ' aria-current="page"' : '') + '>' + t[1] + '</a>'; }).join('') + '</div>';
   }
-  function viewTracker(q){
-    if (q.v === 'kanban') return viewStatus(q);
-    var ss = studiosFor(data.r), v = q.v === 'posts' || ss.indexOf('cas') < 0 ? 'posts' : 'launch';
-    var h = '<div class="sx-head"><div><h1 class="h1">Tracker</h1><p class="lede">' + (v === 'launch' ? 'Every campaign and what it still needs, in English and Arabic.' : 'Every organic post and the step it is at.') + '</p></div>' + tkSwitch(false) + '</div>';
-    if (!data.known || !me || !me.email || !ss.length) return h + quiet('status');
-    if (ss.length > 1) h += '<div class="flt" role="group" aria-label="Show">' + [['launch', 'Launch', 'cas'], ['posts', 'Organic posts', 'ops']].map(function(t){
-      var c = data.rows.filter(function(x){ return x.studio === t[2]; }).length;
-      return '<a href="#/tracker' + (t[0] === 'posts' ? '?v=posts' : '') + '" role="button" aria-pressed="' + (v === t[0]) + '">' + t[1] + ' <small>' + c + '</small></a>'; }).join('') + '</div>';
-    function dn(x){ return (due(x.due) || { n: 999 }).n; }
-    var rows = data.rows.filter(function(x){ return x.studio === (v === 'launch' ? 'cas' : 'ops'); }).sort(function(a, b){ return dn(a) - dn(b) || (b.at || 0) - (a.at || 0); });
-    if (!rows.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>Nothing in motion</h3><p>' + (v === 'launch' ? 'Campaigns appear here as they are filed.' : 'Posts appear here as they are drafted.') + '</p></div></div>' + freshLine();
-    return h + '<div class="tk">' + rows.map(v === 'launch' ? tkCampaign : tkPost).join('') + '</div>' + freshLine();
-  }
-
-  // ═════ TRACKER › KANBAN (was Status, its own page until 2026-11-20) ═════
-  function viewStatus(q){
-    var r = data.r, both = studiosFor(r).length > 1;
-    var h = '<div class="sx-head"><div><h1 class="h1">Tracker</h1><p class="lede">' + (both ? 'Every campaign and post on one board, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign on one board, from ticket to ready.' : studiosFor(r).length ? 'Your organic posts on one board, from draft to ready.' : 'Campaigns and posts, from ticket or draft to ready.') + '</p></div>' + tkSwitch(true) + '</div>';
-    if (!data.known || !me || !me.email || !studiosFor(r).length) return h + quiet('status');
-    var all = sxClosed ? data.rows.concat(data.closed) : data.rows, stg = sxClosed ? STAGES : MOVING;
+  // ONE SET OF CONTROLS FOR BOTH VIEWS (2026-11-21, by request): the Kanban's kind chips, search,
+  // Filter, Only what waits on me and Show closed sit above the view, outside it, and narrow
+  // Progress and Kanban alike (sxF, sxQ, sxMine, sxFl, sxClosed are page state, so they carry
+  // across the switch). Overdue placement, Board | List and View stay with the board they arrange.
+  function tkScope(){
+    var both = studiosFor(data.r).length > 1, all = sxClosed ? data.rows.concat(data.closed) : data.rows;
     var hubN = all.filter(function(x){ return x.hub; }).length;
-    if (sxF === 'hub' && !(both && hubN)) sxF = 'all';
+    if (!both || (sxF === 'hub' && !hubN)) sxF = 'all';
     var ql = sxQ.toLowerCase();
     // FILTERS COMBINE: every one in force must hold (kind AND waits on me AND the name AND each
     // facet); inside one facet any of its ticked values will do. skip leaves one facet out, for
@@ -1579,15 +1566,7 @@ body{-webkit-tap-highlight-color:transparent;
       for (var k in FV) if (k !== skip && sxFl[k].length && sxFl[k].indexOf(FV[k](x)) < 0) return false;
       return true;
     }
-    // OVERDUE HAS ITS OWN PLACE: a lane of its own (the default), its stage as before, or hidden.
-    // Asking for it by name (Due: Overdue) always shows it.
-    var lateAll = all.filter(isLate).length, mode = lateAll ? sxV.late : 'stage', wantLate = sxFl.due.indexOf('late') >= 0;
-    var shown = all.filter(function(x){ return pass(x); });
-    var hid = mode === 'hide' && !wantLate ? shown.filter(isLate).length : 0;
-    var vis = hid ? shown.filter(function(x){ return !isLate(x); }) : shown;
-    var lane = mode === 'lane' ? vis.filter(isLate) : [], main = mode === 'lane' ? vis.filter(function(x){ return !isLate(x); }) : vis;
-    var base = mode === 'stage' || (mode === 'hide' && wantLate) ? all : all.filter(function(x){ return !isLate(x); });
-    // a facet lists only the values the board holds under the other filters (and any still ticked)
+    // a facet lists only the values the rows hold under the other filters (and any still ticked)
     function opts(k){
       var m = {}; all.forEach(function(x){ if (pass(x, k)) { var v = FV[k](x); m[v] = (m[v] || 0) + 1; } });
       sxFl[k].forEach(function(v){ if (!(v in m)) m[v] = 0; });
@@ -1596,25 +1575,24 @@ body{-webkit-tap-highlight-color:transparent;
       if (k === 'due') return DUEK.filter(function(d){ return d[0] in m; }).map(function(d){ return [d[0], d[1], m[d[0]]]; });
       return ks.sort(function(p, q){ return m[q] - m[p] || fromN(p).localeCompare(fromN(q)); }).map(function(v){ return [v, fromN(v), m[v]]; });
     }
-    function po(attr, val, label, count, on, radio, sub){
-      return '<button type="button" class="po"' + (radio ? ' data-rd' : '') + ' ' + attr + '="' + esc(val) + '" data-fk="' + esc(attr + ':' + val) + '" aria-pressed="' + !!on + '"><span class="po-c">' + (on ? ico('check') : '') + '</span>' +
-        '<span class="po-l">' + esc(label) + (sub ? '<span class="po-s">' + sub + '</span>' : '') + '</span>' + (count != null ? '<small>' + count + '</small>' : '<small></small>') + '</button>';
-    }
-    var nF = sxFl.stage.length + sxFl.due.length + sxFl.from.length, pmIn = sxMenuIn ? ' data-in' : ''; sxMenuIn = false;
-    var so = sxV.sort === 'stage' && sxV.grp === 'stage' ? 'due' : sxV.sort, compact = sxV.den === 'compact';
-
-    // the kind chips and the search, as before; Content Hub joins the chips only when it has posts
-    h += '<div class="sx-tools">';
-    if (both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].concat(hubN ? [['hub', 'Content Hub']] : []).map(function(f){
-      var c = all.filter(function(x){ return f[0] === 'all' || (f[0] === 'hub' ? x.hub : x.studio === f[0]); }).length;
+    return { both: both, all: all, hubN: hubN, pass: pass, opts: opts, nF: sxFl.stage.length + sxFl.due.length + sxFl.from.length };
+  }
+  function po(attr, val, label, count, on, radio, sub){
+    return '<button type="button" class="po"' + (radio ? ' data-rd' : '') + ' ' + attr + '="' + esc(val) + '" data-fk="' + esc(attr + ':' + val) + '" aria-pressed="' + !!on + '"><span class="po-c">' + (on ? ico('check') : '') + '</span>' +
+      '<span class="po-l">' + esc(label) + (sub ? '<span class="po-s">' + sub + '</span>' : '') + '</span>' + (count != null ? '<small>' + count + '</small>' : '<small></small>') + '</button>';
+  }
+  // the shared controls: kind chips and search, then Filter and the two switches; board (the
+  // Kanban's own controls) joins the second row after them
+  function tkBar(S, pmIn, board){
+    var h = '<div class="sx-tools">';
+    if (S.both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].concat(S.hubN ? [['hub', 'Content Hub']] : []).map(function(f){
+      var c = S.all.filter(function(x){ return f[0] === 'all' || (f[0] === 'hub' ? x.hub : x.studio === f[0]); }).length;
       return '<button type="button" data-sf="' + f[0] + '" data-fk="sf:' + f[0] + '" aria-pressed="' + (sxF === f[0]) + '">' + f[1] + ' <small>' + c + '</small></button>'; }).join('') + '</div>';
     h += '<label class="srch">' + ico('search') + '<input id="sx-q" type="search" placeholder="Find by name" value="' + esc(sxQ) + '" aria-label="Find by name"></label></div>';
-
-    // the second row: Filter, the two switches, Overdue | Board or List, View
-    h += '<div class="sx-bar"><div class="pp"><button class="pb" type="button" data-mn="filter" data-fk="mn:filter" aria-expanded="' + (sxMenu === 'filter') + '">' + ico('filter') + 'Filter' + (nF ? '<span class="pb-n">' + nF + '</span>' : '') + '</button>';
+    h += '<div class="sx-bar"><div class="pp"><button class="pb" type="button" data-mn="filter" data-fk="mn:filter" aria-expanded="' + (sxMenu === 'filter') + '">' + ico('filter') + 'Filter' + (S.nF ? '<span class="pb-n">' + S.nF + '</span>' : '') + '</button>';
     if (sxMenu === 'filter') {
       var secs = [['stage', 'Stage'], ['due', 'Due'], ['from', 'From']].map(function(f){
-        var o = opts(f[0]);
+        var o = S.opts(f[0]);
         // a facet with one value is no choice: it shows only while something in it is ticked
         if (o.length < 2 && !sxFl[f[0]].length) return '';
         return '<p class="pm-h">' + f[1] + '</p>' + o.map(function(v){ return po('data-ff', f[0] + ':' + v[0], v[1], v[2], sxFl[f[0]].indexOf(v[0]) >= 0); }).join('');
@@ -1624,24 +1602,10 @@ body{-webkit-tap-highlight-color:transparent;
     h += '</div>';
     if (roleOf() !== 'ct') h += '<button class="tg" type="button" id="sx-mine" data-fk="sx-mine" aria-pressed="' + sxMine + '"><i></i>Only what waits on me</button>';
     if (data.closed.length) h += '<button class="tg" type="button" id="sx-closed" data-fk="sx-closed" aria-pressed="' + sxClosed + '" title="Launched campaigns and posted posts"><i></i>Show closed <small>' + data.closed.length + '</small></button>';
-    if (lateAll) {
-      h += '<div class="pp"><button class="pb" type="button" data-mn="late" data-fk="mn:late" aria-expanded="' + (sxMenu === 'late') + '"><i class="pb-d"></i>' + { lane: 'Overdue in its own lane', stage: 'Overdue in its stage', hide: 'Overdue hidden' }[sxV.late] + ' <small>' + lateAll + '</small>' + '<svg class="i pb-v" aria-hidden="true"><use href="#g-chevd"/></svg></button>';
-      if (sxMenu === 'late') h += '<div class="pm"' + pmIn + ' role="group" aria-label="Overdue work"><p class="pm-h">Overdue work</p>' +
-        po('data-sl', 'lane', 'In its own lane', null, sxV.late === 'lane', 1, 'One Overdue lane; the stages hold what is on time') +
-        po('data-sl', 'stage', 'In its stage', null, sxV.late === 'stage', 1, 'Each card stays in its column, marked overdue') +
-        po('data-sl', 'hide', 'Hidden', null, sxV.late === 'hide', 1, 'Off the board; this count stays') + '</div>';
-      h += '</div>';
-    }
-    h += '<span class="sp"></span><div class="vs" role="group" aria-label="View as">' + [['board', 'Board'], ['list', 'List']].map(function(v){
-      return '<button type="button" data-sv="' + v[0] + '" data-fk="sv:' + v[0] + '" aria-pressed="' + (sxV.v === v[0]) + '">' + ico(v[0]) + v[1] + '</button>'; }).join('') + '</div>';
-    h += '<div class="pp"><button class="pb" type="button" data-mn="view" data-fk="mn:view" aria-expanded="' + (sxMenu === 'view') + '">' + ico('tune') + 'View</button>';
-    if (sxMenu === 'view') h += '<div class="pm" data-r' + pmIn + ' role="group" aria-label="View"><p class="pm-h">Sort by</p>' +
-      [['due', 'Due date', 'Yours first, then the soonest'], ['name', 'Name', ''], ['updated', 'Last updated', '']].concat(sxV.grp === 'stage' ? [] : [['stage', 'Stage', '']]).map(function(o){ return po('data-ss', o[0], o[1], null, so === o[0], 1, o[2]); }).join('') +
-      '<p class="pm-h">Group by</p>' + [['stage', 'Stage'], ['from', 'From'], ['kind', 'Kind']].map(function(o){ return po('data-sg', o[0], o[1], null, sxV.grp === o[0], 1); }).join('') +
-      '<p class="pm-h">Density</p>' + [['cozy', 'Comfortable'], ['compact', 'Compact']].map(function(o){ return po('data-sd', o[0], o[1], null, sxV.den === o[0], 1); }).join('') + '</div>';
-    h += '</div></div>';
-
-    // what is in force, each removable, and how much of the board it leaves
+    return h + (board || '') + '</div>';
+  }
+  // what is in force, each removable
+  function tkActs(){
     var act = [];
     if (sxF !== 'all') act.push(['kind', KIND[sxF]]);
     if (sxMine) act.push(['mine', 'Waits on me']);
@@ -1649,9 +1613,76 @@ body{-webkit-tap-highlight-color:transparent;
     sxFl.due.forEach(function(v){ act.push(['due:' + v, (DUEK.filter(function(d){ return d[0] === v; })[0] || [0, v])[1]]); });
     sxFl.from.forEach(function(v){ act.push(['from:' + v, 'From: ' + fromN(v)]); });
     if (sxQ) act.push(['q', '“' + sxQ + '”']);
-    if (act.length || hid) h += '<div class="sx-act">' + act.map(function(c){ return '<button class="fc" type="button" data-fx="' + esc(c[0]) + '" aria-label="Remove the filter ' + esc(c[1]) + '">' + esc(c[1]) + ico('x') + '</button>'; }).join('') +
+    return act;
+  }
+  function tkActRow(act, n, of, hid){
+    if (!act.length && !hid) return '';
+    return '<div class="sx-act">' + act.map(function(c){ return '<button class="fc" type="button" data-fx="' + esc(c[0]) + '" aria-label="Remove the filter ' + esc(c[1]) + '">' + esc(c[1]) + ico('x') + '</button>'; }).join('') +
       (act.length > 1 ? '<button class="b b-l" type="button" data-fx="*">Clear all</button>' : '') +
-      '<span class="sx-n" role="status">' + vis.length + ' of ' + all.length + ' shown' + (hid ? ' · ' + hid + ' overdue hidden' : '') + '</span></div>';
+      '<span class="sx-n" role="status">' + n + ' of ' + of + ' shown' + (hid ? ' · ' + hid + ' overdue hidden' : '') + '</span></div>';
+  }
+  function viewTracker(q){
+    // the old Launch | Organic posts chips' address lands on the Organic posts kind chip
+    if (q.v === 'posts') { sxF = 'ops'; try { history.replaceState(null, '', '#/tracker'); } catch (x) {} }
+    if (q.v === 'kanban') return viewStatus(q);
+    var ss = studiosFor(data.r);
+    var h = '<div class="sx-head"><div><h1 class="h1">Tracker</h1><p class="lede">' + (ss.length > 1 ? 'Every campaign and post, and what each still needs.' : ss[0] === 'ops' ? 'Every organic post and the step it is at.' : 'Every campaign and what it still needs, in English and Arabic.') + '</p></div>' + tkSwitch(false) + '</div>';
+    if (!data.known || !me || !me.email || !ss.length) return h + quiet('status');
+    var S = tkScope(), pmIn = sxMenuIn ? ' data-in' : ''; sxMenuIn = false;
+    h += tkBar(S, pmIn);
+    var act = tkActs();
+    function dn(x){ return x.stage === 'closed' ? 9999 : (due(x.due) || { n: 999 }).n; }
+    var rows = S.all.filter(function(x){ return S.pass(x); }).sort(function(a, b){ return dn(a) - dn(b) || (b.at || 0) - (a.at || 0); });
+    h += tkActRow(act, rows.length, S.all.length, 0);
+    if (!rows.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico(act.length ? 'filter' : 'tray') + '</span><div><h3>' + (act.length ? 'Nothing matches these filters' : 'Nothing in motion') + '</h3><p>' +
+      (act.length ? 'Take a filter off, or clear them all.' : 'Campaigns and posts appear here as they are filed.') + '</p>' + (act.length ? '<div class="qk-a"><button class="b b-g" type="button" data-fx="*">Clear the filters</button></div>' : '') + '</div></div>' + freshLine();
+    var cas = rows.filter(function(x){ return x.studio === 'cas'; }), ops = rows.filter(function(x){ return x.studio !== 'cas'; });
+    // both kinds showing: each under its own heading, campaigns first
+    if (cas.length && ops.length) return h + '<section class="tk-sec" aria-labelledby="tk-h-cas"><div class="sh" id="tk-h-cas">Campaign ads<small>' + cas.length + '</small></div><div class="tk">' + cas.map(tkCampaign).join('') + '</div></section>' +
+      '<section class="tk-sec" aria-labelledby="tk-h-ops"><div class="sh" id="tk-h-ops">Organic posts<small>' + ops.length + '</small></div><div class="tk">' + ops.map(tkPost).join('') + '</div></section>' + freshLine();
+    return h + '<div class="tk">' + (cas.length ? cas.map(tkCampaign) : ops.map(tkPost)).join('') + '</div>' + freshLine();
+  }
+
+  // ═════ TRACKER › KANBAN (was Status, its own page until 2026-11-20) ═════
+  function viewStatus(q){
+    var r = data.r, both = studiosFor(r).length > 1;
+    var h = '<div class="sx-head"><div><h1 class="h1">Tracker</h1><p class="lede">' + (both ? 'Every campaign and post on one board, from ticket or draft to ready.' : studiosFor(r)[0] === 'cas' ? 'Every campaign on one board, from ticket to ready.' : studiosFor(r).length ? 'Your organic posts on one board, from draft to ready.' : 'Campaigns and posts, from ticket or draft to ready.') + '</p></div>' + tkSwitch(true) + '</div>';
+    if (!data.known || !me || !me.email || !studiosFor(r).length) return h + quiet('status');
+    var S = tkScope(), all = S.all, pass = S.pass, stg = sxClosed ? STAGES : MOVING;
+    // OVERDUE HAS ITS OWN PLACE: a lane of its own (the default), its stage as before, or hidden.
+    // Asking for it by name (Due: Overdue) always shows it.
+    var lateAll = all.filter(isLate).length, mode = lateAll ? sxV.late : 'stage', wantLate = sxFl.due.indexOf('late') >= 0;
+    var shown = all.filter(function(x){ return pass(x); });
+    var hid = mode === 'hide' && !wantLate ? shown.filter(isLate).length : 0;
+    var vis = hid ? shown.filter(function(x){ return !isLate(x); }) : shown;
+    var lane = mode === 'lane' ? vis.filter(isLate) : [], main = mode === 'lane' ? vis.filter(function(x){ return !isLate(x); }) : vis;
+    var base = mode === 'stage' || (mode === 'hide' && wantLate) ? all : all.filter(function(x){ return !isLate(x); });
+    var nF = S.nF, pmIn = sxMenuIn ? ' data-in' : ''; sxMenuIn = false;
+    var so = sxV.sort === 'stage' && sxV.grp === 'stage' ? 'due' : sxV.sort, compact = sxV.den === 'compact';
+
+    // the shared controls (tkBar), then the board's own: Overdue | Board or List, View
+    var bh = '';
+    if (lateAll) {
+      bh += '<div class="pp"><button class="pb" type="button" data-mn="late" data-fk="mn:late" aria-expanded="' + (sxMenu === 'late') + '"><i class="pb-d"></i>' + { lane: 'Overdue in its own lane', stage: 'Overdue in its stage', hide: 'Overdue hidden' }[sxV.late] + ' <small>' + lateAll + '</small>' + '<svg class="i pb-v" aria-hidden="true"><use href="#g-chevd"/></svg></button>';
+      if (sxMenu === 'late') bh += '<div class="pm"' + pmIn + ' role="group" aria-label="Overdue work"><p class="pm-h">Overdue work</p>' +
+        po('data-sl', 'lane', 'In its own lane', null, sxV.late === 'lane', 1, 'One Overdue lane; the stages hold what is on time') +
+        po('data-sl', 'stage', 'In its stage', null, sxV.late === 'stage', 1, 'Each card stays in its column, marked overdue') +
+        po('data-sl', 'hide', 'Hidden', null, sxV.late === 'hide', 1, 'Off the board; this count stays') + '</div>';
+      bh += '</div>';
+    }
+    bh += '<span class="sp"></span><div class="vs" role="group" aria-label="View as">' + [['board', 'Board'], ['list', 'List']].map(function(v){
+      return '<button type="button" data-sv="' + v[0] + '" data-fk="sv:' + v[0] + '" aria-pressed="' + (sxV.v === v[0]) + '">' + ico(v[0]) + v[1] + '</button>'; }).join('') + '</div>';
+    bh += '<div class="pp"><button class="pb" type="button" data-mn="view" data-fk="mn:view" aria-expanded="' + (sxMenu === 'view') + '">' + ico('tune') + 'View</button>';
+    if (sxMenu === 'view') bh += '<div class="pm" data-r' + pmIn + ' role="group" aria-label="View"><p class="pm-h">Sort by</p>' +
+      [['due', 'Due date', 'Yours first, then the soonest'], ['name', 'Name', ''], ['updated', 'Last updated', '']].concat(sxV.grp === 'stage' ? [] : [['stage', 'Stage', '']]).map(function(o){ return po('data-ss', o[0], o[1], null, so === o[0], 1, o[2]); }).join('') +
+      '<p class="pm-h">Group by</p>' + [['stage', 'Stage'], ['from', 'From'], ['kind', 'Kind']].map(function(o){ return po('data-sg', o[0], o[1], null, sxV.grp === o[0], 1); }).join('') +
+      '<p class="pm-h">Density</p>' + [['cozy', 'Comfortable'], ['compact', 'Compact']].map(function(o){ return po('data-sd', o[0], o[1], null, sxV.den === o[0], 1); }).join('') + '</div>';
+    bh += '</div>';
+    h += tkBar(S, pmIn, bh);
+
+    // what is in force, each removable, and how much of the board it leaves
+    var act = tkActs();
+    h += tkActRow(act, vis.length, all.length, hid);
 
     if (!vis.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico(act.length ? 'filter' : 'tray') + '</span><div><h3>' + (act.length ? 'Nothing matches these filters' : hid ? 'Only overdue work is left' : 'Nothing on the board yet') + '</h3>' +
       '<p>' + (hid ? (hid === 1 ? 'One overdue campaign or post is' : hid + ' overdue campaigns and posts are') + ' hidden.' : act.length ? 'Take a filter off, or clear them all.' : 'Campaigns and posts appear here as they are filed.') + '</p>' +
@@ -1877,9 +1908,9 @@ body{-webkit-tap-highlight-color:transparent;
     if (t.dataset.sign){ try { $('me-menu').hidePopover(); } catch (x) {} if (acc) { if (t.dataset.sign === 'in') acc.signIn(); else if (t.dataset.sign === 'other') { acc.signOut(); acc.signIn(); } else acc.signOut(); } return; }
     if (t.classList.contains('mn-i')) { try { $('me-menu').hidePopover(); } catch (x) {} }
   });
-  // Status redrawn in place, the focus put back on the control that was pressed
+  // Tracker (Progress or Kanban) redrawn in place, the focus put back on the control that was pressed
   function sxDraw(fk){
-    if (!/^#\/tracker\?(.*&)?v=kanban/.test(location.hash)) return;
+    if (!/^#\/tracker(\?|$)/.test(location.hash)) return;
     route();
     var el = fk && document.querySelector('[data-fk="' + String(fk).replace(/["\\]/g, '\\$&') + '"]'); if (el) el.focus();
   }

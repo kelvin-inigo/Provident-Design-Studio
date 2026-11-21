@@ -120,10 +120,13 @@ say so and point to the step above.
   - **Tracker** has two views, switched at its top right: **Progress** (the default) and
     **Kanban**. Status is no longer its own page: its board, with every control, is Tracker's
     **Kanban**, and an old Status link opens it. Wherever this guide says *Status*, it means
-    **Tracker › Kanban**. **Progress** shows the work as rows. **Launch** lists every campaign by its
+    **Tracker › Kanban**. The board's controls sit above both views and work on both: the
+    **Everything** / **Campaign ads** / **Organic posts** / **Content Hub** chips, **Find by name**,
+    **Filter**, **Only what waits on me** and **Show closed**. What you pick stays when you switch
+    views. **Progress** shows the work as rows. It lists every campaign by its
     due date with what it still needs in English and Arabic: **Static**, **Animated**, **MVP video**
     and **Copy**, each **Done**, **1 of 2** (audiences), **Missing** or **Not needed**, and how many
-    are done in all. **Organic posts** lists every post with its picture and its four steps
+    are done in all, and every organic post with its picture and its four steps
     (**Draft**, **Design**, **Copy check**, **Ready**). It only shows; **Open the ad set**, **Open
     the ticket** or **Open the post** takes you to its page. A campaign shows its deliverables
     once the Kanban has been read on that computer.

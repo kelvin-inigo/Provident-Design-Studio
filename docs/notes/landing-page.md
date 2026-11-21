@@ -872,3 +872,19 @@ to `#/tracker?v=kanban` with `history.replaceState` (its `?stage=` kept), so pos
 hand-back, `tools/help-capture/capture.py` and old bookmarks still land; `sxDraw` and `redraw()`
 now key on the tracker route. The help frames named `status*` still show the old top bar and
 title until they are recaptured.
+
+## Tracker's controls cover both views (2026-11-21)
+
+By request ("place [the Kanban's controls] outside the tracker, so it affects progress and
+tracker"): the kind chips, search, Filter (Stage, Due, From), Only what waits on me and Show
+closed now sit above the view, under the head, and narrow **Progress** as well as **Kanban**.
+They were already page state (`sxF`, `sxQ`, `sxMine`, `sxFl`, `sxClosed`), so they carry across the
+switch. Shared code: `tkScope()` (rows, `pass`, `opts`), `tkBar(S, pmIn, board)` (the two rows;
+`board` is the Kanban's own Overdue placement, Board | List and View, appended to the second row),
+`tkActs()` / `tkActRow()` (the removable chips and "n of N shown"); `po` moved to module scope.
+Progress's Launch | Organic posts chips are gone: the kind chips replace them, `?v=posts` sets the
+Organic posts chip and drops the query, and with both kinds showing the rows sit under
+"Campaign ads" / "Organic posts" headings (`.tk-sec`). Progress keeps its own sort (due, then
+newest). `sxDraw` now redraws on any `#/tracker` route. Verified on the share-dev stand-in
+(15 rows): kind, search, waits-on-me and a Stage facet narrow Progress; the search and chips carry
+into Kanban; desktop and phone width.
