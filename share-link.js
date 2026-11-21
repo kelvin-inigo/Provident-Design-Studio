@@ -917,6 +917,8 @@
             const d = await dsRead(it.sid.slice(1), false, true), rv = d.review || {};
             e.live[it.sid] = true;
             proj[it.sid] = { sum: rv.sum || {}, thumb: rv.thumb || '' };
+            // the design's Animated badge (a video behind it), for the Tracker's Animated column (2026-11-21)
+            if (rv.sum && rv.sum.anim) (e.anim = e.anim || {})[it.sid] = true;
             // which project is which (by pid): a project opened elsewhere finds its ad set by it
             (e.pids = e.pids || {})[it.sid] = (d.state && d.state.pid) || (rv.sum || {}).pid || '';
             const br = d.state && d.state.look && d.state.look.on ? 'unbranded' : 'provident';
@@ -4712,9 +4714,14 @@
       const dl = open ? null : {};
       if (dl) {
         const add = (k, l, c) => { if (c.na) return; const z = dl[k] = dl[k] || { e: [0, 0], a: [0, 0] }; z[l][1]++; if (c.on) z[l][0]++; };
+        // A DESIGN MARKED ANIMATED COUNTS AS ANIMATED (2026-11-21, by request): a project of the
+        // design with a video behind it (its Animated badge, x.anim by sid) ticks Animated in its
+        // language; a manual tick still counts
+        const an = x.anim || {}, anOn = (a, l) => a.items.some(it => an[it.sid] && (l === 'a' ? it.lang === 'ARB' : it.lang !== 'ARB'));
         auds.forEach(a => {
           const vd = hasVid(a);
-          dlRows(rs, a).forEach(rw => rw.cells.forEach((c, i) => add(rw.k, i ? 'a' : 'e', rw.k === 'video' && vd && !c.na ? { on: true } : c)));
+          dlRows(rs, a).forEach(rw => rw.cells.forEach((c, i) => { const l = i ? 'a' : 'e';
+            add(rw.k, l, !c.na && ((rw.k === 'video' && vd) || (rw.k === 'anim' && anOn(a, l))) ? { on: true } : c); }));
           add('copy', 'e', { on: !!(a.eng && a.eng.copy) });
           if (!a.engOnly) add('copy', 'a', { on: !!(a.arb && a.arb.copy) });
         });

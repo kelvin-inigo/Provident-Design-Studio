@@ -130,7 +130,8 @@ say so and point to the step above.
     A campaign's line says how many audiences and designs it has (**1 audience · 4 designs**: an
     audience's **Design 2**, **3**… and its unbranded version are designs of it). A video added in
     the ad set's **Video** section counts as **MVP video** for the audience it was added for, or for
-    every audience when added for **All audiences**.
+    every audience when added for **All audiences**. A design with the **Animated** badge (a video
+    behind it) counts as **Animated** in its language.
     (**Draft**, **Design**, **Copy check**, **Ready**). It only shows; **Open the ad set**, **Open
     the ticket** or **Open the post** takes you to its page. A campaign shows its deliverables
     once the Kanban has been read on that computer.

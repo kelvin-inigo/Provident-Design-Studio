@@ -901,4 +901,9 @@ counts. `auds` is now distinct phase · market · `audRoot(aud)`; `dsg` is every
 counts refresh the next time a computer reads Status. Verified on the stand-in: Ellington with an
 All audiences video read MVP video 2 of 2; Palm Springs with a "Launch · Local · Family" video read
 3 of 7 EN (Family, its Unbranded and Design 2) and "5 audiences · 7 designs".
+- Follow-up the same day, "count them": the Animated badges. `dsInfo1` already reads every
+  project for Status; it now adds `anim[sid]` when the project's `review.sum.anim` is set (CAS's
+  `rvSum`: variants with a video background), and `inboxCas` ticks Animated for a design in the
+  language of that project. Verified on the stand-in: one English project marked → Ellington's
+  Animated went 0 of 2 → 1 of 2.
 
