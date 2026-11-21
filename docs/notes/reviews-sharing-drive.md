@@ -2516,3 +2516,17 @@ QR codes it needs to appear, so design and video."
   `#new=Test set&qr=<id>` (after its Start new question) holding `P.brand.qr` as a JPEG.
   **Not run**: the edit op against the Drive stand-in or real Drive, Status rendering with the
   fallback, a real designer reopening an existing design.
+
+# AD SET DISCOVERY LOOKS ONE FOLDER DEEPER (2026-11-21)
+
+Reported: "where did the VAULT go on tracker". The Vault by Imtiaz's record
+(`The Vault by Imtiaz_Adset.json`, not deleted, not launched) had been moved into its campaign's
+`Broad 1` folder, though its `folder` field still named the campaign folder. `dsFindSets` opened
+only `Ad set review` below a campaign folder, so a browser building its `provident-reviews` list
+fresh never found it (a browser that already had it kept showing it). Fixed both ways: the file
+was moved back to `The Vault by Imtiaz/` on Drive, and `dsFindSets` now reads every folder
+directly inside a campaign folder (still three levels; the last level asks only for records, not
+folders). Measured against the live Offplan 2026 folder: 21 records before, 24 after; the three
+extra are VAULT drafts deleted on 16 Nov (`deleted` set, no `tok.dd`), which `dsDiscover` skips.
+The scan takes ~11 s instead of ~5 s; it runs in the background at most once a minute.
+

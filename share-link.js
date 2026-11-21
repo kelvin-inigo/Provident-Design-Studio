@@ -236,16 +236,21 @@
   }
   // every ad set record under the campaigns folder. It sits in its campaign's own folder, one
   // level down (an older one in that folder's 'Ad set review'), so the scan reads the campaigns
-  // folder, then every campaign folder in a few batched queries — never deeper into the work.
+  // folder, then every campaign folder, then every folder directly inside a campaign folder, in a
+  // few batched queries — never deeper into the work.
+  // ONE LEVEL DEEPER (2026-11-21, by request): The Vault by Imtiaz's record had been moved into its
+  // campaign's "Broad 1" folder, so a browser building its list fresh never found it and it left
+  // Tracker there. Every subfolder of a campaign is now read too ('Ad set review' among them);
+  // deleted records found there (old drafts) are skipped by dsDiscover as before.
   async function dsFindSets(root) {
     const found = []; let level = [root];
     for (let depth = 0; depth < 3 && level.length; depth++) {
-      const next = [];
+      const next = [], last = depth === 2;
       for (let i = 0; i < level.length; i += 30) {
         const par = level.slice(i, i + 30).map(id => dsQ(id) + ' in parents').join(' or ');
-        const files = await dsQuery('(' + par + ') and trashed=false and (mimeType=' + dsQ(DS_FOLDER) + " or name contains '" + DS_TAIL + "' or name=" + dsQ(DS_FILE) + ')');
+        const files = await dsQuery('(' + par + ') and trashed=false and (' + (last ? '' : 'mimeType=' + dsQ(DS_FOLDER) + ' or ') + "name contains '" + DS_TAIL + "' or name=" + dsQ(DS_FILE) + ')');
         files.forEach(f => {
-          if (f.mimeType === DS_FOLDER) { if (depth === 0 || f.name === DS_SET) next.push(f.id); }
+          if (f.mimeType === DS_FOLDER) { if (!last) next.push(f.id); }
           else if (f.name.endsWith(DS_TAIL) || f.name === DS_FILE) found.push(f);
         });
       }
