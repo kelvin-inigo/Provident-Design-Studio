@@ -227,6 +227,7 @@ button{font-family:inherit}
   box-shadow:inset 0 0 0 1px var(--ps-line); color:var(--ps-ink-2); font:500 13px/1 var(--ps-font); cursor:pointer;
   transition:background-color var(--ps-motion) var(--ps-ease), color var(--ps-motion) var(--ps-ease), box-shadow var(--ps-motion) var(--ps-ease)}
 .flt button:hover{color:var(--ps-ink); box-shadow:inset 0 0 0 1px var(--ps-ink-2)}
+.flt button:focus-visible,.tg:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px}
 .flt button[aria-pressed="true"]{background:var(--ps-fill-on); color:var(--ps-ink); box-shadow:none}
 .flt button small{font:400 12.5px/1 var(--ps-font); color:var(--ps-dim); font-variant-numeric:tabular-nums}
 .flt button[aria-pressed="true"] small{color:var(--ps-ink-2)}
@@ -713,6 +714,8 @@ button{font-family:inherit}
   .uh-nav{order:5; width:100%; justify-content:space-between}
   .uh-nav a{flex:1; justify-content:center; padding:0 10px}
 }
+/* the nav scrolls on a phone: its right edge fades so the hidden links read as more (2026-11-21, polish) */
+@media (max-width:480px){ .uh-nav{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent); mask-image:linear-gradient(90deg,#000 calc(100% - 32px),transparent)} .uh-nav a:last-child{margin-right:24px} }
 @media (max-width:640px){
   .pg{padding:24px 16px 32px}
   .hm > .sky{margin-bottom:-18px}
@@ -1319,7 +1322,7 @@ body{-webkit-tap-highlight-color:transparent;
       SKY_CLOUDS.map(function(c, i){ return '<i class="sky-c" style="--x:' + c[0] + '%;--y:' + c[1] + '%;--w:' + c[2] + 'px;--k:' + c[3] + ';--i:' + i + '"></i>'; }).join('') +
       '</div><h1 class="h1">' + hi + '<span>' + tail + '</span></h1><time class="sky-t" id="sky-t">' + skyClock() + '</time></section><div class="hm-main">';
 
-    h += '<div class="sh">Next up' + (n > 1 ? '<small>' + (cur + 1) + ' of ' + n + '</small><span class="sp"></span><span class="pgr">' +
+    h += '<div class="sh" role="heading" aria-level="2">Next up' + (n > 1 ? '<small>' + (cur + 1) + ' of ' + n + '</small><span class="sp"></span><span class="pgr">' +
       '<button class="icb" type="button" data-nx="-1" aria-label="Previous"' + (cur ? '' : ' disabled') + '>' + ico('chevl') + '</button>' +
       '<button class="icb" type="button" data-nx="1" aria-label="Next"' + (cur < n - 1 ? '' : ' disabled') + '>' + ico('chev') + '</button></span>' : '') + '</div>';
     if (top){
@@ -1346,23 +1349,23 @@ body{-webkit-tap-highlight-color:transparent;
       var cnt = { all: rest.length, cas: 0, ops: 0 };
       rest.forEach(function(x){ cnt[x.studio]++; });
       if (!cnt[homeF]) homeF = 'all';
-      h += '<section class="ib" aria-labelledby="h-ib"><div class="sh" id="h-ib">Also waiting on you<small>' + rest.length + '</small></div>';
+      h += '<section class="ib" aria-labelledby="h-ib"><div class="sh" role="heading" aria-level="2" id="h-ib">Also waiting on you<small>' + rest.length + '</small></div>';
       if (cnt.cas && cnt.ops) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(f){
         return '<button type="button" data-hf="' + f[0] + '" aria-pressed="' + (homeF === f[0]) + '">' + f[1] + ' <small>' + cnt[f[0]] + '</small></button>'; }).join('') + '</div>';
       h += '<ol class="rows">' + rest.filter(function(x){ return homeF === 'all' || homeF === x.studio; }).map(function(x){ return row(x); }).join('') + '</ol></section>';
     }
     if (data.others.length){
-      h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" id="h-oth" style="color:var(--ps-ink-2)">' + (viewOnly() ? 'In progress' : 'With others') + '<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">All on the board</a></div><ol class="rows">' +
+      h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" role="heading" aria-level="2" id="h-oth" style="color:var(--ps-ink-2)">' + (viewOnly() ? 'In progress' : 'With others') + '<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">All on the board</a></div><ol class="rows">' +
         data.others.slice(0, 5).map(function(x){ return row(x, true); }).join('') + '</ol></section>';
     }
     h += freshLine();
-    h += '<section class="desk" id="desk" hidden aria-labelledby="h-desk"><div class="sh" id="h-desk">Pick up where you left off<small id="desk-n"></small></div><ol class="dk2" id="reel"></ol><p class="desk-more" id="desk-more" hidden></p></section>';
+    h += '<section class="desk" id="desk" hidden aria-labelledby="h-desk"><div class="sh" role="heading" aria-level="2" id="h-desk">Pick up where you left off<small id="desk-n"></small></div><ol class="dk2" id="reel"></ol><p class="desk-more" id="desk-more" hidden></p></section>';
     h += '</div><aside class="hm-side" aria-label="Overview">';
 
     // where everything is: the four stages, each with the work actually in it
     if (data.known){
       var both = studiosFor(r).length > 1;
-      h += '<section class="pan"><div class="sh">Where everything is<small>' + data.rows.length + ' in motion</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">The board</a></div><ol class="flw">';
+      h += '<section class="pan"><div class="sh" role="heading" aria-level="2">Where everything is<small>' + data.rows.length + ' in motion</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">The board</a></div><ol class="flw">';
       MOVING.forEach(function(s){
         var c = data.rows.filter(function(x){ return x.stage === s.k; }).sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
         var a = c.filter(function(x){ return x.studio === 'cas'; }).length, o = c.length - a;
@@ -1377,11 +1380,11 @@ body{-webkit-tap-highlight-color:transparent;
     }
     if (isAdmin()){
       var pend = acc && acc.now ? acc.now().pending : 0;
-      h += '<section class="pan"><div class="sh">Access<span class="sp"></span><a class="b b-l" href="#/access">Open</a></div><p class="lede" style="margin:0;font-size:14px">' +
+      h += '<section class="pan"><div class="sh" role="heading" aria-level="2">Access<span class="sp"></span><a class="b b-l" href="#/access">Open</a></div><p class="lede" style="margin:0;font-size:14px">' +
         (pend ? '<b style="font-weight:500;color:var(--ps-ink)">' + pend + (pend === 1 ? ' person is' : ' people are') + ' waiting to get in.</b> ' : 'No one is waiting to get in. ') + 'Requests, people and their roles are under Access.</p></section>';
     }
     var opens = designs();
-    if (opens.length) h += '<section class="pan"><div class="sh">Your studios</div>' + opens.map(function(k){
+    if (opens.length) h += '<section class="pan"><div class="sh" role="heading" aria-level="2">Your studios</div>' + opens.map(function(k){
       return '<a class="st" data-k="' + k + '" href="' + (k === 'cas' ? '#/new/cas' : STUDIO[k].start) + '"><span class="mk" data-s="' + k + '"><i></i></span><span><b>' + STUDIO[k].long + '</b><small>' + STUDIO[k].desc + '</small></span>' + ico('chev') + '</a>';
     }).join('') +
       // CASV, the Video Studio: it runs on the designer's own computer (photos are animated there), so
@@ -1660,8 +1663,8 @@ body{-webkit-tap-highlight-color:transparent;
       (act.length ? 'Take a filter off, or clear them all.' : 'Campaigns and posts appear here as they are filed.') + '</p>' + (act.length ? '<div class="qk-a"><button class="b b-g" type="button" data-fx="*">Clear the filters</button></div>' : '') + '</div></div>' + freshLine();
     var cas = rows.filter(function(x){ return x.studio === 'cas'; }), ops = rows.filter(function(x){ return x.studio !== 'cas'; });
     // both kinds showing: each under its own heading, campaigns first
-    if (cas.length && ops.length) return h + '<section class="tk-sec" aria-labelledby="tk-h-cas"><div class="sh" id="tk-h-cas">Campaign ads<small>' + cas.length + '</small></div><div class="tk">' + cas.map(tkCampaign).join('') + '</div></section>' +
-      '<section class="tk-sec" aria-labelledby="tk-h-ops"><div class="sh" id="tk-h-ops">Organic posts<small>' + ops.length + '</small></div><div class="tk">' + ops.map(tkPost).join('') + '</div></section>' + freshLine();
+    if (cas.length && ops.length) return h + '<section class="tk-sec" aria-labelledby="tk-h-cas"><div class="sh" role="heading" aria-level="2" id="tk-h-cas">Campaign ads<small>' + cas.length + '</small></div><div class="tk">' + cas.map(tkCampaign).join('') + '</div></section>' +
+      '<section class="tk-sec" aria-labelledby="tk-h-ops"><div class="sh" role="heading" aria-level="2" id="tk-h-ops">Organic posts<small>' + ops.length + '</small></div><div class="tk">' + ops.map(tkPost).join('') + '</div></section>' + freshLine();
     return h + '<div class="tk">' + (cas.length ? cas.map(tkCampaign) : ops.map(tkPost)).join('') + '</div>' + freshLine();
   }
 
@@ -1811,10 +1814,10 @@ body{-webkit-tap-highlight-color:transparent;
     h = '<div class="ax2"><div class="ax2-main">' + h + '<p class="lede">Who you are signed in as, and what your role lets you do.</p>' +
       '<section class="idc"><span class="uh-av">' + avIn(P.name, P.email) + '</span><div><b>' + esc(P.name || P.email) + '</b><small>' + esc(P.email) + '</small><div class="idc-t">' +
         (raw ? '<span class="idc-r">' + esc(roleLabel(raw)) + '</span>' : '<span class="chip">Role not confirmed yet</span>') + (isAdmin() ? '<span class="idc-r">Admin</span>' : '') + '<span class="chip">Signed in with Google</span></div></div></section>' +
-      '<section class="pan"><div class="sh">What your role opens<small>' + can.filter(Boolean).length + ' of ' + CAN.length + '</small></div><ul class="cn">' + CAN.map(function(c, i){
+      '<section class="pan"><div class="sh" role="heading" aria-level="2">What your role opens<small>' + can.filter(Boolean).length + ' of ' + CAN.length + '</small></div><ul class="cn">' + CAN.map(function(c, i){
         return '<li data-on="' + (can[i] ? 1 : 0) + '"><span class="cn-i">' + (can[i] ? ico('check') : '') + '</span><span><b>' + c[0] + '</b><small>' + c[1] + '</small></span><span class="cn-s">' + (can[i] ? 'Yes' : 'No') + '</span></li>';
       }).join('') + '</ul></section></div><aside class="ax2-side">' +
-      '<section class="pan"><div class="sh">A different role</div><p class="br">The admin sets each person’s role, and what each role opens. Ask them; a change reaches you within five minutes.</p>' +
+      '<section class="pan"><div class="sh" role="heading" aria-level="2">A different role</div><p class="br">The admin sets each person’s role, and what each role opens. Ask them; a change reaches you within five minutes.</p>' +
       (phase === 'pending' ? '<p class="lede" style="font-size:13px">Your request to get in is with the admin.</p>' : '') +
       '<div class="qk-a"><button class="b b-g" type="button" data-sign="out">Sign out</button></div></section></aside></div>';
     return h;
@@ -2109,8 +2112,8 @@ body{-webkit-tap-highlight-color:transparent;
       ['var(--ps-link)', 'Design', 'Each audience is its own project, in English first.'],
       ['var(--ps-warn)', 'Copy check', 'The content team checks the English, then the Arabic translation.'],
       ['var(--ps-good)', 'Ready', 'Performance marketing downloads the package for every audience.']];
-    $('np-side').innerHTML = '<section class="pan"><div class="sh">How it moves</div><ol class="np-flow">' + F.map(function(f){ return '<li><i style="--c:' + f[0] + '"></i><span><b>' + f[1] + '</b><small>' + f[2] + '</small></span></li>'; }).join('') + '</ol></section>' +
-      (!pm && waiting ? '<section class="pan"><div class="sh">Already filed<small>' + waiting + '</small></div><p class="lede" style="margin:0;font-size:14px">' + (waiting === 1 ? 'One ticket is' : waiting + ' tickets are') + ' waiting for a designer. <a class="b b-l" href="#/tracker?v=kanban&stage=new">See them on the board</a></p></section>' : '');
+    $('np-side').innerHTML = '<section class="pan"><div class="sh" role="heading" aria-level="2">How it moves</div><ol class="np-flow">' + F.map(function(f){ return '<li><i style="--c:' + f[0] + '"></i><span><b>' + f[1] + '</b><small>' + f[2] + '</small></span></li>'; }).join('') + '</ol></section>' +
+      (!pm && waiting ? '<section class="pan"><div class="sh" role="heading" aria-level="2">Already filed<small>' + waiting + '</small></div><p class="lede" style="margin:0;font-size:14px">' + (waiting === 1 ? 'One ticket is' : waiting + ' tickets are') + ' waiting for a designer. <a class="b b-l" href="#/tracker?v=kanban&stage=new">See them on the board</a></p></section>' : '');
   }
   // the mounted pages' own Back goes to the board here, not to their studio list
   document.addEventListener('click', function(e){

@@ -2565,3 +2565,9 @@ Not reached locally: the CAS editor (the studio redirects to `#/projects` on the
 the editor path was checked by reading only; the ad set page path was clicked through end to end.
 No Undo after a send: sending again with Send to… is the way back.
 
+Polish pass the same day (Revision 1.36): in Ad set settings a later `.rss-q` two-column rule had
+beaten the 640px one-column rule, so a phone clipped Product and Brand — a second media rule now
+sits after it. `.rss` is a scrolling flex column, so its children need `flex-shrink:0` or the tab
+switch squashes. The brand note lives inside the Brand field. The discard footer makes **Keep
+editing** the filled button and **Discard** a quiet ghost in `--ps-bad`. `p.rvd-fx` capped at 62ch.
+

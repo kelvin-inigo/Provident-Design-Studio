@@ -924,3 +924,7 @@ delivered" (it said "done, EN + AR" under English-only cells). The grids are `ro
 each `tkCell` is `role="img"` with an aria-label (kind, language, state). The no-data line links
 to the Kanban. Checked on screen at desktop and 375 px.
 
+Polish (Revision 1.36): every `.sh` section label is `role="heading" aria-level="2"` (the outline
+went h1 → h3); `.flt button` and `.tg` get the 2px ink focus ring; below 480px `.uh-nav` fades its
+right 32px (mask) so the scrolled-off links read as more.
+

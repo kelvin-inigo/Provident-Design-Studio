@@ -2624,9 +2624,8 @@
       '<div class="rss-pane" id="rss-pc" role="tabpanel" aria-labelledby="rss-tc" data-pane-c>' +
       '<div class="rss-q"><label class="rsp-f"><span>Name</span><input class="p-in" data-f="name" maxlength="120" autocomplete="off"></label>' +
       '<div class="rsp-f"><span id="rss-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rss-prod-l"></div></div>' +
-      (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Mixed: every audience is branded and can also run unbranded, with its own words — Start the unbranded on Status copies its branded design. Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div></div>' : '') +
+      (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Mixed: every audience is branded and can also run unbranded, with its own words — Start the unbranded on Status copies its branded design. Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div><p class="rss-help" data-brhelp></p></div>' : '') +
       (ticket ? '<label class="rsp-f"><span>Deadline</span><input class="p-in" type="date" data-f="deadline"></label>' : '') + '</div>' +
-      (phOk ? '<p class="rss-help" data-brhelp></p>' : '') +
       (ticket ? '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="3" placeholder="The script, fact sheet or brief"></textarea></label>' : '') +
       // VIDEO (2026-11-13): the ad set also delivers a video, made in the Video Studio; Status then shows an Add video placeholder
       (phOk ? '<div class="rsp-f"><span id="rss-vid-l" title="The ad set also delivers a video, made in the Video Studio (CASV). Status shows an Add video placeholder until it is added.">Video</span><div class="p-tabs rsp-vid" role="radiogroup" aria-labelledby="rss-vid-l"></div></div>' : '') +
@@ -2739,7 +2738,7 @@
     let asking = false;
     const acts = () => {
       const f = $('.shl-acts');
-      f.innerHTML = asking ? '<span class="rss-ask">Discard your changes?</span><button type="button" class="p-ghost" data-keep="1">Keep editing</button><button type="button" class="p-btn rss-dis" data-discard="1">Discard</button>'
+      f.innerHTML = asking ? '<span class="rss-ask">Discard your changes?</span><button type="button" class="p-ghost rss-dis" data-discard="1">Discard</button><button type="button" class="p-btn" data-keep="1">Keep editing</button>'
         : '<button type="button" class="p-ghost" data-x="1">Cancel</button><button type="button" class="p-btn" data-go="1">Save changes</button>';
       const b = f.querySelector(asking ? '[data-keep]' : '[data-go]'); if (b && asking) b.focus();
     };
@@ -8009,12 +8008,16 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .shl-dlg-c.rss{padding-bottom:0}
 .rss-tabs{align-self:flex-start}
 .rss-pane{display:flex;flex-direction:column;gap:16px}
+.rss > *,.rss-pane > *{flex-shrink:0}
+.rss-q .rss-help{margin:0;grid-column:1/-1}
 .rss-pane[hidden]{display:none}
 .rss-help{margin:-6px 0 0;max-width:62ch;font:400 13px/1.5 var(--ps-font);color:var(--ps-ink-2)}
 .rss-help b{font-weight:500;color:var(--ps-ink)}
 .rss-phs .rss-help{margin:2px 0 0}
 .rss-foot{position:sticky;bottom:0;z-index:1;display:flex;flex-direction:column;gap:10px;margin:auto -24px 0;padding:16px 24px 20px;background:var(--ps-card);box-shadow:0 -1px 0 var(--ps-hair)}
 .rss-ask{margin-right:auto;font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rss .shl-acts{flex-wrap:wrap}
+.rss .rss-dis{color:var(--ps-bad)}
 .rss .rsp-l{height:32px;width:40px}
 .rss .rss-pc button{width:30px;height:30px}
 .rss .rss-pc button[data-reach]{width:auto;height:30px}
@@ -8121,7 +8124,7 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-ha .p-btn,.rvd-ha .p-ghost{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;white-space:nowrap;text-decoration:none}
 .rvd-ha .rva-i{width:17px;height:17px;fill:currentColor}
 .rvd-ha .rvd-ic{width:36px;padding:0;justify-content:center}
-.rvd-ht p.rvd-fx{color:var(--ps-ink-2)}
+.rvd-ht p.rvd-fx{color:var(--ps-ink-2);max-width:62ch}
 .rvd-phc{padding:12px 24px 20px;border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
 .rvd-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;margin:0;padding:0;list-style:none}
 .rvd-steps li{display:flex;flex-direction:column;gap:8px;min-width:0}
@@ -8385,6 +8388,8 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .rss-qrt s{text-decoration:none;font:400 12px/1.35 var(--ps-font);color:var(--ps-dim)}
 .rss-qr .p-ghost{flex:none;height:34px}
 .rss-q{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:640px){.rss-q{grid-template-columns:minmax(0,1fr)}.rss-q .rsp-prod,.rss-q .rsp-brand{width:auto}}
+.rss .rsp-vid{width:max-content;max-width:100%}
 .rss-q .rsp-prod,.rss-q .rsp-brand{width:max-content}
 .rss-pc button[data-reach]{width:auto;height:26px;margin-left:6px;padding:0 10px;border-radius:9999px;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 12px/1 var(--ps-font)}
 .rss-pc button[data-reach][aria-pressed=true]{background:var(--ps-ink);box-shadow:none;color:var(--ps-card)}
