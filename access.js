@@ -727,8 +727,10 @@
     if (list.length > 1) list = list.filter(p => p.email !== mine).concat(list.filter(p => p.email === mine));
     // a finished post goes back to whoever drafted it, unless someone else is picked
     const pre = k === 'smm' && it && it.draft && it.draft.em ? it.draft.em : '';
-    const to = await pickDlg({ T, list, err, k, pre, title: opt.title || T.head, lead: opt.lead || '', go: opt.go || 'Send' });
+    const to = await pickDlg({ T, list, err, k, pre, title: opt.title || T.head, lead: opt.lead || '', go: opt.go || 'Send', back: !!opt.back });
     if (to === undefined) return null;
+    // Back (2026-11-21): Send to… shows its task list again
+    if (to === 'back') return 'back';
     if (to) out.to = { email: to.email, name: to.name || '' };
     return out;
   }
@@ -740,20 +742,38 @@
       const draw2 = () => {
         w.innerHTML = '<div class="acx-pk-in"><h2 id="acx-pk-h">' + esc(o.title) + '</h2>' + (o.lead ? '<p class="acx-pk-l">' + esc(o.lead) + '</p>' : '') +
           (o.list.length ? '<div class="acx-pk-list" role="radiogroup" aria-label="' + esc(o.title) + '">' + o.list.map(p =>
-            '<button type="button" role="radio" aria-checked="' + (p.email === sel) + '" class="acx-pk-p" data-e="' + esc(p.email) + '"' + (p.email === sel ? ' data-on' : '') + '>' +
+            '<button type="button" role="radio" aria-checked="' + (p.email === sel) + '" tabindex="' + (p.email === sel ? 0 : -1) + '" class="acx-pk-p" data-e="' + esc(p.email) + '"' + (p.email === sel ? ' data-on' : '') + '>' +
             '<span class="acx-av">' + avIn(p.name, p.email) + '</span><span class="acx-pk-t"><b>' + esc(nameOf(p)) + (p.email === mine ? ' <s>you</s>' : '') + '</b><small>' + esc(p.email) + '</small><small>' + esc(SEGL[p.role] || ROLE[p.role] || '') +
             (p.last ? ' · last in ' + esc(when(p.last)) : ' · not signed in yet') + '</small></span><i class="acx-pk-r" aria-hidden="true">' + ic('check') + '</i></button>').join('') + '</div>'
             : '<p class="acx-pk-l">' + esc(o.err || ('Nobody is on the ' + o.T.word + ' yet. The admin adds people in Access.')) + ' It goes to the whole ' + esc(o.T.word) + ' instead.</p>') +
-          '<div class="acx-row acx-pk-f"><button type="button" class="acx-ghost" data-pk="no">Cancel</button><button type="button" class="acx-btn" data-pk="go">' + ic('send') +
+          '<div class="acx-row acx-pk-f">' + (o.back ? '<button type="button" class="acx-ghost acx-pk-bk" data-pk="back">' + ic('back') + 'Back</button>' : '') + '<button type="button" class="acx-ghost" data-pk="no">Cancel</button><button type="button" class="acx-btn" data-pk="go">' + ic('send') +
           esc(o.list.length && sel ? o.go + ' to ' + nameOf(o.list.find(p => p.email === sel) || {}).split(' ')[0] : o.go) + '</button></div></div>';
       };
-      const done = v => { document.removeEventListener('keydown', key, true); w.remove(); res(v); };
-      const key = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(undefined); } };
+      const from = document.activeElement;
+      const done = v => { document.removeEventListener('keydown', key, true); w.remove(); if (v !== 'back') { try { if (from && from.isConnected) from.focus(); } catch (x) {} } res(v); };
+      // KEYBOARD (2026-11-21): Escape closes (or goes Back from Send to…), the arrows move the
+      // choice through the people as a radio group does, and Tab stays inside the dialog
+      const key = e => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); done(o.back ? 'back' : undefined); return; }
+        const ps = [...w.querySelectorAll('[data-e]')];
+        if (/^Arrow(Up|Down|Left|Right)$/.test(e.key) && e.target.closest && e.target.closest('[data-e]') && ps.length) {
+          e.preventDefault();
+          const i = ps.findIndex(p => p.dataset.e === sel), n = ps[(i + (/Down|Right/.test(e.key) ? 1 : ps.length - 1)) % ps.length];
+          sel = n.dataset.e; draw2(); const b = w.querySelector('[data-e="' + CSS.escape(sel) + '"]'); if (b) b.focus(); return;
+        }
+        if (e.key === 'Tab') {
+          const f = [...w.querySelectorAll('button')].filter(b => !b.hasAttribute('data-e') || b.dataset.e === sel);
+          const i = f.indexOf(document.activeElement);
+          if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+          else if (!e.shiftKey && (i < 0 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
+        }
+      };
       w.addEventListener('click', e => {
         if (e.target === w) return done(undefined);
         const p = e.target.closest('[data-e]'); if (p) { sel = p.dataset.e; draw2(); const b = w.querySelector('[data-e="' + CSS.escape(sel) + '"]'); if (b) b.focus(); return; }
         const b = e.target.closest('[data-pk]'); if (!b) return;
         if (b.dataset.pk === 'no') return done(undefined);
+        if (b.dataset.pk === 'back') return done('back');
         const who = o.list.find(p => p.email === sel) || null;
         if (who) { try { localStorage.setItem(LS_TO + o.k, who.email); } catch (x) {} }
         done(who);
@@ -874,6 +894,7 @@ html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-
 .acx-pk-r .acx-i{width:16px;height:16px}
 .acx-pk-p[data-on] .acx-pk-r{background:var(--ps-link);box-shadow:none;color:var(--ps-app)}
 .acx-pk-f{display:flex;gap:8px;justify-content:flex-end}
+.acx-pk-bk{margin-right:auto;display:inline-flex;align-items:center;gap:4px}.acx-pk-bk .acx-i{width:18px;height:18px}
 .acx-pk .acx-av{width:36px;height:36px}
 #acx{position:fixed;inset:0;z-index:4000;display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);background:var(--ps-app);color:var(--ps-ink);font-family:var(--ps-font);overflow:auto}
 #acx .acx-l{display:flex;flex-direction:column;min-height:100vh;padding:40px clamp(28px,6vw,72px);box-sizing:border-box}

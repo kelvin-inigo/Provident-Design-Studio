@@ -108,10 +108,19 @@ exports download as a zip. The studios fit tablets and phones.
   settings** each phase has a **Broad** button; a phase added after a broad one starts broad too.
   Un-press it on the phase that goes audience-based (usually the third) and tick its audiences
   under **Audiences**. Projects already made stay where they are.
-- **Send to…** lists **Copy check** (**Translation check** on an Arabic project), **Arabic**,
-  **Animated**, **MVP video**, **Design** and **Done**, then asks who gets it: the content team for a
-  check, a designer for Arabic, Animated and Video, nobody for Done. After the first hand-off it
-  stays in the **Ad set** tab's header.
+- **Send to…** lists, grouped **Next** / **Back** / **Finish**: **Copy check** (**Translation
+  check** on an Arabic project), **Arabic**, **Animated**, **MVP video**, then **Design**, then
+  **Done** (which asks **Mark done?** first). Then, in the same dialog, it asks who gets it: the
+  content team for a check, a designer for Arabic, Animated and MVP video, nobody for Done;
+  **Back** returns to the list. After the first hand-off it stays in the **Ad set** tab's header,
+  with a line saying what was sent, when and who has it. It is also in each project's **⋯** menu
+  on the ad set page (Tracker › **Open the ad set**). A missing-items check before a copy check
+  shows in the dialog: **Fix it first** or **Send anyway**.
+- **Tracker** says **Signed off · N deliverables missing** when an ad set is approved but still
+  lacks deliverables (Animated, MVP video…); it does not block the package.
+- **Ad set settings** has two tabs: **Campaign** (name, product, brand, deadline, brief, video,
+  QR) and **Plan** (phases, markets, audiences, Arabic). Closing with unsaved changes asks
+  **Discard your changes?**.
 - **Deliverables** (a card in the **Ad set** tab): every audience needs **Static**, **Animated**
   (the same CAS design with a video as its background instead of the photo, 1:1 and 9:16 — made
   in CAS) and the **MVP video** (the short key-facts video — made only in the Video Studio, CASV,

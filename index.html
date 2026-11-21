@@ -247,6 +247,8 @@ button{font-family:inherit}
 .tk-when small{display:block; font:300 13px/1.3 var(--ps-font); color:var(--ps-ink-2)}
 .tk-who h3{margin:0; font:400 19px/1.25 var(--ps-font)}
 .tk-m{margin-top:4px; font:300 14px/1.4 var(--ps-font); color:var(--ps-ink-2)}
+.tk-short{display:inline-flex; align-items:center; gap:6px; color:var(--ps-ink); font-weight:400} .tk-short i{width:7px; height:7px; border-radius:50%; background:var(--ps-warn)}
+.tk-q a{color:var(--ps-link); text-underline-offset:3px}
 .tk-q{align-self:center; font:300 14px/1.45 var(--ps-font); color:var(--ps-ink-2)}
 .tk-g{display:grid; grid-template-columns:28px repeat(4,minmax(0,1fr)); gap:6px; align-items:stretch}
 .tk-hd{font:500 11px/1.2 var(--ps-font); letter-spacing:.06em; text-transform:uppercase; color:var(--ps-ink-2); padding:0 2px 4px; align-self:end}
@@ -1513,35 +1515,42 @@ body{-webkit-tap-highlight-color:transparent;
   var TK_TICK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   function tkDay(d){ return d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? new Date(d + 'T12:00').toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }) : ''; }
   // en: an English-only cell (spans both language rows, says so under its state)
-  function tkCell(v, lang, en){
-    var o = '<div class="tk-c"' + (en ? ' data-en' : ''), cap = en ? '<small class="tk-cap">English only</small>' : '', t = en ? ' (English only)' : '';
+  // each cell names itself for a screen reader: kind, language, state (the grid is a picture of the plan)
+  function tkCell(v, lang, en, kind){
+    var st = !v || !v[1] ? 'not needed' : v[0] >= v[1] ? 'done' : v[0] ? v[0] + ' of ' + v[1] + ' done' : 'missing';
+    var o = '<div class="tk-c" role="img" aria-label="' + esc((kind ? kind + ', ' : '') + (en ? 'English only' : lang || '') + ': ' + st) + '"' + (en ? ' data-en' : ''), cap = en ? '<small class="tk-cap">English only</small>' : '', t = en ? ' (English only)' : '';
     if (!v || !v[1]) return o + ' data-s="na" title="Not needed"><span class="tk-lb">Not needed</span>' + cap + '</div>';
     if (v[0] >= v[1]) return o + ' data-s="done" title="Done' + (v[1] > 1 ? ' for all ' + v[1] + ' designs' : '') + t + '"><span class="tk-v">' + TK_TICK + '<span class="tk-lb">Done</span></span>' + cap + '</div>';
     if (v[0]) return o + ' data-s="part" title="' + v[0] + ' of ' + v[1] + ' designs done' + t + '"><span class="tk-v">' + v[0] + '<span class="tk-lb">&nbsp;of ' + v[1] + '</span><span class="tk-sm">/' + v[1] + '</span></span>' + cap + '</div>';
     return o + ' data-s="miss" title="Not done yet' + (lang ? ' in ' + lang : '') + '"><span class="tk-lb">Missing</span>' + cap + '</div>';
   }
   function tkCount(d){ var n = 0, of = 0; TK_DL.forEach(function(k){ var z = d[k[0]]; if (z) (TK_EN[k[0]] ? ['e'] : ['e', 'a']).forEach(function(l){ if (z[l] && z[l][1]) { of++; if (z[l][0] >= z[l][1]) n++; } }); }); return { n: n, of: of }; }
+  // signed off: the deadline is history, not a warning (2026-11-21, /impeccable critique)
   function tkWhen(x, word){
-    return '<div class="tk-when">' + (x.due ? '<b>' + esc(tkDay(x.due)) + '</b>' + dueEl(x, x.ready) : '<b class="tk-nd">No date</b><small>' + word + '</small>') + '</div>';
+    return '<div class="tk-when">' + (x.due ? '<b>' + esc(tkDay(x.due)) + '</b>' + (x.ready ? '<small>Deadline</small>' : dueEl(x)) : '<b class="tk-nd">No date</b><small>' + word + '</small>') + '</div>';
   }
   function tkCampaign(x){
     var d = x.dlv, k = d ? tkCount(d) : null, p = k && k.of ? Math.round(k.n / k.of * 100) : 0;
     var h = '<article class="tk-r"' + (isLate(x) && !x.ready ? ' data-hot' : '') + '>' + tkWhen(x, 'no deadline on the ticket') +
-      '<div class="tk-who"><h3>' + esc(x.name) + '</h3><div class="tk-m">' + esc(x.step || '') + (x.sub ? ' · ' + esc(x.sub) : '') + '</div>' +
+      // SIGNED OFF IS NOT EVERYTHING DELIVERED (2026-11-21, /impeccable critique, by choice: warn,
+      // don't block): a ready ad set with deliverables still missing says so, in the warning colour
+      '<div class="tk-who"><h3>' + esc(x.name) + '</h3><div class="tk-m">' + (x.ready && k && k.of && k.n < k.of
+        ? 'Signed off · <span class="tk-short"><i></i>' + (k.of - k.n) + (k.of - k.n === 1 ? ' deliverable' : ' deliverables') + ' missing</span>'
+        : esc(x.step || '') + (x.sub ? ' · ' + esc(x.sub) : '')) + '</div>' +
         (x.brand || x.auds ? '<div class="tk-m">' + [({ provident: 'Branded', unbranded: 'Unbranded', mixed: 'Branded and unbranded' })[x.brand] || '', x.auds ? x.auds + (x.auds > 1 ? ' audiences' : ' audience') : '',
           // DESIGNS COUNTED (2026-11-21, by request): an audience's further designs and unbranded version (dsg, from CAS's queue)
           x.dsg && x.dsg !== x.auds ? x.dsg + ' designs' : ''].filter(Boolean).join(' · ') + '</div>' : '') + '</div>';
     if (x.open) h += '<div class="tk-q">A ticket, not an ad set yet. Its deliverables appear once a designer picks it up.</div>';
-    else if (!d) h += '<div class="tk-q">Open the Kanban once on this computer to read its deliverables.</div>';
+    else if (!d) h += '<div class="tk-q">Its deliverables aren’t on this computer yet. <a href="#/tracker?v=kanban">Open the Kanban</a> to load them.</div>';
     else {
-      h += '<div class="tk-g" role="table" aria-label="Deliverables"><span></span>' + TK_DL.map(function(k){ return '<span class="tk-hd">' + k[1] + '</span>'; }).join('') +
+      h += '<div class="tk-g" role="group" aria-label="Deliverables"><span></span>' + TK_DL.map(function(k){ return '<span class="tk-hd">' + k[1] + '</span>'; }).join('') +
         [['e', 'EN', 'English'], ['a', 'AR', 'Arabic']].map(function(l){ return '<span class="tk-ln">' + l[1] + '</span>' + TK_DL.map(function(k){
           // an English-only kind is drawn once, in the EN row, spanning down into the AR row
-          return TK_EN[k[0]] ? (l[0] === 'e' ? tkCell(d[k[0]] && d[k[0]].e, 'English', 1) : '') : tkCell(d[k[0]] && d[k[0]][l[0]], l[2]); }).join(''); }).join('') + '</div>' +
-        '<div class="tk-g tk-gm" role="table" aria-label="Deliverables"><span></span><span class="tk-hd">EN</span><span class="tk-hd">AR</span>' +
-        TK_DL.map(function(k){ return '<span class="tk-lbl">' + k[1] + '</span>' + (TK_EN[k[0]] ? tkCell(d[k[0]] && d[k[0]].e, 'English', 1) : tkCell(d[k[0]] && d[k[0]].e, 'English') + tkCell(d[k[0]] && d[k[0]].a, 'Arabic')); }).join('') + '</div>';
+          return TK_EN[k[0]] ? (l[0] === 'e' ? tkCell(d[k[0]] && d[k[0]].e, 'English', 1, k[1]) : '') : tkCell(d[k[0]] && d[k[0]][l[0]], l[2], 0, k[1]); }).join(''); }).join('') + '</div>' +
+        '<div class="tk-g tk-gm" role="group" aria-label="Deliverables"><span></span><span class="tk-hd">EN</span><span class="tk-hd">AR</span>' +
+        TK_DL.map(function(k){ return '<span class="tk-lbl">' + k[1] + '</span>' + (TK_EN[k[0]] ? tkCell(d[k[0]] && d[k[0]].e, 'English', 1, k[1]) : tkCell(d[k[0]] && d[k[0]].e, 'English', 0, k[1]) + tkCell(d[k[0]] && d[k[0]].a, 'Arabic', 0, k[1])); }).join('') + '</div>';
     }
-    h += '<div class="tk-side">' + (k ? '<div class="tk-rd"><span class="tk-ring" style="--p:' + p + '"></span><span><b>' + k.n + ' of ' + k.of + '</b><small>' + (k.of && k.n === k.of ? 'ready to run' : 'done, EN + AR') + '</small></span></div>' : '') +
+    h += '<div class="tk-side">' + (k ? '<div class="tk-rd"><span class="tk-ring" style="--p:' + p + '"></span><span><b>' + k.n + ' of ' + k.of + '</b><small>' + (k.of && k.n === k.of ? 'all delivered' : 'deliverables in') + '</small></span></div>' : '') +
       '<a class="b b-g" href="' + href(x) + '"' + tgt(x) + '>' + (x.open ? 'Open the ticket' : 'Open the ad set') + '</a></div>';
     return h + '</article>';
   }

@@ -2530,3 +2530,38 @@ folders). Measured against the live Offplan 2026 folder: 21 records before, 24 a
 extra are VAULT drafts deleted on 16 Nov (`deleted` set, no `tok.dd`), which `dsDiscover` skips.
 The scan takes ~11 s instead of ~5 s; it runs in the background at most once a minute.
 
+## The hand-off flow after the /impeccable critique (2026-11-21, Revision 1.35)
+
+The critique of Home › Tracker › ad set › Send to… › Ad set settings scored 25/40; the weakest
+point was the hand-off. The user asked for all five fixes ("run all of them").
+
+- **`sendToDlg(rs, it, miss)`** (module level, exported as `window.providentSendTo`) is the one
+  Send to… dialog. Tasks are grouped Next (copy / arabic / animated / video) · Back (design) ·
+  Finish (done). Done asks inline ("Mark it done?"). `miss` (from `rsPrecheck`, editor only) makes
+  Copy check ask inline with the missing list — the browser `confirm` stays only on the legacy
+  direct `design-done` buttons. Picking a task hides the dialog (`.sto-away`) and calls
+  `handOffFor(rs, it, act, { back: true, lead })`; access.js `handOff` returns `'back'` when the
+  picker's Back is pressed, and the task list comes back. Resolves `{ act, ho, k }`.
+- **`SP.sendTo`** now awaits the dialog and calls `rvStep(act, ho)`; `rvStep`'s second argument
+  skips both the pre-check confirm and the picker. `stepFlash` names the person.
+- **Ad set page** (`AV`): the project `⋯` menu has **Send to…** when `rs.tok.dd` (the server still
+  requires the dd role for `act: 'task'`). It posts `rsstep` with `{ id: this.sel }`, runs
+  `roamNote` for a copy check, and shows `.rvd-sent` (role=status) for 9 s. No pre-check there:
+  what a design lacks is only known inside its editor.
+- **Receipts**: `lastSend(rs, it)` reads `rs.hist` for the last `design-done` / `design-open` /
+  `task-*` on the project (a task only while it is still `it.task`). Drawn as `.adt-rc` under the
+  Ad set tab's step line. Tiles on the ad set page (`itState`) now say the task and "with …".
+- **Picker keyboard** (access.js `pickDlg`): arrows move the choice (roving tabindex), Tab is
+  trapped, Escape goes Back when there is a Back, focus returns to the trigger.
+- **One name for the step back**: "Back to design" / "Arabic back to design"; logs "Sent it back
+  to design" (share-link.js Drive store and api/share.py).
+- **Ad set settings**: Campaign | Plan tabs (`pane()`; arrows switch), `.rss-foot` sticky footer,
+  `leave()` asks "Discard your changes?" when `sig() !== was`, brand meaning in `[data-brhelp]`,
+  Broad explained under Phases, controls 30–32 px, "Arabic in" no longer uppercase. Validation
+  jumps to the tab that holds the bad field.
+- **Remove / Delete for everyone** fold into `details.rvd-out` ("Remove or delete this ad set").
+
+Not reached locally: the CAS editor (the studio redirects to `#/projects` on the dev server), so
+the editor path was checked by reading only; the ad set page path was clicked through end to end.
+No Undo after a send: sending again with Send to… is the way back.
+

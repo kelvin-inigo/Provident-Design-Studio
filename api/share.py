@@ -648,7 +648,7 @@ def rs_step(sid, role, rs, d):
     put_rs(rs)
     arb = it.get('lang') == 'ARB'
     text = ('Marked the Arabic approved — signed off before the review' if arb else 'Marked it approved — signed off before the review') if act == 'approved' else {('design', True): 'Arabic laid out, ready for the translation check' if arb else 'Marked the design done',
-            ('design', False): 'Put the Arabic back in progress' if arb else 'Put the design back in progress',
+            ('design', False): 'Sent the Arabic back to design' if arb else 'Sent it back to design',
             ('copy', True): 'Approved the translation' if arb else 'Approved the English copy',
             ('copy', False): 'Reopened the translation check' if arb else 'Reopened the copy check'}[(field, done)]
     rs_log(rs['rid'], by, [{'kind': 'step', 'page': item_label(it), 'text': text}])

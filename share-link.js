@@ -432,7 +432,7 @@
   // 'dd'), so who may press which step is the signed-in role's (post-flow.js), not the link's.
   const isPost = rs => !!(rs && rs.kind === 'post');
   const POST_TEXT = { 'draft-done': 'Sent the draft to the designer', 'draft-open': 'Took it back to draft',
-    'design-done': 'Sent it to the copy check', 'design-open': 'Put the design back in progress',
+    'design-done': 'Sent it to the copy check', 'design-open': 'Sent it back to design',
     'copy-done': 'Approved the copy — ready to publish', 'copy-open': 'Reopened the copy check', approved: 'Marked it done — ready to publish' };
   // This page's Drive writes run one at a time: each is a read, a change and a write of a whole
   // file, and two overlapping on one file (a save and the preview writer) let the later one put
@@ -520,7 +520,7 @@
         return { rs: pub() };
       }
       R.rs.hist = (R.rs.hist || []).concat({ act: body.act, by, at: now, sid }).slice(-400);
-      const text = body.act === 'approved' ? (arb ? 'Marked the Arabic approved — signed off before the review' : 'Marked it approved — signed off before the review') : field === 'design' ? (done ? (arb ? 'Arabic laid out, ready for the translation check' : 'Marked the design done') : (arb ? 'Put the Arabic back in progress' : 'Put the design back in progress'))
+      const text = body.act === 'approved' ? (arb ? 'Marked the Arabic approved — signed off before the review' : 'Marked it approved — signed off before the review') : field === 'design' ? (done ? (arb ? 'Arabic laid out, ready for the translation check' : 'Marked the design done') : (arb ? 'Sent the Arabic back to design' : 'Sent it back to design'))
         : (done ? (arb ? 'Approved the translation' : 'Approved the English copy') : (arb ? 'Reopened the translation check' : 'Reopened the copy check'));
       dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it, R.rs), text: text + toLine }]);
       if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
@@ -2376,7 +2376,7 @@
     let fwd = null, back = null;
     if (!it.design) fwd = { act: 'design-done', label: arb ? 'Send for translation check' : 'Send to copy check',
       tip: arb ? 'Hands the Arabic version to the content team to check the translation.' : 'Hands the design to the content team to check the English copy.' };
-    else if (!it.copy) back = { act: 'design-open', label: arb ? 'Arabic back in progress' : 'Back to design', tip: 'Takes the project back from the content team while you change it.' };
+    else if (!it.copy) back = { act: 'design-open', label: arb ? 'Arabic back to design' : 'Back to design', tip: 'Takes the project back from the content team while you change it.' };
     else back = { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check', tip: 'Sends the words back to the content team to check again.' };
     const tkS = taskOf(it);
     const st = tkS && tkS !== 'done' ? TASK_L[tkS] + ' · ' + withWho(it, 'designers') : !it.design ? (arb ? 'Arabic being laid out' : 'Design in progress')
@@ -2618,23 +2618,31 @@
     el.className = 'shl-dlg';
     el.innerHTML = '<div class="shl-dlg-c rss" role="dialog" aria-modal="true" aria-labelledby="rss-t">' +
       '<h2 id="rss-t">Ad set settings</h2><p class="shl-lead">Saved on the ad set, for everyone who has its links.</p>' +
+      // TWO PARTS (2026-11-21, /impeccable critique): what the campaign is, and what it plans to make
+      '<div class="p-tabs rss-tabs" role="tablist" aria-label="Settings"><button type="button" role="tab" id="rss-tc" aria-controls="rss-pc" data-pane="c" aria-selected="true" data-on="1">Campaign</button>' +
+      '<button type="button" role="tab" id="rss-tp" aria-controls="rss-pp" data-pane="p" aria-selected="false" tabindex="-1">Plan</button></div>' +
+      '<div class="rss-pane" id="rss-pc" role="tabpanel" aria-labelledby="rss-tc" data-pane-c>' +
       '<div class="rss-q"><label class="rsp-f"><span>Name</span><input class="p-in" data-f="name" maxlength="120" autocomplete="off"></label>' +
       '<div class="rsp-f"><span id="rss-prod-l">Product</span><div class="p-tabs rsp-prod" role="radiogroup" aria-labelledby="rss-prod-l"></div></div>' +
       (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Mixed: every audience is branded and can also run unbranded, with its own words — Start the unbranded on Status copies its branded design. Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div></div>' : '') +
       (ticket ? '<label class="rsp-f"><span>Deadline</span><input class="p-in" type="date" data-f="deadline"></label>' : '') + '</div>' +
+      (phOk ? '<p class="rss-help" data-brhelp></p>' : '') +
       (ticket ? '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="3" placeholder="The script, fact sheet or brief"></textarea></label>' : '') +
       // VIDEO (2026-11-13): the ad set also delivers a video, made in the Video Studio; Status then shows an Add video placeholder
       (phOk ? '<div class="rsp-f"><span id="rss-vid-l" title="The ad set also delivers a video, made in the Video Studio (CASV). Status shows an Add video placeholder until it is added.">Video</span><div class="p-tabs rsp-vid" role="radiogroup" aria-labelledby="rss-vid-l"></div></div>' : '') +
       // QR CODE (2026-11-20): one for the whole ad set — every design and a new CASV video take it
       (phOk ? '<div class="rsp-f rss-qrf"><span id="rss-qr-l" title="One QR code for the whole ad set. Every design in it takes this QR when it is opened, and a new video made in CASV starts with it. A design keeps the last one it took if this is removed.">QR code</span><div class="rss-qr" role="group" aria-labelledby="rss-qr-l"></div>' +
         '<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" data-qrin hidden></div>' : '') +
+      '</div>' +
+      '<div class="rss-pane" id="rss-pp" role="tabpanel" aria-labelledby="rss-tp" data-pane-p hidden>' +
       (phOk ? '<div class="rsp-g rss-phs"><span title="Each phase is its own package of every planned audience, with its own projects and its own tab on Status">Phases</span><div class="rsp-tg" data-g="ph"></div>' +
-        '<div class="rss-phx"><input class="p-in" data-phx-in maxlength="40" placeholder="Name a phase, e.g. Ad Fatigue 03" aria-label="A phase of your own" autocomplete="off" spellcheck="false"><button type="button" class="p-ghost" data-phx="">Add phase</button></div></div>' : '') +
+        '<div class="rss-phx"><input class="p-in" data-phx-in maxlength="40" placeholder="Name a phase, e.g. Ad Fatigue 03" aria-label="A phase of your own" autocomplete="off" spellcheck="false"><button type="button" class="p-ghost" data-phx="">Add phase</button></div>' +
+        '<p class="rss-help">Each phase is its own package of every planned audience, with its own tab on Status. <b>Broad</b> runs a phase with one Broad audience per market, in English and Arabic, and no audience-based designs.</p></div>' : '') +
       '<div class="rss-plan"><div class="rss-ph"><b>Audiences</b><span class="rsp-n"></span></div>' +
       '<div class="rsp-more"><div class="rsp-g"><span>Markets</span><div class="rsp-tg" data-g="m"></div></div><div class="rsp-g"><span>Audiences</span><div class="rsp-tg" data-g="a"></div></div></div>' +
-      '<div class="rsp-tiles" role="list"></div></div>' +
-      '<p class="shl-st" aria-live="polite"></p>' +
-      '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button><button type="button" class="p-btn" data-go="1">Save changes</button></div></div>';
+      '<div class="rsp-tiles" role="list"></div></div></div>' +
+      '<div class="rss-foot"><p class="shl-st" aria-live="polite"></p>' +
+      '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button><button type="button" class="p-btn" data-go="1">Save changes</button></div></div></div>';
     document.body.appendChild(el);
     const $ = q => el.querySelector(q), st = (t, bad) => { const p = $('.shl-st'); p.textContent = t || ''; p.classList.toggle('bad', !!t && bad !== false); };
     ['name', 'deadline', 'brief'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; st(''); }); } });
@@ -2643,6 +2651,9 @@
       $('.rsp-prod').innerHTML = tab('residential', 'Residential') + tab('commercial', 'Commercial');
       const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded') + bt('mixed', 'Mixed');
+      // what the chosen brand means, in view (it lived only in a tooltip)
+      if ($('[data-brhelp]')) $('[data-brhelp]').textContent = ({ provident: 'New projects open with the Provident brand.', unbranded: 'New projects open on the unbranded look: no wordmark, no QR, their own colours and fonts.',
+        mixed: 'Every audience is branded and can also run unbranded, with its own words. Start the unbranded on Status copies its branded design.' })[d.brand] + ' Projects already made keep their own.';
       const vt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.video === k) + '" data-vidon="' + (k ? '1' : '0') + '"' + (d.video === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       if ($('.rsp-vid')) $('.rsp-vid').innerHTML = vt(false, 'No video') + vt(true, 'Includes a video');
       if ($('.rss-qr')) $('.rss-qr').innerHTML = d.qr
@@ -2718,14 +2729,37 @@
       if (!cells.length) ms.forEach(m => na.forEach(a => cells.push({ market: m, aud: a, arb: false })));
       d.product = p; st(''); ord(); draw();
     };
+    const pane = (k, foc) => {
+      el.querySelectorAll('.rss-tabs [role=tab]').forEach(t => { const on = t.dataset.pane === k; t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1; if (on) t.dataset.on = '1'; else delete t.dataset.on; });
+      $('[data-pane-c]').hidden = k !== 'c'; $('[data-pane-p]').hidden = k !== 'p';
+      if (foc) { const t = el.querySelector('.rss-tabs [data-pane="' + k + '"]'); if (t) t.focus(); }
+    };
+    // CLOSING WITH CHANGES ASKS FIRST (2026-11-21, /impeccable critique): Escape, a click outside and
+    // Cancel used to drop every edit without a word; now the footer asks, Keep editing first
+    let asking = false;
+    const acts = () => {
+      const f = $('.shl-acts');
+      f.innerHTML = asking ? '<span class="rss-ask">Discard your changes?</span><button type="button" class="p-ghost" data-keep="1">Keep editing</button><button type="button" class="p-btn rss-dis" data-discard="1">Discard</button>'
+        : '<button type="button" class="p-ghost" data-x="1">Cancel</button><button type="button" class="p-btn" data-go="1">Save changes</button>';
+      const b = f.querySelector(asking ? '[data-keep]' : '[data-go]'); if (b && asking) b.focus();
+    };
+    const from = document.activeElement;
     return new Promise(res => {
-      const close = v => { document.removeEventListener('keydown', key, true); el.remove(); res(v); };
-      const key = e => { if (e.key === 'Escape') { e.stopPropagation(); close(null); } };
+      const close = v => { document.removeEventListener('keydown', key, true); el.remove(); try { if (from && from.isConnected) from.focus(); } catch (x) {} res(v); };
+      const leave = () => { if (sig() === was || asking) return close(null); asking = true; acts(); };
+      const key = e => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (asking) { asking = false; acts(); const g = $('[data-go]'); if (g) g.focus(); } else leave(); return; }
+        if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && e.target.closest && e.target.closest('.rss-tabs')) { e.preventDefault(); pane(e.target.dataset.pane === 'c' ? 'p' : 'c', true); return; }
+        dlgTrap(el, e);
+      };
       document.addEventListener('keydown', key, true);
       el.addEventListener('click', async e => {
-        if (e.target === el) return close(null);
+        if (e.target === el) return leave();
         const b = e.target.closest('button'); if (!b) return;
-        if (b.dataset.x) return close(null);
+        if (b.dataset.pane) return pane(b.dataset.pane);
+        if (b.dataset.keep) { asking = false; acts(); const g = $('[data-go]'); if (g) g.focus(); return; }
+        if (b.dataset.discard) return close(null);
+        if (b.dataset.x) return leave();
         if (b.dataset.prod) return setProd(b.dataset.prod);
         if (b.dataset.brand) { d.brand = b.dataset.brand; st(''); draw(); return; }
         if (b.dataset.reach) {
@@ -2763,12 +2797,12 @@
         }
         if (b.dataset.go) {
           d.name = d.name.replace(/\s+/g, ' ').trim();
-          if (!d.name) { st('Name the campaign.'); $('[data-f="name"]').focus(); return; }
+          if (!d.name) { pane('c'); st('Name the campaign.'); $('[data-f="name"]').focus(); return; }
           if (sig() === was) return close(null);
           if (phOk) {
             const bad = d.phases.find(k => !phL(k)), fin = d.phases.map(k => phL(k).toLowerCase()), dup = d.phases.find((k, i) => fin.indexOf(fin[i]) !== i);
-            if (bad) { st('Name every phase.'); const i = el.querySelector('[data-phn="' + CSS.escape(bad) + '"]'); if (i) i.focus(); return; }
-            if (dup) return st('Two phases are called ' + phL(dup) + '. Give each its own name.');
+            if (bad) { pane('p'); st('Name every phase.'); const i = el.querySelector('[data-phn="' + CSS.escape(bad) + '"]'); if (i) i.focus(); return; }
+            if (dup) { pane('p'); return st('Two phases are called ' + phL(dup) + '. Give each its own name.'); }
           }
           const btns = el.querySelectorAll('.shl-acts button'); btns.forEach(x => { x.disabled = true; }); b.textContent = 'Saving…'; st('');
           try {
@@ -3243,10 +3277,24 @@
   const toName = it => it && it.to ? (it.to.name || String(it.to.email || '').split('@')[0]) : '';
   const toMine = it => !it || !it.to || !it.to.email || !myEmail() || it.to.email === myEmail();
   const withWho = (it, team) => it && it.to ? 'With ' + (it.to.email === myEmail() ? 'you' : toName(it)) : 'With the ' + team;
-  async function handOffFor(rs, it, act) {
+  async function handOffFor(rs, it, act, opt) {
     const A = window.providentAccess;
     if (!A || !A.handOff) return { em: myEmail() || undefined };
-    return A.handOff(rs, it, act);
+    return A.handOff(rs, it, act, opt);
+  }
+  // THE RECEIPT OF A HAND-OFF (2026-11-21, /impeccable critique): the last step this project was
+  // sent on — what, by whom, when and who has it — read from the ad set's history, so it stays in
+  // view after the flash is gone, on the Ad set tab and on the ad set page alike
+  function lastSend(rs, it) {
+    if (!rs || !it) return null;
+    const h = (rs.hist || []).filter(x => x.sid === it.sid && (x.act === 'design-done' || x.act === 'design-open' || /^task-/.test(x.act))).sort((x, y) => (x.at || 0) - (y.at || 0)).pop();
+    if (!h) return null;
+    const k = h.act === 'design-done' ? 'copy' : h.act === 'design-open' ? 'design' : h.act.slice(5);
+    if (k !== 'copy' && k !== 'design' && taskOf(it) !== k) return null;
+    const t = new Date(h.at || 0), today = new Date().toDateString() === t.toDateString();
+    const when = today ? t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : dayS(h.at) + ', ' + t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const what = k === 'copy' ? (it.lang === 'ARB' ? 'Translation check' : 'Copy check') : TASK_L[k] || 'the next step';
+    return { k, what, by: h.by || '', when, who: k === 'done' ? '' : it.to ? (it.to.email === myEmail() ? 'you' : toName(it)) : '' };
   }
   window.providentHandOff = handOffFor;
   // SEND TO COPY CHECK TELLS ROAM (2026-11-09): a CAS ad set project sent to the content team
@@ -3287,7 +3335,7 @@
   // the buttons a role has on one project
   function itemActs(it, role, busy) {
     const arb = it.lang === 'ARB', out = [];
-    if (role === 'dd') out.push(it.design ? ['design-open', arb ? 'Arabic back in progress' : 'Back to in process', 'p-ghost']
+    if (role === 'dd') out.push(it.design ? ['design-open', arb ? 'Arabic back to design' : 'Back to design', 'p-ghost']
       : ['design-done', arb ? 'Send for translation check' : 'Send to copy check', 'p-btn']);
     if (role === 'ct' && (it.design || it.copy) && ctLangOk(it)) out.push(it.copy ? ['copy-open', arb ? 'Reopen translation check' : 'Reopen copy check', 'p-ghost']
       : ['copy-done', arb ? 'Approve translation' : 'Approve English copy', 'p-btn']);
@@ -3392,7 +3440,7 @@
         return;
       }
       const it = (now.items || []).find(x => x.sid === h.sid), lab = it ? itemLabel(it) : '';
-      const what = { 'design-done': it && it.lang === 'ARB' ? 'laid out the Arabic' : 'marked the design done', 'design-open': 'put the design back in progress',
+      const what = { 'design-done': it && it.lang === 'ARB' ? 'laid out the Arabic' : 'marked the design done', 'design-open': 'sent it back to design',
         'copy-done': it && it.lang === 'ARB' ? 'approved the translation' : 'approved the English copy', 'copy-open': 'reopened the copy check', approved: 'marked it approved (signed off before the review)', add: 'added a project', start: 'started the ad set' }[h.act]
         || (/^task-/.test(h.act) && TASK_L[h.act.slice(5)] ? (h.act === 'task-done' ? 'marked it done' : 'sent it to ' + TASK_L[h.act.slice(5)]) : 'changed a step');
       const t = h.by + ' ' + what + (lab ? ' · ' + lab : '');
@@ -3447,19 +3495,26 @@
     } catch (e) {}
     return out;
   };
-  SP.rvStep = async function (act) {
+  // what the flash says once a step has saved: the step, and the person it is with now
+  function stepFlash(a, tkk, ho, post) {
+    const who = ho && ho.to ? ' · with ' + String(ho.to.name || ho.to.email || '').split(/[ @]/)[0] : '';
+    if (tkk) return tkk === 'done' ? 'Marked done' : 'Sent to ' + TASK_L[tkk] + who;
+    if (post) return POST_TEXT[a] || 'Saved';
+    return a === 'design-done' ? 'Sent to the content team' + who : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-open' ? 'Back to design' + who : 'Copy check reopened';
+  }
+  SP.rvStep = async function (act, pre) {
     const S = this._sh; if (!S || this._rvBusy) return;
     const [a, sid] = String(act).split(':'), tkk = /^task-/.test(a) ? a.slice(5) : '';
     if (a === 'approved') { const it = ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)); if (!window.confirm(isPost(S.rs) ? (accRole() === 'smm' ? POST_DONE_Q : POST_SEND_Q) : APPROVE_Q(it && itemLabel(it)))) return; }
     // A HAND-OFF CHECKS FIRST: what would make the content team send it straight back. It never
     // blocks — the designer can send anyway — it only says what is missing before it goes.
-    if (a === 'design-done' && (!sid || sid === S.id) && this.rsPrecheck) {
+    if (!pre && a === 'design-done' && (!sid || sid === S.id) && this.rsPrecheck) {
       const miss = this.rsPrecheck();
       if (miss.length && !window.confirm('Before it goes to the content team:\n\n' + miss.map(m => '•  ' + m).join('\n') + '\n\nSend anyway?')) return;
     }
     // WHO PICKS IT UP (access.js): the person on the next team, chosen here
-    const ho = await handOffFor(S.rs, ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)), a);
-    if (!ho) return;
+    const ho = pre || await handOffFor(S.rs, ((S.rs || {}).items || []).find(x => x.sid === (sid || S.id)), a);
+    if (!ho || ho === 'back') return;
     askNotify();
     this._rvBusy = act; this.rvRender(); this.forceUpdate();
     try {
@@ -3472,44 +3527,102 @@
       this.rsSet(r.rs);
       if (a === 'design-done') this.roamPic().then(pic => roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic));
       if (isPost(r.rs) && this.postAfterStep) this.postAfterStep(a);
-      S.ui.flash(tkk ? (tkk === 'done' ? 'Marked done' : 'Sent to ' + TASK_L[tkk]) : isPost(r.rs) ? (POST_TEXT[a] || 'Saved') : a === 'design-done' ? 'Sent to the content team' : a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : 'Back in progress');
+      S.ui.flash(stepFlash(a, tkk, ho, isPost(r.rs)));
     } catch (e) { S.ui.flash(e.message || String(e)); }
     finally { this._rvBusy = null; this.rvRender(); this.forceUpdate(); }
   };
   // SEND TO… (2026-11-16, by request): the hand-off is no longer one fixed next step. The designer
   // picks the task this project goes to — in any order, back included — then who gets it (the
   // picker of access.js). Copy check and Design are the review's own steps; the rest are it.task.
-  SP.sendTo = function (sid) {
+  // ONE DIALOG (2026-11-21, /impeccable critique): the tasks grouped Next · Back · Finish; Done asks
+  // in its own row; a copy check with something missing says what in the dialog (no browser
+  // confirm); then the person in the same place, with Back to the tasks. Keyboard: arrows move
+  // through the tasks, Tab stays inside, focus goes back where it came from. Shared by the
+  // editor's Ad set tab and the ad set page on Status. Resolves { act, ho, k } or null.
+  const stoAct = (it, k) => k === 'copy' ? (it.copy ? 'copy-open' : 'design-done') : k === 'design' ? 'design-open' : 'task-' + k;
+  function dlgTrap(box, e) {
+    if (e.key !== 'Tab') return;
+    const f = [...box.querySelectorAll('button:not([disabled]),input:not([disabled]):not([type=hidden]),textarea,select,a[href],[tabindex="0"]')].filter(x => x.offsetParent !== null);
+    if (!f.length) return;
+    const i = f.indexOf(document.activeElement);
+    if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && (i < 0 || i === f.length - 1)) { e.preventDefault(); f[0].focus(); }
+  }
+  function sendToDlg(rs, it, miss) {
+    injectCss();
+    const arb = it.lang === 'ARB', tk = taskOf(it), cur = tk || (!it.design ? 'design' : !it.copy ? 'copy' : ''), from = document.activeElement;
+    const R = {
+      copy: [arb ? 'Translation check' : 'Copy check', it.copy ? 'Reopens it: the content team checks the words again' : 'The content team checks the words'],
+      arabic: ['Arabic', 'A designer lays out the Arabic version'],
+      animated: ['Animated', 'A designer makes the animated version in CAS: this design over a video background'],
+      video: ['MVP video', 'A designer makes the MVP video in the Video Studio (CASV) and adds it to the ad set’s Video section'],
+      design: ['Design', 'Back to design, to change the ad'],
+      done: ['Done', 'Nothing is left on this project']
+    };
+    const groups = [['Next', ['copy', 'arabic', 'animated', 'video'].filter(k => !(arb && k === 'arabic'))], ['Back', ['design']], ['Finish', ['done']]];
+    miss = miss || [];
+    return new Promise(res => {
+      const el = document.createElement('div'); el.className = 'shl-dlg';
+      let ask = '', away = false, focusK = '';
+      const askHtml = k => k === 'done'
+        ? '<div class="sto-ask" role="group" aria-label="Mark it done?"><p>Mark it done? Nothing will be left to do on ' + esc(itemLabel(it)) + '.</p><div><button type="button" class="p-ghost" data-ask="no">Not yet</button><button type="button" class="p-btn" data-ask="go">Mark done</button></div></div>'
+        : '<div class="sto-ask" data-warn="1" role="group" aria-label="Before it goes to the content team"><p>Before it goes to the content team, this is missing:</p><ul>' + miss.map(m => '<li>' + esc(m) + '</li>').join('') +
+          '</ul><div><button type="button" class="p-ghost" data-ask="no">Fix it first</button><button type="button" class="p-btn" data-ask="go">Send anyway</button></div></div>';
+      const draw = () => {
+        el.innerHTML = '<div class="shl-dlg-c sto" role="dialog" aria-modal="true" aria-labelledby="sto-t"><h2 id="sto-t">Send to…</h2>' +
+          '<p class="shl-lead">' + esc(itemLabel(it, rs)) + '. Pick where it goes next.</p>' +
+          groups.map(g => '<div class="sto-g" role="group" aria-labelledby="sto-g-' + g[0] + '"><h3 id="sto-g-' + g[0] + '">' + g[0] + '</h3><div class="sto-l">' + g[1].map(k => {
+            const here = k === cur;
+            return '<button type="button" class="sto-o" data-k="' + k + '"' + (here ? ' disabled aria-current="true"' : '') + (ask === k ? ' aria-expanded="true"' : '') + '><b>' + R[k][0] + '</b><s>' + R[k][1] + '</s>' + (here ? '<i>Here now</i>' : '') + '</button>' + (ask === k ? askHtml(k) : '');
+          }).join('') + '</div></div>').join('') +
+          '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button></div></div>';
+        const f = (focusK && el.querySelector(ask ? '[data-ask="go"]' : '[data-k="' + focusK + '"]')) || el.querySelector('.sto-o:not([disabled])');
+        if (f) f.focus();
+      };
+      const close = v => { document.removeEventListener('keydown', key, true); el.remove(); try { if (from && from.isConnected) from.focus(); } catch (e) {} res(v); };
+      const key = e => {
+        if (away) return;
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); if (ask) { const k = ask; ask = ''; focusK = k; draw(); } else close(null); return; }
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && e.target.classList && e.target.classList.contains('sto-o')) {
+          const all = [...el.querySelectorAll('.sto-o:not([disabled])')], i = all.indexOf(e.target), n = all[(i + (e.key === 'ArrowDown' ? 1 : all.length - 1)) % all.length];
+          if (n) { e.preventDefault(); n.focus(); }
+          return;
+        }
+        dlgTrap(el, e);
+      };
+      document.addEventListener('keydown', key, true);
+      const go = async k => {
+        const act = stoAct(it, k);
+        // the person, in the same place: the task list steps aside until the picker answers
+        away = true; el.classList.add('sto-away');
+        const ho = await handOffFor(rs, it, act, { back: true, lead: 'Send to ' + R[k][0] + ' · ' + itemLabel(it) + '. They get a Chrome alert if they have this ad set open; either way it waits in their queue on Home.' });
+        away = false; el.classList.remove('sto-away');
+        if (ho === 'back') { ask = ''; focusK = k; draw(); return; }
+        if (!ho) return close(null);
+        close({ act, ho, k });
+      };
+      el.addEventListener('click', e => {
+        if (e.target === el) return close(null);
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.x) return close(null);
+        if (b.dataset.ask === 'no') { const k = ask; ask = ''; focusK = k; return draw(); }
+        if (b.dataset.ask === 'go') return go(ask);
+        const k = b.dataset.k; if (!k) return;
+        // Done, and a copy check with something missing, ask in their own row first
+        if ((k === 'done' || (k === 'copy' && !it.copy && miss.length)) && ask !== k) { ask = k; focusK = k; return draw(); }
+        go(k);
+      });
+      document.body.appendChild(el); draw();
+    });
+  }
+  window.providentSendTo = sendToDlg;
+  SP.sendTo = async function (sid) {
     const S = this._sh, rs = S && S.rs, it = rs && (rs.items || []).find(x => x.sid === (sid || S.id));
     if (!it || this._rvBusy) return;
-    injectCss();
-    const arb = it.lang === 'ARB', tk = taskOf(it), cur = tk || (!it.design ? 'design' : !it.copy ? 'copy' : '');
-    const rows = [
-      ['copy', arb ? 'Translation check' : 'Copy check', 'The content team checks the words'],
-      ['arabic', 'Arabic', 'A designer lays out the Arabic version'],
-      ['animated', 'Animated', 'A designer makes the animated version in CAS: this design over a video background'],
-      ['video', 'MVP video', 'A designer makes the MVP video in the Video Studio (CASV) and adds it to the ad set’s Video section'],
-      ['design', 'Design', 'Back in design, to change the ad'],
-      ['done', 'Done', 'Nothing is left on this project']
-    ].filter(r => !(arb && r[0] === 'arabic'));
-    const el = document.createElement('div'); el.className = 'shl-dlg';
-    el.innerHTML = '<div class="shl-dlg-c sto" role="dialog" aria-modal="true" aria-labelledby="sto-t"><h2 id="sto-t">Send to</h2>' +
-      '<p class="shl-lead">' + esc(itemLabel(it)) + ' — pick the task it goes to next.</p><div class="sto-l">' +
-      rows.map(r => '<button type="button" class="sto-o" data-k="' + r[0] + '"' + (r[0] === cur ? ' disabled aria-current="true"' : '') + '><b>' + r[1] + '</b><s>' + r[2] + '</s>' + (r[0] === cur ? '<i>It is here now</i>' : '') + '</button>').join('') +
-      '</div><div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button></div></div>';
-    document.body.appendChild(el);
-    const close = () => { document.removeEventListener('keydown', key, true); el.remove(); };
-    const key = e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
-    document.addEventListener('keydown', key, true);
-    el.addEventListener('click', e => {
-      if (e.target === el) return close();
-      const b = e.target.closest('button'); if (!b) return;
-      if (b.dataset.x) return close();
-      const k = b.dataset.k; if (!k) return;
-      close();
-      this.rvStep((k === 'copy' ? (it.copy ? 'copy-open' : 'design-done') : k === 'design' ? 'design-open' : 'task-' + k) + ':' + it.sid);
-    });
-    const f = el.querySelector('.sto-o:not([disabled])'); if (f) f.focus();
+    // what would make the content team send it straight back: only this editor's own project can say
+    const miss = it.sid === S.id && this.rsPrecheck ? this.rsPrecheck() : [];
+    const r = await sendToDlg(rs, it, miss);
+    if (r) this.rvStep(r.act + ':' + it.sid, r.ho);
   };
   SP.rvDrive = async function (v) {
     const S = this._sh; if (!S || !S.rs) return;
@@ -3647,7 +3760,11 @@
       top = '<section class="adt"><div class="adt-h"><div class="adt-ht">' +
         '<span class="adt-k">' + esc([rs.name, PRODUCT_NAME[rs.product], phMulti(rs) ? phN(ph) + ' phase' : ''].filter(Boolean).join(' · ')) + '</span>' +
         '<h2>' + esc([it.market, it.aud].filter(Boolean).join(' · ') || 'This project') + ' <s>' + (arb ? 'Arabic' : 'English') + '</s></h2>' +
-        '<p class="adt-now" data-s="' + (done ? 'done' : 'prog') + '"><i></i>' + esc(now) + '</p></div>' +
+        '<p class="adt-now" data-s="' + (done ? 'done' : 'prog') + '"><i></i>' + esc(now) + '</p>' + (() => {
+          // the receipt of the last hand-off: it stays here after the flash has gone
+          const rc = lastSend(rs, it); if (!rc) return '';
+          return '<p class="adt-rc">' + esc((rc.k === 'design' ? 'Sent back to design' : rc.k === 'done' ? 'Marked done' : 'Sent to ' + rc.what) + (rc.by ? ' by ' + rc.by : '') + ' · ' + rc.when + (rc.who ? ' · with ' + rc.who : '')) + '</p>';
+        })() + '</div>' +
         '<div class="adt-acts">' + (rs.tok && rs.tok.dd && !it.copy ? '<button type="button" class="adt-q" data-act="approved:' + esc(it.sid) + '" title="For an ad already signed off outside the review: marks it approved without the content team"' + (busy ? ' disabled' : '') + '>Already approved</button>' : '') +
         (back ? '<button type="button" class="adt-q" data-act="' + back.act + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + esc(back.label) + '</button>' : '') +
         (rs.tok && rs.tok.dd && !(nx && nx.send) ? '<button type="button" class="adt-q" data-send="' + esc(it.sid) + '" title="Pick the task this project goes to next, and who gets it"' + (busy ? ' disabled' : '') + '>Send to…</button>' : '') +
@@ -4297,7 +4414,7 @@
         Promise.resolve(eng && eng.roamPic && p.st ? Promise.resolve(this.photos(sid)).then(own => eng.roamPic(p.st, own)) : undefined).catch(() => undefined)
           .then(pic => roamNote(r.rs, sid, ho, m => this.ui.flash(m), pic));
       }
-      this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : 'Back in progress');
+      this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : a === 'design-open' ? 'Back to design' : 'Copy check reopened');
       this.shPoll(true);
     } catch (e) { this.ui.flash(e.message || String(e)); }
     finally { this.stepBusy = null; this.panelRender(true); if (this.bar) this.barRender(); }
@@ -5321,6 +5438,24 @@
       const o = this.el.querySelector('[data-a="settings"]'); if (o) o.focus();
       return;
     }
+    // SEND TO… ON THE AD SET PAGE (2026-11-21, /impeccable critique): the same dialog and picker as
+    // the editor's Ad set tab, so a project is handed on from here without opening the studio. No
+    // pre-check here: what a design lacks is only known inside its editor.
+    if (a === 'sendto') {
+      const rs = this.det && this.det.rs, it = rs && (rs.items || []).find(x => x.sid === t.dataset.sid); if (!it) return;
+      const m = t.closest('details'); if (m) m.open = false;
+      const r = await sendToDlg(rs, it, []); if (!r) return;
+      const tkk = /^task-/.test(r.act) ? r.act.slice(5) : '';
+      askNotify();
+      try {
+        const out = await api('rsstep', { id: this.sel }, Object.assign({ act: tkk ? 'task' : r.act, p: it.sid, by }, tkk ? { k: tkk } : {}, r.ho));
+        if (r.act === 'design-done') roamNote(out.rs || rs, it.sid, r.ho, msg => window.alert(msg));
+        this.sentNote = { sid: it.sid, t: stepFlash(r.act, tkk, r.ho, false) + ' · ' + itemLabel(it) };
+        again();
+        clearTimeout(this._sentT); this._sentT = setTimeout(() => { this.sentNote = null; const n = this.el.querySelector('.rvd-sent'); if (n) n.remove(); }, 9000);
+      } catch (er) { window.alert(er.message || String(er)); }
+      return;
+    }
     if (a === 'approve' && window.confirm(APPROVE_Q(t.dataset.lab))) {
       t.disabled = true; t.textContent = 'Saving…';
       try { await api('rsstep', { id: this.sel }, { act: 'approved', p: t.dataset.sid, by, em: myEmail() || undefined }); again(); }
@@ -5937,9 +6072,12 @@
       '<button type="button" class="p-ghost rvd-ic" data-a="settings" title="Ad set settings — name, product, deadline, brief, markets, audiences and Arabic" aria-label="Ad set settings">' + PICO.tune.replace('<svg', '<svg class="rva-i"') + '</button>') + '</div></div>' +
       '</header>';
     // THE PHASE (2026-11-16): its tabs, the four steps and what waits lead the column they govern
-    const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + '</section>';
+    const sent = this.sentNote && (rs.items || []).some(x => x.sid === this.sentNote.sid) ? '<p class="rvd-sent" role="status"><i></i>' + esc(this.sentNote.t) + '</p>' : '';
+    const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + sent + '</section>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
-    const itState = it => it.copy ? 'Copy approved' : it.design ? 'Design done' : 'In design';
+    // A TILE SAYS WHO HAS IT (2026-11-21, /impeccable critique): the task it was sent to and the person
+    const itState = it => { const tk = taskOf(it), w = it.to ? ' · with ' + (it.to.email === myEmail() ? 'you' : toName(it)) : '';
+      return tk ? (tk === 'done' ? 'Done' : TASK_L[tk] + w) : it.copy ? 'Copy approved' : it.design ? (it.lang === 'ARB' ? 'Translation check' : 'Copy check') + w : 'In design' + w; };
     const cells = rsCellsIn(rs, tab);
     // (a view-only role sees a slot nothing fills yet as a plain "Not made yet", never a way to start it)
     const roSlot = (lab, why) => '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>' + lab + '</b><s>' + (why || 'Not made yet') + '</s></span></div>';
@@ -5965,7 +6103,7 @@
         '<span class="rva-lt-t"><b>' + lang + '</b><s>' + esc((pj.sum || {}).campaign || (d.part ? '' : 'Untitled')) + '</s><u><i></i>' + itState(it) + '</u>' +
         ((pj.sum || {}).anim ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '') + '</span>' + ico('ext') + '</button>' +
         (this.edit === it.sid ? this.relabHtml(it, rs)
-          : '<details class="rvd-mn" name="rvd-mn"><summary title="Change audience, mark it approved, or remove it" aria-label="' + esc('Actions for ' + itemLabel(it)) + '">' + MORE + '</summary><span class="rvd-mnl"><button type="button" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
+          : '<details class="rvd-mn" name="rvd-mn"><summary title="Send it on, change its audience, mark it approved, or remove it" aria-label="' + esc('Actions for ' + itemLabel(it)) + '">' + MORE + '</summary><span class="rvd-mnl">' + ((rs.tok || {}).dd ? '<button type="button" data-a="sendto" data-sid="' + esc(it.sid) + '">Send to…</button>' : '') + '<button type="button" data-a="relab" data-sid="' + esc(it.sid) + '">' + (it.market && it.aud ? 'Change audience' : 'Set its audience') + '</button>' +
             (it.copy ? '' : '<button type="button" data-a="approve" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '" title="For an ad already signed off outside the review: marks it approved without the content team">Already approved</button>') +
             '<button type="button" class="rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span></details>') + '</div>';
     };
@@ -6090,8 +6228,10 @@
       briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') +
       '<section class="rvd-card"><h3>Drive location</h3>' +
       '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
-      '<div class="rvd-out"><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
-      '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div>' +
+      // REMOVE AND DELETE, FOLDED AWAY (2026-11-21, /impeccable critique): they sat right under the
+      // Drive location's Save; now they wait behind one quiet summary, the delete last
+      '<details class="rvd-out"><summary>Remove or delete this ad set</summary><div><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
+      '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div></details>' +
       '</aside>';
     return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? '' : audiences) + vidSecHtml(rs, true).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
@@ -7798,6 +7938,7 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .adt-h h2{margin:0;font:500 24px/1.2 var(--ps-font);letter-spacing:-.01em;color:var(--ps-ink)}
 .adt-h h2 s{margin-left:6px;text-decoration:none;font-weight:400;color:var(--ps-ink-2)}
 .adt-now{display:flex;align-items:center;gap:8px;margin:4px 0 0;font:400 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.adt-rc{margin:4px 0 0 16px;font:400 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
 .adt-now i{width:8px;height:8px;border-radius:50%;background:var(--ps-warn);flex:none}
 .adt-now[data-s="done"] i{background:var(--ps-good)}
 .adt-acts{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
@@ -7856,7 +7997,7 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rss-has{font:italic 400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
 .rss .rsp-tile{flex-wrap:wrap;align-content:flex-start}
 .rss-arp{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:10px;border-top:1px solid var(--ps-hair)}
-.rss-arp>span{font:500 11px/1 var(--ps-font);letter-spacing:.06em;text-transform:uppercase;color:var(--ps-dim);margin-right:2px}
+.rss-arp>span{font:500 12px/1 var(--ps-font);color:var(--ps-ink-2);margin-right:2px}
 .rss-arp .rsp-t{height:28px;padding:0 10px;font-size:12px}
 .rss-arp .rsp-t[aria-pressed="true"]{padding-left:7px}
 .rss-arp .rsp-t svg{width:14px;height:14px}
@@ -7864,7 +8005,20 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rss-br button{height:28px;font-size:12px}
 .rss .shl-st{margin:0;min-height:0}
 .rss .shl-st:empty{display:none}
-.rss .shl-acts{margin-top:0}
+.rss .shl-acts{margin-top:0;align-items:center}
+.shl-dlg-c.rss{padding-bottom:0}
+.rss-tabs{align-self:flex-start}
+.rss-pane{display:flex;flex-direction:column;gap:16px}
+.rss-pane[hidden]{display:none}
+.rss-help{margin:-6px 0 0;max-width:62ch;font:400 13px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.rss-help b{font-weight:500;color:var(--ps-ink)}
+.rss-phs .rss-help{margin:2px 0 0}
+.rss-foot{position:sticky;bottom:0;z-index:1;display:flex;flex-direction:column;gap:10px;margin:auto -24px 0;padding:16px 24px 20px;background:var(--ps-card);box-shadow:0 -1px 0 var(--ps-hair)}
+.rss-ask{margin-right:auto;font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.rss .rsp-l{height:32px;width:40px}
+.rss .rss-pc button{width:30px;height:30px}
+.rss .rss-pc button[data-reach]{width:auto;height:30px}
+.rss-arp .rsp-t{height:32px}
 .rss button:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .adt-set{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 10px;border:none;border-radius:9999px;background:none;cursor:pointer;color:var(--ps-ink);font:500 13px/1 var(--ps-font)}
 .adt-set:hover{background:var(--ps-fill)}
@@ -7984,6 +8138,8 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rvd-steps [data-i="2"] i,.rvd-steps [data-i="2"] em s,.rvd-wc[data-i="2"] i,.rvd-lkh[data-i="2"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-link)}
 .rvd-steps [data-i="3"] i,.rvd-steps [data-i="3"] em s,.rvd-wc[data-i="3"] i,.rvd-lkh[data-i="3"] :is(.rvd-lkn,.rvd-lkm)>i{background:var(--ps-good)}
 .rvd-now{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:18px 0 0;padding:16px 0 0;border-top:1px solid var(--ps-hair);font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-sent{display:flex;align-items:center;gap:8px;margin:12px 0 0;padding:10px 14px;border-radius:12px;background:var(--ps-fill);font:500 13.5px/1.4 var(--ps-font);color:var(--ps-ink)}
+.rvd-sent i{width:8px;height:8px;flex:none;border-radius:50%;background:var(--ps-good)}
 .rvd-now>i{width:8px;height:8px;border-radius:50%;background:var(--ps-dim)}
 .rvd-now[data-s="ready"]>i{background:var(--ps-good)}
 .rvd-wk{margin-right:4px;color:var(--ps-dim)}
@@ -8108,7 +8264,12 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .rvd-op{display:inline-grid;place-items:center;width:32px;height:32px;padding:0;text-decoration:none}
 .rvd-op .rva-i{width:16px;height:16px;fill:currentColor}
 .rvd-cp .rva-i{width:15px;height:15px;fill:currentColor}
-.rvd-out{display:flex;flex-direction:column;gap:2px;padding:4px 6px 0}
+.rvd-out{margin:8px 0 0;padding:12px 6px 0;border-top:1px solid var(--ps-hair)}
+.rvd-out summary{list-style:none;cursor:pointer;width:max-content;padding:4px 2px;border-radius:6px;font:500 12.5px/1.4 var(--ps-font);color:var(--ps-dim)}
+.rvd-out summary::-webkit-details-marker{display:none}
+.rvd-out summary:hover{color:var(--ps-ink)}
+.rvd-out summary:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rvd-out > div{display:flex;flex-direction:column;gap:2px;padding:8px 0 0}
 .rvd-acl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
 .rvd-acl li{display:flex;flex-direction:column;gap:8px}
 .rvd-acn{display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -8227,8 +8388,21 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .rss-q .rsp-prod,.rss-q .rsp-brand{width:max-content}
 .rss-pc button[data-reach]{width:auto;height:26px;margin-left:6px;padding:0 10px;border-radius:9999px;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink-2);font:500 12px/1 var(--ps-font)}
 .rss-pc button[data-reach][aria-pressed=true]{background:var(--ps-ink);box-shadow:none;color:var(--ps-card)}
-.sto{width:min(440px,100%)}
-.sto-l{display:grid;gap:8px;margin:16px 0 0}
+.sto{width:min(460px,100%);max-height:calc(100vh - 32px);overflow:auto}
+.sto-g{margin:18px 0 0}
+.sto-g + .sto-g{margin-top:16px}
+.sto .shl-lead{margin:0}
+.sto-g h3{margin:0 0 8px;font:600 14px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.sto-l{display:grid;gap:8px}
+.sto-ask{display:grid;gap:10px;margin:-2px 0 2px;padding:14px 16px;border-radius:12px;background:var(--ps-fill)}
+.sto-ask p{margin:0;font:400 14px/1.45 var(--ps-font);color:var(--ps-ink)}
+.sto-ask ul{margin:0;padding:0 0 0 18px;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.sto-ask[data-warn] ul li::marker{color:var(--ps-warn)}
+.sto-ask div{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.sto-o[aria-expanded="true"]{box-shadow:inset 0 0 0 1px var(--ps-ink)}
+.shl-dlg.sto-away{background:none}
+.shl-dlg.sto-away > .shl-dlg-c{visibility:hidden}
+.sto .shl-acts{margin-top:20px}
 .sto-o{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;text-align:left;padding:12px 16px;border:none;border-radius:12px;background:none;box-shadow:inset 0 0 0 1px var(--ps-line);color:var(--ps-ink);font:400 14px/1.3 var(--ps-font);cursor:pointer}
 .sto-o b{grid-column:1;font-weight:500}
 .sto-o s{grid-column:1;text-decoration:none;color:var(--ps-ink-2);font-size:13px}

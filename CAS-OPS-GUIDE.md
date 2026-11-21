@@ -619,7 +619,7 @@ performance marketing), and the button beside it opens that team's view in a new
 
 | who | the link opens | they can |
 |---|---|---|
-| **Designer** | the ad set's overview, with each project one click from the full studio | design, mark steps done, add projects, put work back in progress |
+| **Designer** | the ad set's overview, with each project one click from the full studio | design, mark steps done, add projects, send work back to design |
 | **Content team** | the words of every project beside its images | change the words, approve the English copy and the translation |
 | **Performance marketing** | every project's images, always the latest | change the words in **Edit text**, download each audience once the designer sends it for review |
 
@@ -636,14 +636,19 @@ steps: **Design › ENG copy check › Translation › Done**.
    in its campaign: four small bars for the four steps, the step it is on, and its market,
    audience and language (for example *Design · Local · Family · EN*). Beside it is the one
    thing to do next. When the design is ready, press **Send to…** and pick the task the project
-   goes to: **Copy check** (an Arabic project says **Translation check**), **Arabic**,
-   **Animated**, **Video**, **Design** or **Done**. Any order works, and you can send it back.
-   Then pick who gets it (the content team for a copy check, a designer for Arabic, Animated and
-   Video). After the first hand-off, **Send to…** stays in the **Ad set** tab's header. Sending
-   to **Copy check** first lists anything missing: empty words, a page or
-   variant with no background photo, a QR code switched on with none added (or an empty ADM
-   number when ADM & CN is chosen), or copy covering
-   more than 40% of a canvas. Fix them, or press OK to send anyway. While the content team has
+   goes to. The list is grouped: **Next** (**Copy check**, or **Translation check** on an Arabic
+   project, **Arabic**, **Animated**, **MVP video**), **Back** (**Design**) and **Finish**
+   (**Done**, which asks **Mark done?** before it goes). Any order works, and you can send it back.
+   Then pick who gets it, in the same dialog (the content team for a copy check, a designer for
+   Arabic, Animated and MVP video); **Back** returns to the list. After the first hand-off,
+   **Send to…** stays in the **Ad set** tab's header, and a line under the step says what was
+   sent, when, and who has it. **Send to…** is also in each project's **⋯** menu on the ad set
+   page (Tracker › **Open the ad set**), so you can hand work on without opening the studio.
+   Sending to **Copy check** from the studio first lists, in the dialog, anything missing: empty
+   words, a page or variant with no background photo, a QR code switched on with none added (or
+   an empty ADM number when ADM & CN is chosen), or copy covering more than 40% of a canvas.
+   Press **Fix it first**, or **Send anyway**. The person you pick gets a Chrome alert only if
+   they have that ad set open; either way it waits in their queue on Home. While the content team has
    it, the current bar turns amber and the step reads **Copy check**; the button moves on to
    **Create next audience** or **Make the Arabic**. **Back to design** is in the **Ad set** tab.
    Clicking the status opens the Ad set tab. The editor's bar has no Campaign ads | Organic posts
@@ -790,7 +795,15 @@ its designs, each design's look (branded or unbranded) and its languages.
   changes** applies it for everyone on the ad set's links, and the Activity lists what changed.
   It won't drop an audience that already has a project, or switch off Arabic where there is an
   Arabic project: move the project with **Change audience**, or remove it, first. Also in the Ad
-  set tab, under **Audiences**.
+  set tab, under **Audiences**. It has two tabs: **Campaign** (name, product, brand, deadline,
+  brief, video, QR) and **Plan** (phases, markets, audiences, Arabic). **Save changes** stays at
+  the bottom as you scroll. Closing with unsaved changes asks **Discard your changes?**
+  (**Keep editing** or **Discard**).
+- **Remove or delete this ad set** (at the foot of the side column) opens **Remove from this
+  list** and **Delete for everyone**.
+- **Tracker › Progress** says **Signed off · N deliverables missing** for an ad set the content
+  team has approved but that still lacks deliverables (an Animated version, the MVP video…). It
+  is a warning only; the package is not held back.
 - **One QR code for the whole ad set:** **Ad set settings** › **QR code** › **Upload a QR code**
   (**Replace** / **Remove** once there is one), then **Save changes**. Every design in the ad set
   takes it into its QR the next time it is opened ("QR code filled from …"), Status and its

@@ -914,3 +914,13 @@ All audiences video read MVP video 2 of 2; Palm Springs with a "Launch · Local 
   with VAULT's numbers (6 desktop cells, 2 spanning, ring 4 of 6); the Browser pane was blocked by a
   page-opened popup, so not yet looked at on screen.
 
+## Tracker: signed off is not everything delivered (2026-11-21, Revision 1.35)
+
+From the /impeccable critique (warn, don't block, by the user's choice): when `x.ready` and
+`tkCount` is short, the row's step line reads "Signed off · N deliverables missing" with a warn
+dot (`.tk-short`) instead of "Ready to run · Package ready". `tkWhen` drops the overdue marker on
+ready work and shows "Deadline" under the date. The ring caption reads "deliverables in" / "all
+delivered" (it said "done, EN + AR" under English-only cells). The grids are `role="group"`, and
+each `tkCell` is `role="img"` with an aria-label (kind, language, state). The no-data line links
+to the Kanban. Checked on screen at desktop and 375 px.
+
