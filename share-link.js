@@ -988,7 +988,7 @@
       const d = dsKeepReview(await dsRead(fid, true), was, body.rid), rv = d.review;
       // drawn from another revision than the file holds now: not this preview's to write
       if (body.rev != null && (rv.rev || 0) !== Number(body.rev)) return { ok: true, skipped: true };
-      rv.thumb = body.thumb; rv.thumbAt = dsNow();
+      rv.thumb = body.thumb; rv.thumbAt = dsNow(); rv.thumbV = Number(body.v) || 0;
       if (body.sum && typeof body.sum === 'object') rv.sum = body.sum;
       await dsWrite(fid, d);
       return { ok: true };
@@ -1030,7 +1030,7 @@
             (e.pmod = e.pmod || {})[it.sid] = pm;
             // a preview older than the project's last change is redrawn by Review links itself
             // (AV.heal) — the designer's tab may never have sent one
-            if (!rv.thumb || (rv.thumbAt || 0) < pm - 2000) (e.stale = e.stale || []).push({ sid: it.sid, rev: rv.rev || 0, mod: pm });
+            if (!rv.thumb || (rv.thumbAt || 0) < pm - 2000 || (rv.sum && rv.sum.anim && (rv.thumbV || 0) < THUMB_V)) (e.stale = e.stale || []).push({ sid: it.sid, rev: rv.rev || 0, mod: pm });
             if (pm >= (e.leadMod || 0)) { e.leadMod = pm; e.lead = it.sid; }
             if (full) (rv.log || []).slice(-100).forEach(x => plog.push(Object.assign({}, x, { page: dsItemLabel(it, R.rs) })));
           } catch (er) { if (er.gdAuth) throw er; e.live[it.sid] = false; }
@@ -2021,6 +2021,9 @@
     this.shRender();
     this.shPoll(true);
     S.healT = Date.now(); setTimeout(() => this.shHeal(), 1500);
+    // an animated design's preview is drawn again once it opens, with its video in it (THUMB_V): one
+    // drawn before that showed the words on black, and the home page cannot draw a design itself
+    if (this.shApp() === 'provident-ad-studio' && S.role === 'dd' && S.rs && ((this.state.variants || [])[0] || {}).bgVid) setTimeout(() => { if (this._sh === S) this.shThumb(true); }, 6000);
     if (Object.keys(S.pv).length) setTimeout(() => this.shFlash(Object.keys(S.pv).length + ' full-size photo' + (Object.keys(S.pv).length > 1 ? 's have' : ' has') + ' expired — showing previews. Restore them from the Changes panel.'), 800);
     this.forceUpdate();
   };
@@ -2035,7 +2038,7 @@
     S.thumbBusy = true; S.thumbDue = false; S.thumbAt = Date.now();
     try {
       const th = await this.rvThumb();
-      if (th && this._sh === S) await api('thumb', { id: S.id }, { thumb: th, sum: this.rvSum(this.shPub()) });
+      if (th && this._sh === S) await api('thumb', { id: S.id }, { thumb: th, v: THUMB_V, sum: this.rvSum(this.shPub()) });
     } catch (e) { S.thumbDue = true; }
     S.thumbBusy = false;
   };
@@ -2705,7 +2708,8 @@
     const items = (rs.items || []).filter(x => x.market && x.aud), tk = rs.ticket || {}, ticket = o.ticket !== false;
     const has = (m, a, l, ph) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l) && (!ph || phOf(rs, x) === ph));
     let cells = rsCells(rs);
-    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on), broad: (rs.broad || []).slice(), qr: rs.qr && rs.qr.u ? { u: rs.qr.u, name: rs.qr.name || 'QR code' } : null, qrv: 0 };
+    const mWas = new Set(cells.map(c => c.market));
+    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on), broad: (rs.broad || []).slice(), dup: true, qr: rs.qr && rs.qr.u ? { u: rs.qr.u, name: rs.qr.name || 'QR code' } : null, qrv: 0 };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
     // each phase is a field holding its name; what is typed there renames it on Save (d.phn)
@@ -2739,6 +2743,8 @@
         '<p class="rss-help">Each phase is its own package of every planned audience, with its own tab on the ad set page. <b>Broad</b> runs a phase with one Broad audience per market, in English and Arabic, and no audience-based designs.</p></div>' : '') +
       '<div class="rss-plan"><div class="rss-ph"><b>Audiences</b><span class="rsp-n"></span></div>' +
       '<div class="rsp-more"><div class="rsp-g"><span>Markets</span><div class="rsp-tg" data-g="m"></div></div><div class="rsp-g"><span>Audiences</span><div class="rsp-tg" data-g="a"></div></div></div>' +
+      // A NEW MARKET: COPY OR BLANK (2026-11-23, by request) — shown only when a market switched on here could be copied into
+      '<div class="rsp-f rss-dup" hidden><span id="rss-dup-l">New market</span><div class="p-tabs rsp-dupt" role="radiogroup" aria-labelledby="rss-dup-l"></div><p class="rss-help" data-duphelp></p></div>' +
       '<div class="rsp-tiles" role="list"></div></div></div>' +
       '<div class="rss-foot"><p class="shl-st" aria-live="polite"></p>' +
       '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">Cancel</button><button type="button" class="p-btn" data-go="1">Save changes</button></div></div></div>';
@@ -2762,6 +2768,18 @@
       const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud).filter(a => a === audRoot(a)));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
+      // the markets switched on in this dialog, and the market their designs would be copied from
+      const mNew = [...ms].filter(m => !mWas.has(m)), dsrc = mNew.length && isDs((rs.tok || {}).dd) ? dupFrom(rs, phBase(rs), mNew) || d.phases.map(k => dupFrom(rs, k, mNew)).find(Boolean) || '' : '';
+      const dupBox = $('.rss-dup');
+      if (dupBox) {
+        dupBox.hidden = !dsrc;
+        if (dsrc) {
+          const dt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.dup === k) + '" data-dup="' + (k ? '1' : '0') + '"' + (d.dup === k ? ' data-on="1"' : '') + '>' + l + '</button>';
+          $('.rsp-dupt').innerHTML = dt(true, 'Copy the ' + esc(dsrc) + ' designs') + dt(false, 'Start from scratch');
+          $('[data-duphelp]').textContent = d.dup ? mNew.join(' and ') + ' starts with a copy of every ' + dsrc + ' design, its pictures and video background too. Check the words, prices and currency.'
+            : mNew.join(' and ') + ' starts empty: each design is started on the ad set page and made from scratch.';
+        }
+      }
       $('[data-g="a"]').innerHTML = [BROAD].concat(AUDS[d.product], [...as].filter(a => a !== BROAD && AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
       if (phOk) $('[data-g="ph"]').innerHTML = d.phases.map(k => { const l = phL(k), lock = phBusy(k);
         return '<span class="rss-pc"><input class="rss-pn" data-phn="' + esc(k) + '" maxlength="40" value="' + esc(k in d.phn ? d.phn[k] : l) + '" size="' + Math.max(6, (l || '').length + 1) + '" aria-label="Phase name — type to rename it" title="Type to rename the phase" autocomplete="off" spellcheck="false">' +
@@ -2870,6 +2888,7 @@
           st(''); draw(); return;
         }
         if (b.dataset.vidon) { d.video = b.dataset.vidon === '1'; st(''); draw(); return; }
+        if (b.dataset.dup) { d.dup = b.dataset.dup === '1'; st(''); draw(); return; }
         if (b.dataset.qr === 'up') { $('[data-qrin]').value = ''; $('[data-qrin]').click(); return; }
         if (b.dataset.qr === 'rm') { d.qr = null; d.qrv++; st(''); draw(); return; }
         if (b.dataset.ph) {
@@ -2909,6 +2928,7 @@
             const p = { name: d.name, product: d.product, plan: cells.map(c => { const o = { market: c.market, aud: c.aud, arb: c.arb }, off = c.arb && phOk ? arbOffOf(c).filter(k => d.phases.indexOf(k) >= 0) : [];
               if (off.length) o.arbOff = off; return o; }) };
             if (ticket) p.ticket = { deadline: d.deadline || '', brief: d.brief || '' };
+            if (!d.dup) p.dup = false;
             if (phOk) { p.phases = d.phases.slice(); p.brand = d.brand; p.broad = d.broad.filter(k => d.phases.indexOf(k) >= 0); const rn = d.phases.filter(k => phKey(phL(k)) !== k).map(k => [k, phL(k)]); if (rn.length) p.rename = rn; if (d.video !== !!(rs.video && rs.video.on)) p.video = d.video; if (d.qrv) p.qr = d.qr ? { u: d.qr.u, name: d.qr.name } : null; }
             close(await save(p));
           } catch (er) { btns.forEach(x => { x.disabled = false; }); b.textContent = 'Save changes'; st(er.message || String(er)); }
@@ -2940,11 +2960,11 @@
   }
   async function rsSettingsSave(id, rs, p, by) {
     if (isDs(id) || isDs((rs.tok || {}).dd) || Array.isArray(rs.plan)) {
-      const vid = p.video; p = Object.assign({}, p); delete p.video;
+      const vid = p.video, dup = p.dup !== false; p = Object.assign({}, p); delete p.video; delete p.dup;
       let out = (await api('rsset', { id }, Object.assign({ by }, p))).rs;
       if (vid !== undefined) out = (await api('rsvideo', { id }, { by, act: 'on', on: vid })).rs;
       // a market just switched on starts from the designs another market already has (dupMarket)
-      if (isDs(id)) for (const ph of phList(out)) {
+      if (isDs(id) && dup) for (const ph of phList(out)) {
         const was = new Set(rsCellsIn(rs, ph).map(c => c.market)), now = [...new Set(rsCellsIn(out, ph).map(c => c.market))];
         const to = now.filter(m => !was.has(m) && !(out.items || []).some(x => phOf(out, x) === ph && x.market === m));
         const from = to.length && dupFrom(out, ph, to);
@@ -3497,11 +3517,42 @@
     } catch (e) { return undefined; }
   };
   // a small picture of a project's first design, for the archive
+  // AN ANIMATED DESIGN'S PREVIEW SHOWS ITS VIDEO (2026-11-23, by request: "why these thumbnail
+  // previews are disappearing"). A design with Video chosen (bgVid) and a clip plays it where its
+  // photo would be; the thumbnail drew the photo slot, which such a design often leaves empty, so
+  // Status showed the words on black. As anRecord does, a frame of the clip (half a second in)
+  // becomes the 1:1's photo, framed by the 1:1's own video framing (bgVidV.sq) when it has one.
+  // The clip: this tab's own when it is this project, else the copy on Drive (bgClip.f).
+  // THUMB_V: a preview drawn before this counts as stale for an animated design (dsInfo1, so a
+  // studio's own Status heals it), and CAS draws an animated design's preview again when it opens.
+  const THUMB_V = 2;
+  SP.thumbVid = async function (st, a) {
+    const v = ((st && st.variants) || [])[0];
+    if (!v || !v.bgVid) return a;
+    const mine = this._clips && this._clips[0] && this.state && st.pid && st.pid === this.state.pid ? this._clips[0].blob : null;
+    let blob = mine;
+    if (!blob && v.bgClip && v.bgClip.f) try { blob = await dsClipGet(v.bgClip.f); } catch (e) {}
+    if (!blob) return a;
+    const url = URL.createObjectURL(blob);
+    try {
+      const vid = document.createElement('video'); vid.muted = true; vid.playsInline = true; vid.preload = 'auto'; vid.src = url;
+      await new Promise((res, rej) => { vid.onloadeddata = res; vid.onerror = () => rej(new Error('clip')); setTimeout(() => rej(new Error('slow')), 10000); });
+      const t = Math.min(.5, (isFinite(vid.duration) && vid.duration ? vid.duration : 1) / 2);
+      if (t > 0) await new Promise(res => { vid.onseeked = res; vid.currentTime = t; setTimeout(res, 3000); });
+      if (!vid.videoWidth) return a;
+      const fc = document.createElement('canvas'); fc.width = vid.videoWidth; fc.height = vid.videoHeight;
+      fc.naturalWidth = fc.width; fc.naturalHeight = fc.height;
+      fc.getContext('2d').drawImage(vid, 0, 0, fc.width, fc.height);
+      const own = v.bgVidV && v.bgVidV.sq;
+      return Object.assign({}, a, { bg0: Object.assign({ s: 1, x: 0, y: 0 }, a.bg0 || {}, own || {}, { img: fc, u: 'clip' }) });
+    } catch (e) { return a; }
+    finally { URL.revokeObjectURL(url); }
+  };
   SP.rvThumb = async function (st, own) {
     if (this.shApp() !== 'provident-ad-studio') return this.postThumb ? this.postThumb(st, own) : undefined;
     try {
       st = st || this.state;
-      const a = await this.loadAssets(st, own);
+      const a = await this.thumbVid(st, await this.loadAssets(st, own));
       await projFonts(st);
       const cv = this.renderOpsToCanvas(this.buildOps(st, 0, 'sq', a), .2);
       StudioBase.applyFont(this.state);
@@ -3515,7 +3566,7 @@
     if (this.shApp() !== 'provident-ad-studio') return undefined;
     try {
       st = st || this.state;
-      const a = await this.loadAssets(st, own);
+      const a = await this.thumbVid(st, await this.loadAssets(st, own));
       await projFonts(st);
       const cv = this.renderOpsToCanvas(this.buildOps(st, 0, 'sq', a), .5);
       StudioBase.applyFont(this.state);
@@ -4518,7 +4569,7 @@
     p.thumbAt = now; p.thumbDue = false;
     try {
       const th = await this.eng.rvThumb(p.st, await this.photos(sid));
-      if (th) await api('thumb', { id: this.tok, p: sid }, { thumb: th, sum: this.eng.rvSum(p.st) });
+      if (th) await api('thumb', { id: this.tok, p: sid }, { thumb: th, v: THUMB_V, sum: this.eng.rvSum(p.st) });
     } catch (e) { p.thumbDue = true; }
     if (p.thumbDue) setTimeout(() => { if (this.proj[sid] && this.proj[sid].thumbDue) this.thumbFor(sid); }, 5200);
   };
@@ -5511,7 +5562,7 @@
             // revision it was drawn from: this page is not the designer's, and a preview written
             // over a save made meanwhile in their tab would put the old photos back.
             const last = Math.max(+((rv.sum || {}).updated) || 0, +(((rv.log || [])[(rv.log || []).length - 1] || {}).at) || 0);
-            if (Date.now() - last > HEAL_QUIET) { try { await api('thumb', { id: j.id, p: j.sid }, { thumb: th, rev: rv.rev || 0 }); } catch (e) {} }
+            if (Date.now() - last > HEAL_QUIET) { try { await api('thumb', { id: j.id, p: j.sid }, { thumb: th, v: THUMB_V, rev: rv.rev || 0 }); } catch (e) {} }
           }
         } catch (e) { HEAL[j.sid] = { rev: j.rev, th: '' }; if (e && e.gdAuth) break; }
       }

@@ -535,13 +535,15 @@ audiences you want and un-press **Broad** on that phase. A project already made 
 where it is, whatever the reach.
 
 **A new market starts from the designs you already made.** Switch on **International** or
-**International EUR** under **Markets** in **Ad set settings** and press **Save changes**: every
+**International EUR** under **Markets** in **Ad set settings**, keep **New market** on **Copy the
+Local designs** (the default) and press **Save changes**: every
 Local design of that phase (Design 1, Design 2…) is copied into the new market as its own project,
 with its pictures and its video background, so the **Animated** version comes too. The English is
 always copied; the Arabic only if that market has Arabic. The copies start **In design**: change
 their words, prices and currency for the new market, then send them on as usual. A market that was
 switched on before it had anything to copy shows **Copy from Local** on its card on the ad set
-page; press it to copy the designs in.
+page; press it to copy the designs in. Pick **Start from scratch** under **New market** instead to
+leave the new market empty and make its designs yourself.
 
 #### The minimum deliverables
 

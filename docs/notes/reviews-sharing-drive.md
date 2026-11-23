@@ -2678,3 +2678,28 @@ animated". share-link.js + the Drive stand-in only; no canvas code touched.
   showed **Copy from Local**, which copied 2 more. **Not run**: opening a copy in CAS (the clip
   comes back through `anLoad` → `clipGet(bgClip.f)`), real Google Drive, CAS's Ad set tab settings
   path, phones, dark theme.
+
+**Copy or start from scratch (same day, by request).** Ad set settings › Plan: under Markets a
+`.rss-dup` segmented control "New market: Copy the <src> designs | Start from scratch" (`d.dup`,
+default true, `[data-dup]`), shown only when a market switched on in this dialog (`mWas` = the
+markets it opened with) has a source (`dupFrom`, any phase) on a Drive ad set. Start from scratch
+sends `p.dup = false`; `rsSettingsSave` strips it and skips the copy. `sig()` ignores `d.dup` (only
+a market change makes it matter). Verified on :8791: International with Start from scratch → planned,
+no copies, its card keeps Copy from Local; International EUR with the default → "Copied 4 designs"
+(EUR's Arabic is on by default, so ENG + ARB).
+
+**Animated previews went black (same day, by request: "why these thumbnail previews are
+disappearing").** Both black tiles on the live ad set were the Animated designs. `rvThumb` renders
+`buildOps(st, 0, 'sq', loadAssets)` — the 1:1 with its PHOTO slot; a design playing a video often has
+no photo there, so the preview was the words on the dark ground. CAS's `anRecord` already composes a
+clip frame into `assets['bg' + vi]` (`{img: canvas, u: 'clip'}`, own framing `bgVidV[psz]`); `SP.thumbVid`
+does the same with one frame (0.5 s in) for `rvThumb` and `roamPic`. Clip source: this tab's `_clips[0]`
+when `st.pid` is this project's, else `dsClipGet(bgClip.f)`. The home page cannot draw a design
+(`CAS_ENG` is a stub with no `rvThumb`, so `AV.heal` does nothing there): existing black previews are
+redrawn by CAS — `shareStart` calls `shThumb(true)` 6 s after a designer (role dd) opens an animated
+design. The `thumb` op saves `rv.thumbV` (`THUMB_V` = 2); `dsInfo1` counts an animated project with an
+older one as stale (healed where a studio hosts Status). Verified on :8791: the International EUR
+Broad English copy (real MP4) opened in CAS → its Drive preview went from a 1 KB flat fill to a 16 KB
+picture with the clip's frame, `thumbV` 2; the Arabic copy (placeholder clip bytes) fell back to the
+photo slot and still saved `thumbV` 2. **Not run:** the live ad set (its designer must open each
+animated design once), dark theme.

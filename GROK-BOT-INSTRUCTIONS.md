@@ -112,7 +112,8 @@ exports download as a zip. The studios fit tablets and phones.
   settings** and saving copies every Local design of that phase into it (pictures and video
   background too, so Animated comes with it; Arabic only if that market has it). The copies start
   In design, for their words, prices and currency to be changed. A market switched on earlier shows
-  **Copy from Local** on its card on the ad set page.
+  **Copy from Local** on its card on the ad set page. **New market: Start from scratch** in the
+  settings skips the copy.
 - **Send to…** lists, grouped **Next** / **Back** / **Finish**: **Copy check** (**Translation
   check** on an Arabic project), **Arabic**, **Animated**, **MVP video**, then **Design**, then
   **Done** (which asks **Mark done?** first). Then, in the same dialog, it asks who gets it: the
