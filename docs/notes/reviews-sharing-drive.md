@@ -1993,6 +1993,19 @@ note in SP.rvStep, RV.rvStep and the ad set page's Send to…; `roamnote` takes 
 content team reopening their own check is unchanged (no picker, no note). Not clicked through
 (share-dev's seeded projects do not open in CAS); syntax checked only.
 
+**The ad set page's note carries a picture (2026-11-23, by request):** Send to… on the home's ad
+set page (Tracker › Open the ad set) posted with no picture, because the home has no renderer. It
+now sends the tile's thumbnail, `d.proj[sid].thumb` (the review thumb saved at the project's last
+send), when it matches `roam_pic_bytes`' data-URL pattern; otherwise the note goes without one.
+The studio and the review link still render the master at 540 px.
+
+**The hand-off picker fits (2026-11-23, /impeccable, by request):** `.acx-pk-f` was a non-wrapping
+flex row pushed right, so "Send to Fatemaelzahraa" pushed **Back** past the dialog's left edge
+(clipped by `.acx-pk-in`'s overflow). Now: the row wraps; `.acx-pk-in` is 480px; Back is a quiet
+text button (`.acx-pk-f .acx-pk-bk` — `.acx-ghost` comes later in the sheet, so the rule needs the
+extra class); the go label sits in `.acx-pk-gt` and ellipsizes; `.acx-pk-t b` stops at two lines.
+Rendered headless at 1280, 600 and 375 (in frames: headless Chrome will not go under ~500 px).
+
 ## More than one design per audience (2026-11-10, by request)
 "On CAS adset, allow user to add more designs inside an audience" (Investor already had one). A
 further design is **an audience of its own named "<aud> · Design N"**, exactly as the unbranded

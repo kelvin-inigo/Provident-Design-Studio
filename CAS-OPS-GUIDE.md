@@ -710,7 +710,7 @@ reached, the step still goes through and the studio says Roam was not told; if o
 fails, the message goes without it and the studio says so. A designer reopening an approved copy
 or translation check (**Send to… › Translation check**, **Reopen it**) posts the same message,
 marked **reopened**, with a **Check again:** line holding what was typed. The content team
-reopening their own check posts nothing.
+reopening their own check posts nothing. Sent from the ad set page (Tracker), the picture is the design's thumbnail from its last send.
 
 **Chrome notifications.** When someone else presses a step button (Send to copy check, Approve,
 Back to design, Reopen), everyone who has that ad set open gets a Chrome notification, whether

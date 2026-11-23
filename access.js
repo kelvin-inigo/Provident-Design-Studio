@@ -756,7 +756,7 @@
             : '<p class="acx-pk-l">' + esc(o.err || ('Nobody is on the ' + o.T.word + ' yet. The admin adds people in Access.')) + ' It goes to the whole ' + esc(o.T.word) + ' instead.</p>') +
           (o.note ? '<label class="acx-pk-nl" for="acx-pk-nt">Note for them <s>optional</s></label><textarea id="acx-pk-nt" class="acx-pk-nt" rows="2" maxlength="300" placeholder="Anything they should know before they start">' + esc(o.noteV) + '</textarea>' : '') +
           '<div class="acx-row acx-pk-f">' + (o.back ? '<button type="button" class="acx-ghost acx-pk-bk" data-pk="back">' + ic('back') + 'Back</button>' : '') + '<button type="button" class="acx-ghost" data-pk="no">Cancel</button><button type="button" class="acx-btn" data-pk="go">' + ic('send') +
-          esc(o.list.length && sel ? o.go + ' to ' + nameOf(o.list.find(p => p.email === sel) || {}).split(' ')[0] : o.go) + '</button></div></div>';
+          '<span class="acx-pk-gt">' + esc(o.list.length && sel ? o.go + ' to ' + nameOf(o.list.find(p => p.email === sel) || {}).split(' ')[0] : o.go) + '</span></button></div></div>';
       };
       const from = document.activeElement;
       // ON A PHONE (2026-11-21): the sheet sits on the visible screen, above the keyboard (share-link.js)
@@ -892,7 +892,7 @@ html.acx-hold .p-shell{visibility:hidden}
 html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-l0,html[data-acc-role="smm"] .p-top > .p-seg:not(.p-seg-mode){display:none !important}
 .acx-a{text-decoration:none}
 .acx-pk{position:fixed;inset:0;z-index:4100;display:grid;place-items:center;padding:16px;background:color-mix(in srgb,var(--ps-app) 55%,transparent);backdrop-filter:blur(2px)}
-.acx-pk-in{width:min(440px,100%);max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;padding:24px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font)}
+.acx-pk-in{width:min(480px,100%);max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;padding:24px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font)}
 .acx-pk h2{font:500 20px/1.25 var(--ps-font);margin:0 0 6px}
 .acx-pk-l{font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2);margin:0 0 16px}
 .acx-pk-nl{display:block;margin:16px 0 6px;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
@@ -911,8 +911,11 @@ html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-
 .acx-pk-r{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 1.5px var(--ps-line);color:transparent}
 .acx-pk-r .acx-i{width:16px;height:16px}
 .acx-pk-p[data-on] .acx-pk-r{background:var(--ps-link);box-shadow:none;color:var(--ps-app)}
-.acx-pk-f{display:flex;gap:8px;justify-content:flex-end}
-.acx-pk-bk{margin-right:auto;display:inline-flex;align-items:center;gap:4px}.acx-pk-bk .acx-i{width:18px;height:18px}
+.acx-pk-f{display:flex;flex-wrap:wrap;align-items:center;gap:8px;justify-content:flex-end}
+.acx-pk-f [data-pk=go]{min-width:0;max-width:100%}
+.acx-pk-gt{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.acx-pk-f .acx-pk-bk{margin-right:auto;display:inline-flex;align-items:center;gap:2px;padding:0 14px 0 8px;box-shadow:none;color:var(--ps-ink-2)}.acx-pk-f .acx-pk-bk:hover{color:var(--ps-ink);background:var(--ps-fill)}.acx-pk-bk .acx-i{width:18px;height:18px}
+.acx-pk-t b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-wrap:balance}
 @media (max-width:640px){.acx-pk{place-items:end stretch;padding:12px 0 0}.acx-pk-in{width:100%;max-height:100%;border-radius:20px 20px 0 0;padding:20px 16px 0}
 .acx-pk-f{position:sticky;bottom:0;z-index:2;margin:0 -16px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--ps-card);box-shadow:0 -1px 0 var(--ps-line)}
 .acx-pk-nt{margin-bottom:16px}}

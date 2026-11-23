@@ -5547,7 +5547,10 @@
         const out = await api('rsstep', { id: this.sel }, Object.assign({ act: tkk ? 'task' : r.act, p: it.sid, by }, tkk ? { k: tkk } : {}, r.ho));
         const ni = ((out.rs || {}).items || []).find(x => x.sid === it.sid);
         this.sentNote = { sid: it.sid, t: stepFlash(r.act, tkk, r.ho, false) + ' · ' + itemLabel(it), at: ni && canUndo(ni) ? ni.undo.at : 0 };
-        if (roamWorthy(r.act, r.ho)) roamNote(out.rs || rs, it.sid, r.ho, msg => { this.sentNote = { sid: it.sid, t: msg, bad: true }; this.draw(); }, undefined, r.act);
+        // the home cannot draw a design, so the note carries the tile's own picture (2026-11-23,
+        // by request): the design's thumbnail saved at its last send
+        const th = ((this.det.proj || {})[it.sid] || {}).thumb || '';
+        if (roamWorthy(r.act, r.ho)) roamNote(out.rs || rs, it.sid, r.ho, msg => { this.sentNote = { sid: it.sid, t: msg, bad: true }; this.draw(); }, /^data:image\/(png|jpeg|webp);base64,/.test(th) ? th : undefined, r.act);
       } catch (er) { this.sentNote = { sid: it.sid, t: 'Not sent: ' + (er.message || String(er)), bad: true }; }
       await again();
       const f = this.el.querySelector('.rvd-snd[data-sid="' + CSS.escape(it.sid) + '"]') || this.el.querySelector('.rvd-sent'); if (f) f.focus();
