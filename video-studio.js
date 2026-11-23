@@ -681,18 +681,11 @@
     if (!r.hi) { cx.fillText(r.s, x, y); return; }
     const sp = cx.measureText(' ').width; r.words.forEach(w => { x = putWord(w, x, y, sp); });
   }
-  // A clip's framing (fx, fy) is the Reel's; the Square keeps its own in `sqf` once it is reframed
-  // there (double-click the picture and drag, or the sliders while on 1:1). Until then it shares the Reel's.
-  function cfr(c) { const q = P.size === '1x1' && c.sqf ? c.sqf : c; return { fx: q.fx == null ? 50 : q.fx, fy: q.fy == null ? 50 : q.fy }; }   // to read
-  function cfrW(c) { if (P.size !== '1x1') return c; if (!c.sqf) c.sqf = cfr(c); return c.sqf; }                                               // to write
-  function coverBox(sw, sh, c) {
-    const g = G(), fill = c.fit !== 'fit', s = (fill ? Math.max(g.w / sw, g.h / sh) : Math.min(g.w / sw, g.h / sh)) * (c.z || 100) / 100;
-    return { dw: sw * s, dh: sh * s };
-  }
   function drawCover(src, sw, sh, c) {
     const g = G(); if (!sw || !sh) return;
-    const b = coverBox(sw, sh, c), f = cfr(c);
-    cx.drawImage(src, (g.w - b.dw) * f.fx / 100, (g.h - b.dh) * f.fy / 100, b.dw, b.dh);
+    const fill = c.fit !== 'fit', s = (fill ? Math.max(g.w / sw, g.h / sh) : Math.min(g.w / sw, g.h / sh)) * (c.z || 100) / 100;
+    const dw = sw * s, dh = sh * s;
+    cx.drawImage(src, (g.w - dw) * (c.fx == null ? 50 : c.fx) / 100, (g.h - dh) * (c.fy == null ? 50 : c.fy) / 100, dw, dh);
   }
   // The copy block: eyebrow (tracked caps 500), headline (Regular 400 on the thumbnail scale),
   // sub line (Light 300). The headline steps DOWN the scale to fit; it never shrinks off it.
@@ -1336,26 +1329,9 @@
   // ── canvas gestures: click selects, a logo drags ─────────────────────────────────────
   let cdrag = null;
   const cvPt = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * cv.width / r.width, y: (e.clientY - r.top) * cv.height / r.height }; };
-  // Reframing the Square: double-click the picture on 1:1 and drag it (the second press can drag at once).
-  // It stays on for that clip, so later drags move it too, until Esc, another pick or the Reel size.
-  let refr = null, lastDown = null;          // pointerdown's own detail is 0 in Chrome, so the double press is timed here
-  const refrOn = () => !!refr && P.size === '1x1' && !!sel && sel.kind === 'clip' && sel.id === refr && P.clips.some(c => c.id === refr);
-  function refrSync() { if (refr && !refrOn()) refr = null; if (refr) cv.dataset.refr = '1'; else delete cv.dataset.refr; }
   cv.addEventListener('pointerdown', e => {
     const p = cvPt(e); let hit = null;
     Object.keys(hits).forEach(id => { const h = hits[id]; if (p.x >= h.x && p.x <= h.x + h.w && p.y >= h.y && p.y <= h.y + h.h && (!hit || h.kind === 'logo')) hit = { id, kind: h.kind }; });
-    const now = performance.now(), dbl = !!lastDown && now - lastDown.t < 450 && Math.abs(e.clientX - lastDown.x) + Math.abs(e.clientY - lastDown.y) < 10;
-    lastDown = dbl ? null : { t: now, x: e.clientX, y: e.clientY };
-    if (P.size === '1x1' && !(hit && hit.kind === 'logo')) {
-      const a = clipAt(T) || (T > 0 && T >= videoEnd() - 1e-6 && P.clips.length ? { c: P.clips[P.clips.length - 1] } : null);
-      if (a && (dbl || (refrOn() && refr === a.c.id))) {
-        e.preventDefault();
-        const first = refr !== a.c.id; refr = a.c.id; sel = { kind: 'clip', id: a.c.id }; renderAll();
-        if (first) toast('Reframing the Square: drag the picture. The Reel keeps its own framing. Esc to finish.');
-        const f = cfr(a.c); cdrag = { p, frame: a.c, fx: f.fx, fy: f.fy, snap: JSON.stringify(P), moved: false }; cv.setPointerCapture(e.pointerId);
-        return;
-      }
-    }
     if (!hit) { if (sel) { sel = null; renderAll(); } return; }
     sel = { kind: hit.kind, id: hit.id }; renderAll();
     if (hit.kind === 'logo') { const l = find(sel), q = lgeo(l); cdrag = { p, x: q.x, y: q.y, snap: JSON.stringify(P), moved: false }; cv.setPointerCapture(e.pointerId); }
@@ -1399,14 +1375,7 @@
     const p = cvPt(e);
     if (!cdrag.moved) {
       if (Math.abs(p.x - cdrag.p.x) + Math.abs(p.y - cdrag.p.y) < 4) return;
-      cdrag.moved = true; undo.push(cdrag.snap); redo.length = 0; if (!cdrag.frame) guideShow();
-    }
-    if (cdrag.frame) {                        // the picture moves under the Square's frame; fx / fy are % of the overhang
-      const c = cdrag.frame, pc = picOf(c); if (!pc) return;
-      const g = G(), b = coverBox(pc.w, pc.h, c), ox = g.w - b.dw, oy = g.h - b.dh, q = cfrW(c);
-      if (Math.abs(ox) > .5) q.fx = Math.round(clamp(cdrag.fx + (p.x - cdrag.p.x) / ox * 100, 0, 100) * 10) / 10;
-      if (Math.abs(oy) > .5) q.fy = Math.round(clamp(cdrag.fy + (p.y - cdrag.p.y) / oy * 100, 0, 100) * 10) / 10;
-      dirty = true; return;
+      cdrag.moved = true; undo.push(cdrag.snap); redo.length = 0; guideShow();
     }
     if (cdrag.cta) {                          // the end card moves up and down only, inside the safe area
       const g = G(), hb = hits[l.id] || { h: 0 }, half = hb.h / g.h * 50, lo = g.t / g.h * 100 + half, hi = (g.h - g.b) / g.h * 100 - half;
@@ -1963,8 +1932,7 @@
       else h += '<div class="vs-sec">' + row('Lasts', '<span class="vs-numw"><input class="p-in vs-num" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '" aria-label="Lasts, seconds"><i>s</i></span>') + '</div>';
       if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', row('Style', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>') + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
       h += sec('Framing', '', seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
-        rng('i', 'z', 'Zoom', it.z, 100, 300, '%') + rng('i', 'fx', 'Left to right', cfr(it).fx, 0, 100, '') + rng('i', 'fy', 'Top to bottom', cfr(it).fy, 0, 100, '') +
-        (P.size === '1x1' ? '<span class="vs-note">' + (it.sqf ? 'The Square has its own framing. ' : '') + 'Double-click the picture and drag to reframe the Square; the Reel keeps its own framing.' + (it.sqf ? '</span><div class="vs-acts"><button class="p-ghost p-sm" id="sqfReset">Match the Reel</button></div>' : '</span>') : ''));
+        rng('i', 'z', 'Zoom', it.z, 100, 300, '%') + rng('i', 'fx', 'Left to right', it.fx, 0, 100, '') + rng('i', 'fy', 'Top to bottom', it.fy, 0, 100, ''));
       if (!vid) { const open = animOpen || it.job;
         h += animHtml(it, (t, meta, body) => '<details class="vs-acc" data-acc="anim"' + (open ? ' open' : '') + '><summary><b>' + t + '</b><s>Turn it into video</s>' + CHEV + '</summary><div class="vs-acc-b">' + body + '</div></details>', f, row); }
     } else if (sel.kind === 'audio') {
@@ -2104,7 +2072,6 @@
         const fi = insp.querySelector('[data-n="fit"]'), nt = insp.querySelector('#rateNote'); if (fi) fi.value = (sel.kind === 'clip' ? clipLen(it) : it.dur).toFixed(2); if (nt) nt.innerHTML = rateNote(it);
       }
       else if (sel.kind === 'logo' && (k === 'w' || k === 'x' || k === 'y')) lgeoW(it)[k] = v;
-      else if (sel.kind === 'clip' && (k === 'fx' || k === 'fy')) cfrW(it)[k] = v;
       else it[k] = k === 'vol' ? v / 100 : v;
     } else if (d.s) { it[d.s] = e.target.value; if (d.s === 'tr') { dirty = true; save(); renderAll(); return; } }
     else if (d.n) {
@@ -2138,7 +2105,6 @@
     if (b.id === 'descCancel') { const id = it.descJob; mark(); delete it.descJob; JOBS = JOBS.filter(j => j.id !== id); api('/api/animate/cancel', { id }).catch(() => {}); renderAll(); return; }
     if (b.id === 'promptReset') { mark(); delete it.genPrompt; delete it.genPromptBy; delete it.genPromptFor; delete it.descErr; renderAll(); return; }
     if (b.id === 'rateReset') { mark(); setRate(it, sel.kind, 1); save(); renderAll(); return; }
-    if (b.id === 'sqfReset') { mark(); delete it.sqf; save(); renderAll(); return; }
     if (b.id === 'animBtn') return animSend(it);
     if (b.id === 'animNow') return animSend(it, true);
     if (b.id === 'animGo') return animRun(it);
@@ -2443,7 +2409,7 @@
       '<button class="p-ghost p-sm" id="animCancel">Take it off the queue</button>'));
     const dis = '';
     // each move plays on a small copy of this photo, so the choice is seen before credits are spent
-    const mvM = media[it.mid], mvBg = mvM && mvM.url ? 'background-image:url(\'' + mvM.url + '\');background-position:' + cfr(it).fx + '% ' + cfr(it).fy + '%' : '';
+    const mvM = media[it.mid], mvBg = mvM && mvM.url ? 'background-image:url(\'' + mvM.url + '\');background-position:' + (it.fx == null ? 50 : it.fx) + '% ' + (it.fy == null ? 50 : it.fy) + '%' : '';
     return sec('Animate this photo', 'Higgsfield',
       (st === 'failed' ? '<div class="vs-job" data-st="failed"><b>That did not work</b><span class="vs-note">' + esc(j.error || 'No reason was given.') + ' Change anything below and try again.</span></div>' : '') +
       '<div class="vs-f"><label>Camera move' + (it.move ? '' : ' <s>choose one</s>') + '</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + dis + '><i class="vs-mvp" aria-hidden="true"><u data-m="' + m[0] + '" style="' + mvBg + '"></u></i><span>' + m[1] + '</span></button>').join('') + '</div></div>' +
@@ -2502,7 +2468,7 @@
     const x = k.getContext('2d'); x.fillStyle = ART.ground; x.fillRect(0, 0, g.w, g.h);
     const fill = c.fit !== 'fit', sc = (fill ? Math.max(g.w / im.naturalWidth, g.h / im.naturalHeight) : Math.min(g.w / im.naturalWidth, g.h / im.naturalHeight)) * (c.z || 100) / 100;
     const dw = im.naturalWidth * sc, dh = im.naturalHeight * sc;
-    x.drawImage(im, (g.w - dw) * cfr(c).fx / 100, (g.h - dh) * cfr(c).fy / 100, dw, dh);
+    x.drawImage(im, (g.w - dw) * (c.fx == null ? 50 : c.fx) / 100, (g.h - dh) * (c.fy == null ? 50 : c.fy) / 100, dw, dh);
     return k.toDataURL('image/jpeg', .92);
   }
   // what every job carries so Claude can write the prompt for exactly these settings
@@ -2695,7 +2661,7 @@
           // the video takes the photo's place on the timeline, whole and unreframed (it was generated at this size);
           // a clip from a script keeps its scene's length, so the voiceover and texts stay on their cues
           const was = clipLen(c);
-          delete c.rate; Object.assign(c, { mid: rec.id, in: 0, out: c.sc ? Math.min(rec.dur, was) : rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: false }); delete c.sqf;   // generated with natural sound, so it plays
+          delete c.rate; Object.assign(c, { mid: rec.id, in: 0, out: c.sc ? Math.min(rec.dur, was) : rec.dur, fit: 'fill', z: 100, fx: 50, fy: 50, mute: false });   // generated with natural sound, so it plays
           delete c.job; changed = true;
           api('/api/animate/placed', { id: j.id }).catch(() => {});
           toast('The animated clip is on the timeline and in Your media.');
@@ -3101,7 +3067,7 @@
     $('#delBtn').disabled = $('#dupBtn').disabled = !find(sel);
     T = clamp(T, 0, Math.max(0, total()));
     if (!sel || !GK[sel.kind] || !multi.has(sel.id)) multi.clear();
-    refrSync(); renderLib(); renderInspector(); renderTimeline(); dirty = true; save();
+    renderLib(); renderInspector(); renderTimeline(); dirty = true; save();
   }
   $('#undoBtn').innerHTML = ico('undo'); $('#redoBtn').innerHTML = ico('redo'); $('#splitBtn').innerHTML = ico('content_cut');
   $('#dupBtn').innerHTML = ico('content_copy'); $('#delBtn').innerHTML = ico('delete'); $('#homeBtn').innerHTML = ico('skip_previous');
@@ -3283,7 +3249,6 @@
     else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); if (playing) pause(); seek(T + (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 1 : 1 / 30)); landOn(); }
     else if (e.key === 'Home') seek(0);
     else if (e.key === 'Escape' && pvOn) pvClose();
-    else if (e.key === 'Escape' && refrOn()) { refr = null; refrSync(); toast('Square framing kept.'); }
     else if (e.key === 'Escape' && sel) { sel = null; renderAll(); }
   });
   // files dropped anywhere on the page
