@@ -1065,6 +1065,10 @@ What's on the screen, from left to right:
   - The video plays behind the design on the **1:1** and the **9:16**. The other sizes, and every
     still image, keep the photo, so keep the photo too. The video is framed by the photo: reframe
     the photo on the canvas and the video moves with it.
+  - **Reframe the video on the 1:1:** double-click the 1:1's picture (not a component) and drag the
+    video; scroll to zoom it. **Esc**, or a click off the picture, finishes. From then on the 1:1's
+    video keeps its own framing; the photo, the stills and the 9:16 keep theirs. **Export animated**
+    records the 1:1 exactly as framed. A new or removed clip starts from the photo's framing again.
   - **Saved with the project:** when the project is in an ad set on Drive, the video goes into
     the project's **Assets** folder (`video-background-variant-a.mp4`), so another computer, Status
     and performance marketing get it too.

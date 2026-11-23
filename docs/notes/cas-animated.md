@@ -231,3 +231,30 @@ photo). CASV's extension (`video-studio` branch, `docs/notes/video-studio.md`) n
 - Not run: a paid generation from CAS (the same server path as CASV's p4 test, which was paid and
   placed), a photo with its own 9:16 slot (`bgSep`: the frame still comes from the shared photo, as
   before).
+
+## REFRAME THE VIDEO ON THE 1:1 (2026-11-23, by request)
+
+"on 1:1 size, user needs to be able to double click and drag the video to reframe" (CAS, not CASV —
+a first cut landed in CASV by mistake and was reverted there, `4c63e5c` on `video-studio`).
+- **Why it could not move:** the clip followed the photo slot's `_view`, and that crop is held to
+  the PHOTO's overhang. A square photo on the 1:1 has none, so a 9:16 clip behind it was stuck at
+  the centre; with no photo at all the slot is unfilled (`pointer-events:none`, no reframe).
+- **The 1:1 keeps the video's own framing** in `v.bgVidV.sq = {s, x, y}` (a slot view's units:
+  zoom over cover, centre offset in % of the frame). `anVidView(vi, sz)` reads it (or the drag in
+  progress). `anPreview` uses it for the sq plate and clamps x / y with buildOps' `mx` / `my`;
+  `anRecord` and `anLive` merge it into the clip's stand-in asset. **buildOps is untouched** and
+  the stills never see it. A new clip (`anSetClip`) or `anRemove` drops it.
+- **The gesture** (`anFrameInit`, started with the clip tick in `anClip`): a document capture
+  `dblclick` on a `[data-lmk="<vi>:sq"]` plate, outside a `.modwrap`, while `anVis` has the variant
+  and the page can write (`window.omelette.writeFile`, image-slot's own gate) → reframing: the plate
+  gets `data-anfr` (focus ring + grab hand, editor chrome only), capture `pointerdown` drags, a
+  non-passive `wheel` zooms (1–4), Esc / Enter / a press off the plate / another double-click ends
+  and saves through `upd` (one undo step). The photo slot's own dblclick never fires while a clip
+  plays on the 1:1, so the photo is reframed on the other sizes or with Photo chosen.
+- **Verified** on share-dev :8790 (dev sign-in, a 360×640 webm made in the page, no photo): real
+  double-click → ring, grab cursor, status line; a 90 px drag down → y 26.14; three wheel ticks →
+  s 1.57; Esc → saved `bgVidV.sq`; buildOps with the clip standing in places it at exactly the
+  canvas's box (top −63.42%, height 279.11%, left −28.5%, width 157%); `anRecord` 'sq' recorded
+  54 frames. The file diff has no hunk in buildOps or either renderer.
+- **Not run:** a variant WITH a photo (the capture listener should keep image-slot's reframe from
+  opening), the 9:16 (unchanged on purpose), Safari, a review link, undo of the reframe.

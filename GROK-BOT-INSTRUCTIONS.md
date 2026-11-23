@@ -139,7 +139,8 @@ exports download as a zip. The studios fit tablets and phones.
   and added in the ad set's **Video** section), each in English and Arabic. Static ticks itself once the
   project is sent on; press **Missing** beside the other two when they are delivered. It shows
   what is missing and never blocks **Done**. The animated version is made in CAS: **Background image** › **Background** › **Video**, upload
-  the clip made from the photo (Higgsfield), and it plays behind the design on the 1:1 and 9:16;
+  the clip made from the photo (Higgsfield), and it plays behind the design on the 1:1 and 9:16
+  (on the 1:1, double-click the picture and drag to reframe the video on its own; scroll zooms; Esc finishes);
   **Share** › **Export animated** records them as MP4. Under **Video** there are three ways to
   get the clip: **Generate from the photo** (camera move, 5 or 10 s, Draft or Full, Kling / Cinema /
   Seedance; **See the price** first, then **Generate · N credits**; it lands by itself in a few
