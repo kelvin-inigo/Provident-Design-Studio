@@ -7026,7 +7026,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
       <!-- VIDEO BACKGROUND (2026-11-16, branch cas-animated): the 1:1 and 9:16 play a clip where the
            photo is, framed by the photo's own zoom and position; the photo stays for the stills. -->
       <div class="p-grp">
-        <span class="p-lab">Background <span class="tip" data-tip="Video plays a clip behind this design on the 1:1 and 9:16, framed by the photo's zoom and position — reframe the photo to move it. On the 1:1, double-click the picture and drag to reframe the video on its own (scroll to zoom). The photo below still makes the still images. Share › Export animated records the 1:1 and 9:16 as video. The clip is saved with the project in its Drive Assets folder." style="{{ infoStyle }}">i</span></span>
+        <span class="p-lab">Background <span class="tip" data-tip="Video plays a clip behind this design on the 1:1 and 9:16, framed by the photo's zoom and position — reframe the photo to move it. On the 1:1 or the 9:16, double-click the picture and drag to reframe the video on its own (scroll to zoom); each size keeps its own. The photo below still makes the still images. Share › Export animated records the 1:1 and 9:16 as video. The clip is saved with the project in its Drive Assets folder." style="{{ infoStyle }}">i</span></span>
         <div class="p-tabs"><button onClick="{{ anSetPhoto }}" data-on="{{ anPhotoOn }}">Photo</button><button onClick="{{ anSetVideo }}" data-on="{{ anVideoOn }}">Video</button></div>
         <!-- THE VIDEO PANEL, REWORKED (2026-11-17, "currently this is confusing"): the clip on top;
              under it ONE list of the three ways to get one; Generate opens its few settings in place;
@@ -12825,25 +12825,26 @@ class CampaignStudio extends StudioBase {
       });
     });
   }
-  // THE VIDEO'S OWN FRAMING ON THE 1:1 (2026-11-23, by request: "on 1:1 size, user needs to be able
+  // THE VIDEO'S OWN FRAMING ON THE 1:1 AND THE 9:16 (2026-11-23, by request: "on 1:1 size, user needs to be able
   // to double click and drag the video to reframe"). Until it is reframed, the video follows the
   // photo's crop as before. A 9:16 clip behind a square photo had no room to move that way (the
-  // photo's crop is held to the PHOTO's overhang), so the 1:1 keeps `v.bgVidV.sq = {s, x, y}` —
+  // photo's crop is held to the PHOTO's overhang), so the 1:1 keeps `v.bgVidV.sq = {s, x, y}` (and,
+  // the same day, "do the same for the 9:16": `v.bgVidV.st`, each size on its own) —
   // the same units as a photo slot's view (zoom over cover, centre offset in % of the frame) —
   // which the canvas (anPreview), the export (anRecord) and the live preview (anLive) all read.
   // The stills never do: buildOps is handed it only with the clip standing in for the photo.
   anVidView(vi, sz) {
-    if (sz !== 'sq') return null;
-    const f = this._anFr; if (f && f.vi === vi && f.v) return f.v;   // mid-drag, before it is saved
-    const v = ((this.state.variants || [])[vi] || {}).bgVidV; return v && v.sq ? v.sq : null;
+    if (sz !== 'sq' && sz !== 'st') return null;
+    const f = this._anFr; if (f && f.vi === vi && f.sz === sz && f.v) return f.v;   // mid-drag, before it is saved
+    const v = ((this.state.variants || [])[vi] || {}).bgVidV; return v && v[sz] ? v[sz] : null;
   }
-  // double-click the 1:1 picture (not a component) while it plays a clip: drag moves the video,
+  // double-click the 1:1's or the 9:16's picture (not a component) while it plays a clip: drag moves the video,
   // the wheel zooms it; Esc, a click off the picture or another double-click finishes
   anFrameInit() {
     if (this._anDbl) return;
     const plateOf = e => {
       const path = e.composedPath ? e.composedPath() : [];
-      const pl = path.find(n => n && n.dataset && /^\d+:sq$/.test(n.dataset.lmk || ''));
+      const pl = path.find(n => n && n.dataset && /^\d+:(sq|st)$/.test(n.dataset.lmk || ''));
       if (!pl || path.some(n => n && n.classList && n.classList.contains('modwrap'))) return null;
       return pl;
     };
@@ -12861,10 +12862,10 @@ class CampaignStudio extends StudioBase {
       this._anFr = null; delete f.plate.dataset.anfr;
       document.removeEventListener('pointerdown', this._anDown, true); document.removeEventListener('keydown', this._anKey, true);
       document.removeEventListener('wheel', this._anWheel, { capture: true });
-      const v0 = ((this.state.variants || [])[f.vi] || {}).bgVidV, was = v0 && v0.sq;
+      const v0 = ((this.state.variants || [])[f.vi] || {}).bgVidV, was = v0 && v0[f.sz], nm = f.sz === 'sq' ? '1:1' : '9:16';
       const moved = f.v && JSON.stringify(f.v) !== JSON.stringify(was || null);
-      if (moved) this.upd(x => { const vv = x.variants[f.vi]; if (vv) vv.bgVidV = Object.assign({}, vv.bgVidV, { sq: f.v }); return x; });
-      if (f.v) this.setState({ exportStatus: moved ? 'Video reframed on the 1:1. Export animated records it this way.' : 'Video framing unchanged.' });
+      if (moved) this.upd(x => { const vv = x.variants[f.vi]; if (vv) vv.bgVidV = Object.assign({}, vv.bgVidV, { [f.sz]: f.v }); return x; });
+      if (f.v) this.setState({ exportStatus: moved ? 'Video reframed on the ' + nm + '. Export animated records it this way.' : 'Video framing unchanged.' });
       this.anPreview();
     };
     this._anFrEnd = end;
@@ -12887,18 +12888,18 @@ class CampaignStudio extends StudioBase {
     };
     this._anDbl = e => {
       const pl = plateOf(e); if (!pl) return;
-      const vi = +pl.dataset.lmk.split(':')[0], f0 = this._anFr;
+      const vi = +pl.dataset.lmk.split(':')[0], sz = pl.dataset.lmk.split(':')[1], f0 = this._anFr;
       if (this.anVis().indexOf(vi) < 0) return;          // no clip playing here: the photo's own reframe
       e.preventDefault(); e.stopPropagation();
       if (f0) { end(); return; }
       const slot = slotOf(pl); if (!slot || !(window.omelette && window.omelette.writeFile)) return;   // a review link stays still (image-slot's own gate)
-      const f = this._anFr = { vi, plate: pl, slot };
-      const own = this.anVidView(vi, 'sq'), pv = slot._view || {};
+      const f = this._anFr = { vi, sz, plate: pl, slot };
+      const own = this.anVidView(vi, sz), pv = slot._view || {};
       f.v = hold(f, own || { s: pv.s || 1, x: pv.x || 0, y: pv.y || 0 });
       pl.dataset.anfr = '1';
       document.addEventListener('pointerdown', this._anDown, true); document.addEventListener('keydown', this._anKey, true);
       document.addEventListener('wheel', this._anWheel, { capture: true, passive: false });
-      this.setState({ exportStatus: 'Reframing the video on the 1:1: drag it, scroll to zoom. Esc or a click off the picture finishes. The photo and the 9:16 keep their own framing.' });
+      this.setState({ exportStatus: 'Reframing the video on the ' + (sz === 'sq' ? '1:1' : '9:16') + ': drag it, scroll to zoom. Esc or a click off the picture finishes. The photo and the other size keep their own framing.' });
       this.anPreview();
     };
     document.addEventListener('dblclick', this._anDbl, true);
@@ -13019,7 +13020,7 @@ class CampaignStudio extends StudioBase {
       const fc = document.createElement('canvas'); fc.width = vid.videoWidth; fc.height = vid.videoHeight; fc.naturalWidth = fc.width; fc.naturalHeight = fc.height;
       const fx = fc.getContext('2d'), assets = info.assets || {}, psz = C.photoSize(sk);
       const slot = (psz !== 'sq' && v.bgSep && v.bgSep[psz] && assets['bg' + vi + '_' + psz]) ? 'bg' + vi + '_' + psz : 'bg' + vi;
-      const own = psz === 'sq' && v.bgVidV && v.bgVidV.sq;
+      const own = v.bgVidV && v.bgVidV[psz];   // the 1:1's or 9:16's own video framing
       const A = Object.assign({}, assets); A[slot] = Object.assign({ s: 1, x: 0, y: 0 }, assets[slot] || {}, own || {}, { img: fc, u: 'clip' });
       let built; try { built = C.anFace(st, () => this.buildOps(st, vi, sk, A)); } catch (e) { return end(); }
       vid.play().catch(() => {});
@@ -13294,7 +13295,7 @@ class CampaignStudio extends StudioBase {
     // the size's own photo slot keeps its zoom and position, so the video is framed as the photo is
     const psz = CampaignStudio.photoSize(sizeKey);
     const slot = (psz !== 'sq' && v.bgSep && v.bgSep[psz] && assets['bg' + vi + '_' + psz]) ? 'bg' + vi + '_' + psz : 'bg' + vi;
-    const own = psz === 'sq' && v.bgVidV && v.bgVidV.sq;   // the 1:1's own video framing, when it has one
+    const own = v.bgVidV && v.bgVidV[psz];   // the 1:1's or 9:16's own video framing, when it has one
     const A = Object.assign({}, assets); A[slot] = Object.assign({ s: 1, x: 0, y: 0 }, assets[slot] || {}, own || {}, { img: fc, u: 'clip' });
     const built = this.buildOps(state, vi, sizeKey, A);
     const rc = ui.canvas; rc.width = T.W; rc.height = T.H;

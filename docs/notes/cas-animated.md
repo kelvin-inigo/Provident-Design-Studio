@@ -258,3 +258,9 @@ a first cut landed in CASV by mistake and was reverted there, `4c63e5c` on `vide
   54 frames. The file diff has no hunk in buildOps or either renderer.
 - **Not run:** a variant WITH a photo (the capture listener should keep image-slot's reframe from
   opening), the 9:16 (unchanged on purpose), Safari, a review link, undo of the reframe.
+- **Later the same day, "do the same for the 9:16":** the plate match is `/^\d+:(sq|st)$/`, the
+  drag remembers its size (`_anFr.sz`), and each size saves to its own key (`bgVidV.sq`,
+  `bgVidV.st`); `anRecord` / `anLive` merge `bgVidV[psz]`. Verified on :8790: double-click on the
+  9:16 → ring on that plate only; wheel → s 1.57; drag → x −20.39, y −11.25; Esc → saved `st` with
+  `sq` unchanged; buildOps at 'st' with the clip standing in matches the canvas box exactly
+  (−48.89%, −39.75%, 157% × 157%); `anRecord` 'st' recorded 54 frames.
