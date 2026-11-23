@@ -542,7 +542,9 @@ with its pictures and its video background, so the **Animated** version comes to
 always copied; the Arabic only if that market has Arabic. The copies start **In design**: change
 their words, prices and currency for the new market, then send them on as usual. A market that was
 switched on before it had anything to copy shows **Copy from Local** on its card on the ad set
-page; press it to copy the designs in. Pick **Start from scratch** under **New market** instead to
+page; press it to copy the designs in. A market that is missing some designs (one added to Local
+later, or a copy that was interrupted) shows **Copy the rest from Local**, which copies only what is
+missing. Pick **Start from scratch** under **New market** instead to
 leave the new market empty and make its designs yourself.
 
 #### The minimum deliverables
@@ -712,16 +714,27 @@ Arabic version; **Ad set settings** changes the rest, see below), then the brief
 the ticket, the **Activity** — who changed what, including each step — and **Links for the teams**.
 In a campaign project the floating **Changes** button is gone: the Ad set tab carries all of it.
 
-**Roam message.** Pressing **Send to copy check** (or **Send for translation check**) also posts
-to the **Paid Ads Hub** channel in Roam, from the Content Engine bot: the master design as a
-picture, the ad set's name, market and audience in bold, **ENG copy check** or **ARABIC copy check**, then Dennis in performance marketing with
-an **Ad Set Overview** link (the PM link), then the copywriter for that language (Sana for English,
-Fatema for Arabic) with a **Content Review** link (the content team's link). If Roam cannot be
-reached, the step still goes through and the studio says Roam was not told; if only the picture
-fails, the message goes without it and the studio says so. A designer reopening an approved copy
-or translation check (**Send to… › Translation check**, **Reopen it**) posts the same message,
-marked **reopened**, with a **Check again:** line holding what was typed. The content team
-reopening their own check posts nothing. Sent from the ad set page (Tracker), the picture is the design's thumbnail from its last send.
+**Roam messages: one thread per ad set.** The Content Engine bot keeps each ad set in one thread
+of the **Paid Ads Hub** channel in Roam. Filing the ticket (**File as ticket**) or pressing **Start
+designing** posts the ad set's name in bold, with who filed it (and for whom) or who started it,
+and an **Ad Set Overview** link. Everything after that is a reply in that message's thread, each
+naming the market and audience:
+
+- **Translation Check** (Arabic) or **Copy Check** (English), when the design is sent to it: the
+  words are the **Content Review** link, the checker is tagged (Fatema for Arabic, Sana for
+  English), and the master design rides along as a picture. A designer reopening an approved
+  check (**Send to… › Translation check**, **Reopen it**) posts it again, marked **reopened**, with
+  a **Check again:** line holding what was typed. The content team reopening their own check
+  posts nothing.
+- **Done - The Package is ready for download**, when the copy or translation is approved, the
+  designer marks it **Already approved**, or sends it to **Done**: the words are the Ad Set
+  Overview link and Dennis in performance marketing is tagged.
+- **Ad is back to design phase**, when it is sent back to design.
+
+An ad set filed before 23 November 2026 gets its name posted the first time one of these happens,
+and its thread starts there. If Roam cannot be reached, the step still goes through and the studio
+says Roam was not told; if only the picture fails, the message goes without it and the studio says
+so. Sent from the ad set page (Tracker), the picture is the design's thumbnail from its last send.
 
 **Chrome notifications.** When someone else presses a step button (Send to copy check, Approve,
 Back to design, Reopen), everyone who has that ad set open gets a Chrome notification, whether

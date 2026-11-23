@@ -86,7 +86,10 @@ exports download as a zip. The studios fit tablets and phones.
 3. Paste the copy into **Copy** on the **Ad set** tab (format in Part 2), check it, **Fill with the
    … copy**. Design the ad, then **Send to…** and pick **Copy check** (or **Arabic**, **Animated**, **Video**,
    **Design**, **Done**: any order), then who gets it.
-   This also posts in Roam's **Design Task Hub**.
+   Filing the ticket (or **Start designing**) posts the ad set's name in Roam's **Paid Ads Hub**;
+   every later step replies in that message's thread: **Translation Check** / **Copy Check** with
+   the checker tagged, **Done - The Package is ready for download** with Dennis tagged once it is
+   approved, and **Ad is back to design phase** when it goes back.
 4. The content team approves the English. **Create next audience** opens the next one.
 5. **Make the Arabic** (or **Start the Arabic** on Status) copies the English design and
    Claude writes its words in Arabic under the team's Arabic copy rules, right to left (Google
@@ -112,7 +115,8 @@ exports download as a zip. The studios fit tablets and phones.
   settings** and saving copies every Local design of that phase into it (pictures and video
   background too, so Animated comes with it; Arabic only if that market has it). The copies start
   In design, for their words, prices and currency to be changed. A market switched on earlier shows
-  **Copy from Local** on its card on the ad set page. **New market: Start from scratch** in the
+  **Copy from Local** on its card on the ad set page (**Copy the rest from Local** when it is missing
+  only some designs). **New market: Start from scratch** in the
   settings skips the copy.
 - **Send to…** lists, grouped **Next** / **Back** / **Finish**: **Copy check** (**Translation
   check** on an Arabic project), **Arabic**, **Animated**, **MVP video**, then **Design**, then
@@ -125,7 +129,7 @@ exports download as a zip. The studios fit tablets and phones.
 - The person picker has an optional **Note for them** box; **Design** (back to design) asks **What
   needs changing?** in the list instead (no one to pick). A copy or translation check the designer
   reopens asks **What should they check again?**, then who checks it (the English or Arabic
-  copywriter), and posts a "reopened" message to Roam's Paid Ads Hub. The note shows on the
+  copywriter), and posts a "reopened" reply in the ad set's thread in Roam's Paid Ads Hub. The note shows on the
   tile, in the **Ad set** tab and in the recipient's queue on Home.
 - **Undo** on the line saying what was sent puts the project back where it was: for the person who
   sent it, within 30 minutes, until someone moves it on. A Chrome alert or Paid Ads Hub message

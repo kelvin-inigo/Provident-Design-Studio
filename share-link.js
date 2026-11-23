@@ -387,6 +387,9 @@
     });
     return out.length ? { by: dsWho(by), at: dsNow(), burst: String(burst || '').slice(0, 24), changes: out } : null;
   }
+  // the review links a step's Roam note names (2026-11-23): the step's answer carries them, since
+  // the content team's own view of the ad set (dsPub) holds no tokens
+  const dsLinks = (rs, rid) => { const t = (rs && rs.tok) || {}; try { return { pm: t.pm ? rsLink(t.pm) : '', ct: t.ct ? rsLink(t.ct) : '', key: String(rs.rid || rid || '') }; } catch (e) { return { key: String(rid || '') }; } };
   const dsItemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   function dsPub(rs, role) {
     if (!rs) return null;
@@ -517,7 +520,7 @@
         ti.undo = { act: 'task-' + k, by, em: String(body.em || '').toLowerCase().slice(0, 120), at: now, role: R.role, text, was };
         dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(ti, R.rs), text: text + (ti.note ? ' — “' + note + '”' : '') }]);
         await dsWrite(R.rid, R.rs);
-        return { rs: pub() };
+        return { rs: pub(), links: dsLinks(R.rs, R.rid) };
       }
       const st = DS_STEP[body.act]; if (!st) throw dsFail(400, 'Unknown step.');
       const sid = body.p || R.sid, it = (R.rs.items || []).find(x => x.sid === sid);
@@ -559,7 +562,7 @@
       dsLog(R.rs, by, [{ kind: 'step', page: dsItemLabel(it, R.rs), text: text + toLine + (note ? ' — “' + note + '”' : '') }]);
       if (typeof body.thumb === 'string' && body.thumb.indexOf('data:image/') === 0 && body.thumb.length < 120000) R.rs.thumb = body.thumb;
       await dsWrite(R.rid, R.rs);
-      return { rs: pub() };
+      return { rs: pub(), links: dsLinks(R.rs, R.rid) };
     }
     if (op === 'rsset') {
       if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
@@ -748,17 +751,7 @@
       const rs = R.rs, by = dsWho(body.by), ph = phList(rs).indexOf(body.phase) >= 0 ? body.phase : phBase(rs);
       const from = String(body.from || ''), tos = (Array.isArray(body.to) ? body.to : [body.to]).map(String).filter(m => m && m !== from);
       const prog = typeof body.onProg === 'function' ? body.onProg : () => {};
-      const root = body.root ? String(body.root) : '';
-      const src = (rs.items || []).filter(x => phOf(rs, x) === ph && x.market === from && (!root || audRoot(x.aud) === root));
-      const cells = rsCellsIn(rs, ph), jobs = [];
-      tos.forEach(to => src.forEach(it => {
-        const c = cells.find(y => y.market === to && y.aud === audRoot(it.aud)) || cells.find(y => y.market === to && y.aud === it.aud);
-        if (!c) return;
-        const lang = it.lang || 'ENG';
-        if (lang === 'ARB' && !arbIn(c, ph)) return;
-        if ((rs.items || []).some(x => phOf(rs, x) === ph && x.market === to && x.aud === it.aud && (x.lang || 'ENG') === lang)) return;
-        jobs.push({ it, to: { market: to, aud: it.aud, lang, phase: ph } });
-      }));
+      const jobs = dupJobs(rs, ph, from, tos, body.root ? String(body.root) : '');
       const copyTo = async (fid, parent) => {
         const m = await dsMeta(fid);
         return (await (await dsFetch('/drive/v3/files/' + fid + '/copy?supportsAllDrives=true&fields=' + DS_F, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: m.name, parents: [parent] }) })).json()).id;
@@ -770,7 +763,19 @@
         const d = await dsRead(it.sid.slice(1), true), rv = d.review || {};
         const lang = await dsPath(rs.folder, to, rs), name = (rv.meta && rv.meta.name) || dsSafe(lab);
         const fname = dsSafe(name) + '.adstudio.json';
-        if ((await dsList(lang, fname)).length) continue;
+        // A COPY AN INTERRUPTED RUN LEFT (2026-11-23, live case): its file is complete (it is written
+        // after its pictures and clips), only the ad set never recorded it — adopt it, never skip it
+        const left = (await dsList(lang, fname)).find(x => x.mimeType !== DS_FOLDER);
+        if (left) {
+          if ((rs.items || []).some(x => x.sid === 'D' + left.id)) continue;
+          let mine = false; try { mine = ((await dsRead(left.id, true)).review || {}).rid === R.rid; } catch (er) { if (er.gdAuth) throw er; }
+          if (!mine) continue;
+          const now = dsNow(), item = Object.assign({ sid: 'D' + left.id, added: now, by, design: null, copy: null, from: it.sid }, to);
+          rs.items = (rs.items || []).concat(item);
+          rs.hist = (rs.hist || []).concat({ act: 'add', by, at: now, sid: item.sid }).slice(-400);
+          made.push(item); await dsWrite(R.rid, rs);
+          continue;
+        }
         const assets = await dsFolder(lang, DS_ASSETS), st = JSON.parse(JSON.stringify(d.state || {})), imgs = {}, now = dsNow();
         st.pid = StudioBase.newPid();
         for (const sl of Object.keys(rv.imgs || {})) {
@@ -790,7 +795,8 @@
         const item = Object.assign({ sid: 'D' + f.id, added: now, by, design: null, copy: null, from: it.sid }, to);
         rs.items = (rs.items || []).concat(item);
         rs.hist = (rs.hist || []).concat({ act: 'add', by, at: now, sid: item.sid }).slice(-400);
-        made.push(item);
+        // recorded at once: a run cut short (a reload, a closed tab) keeps every copy it made
+        made.push(item); await dsWrite(R.rid, rs);
       }
       if (made.length) {
         const ms = [...new Set(made.map(x => x.market))];
@@ -2948,6 +2954,23 @@
     return MARKETS.concat(((rs && rs.items) || []).map(x => x.market)).find(m => to.indexOf(m) < 0 &&
       ((rs && rs.items) || []).some(x => phOf(rs, x) === ph && x.market === m && (!root || audRoot(x.aud) === root))) || '';
   }
+  // WHAT A COPY WOULD MAKE: each project of `from` in phase ph (of audience `root` when given) that
+  // a market of `to` plans and does not hold yet. The design's OWN cell decides its Arabic (live case
+  // 2026-11-23: International EUR · Broad had Arabic, its Design 2–4 did not, and the base cell's
+  // answer copied their Arabic); the audience's cell only when the design has none of its own.
+  function dupJobs(rs, ph, from, to, root) {
+    const items = (rs && rs.items) || [], cells = rsCellsIn(rs, ph), jobs = [];
+    const src = items.filter(x => phOf(rs, x) === ph && x.market === from && (!root || audRoot(x.aud) === root));
+    to.forEach(m => src.forEach(it => {
+      const c = cells.find(y => y.market === m && y.aud === it.aud) || cells.find(y => y.market === m && y.aud === audRoot(it.aud));
+      if (!c) return;
+      const lang = it.lang || 'ENG';
+      if (lang === 'ARB' && !arbIn(c, ph)) return;
+      if (items.some(x => phOf(rs, x) === ph && x.market === m && x.aud === it.aud && (x.lang || 'ENG') === lang)) return;
+      jobs.push({ it, to: { market: m, aud: it.aud, lang, phase: ph } });
+    }));
+    return jobs;
+  }
   // runs rsdup under a progress dialog; resolves to the ad set as saved, or null when it failed
   async function dupMarket(id, rs, ph, from, to, by, root) {
     const what = (root ? from + ' · ' + root : from), dlg = busyDlg('Copying the ' + what + ' designs',
@@ -3456,16 +3479,33 @@
   // A REOPENED CHECK TELLS ROAM TOO (2026-11-23, by request): a designer's Send to… › Translation
   // (or Copy) check on an approved project posts the same note, marked reopened, with what to check
   // again. The content team reopening their own check (no person picked) posts nothing.
-  const roamWorthy = (a, ho) => a === 'design-done' || (a === 'copy-open' && !!(ho && ho.to));
-  function roamNote(rs, sid, ho, flash, pic, act) {
-    const A = window.providentAccess, it = ((rs || {}).items || []).find(x => x.sid === sid);
-    if (!A || !A.call || !it || isPost(rs)) return;
-    const tk = rs.tok || {};
-    A.call('roamnote', { name: rs.name || '', label: [it.market, it.aud].filter(Boolean).join(' · '), lang: it.lang, to: ho && ho.to,
-                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : '', ctlink: tk.ct ? rsLink(tk.ct) : '', pic: pic || '',
-                         kind: act === 'copy-open' ? 'reopen' : 'send', note: (ho && ho.note) || '' })
+  // ONE THREAD PER AD SET (2026-11-23, by request): filing the ticket (or Start designing) posts the
+  // ad set's name; from then on each note replies in that message's thread (the key is the ad
+  // set's id, rs.rid): the check (Translation / Copy Check, its checker tagged, with the picture),
+  // Done (the package ready for download, performance marketing tagged) and back to design.
+  const roamKind = (a, ho) => a === 'design-done' ? 'send' : a === 'copy-open' ? (ho && ho.to ? 'reopen' : '')
+    : a === 'copy-done' || a === 'approved' || a === 'task-done' ? 'done' : a === 'design-open' ? 'back' : '';
+  const roamWorthy = (a, ho) => !!roamKind(a, ho);
+  const roamPicWorthy = (a, ho) => roamKind(a, ho) === 'send' || roamKind(a, ho) === 'reopen';
+  const roamKey = rs => String((rs && (rs.rid || (rs.tok && rs.tok.pm))) || '');
+  // links: the review links the step's answer carries (dsApi rsstep) — the content team's own
+  // view of the ad set holds none, and its approval is the one that names the package link
+  function roamNote(rs, sid, ho, flash, pic, act, links) {
+    const A = window.providentAccess, it = ((rs || {}).items || []).find(x => x.sid === sid), kind = roamKind(act, ho);
+    if (!A || !A.call || !it || isPost(rs) || !kind) return;
+    const tk = rs.tok || {}, L = links || {};
+    A.call('roamnote', { name: rs.name || '', label: [it.market, it.aud, it.lang === 'ARB' ? 'Arabic' : ''].filter(Boolean).join(' · '), lang: it.lang, to: ho && ho.to,
+                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : L.pm || '', ctlink: tk.ct ? rsLink(tk.ct) : L.ct || '',
+                         pic: roamPicWorthy(act, ho) ? pic || '' : '', key: L.key || roamKey(rs), kind, note: (ho && ho.note) || '' })
       .then(r => { if (r && r.pic === false && flash) flash('Sent — Roam was told, without the picture: ' + (r.why || '')); })
       .catch(e => flash && flash('Sent — but Roam was not told: ' + (e.message || e)));
+  }
+  // the thread's first message: the ad set's name, as the ticket is filed or the design starts
+  function roamStart(rs, how, to) {
+    const A = window.providentAccess, tk = (rs && rs.tok) || {};
+    if (!A || !A.call || !rs || isPost(rs)) return;
+    A.call('roamnote', { kind: 'start', how, name: rs.name || '', key: roamKey(rs), to: to || null, by: StudioBase.shareName() || '',
+                         link: tk.pm ? rsLink(tk.pm) : '' }).catch(() => {});
   }
   function accRole() { try { return window.providentAccess && window.providentAccess.now().role; } catch (e) { return null; } }
   // VIEW AD SETS (2026-11-18, by request): a role outside the campaign process (access.js viewOnly)
@@ -3715,10 +3755,10 @@
       // the Roam note's picture is drawn BEFORE the step saves (2026-11-23): drawn after, an
       // Arabic design spent seconds loading its font while "Sent" was already showing, and a
       // designer who left the page then lost the note without a word
-      const pic = roamWorthy(a, ho) && !isPost(S.rs) ? await this.roamPic().catch(() => undefined) : undefined;
+      const pic = roamPicWorthy(a, ho) && !isPost(S.rs) ? await this.roamPic().catch(() => undefined) : undefined;
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
-      if (roamWorthy(a, ho)) roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic, a);
+      if (roamWorthy(a, ho)) roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic, a, r.links);
       if (isPost(r.rs) && this.postAfterStep) this.postAfterStep(a);
       S.ui.flash(stepFlash(a, tkk, ho, isPost(r.rs)));
     } catch (e) { S.ui.flash(e.message || String(e)); }
@@ -4637,13 +4677,13 @@
       for (let i = 0; i < 40 && (this.busy || (this.proj[sid] && this.proj[sid].pend)); i++) { if (!this.busy) await this.save(sid); else await new Promise(r => setTimeout(r, 250)); }
       // the Roam note's picture first, then the step, then the note at once (see SP.rvStep)
       let pic;
-      if (roamWorthy(a, ho)) {
+      if (roamPicWorthy(a, ho)) {
         const p = this.proj[sid] || {}, eng = this.eng;
         pic = await Promise.resolve(eng && eng.roamPic && p.st ? Promise.resolve(this.photos(sid)).then(own => eng.roamPic(p.st, own)) : undefined).catch(() => undefined);
       }
       const r = await api('rsstep', { id: this.tok }, Object.assign({ p: sid, act: a, by: StudioBase.shareName() || 'Someone' }, ho));
       this.rs = r.rs;
-      if (roamWorthy(a, ho)) roamNote(r.rs, sid, ho, m => this.ui.flash(m), pic, a);
+      if (roamWorthy(a, ho)) roamNote(r.rs, sid, ho, m => this.ui.flash(m), pic, a, r.links);
       this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : a === 'design-open' ? 'Back to design' : 'Copy check reopened');
       this.shPoll(true);
     } catch (e) { this.ui.flash(e.message || String(e)); }
@@ -5322,6 +5362,7 @@
       const rs = await dsMakeSet(plan, by, { brief: d.brief || '', deadline: d.deadline || '', to }, this.files, (t, p) => this.busy(t, p));
       lsSet('provident-rs-folder', plan.folder);
       Arch.add(rs.tok.dd, rs.name, rs.product, true);
+      roamStart(rs, design ? 'start' : 'ticket', to);
       // the draft is spent: the next campaign starts from the defaults, keeping the product
       this.d = Object.assign(planDraft(), { name: '', brief: '', deadline: '', folder: '', phase: 'Launch', brand: 'provident', arb: {}, arA: {} }); this.files = []; this.save();
       if (design) { this.busy('Opening the first audience…', 1); pickUp(this.eng, rs.tok.dd); return; }
@@ -5697,7 +5738,7 @@
         // the home cannot draw a design, so the note carries the tile's own picture (2026-11-23,
         // by request): the design's thumbnail saved at its last send
         const th = ((this.det.proj || {})[it.sid] || {}).thumb || '';
-        if (roamWorthy(r.act, r.ho)) roamNote(out.rs || rs, it.sid, r.ho, msg => { this.sentNote = { sid: it.sid, t: msg, bad: true }; this.draw(); }, /^data:image\/(png|jpeg|webp);base64,/.test(th) ? th : undefined, r.act);
+        if (roamWorthy(r.act, r.ho)) roamNote(out.rs || rs, it.sid, r.ho, msg => { this.sentNote = { sid: it.sid, t: msg, bad: true }; this.draw(); }, /^data:image\/(png|jpeg|webp);base64,/.test(th) ? th : undefined, r.act, out.links);
       } catch (er) { this.sentNote = { sid: it.sid, t: 'Not sent: ' + (er.message || String(er)), bad: true }; }
       await again();
       const f = this.el.querySelector('.rvd-snd[data-sid="' + CSS.escape(it.sid) + '"]') || this.el.querySelector('.rvd-sent'); if (f) f.focus();
@@ -5719,7 +5760,11 @@
     }
     if (a === 'approve' && window.confirm(APPROVE_Q(t.dataset.lab))) {
       t.disabled = true; t.textContent = 'Saving…';
-      try { await api('rsstep', { id: this.sel }, { act: 'approved', p: t.dataset.sid, by, em: myEmail() || undefined }); again(); }
+      try {
+        const out = await api('rsstep', { id: this.sel }, { act: 'approved', p: t.dataset.sid, by, em: myEmail() || undefined });
+        roamNote(out.rs || (this.det && this.det.rs), t.dataset.sid, null, null, undefined, 'approved', out.links);
+        again();
+      }
       catch (er) { t.disabled = false; t.textContent = 'Already approved'; window.alert(er.message || String(er)); }
       return;
     }
@@ -6427,8 +6472,9 @@
       const nx = g.root + DSG + (Math.max(...g.ds.map(x => x.n)) + 1);
       const add = canDz ? '<div class="rvd-dza"><button type="button" class="rvd-dz" data-a="startcell" data-cell="' + esc(g.market + '|' + nx + '|ENG|' + tab) + '" title="' + esc('Another design for ' + g.market + ' · ' + g.root + ': ' + nx + ', a new project in a new window, with its own copy check and Arabic') + '">' + ico('add') + 'Add a design</button></div>' : '';
       // an empty market whose audience another market has already designed: copy those designs in
-      const dsrc = canDz && !parts.length ? dupFrom(rs, tab, [g.market], g.root) : '';
-      const dup = dsrc ? '<button type="button" class="p-ghost rvd-dup" data-a="dupmkt" data-from="' + esc(dsrc) + '" data-to="' + esc(g.market) + '" data-root="' + esc(g.root) + '" data-ph="' + esc(tab) + '" title="' + esc('Copies every ' + dsrc + ' · ' + g.root + ' design, with its pictures and video background, into ' + g.market + ' as its own projects') + '">' + ico('copy') + 'Copy from ' + esc(dsrc) + '</button>' : '';
+      // (or one still missing designs another market has: a copy cut short, a design added there since)
+      const dsrc = canDz ? dupFrom(rs, tab, [g.market], g.root) : '', dleft = dsrc ? dupJobs(rs, tab, dsrc, [g.market], g.root).length : 0;
+      const dup = dleft ? '<button type="button" class="p-ghost rvd-dup" data-a="dupmkt" data-from="' + esc(dsrc) + '" data-to="' + esc(g.market) + '" data-root="' + esc(g.root) + '" data-ph="' + esc(tab) + '" title="' + esc((parts.length ? dleft + ' ' + dsrc + ' · ' + g.root + ' project' + (dleft === 1 ? ' is' : 's are') + ' not in ' + g.market + ' yet. Copies ' + (dleft === 1 ? 'it' : 'them') : 'Copies every ' + dsrc + ' · ' + g.root + ' design') + ', with pictures and video background, as its own projects') + '">' + ico('copy') + (parts.length ? 'Copy the rest from ' : 'Copy from ') + esc(dsrc) + '</button>' : '';
       return li + '<div class="rvd-auh"><h4 class="rvd-aun"><s>' + esc(g.market) + '</s><b>' + esc(g.root) + '</b></h4>' +
         '<span class="rvd-aur">' + dup + '<span class="rvd-ausm">' + (g.ds.length > 1 ? g.ds.length + ' designs' + (sum ? ' · ' : '') : '') + sum + '</span></span></div>' + body + add + '</li>';
     }).join('');

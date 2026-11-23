@@ -2703,3 +2703,49 @@ Broad English copy (real MP4) opened in CAS → its Drive preview went from a 1 
 picture with the clip's frame, `thumbV` 2; the Arabic copy (placeholder clip bytes) fell back to the
 photo slot and still saved `thumbV` 2. **Not run:** the live ad set (its designer must open each
 animated design once), dark theme.
+
+## ONE ROAM THREAD PER AD SET (2026-11-23, by request)
+
+The user's spec: a new ad set (ticket filed, or Start designing) posts **[Ad set name]** to Paid
+Ads Hub; every later note replies in that message's thread — **Translation Check** (link inside,
+the Arabic checker tagged), **Done - The Package is ready for download** (link inside, performance
+marketing tagged), **Ad is back to design phase**.
+
+- **Mechanism:** Roam `chat.post`'s `threadKey` (≤64 chars): the first message with a key starts a
+  thread, later ones with the same key reply in it. Key = `pds-` + the ad set's Drive id (`rs.rid`;
+  `tok.pm` as a fallback). Nothing is stored on the ad set. The server keeps one flag per key in the
+  share store (`roamthr:<key>`, 400 days) saying the name was posted; a note for an ad set without
+  it (filed before this) posts the bare name first, then replies. A store that cannot answer counts
+  as "posted", so it never doubles the name or holds a note back.
+- **Kinds** (`roam_note`'s `kind`): `start` (PV.go after `dsMakeSet`, `how` ticket|start) ·
+  `send` (`design-done`) · `reopen` (`copy-open` with a person picked) · `done` (`copy-done`,
+  `approved`, `task-done`) · `back` (`design-open`). Client: `roamKind` / `roamWorthy` /
+  `roamPicWorthy` in share-link.js; only send and reopen carry the picture. The old one-message
+  format (bold name · market · audience, ENG/ARABIC copy check, the Overview and Content Review
+  lines) is gone; replies carry market · audience (· Arabic) in italics.
+- **The content team has no tokens** (`dsPub` gives `tok` to `dd` only), but their approval is the
+  note that names the package link. So dsApi `rsstep` answers `links: {pm, ct, key}` (`dsLinks`)
+  and `roamNote` takes it as a 7th argument. The share-store `rs_step` (api/share.py) does not; a
+  legacy share-store ad set's Done note goes without the link.
+- The Tracker's **Already approved** button (direct `rsstep`, not `rvStep`) posts the Done note too.
+- **Not tested live:** no message was posted to Roam. The text was checked on a copy of the new
+  `roam_note` logic (all five kinds); the privacy hook blocks running anything that loads
+  api/share.py, and the running :8790 dev server holds the old module.
+
+**A copy cut short, and the wrong Arabic (same day, live case on Damac Island 2).** Log: 11:56 Added
+International EUR (Broad with Arabic, Design 2–4 without), dropped again the same minute; 12:09 added
+again; 12:10 "Copied 3 designs". EUR then held only Design 2 ARB, Design 3 ARB, Design 4 ENG. Causes:
+(1) the 11:56 run made the files for Design 1 ENG + ARB and Design 2–3 ENG and was cut short before its
+single `dsWrite` at the end, so the ad set never recorded them; the 12:10 run found each file by name
+and `continue`d. (2) The cell lookup tried `audRoot` first, so every design read EUR · Broad's Arabic
+(on), though Design 2–4's own cells had it off. Fix: `dupJobs(rs, ph, from, to, root)` is the one job
+list — the design's own cell first, then the audience's; `rsdup` writes `rs` after EVERY copy, and a
+file already in the target folder whose `review.rid` is this ad set and that no item names is ADOPTED
+(it is complete: the file is written after its pictures and clips). The card button shows whenever
+`dupJobs` is not empty: **Copy the rest from <market>** on a card with parts. Verified on :8791: Intl
+(Broad Arabic on, Design 2 off) copied Broad ENG + ARB and Design 2 ENG only; with Broad ENG's item
+removed from the record by hand, the card offered "Copy the rest from Local" (1 project) and the run
+adopted the same sid, no second file. **The live ad set**: once deployed, International EUR's card
+offers Copy the rest from Local — it adopts the four left files (Design 1 ENG + ARB, Design 2–3 ENG).
+Its Design 2 and 3 ARB copies stay (made before the fix, against the plan's Arabic) — remove them
+from the card's ⋯ if not wanted.
