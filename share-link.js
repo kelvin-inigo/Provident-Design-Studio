@@ -5579,8 +5579,33 @@
     });
   };
   const HEAL_QUIET = 3 * 60 * 1000;
+  // A RENDERER FOR THE HOME (2026-11-23, by request: "why are they still missing"). The home's
+  // Tracker has no CAS engine (CAS_ENG is a stub), so a stale preview — an animated design's drawn
+  // without its video — stayed until the designer opened the design. The first time the Tracker
+  // has one to redraw, it loads CAS out of sight (?headless=1: goHome stays put) and draws with
+  // its engine (window.pdsStudioLast, set by StudioBase's constructor). One per page; 40 s to load, else nothing is redrawn.
+  let healEngP = null;
+  function healEng(own) {
+    if (own && own.rvThumb) return Promise.resolve(own);
+    if (healEngP) return healEngP;
+    healEngP = new Promise(res => {
+      const fr = document.createElement('iframe');
+      fr.setAttribute('aria-hidden', 'true'); fr.tabIndex = -1; fr.title = '';
+      fr.style.cssText = 'position:fixed;left:-4000px;top:0;width:1200px;height:800px;border:0;opacity:0;pointer-events:none';
+      fr.src = casFile() + '?ws=heal' + Math.random().toString(36).slice(2, 8) + '&headless=1';
+      document.body.appendChild(fr);
+      const t0 = Date.now(), look = () => {
+        let e = null; try { const W = fr.contentWindow; e = W && W.pdsStudioLast; } catch (er) {}
+        if (e && e.rvThumb && e.buildOps && e.renderOpsToCanvas && e.shNorm) return res(e);
+        if (Date.now() - t0 > 40000) { healEngP = null; fr.remove(); return res(null); }
+        setTimeout(look, 500);
+      };
+      look();
+    });
+    return healEngP;
+  }
   AV.heal = async function (list) {
-    if (!dsOn() || !this.eng || !this.eng.rvThumb) return;
+    if (!dsOn()) return;
     const jobs = [];
     (list || []).forEach(it => (it && it.stale || []).forEach(x => {
       if (!isDs(it.id)) return;
@@ -5589,17 +5614,19 @@
     }));
     if (!jobs.length || this.healing) return;
     this.healing = true;
+    const eng = await healEng(this.eng);
+    if (!eng) { this.healing = false; return; }
     try {
       for (const j of jobs) {
         if (!this.el || !document.body.contains(this.el)) break;
         HEAL[j.sid] = { busy: true, rev: j.rev };
         try {
           const d = await dsRead(j.sid.slice(1), true), rv = d.review || {}, imgs = rv.imgs || {};
-          const st = this.eng.shNorm(d.state || {}), own = {};
+          const st = eng.shNorm(d.state || {}), own = {};
           // only the pictures the first variant's square can show
           const want = Object.keys(imgs).filter(sl => /^adstudio-(bg-0|fg-0|qr|colog|ic-.+|mod-.+)$/.test(sl));
           await pool(want, 3, async sl => { try { const r = await fetchRec(j.id, imgs[sl], j.sid); if (r) own[sl] = r; } catch (e) {} });
-          const th = await this.eng.rvThumb(st, own);
+          const th = await eng.rvThumb(st, own);
           HEAL[j.sid] = { rev: j.rev, th: th || '' };
           if (th) {
             this.healPaint(this.items); if (this.det) this.healPaint([this.det]);

@@ -42,7 +42,10 @@ class StudioBase {
     }
     return null;
   }
-  constructor(host, key) { this.host = host; this.key = key; }
+  // StudioBase.last (window.pdsStudioLast from another window — a top-level class is no window
+  // property): the studio's engine, for a page that loads the studio hidden to draw with it
+  // (share-link.js healEng: the home's Tracker redraws previews it cannot render itself)
+  constructor(host, key) { this.host = host; this.key = key; StudioBase.last = this; try { window.pdsStudioLast = this; } catch (e) {} }
 
   // ---------- DCLogic surface, backed by host.state[this.key] ----------
   get props() { return this.host.props; }
@@ -442,6 +445,8 @@ class StudioBase {
   // ONE HOME (2026-11-02): the studios' Home and Status live on the site's index.html now
   // (#/, #/status, #/item/<cas|ops>/<id>); every way back to them goes through here
   static goHome(route) {
+    // a studio loaded hidden to draw previews (?headless=1) stays where it is
+    if (/[?&]headless=1(&|$)/.test(location.search)) return;
     // already on the home: a hash change, not a reload
     if (document.documentElement.hasAttribute('data-acc-home')) { location.hash = '#/' + (route || ''); return; }
     location.href = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '') + 'index.html' + (route ? '#/' + route : '');

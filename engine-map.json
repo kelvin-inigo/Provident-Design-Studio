@@ -250,6 +250,12 @@
    "carries": "Status, ready files"
   },
   {
+   "from": "home",
+   "to": "cas",
+   "check": "self",
+   "carries": "Redraws stale previews (CAS loaded out of sight)"
+  },
+  {
    "from": "cas",
    "to": "drive",
    "check": "drive",

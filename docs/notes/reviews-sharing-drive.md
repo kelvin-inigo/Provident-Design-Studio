@@ -2761,3 +2761,18 @@ Now a market switched on takes each audience's `arb` / `arbOff` from a cell of t
 market. Re-run: Settings › International + International EUR › Copy → "Copied 14 designs" (7 each,
 same as Local; Design 4 shows Start the Arabic as Local does), the four animated copies with their own
 clip files; International's 7 removed (rsset remove), the card offered Copy from Local → 7 again.
+
+**The Tracker draws stale previews itself (same day, by request: "why are they still missing").**
+Live after the deploy: Design 1 and 4 ENG still had their 11:08 / 11:51 previews (no `thumbV`), no
+`adstudio-bg-0` (the 1:1 plays the clip), because the redraw only happened when their designer opened
+them in CAS. The home cannot draw: `CAS_ENG` (index.html) is a stub, so `AV.heal` returned at once.
+Now `healEng(own)` (share-link.js) loads CAS in a hidden same-origin iframe
+(`<casFile>?ws=heal…&headless=1`, off screen, aria-hidden) the first time a page's Tracker has a stale
+job, and waits up to 40 s for `window.pdsStudioLast` — set by the `StudioBase` constructor, since a
+top-level `class` is no `window` property (`W.StudioBase` is undefined). `StudioBase.goHome` returns
+on `headless=1`, so the studio's "nothing open → go home" never moves the frame. `AV.heal` then draws
+with that engine (`eng.shNorm`, `eng.rvThumb` → `thumbVid` fetches the clip from Drive) and writes
+the preview after HEAL_QUIET as before. No frame-blocking headers on Vercel. Engine map: wire
+home → cas, check `self`. Verified on :8791 (Damac Replica): opening the ad set page alone saved
+Local Broad and Design 4 ENG at `thumbV` 2 (16 KB, the clip's frame), the five plain designs untouched;
+cache busted first (`fetch(…, {cache: 'reload'})`), as a stale studio-base.js has no `pdsStudioLast`.
