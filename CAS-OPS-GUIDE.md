@@ -534,6 +534,15 @@ So the usual run is phase 1 and 2 with **Broad** pressed, then, on the third pha
 audiences you want and un-press **Broad** on that phase. A project already made always stays
 where it is, whatever the reach.
 
+**A new market starts from the designs you already made.** Switch on **International** or
+**International EUR** under **Markets** in **Ad set settings** and press **Save changes**: every
+Local design of that phase (Design 1, Design 2…) is copied into the new market as its own project,
+with its pictures and its video background, so the **Animated** version comes too. The English is
+always copied; the Arabic only if that market has Arabic. The copies start **In design**: change
+their words, prices and currency for the new market, then send them on as usual. A market that was
+switched on before it had anything to copy shows **Copy from Local** on its card on the ad set
+page; press it to copy the designs in.
+
 #### The minimum deliverables
 
 Every audience has three deliverables, each in English and Arabic: **Static**, **Animated** (the

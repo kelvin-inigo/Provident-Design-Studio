@@ -2645,3 +2645,36 @@ has no `undo`, and the UI only offers Undo when the returned item carries `it.un
   restoring a signed-off project exactly, the note on Home's Next up. The CAS editor's Ad set
   tab path (`rvUndo`, `.adt-nt`) could not be opened locally (the studio redirects to Projects).
 
+
+
+## A NEW MARKET STARTS FROM THE DESIGNS ALREADY MADE (2026-11-23)
+
+By request (annotated screenshots of Ad set settings and an ad set page): "when these are activated
+[International, International EUR] … this should duplicate the designs from here, as well as
+animated". share-link.js + the Drive stand-in only; no canvas code touched.
+
+- **`dsApi` op `rsdup`** (dd only, queued as a write): `{by, phase, from, to: [markets], root?, onProg}`.
+  For each project of `from` in `phase` (only audience `root` when given) whose audience the target
+  market plans in that phase (`rsCellsIn`; a "· Design N" or unbranded aud matches its `audRoot`
+  cell): ARB only when `arbIn(cell, phase)`; skipped when the target already holds that
+  market|aud|lang|phase, or the folder already has the file name. The copy: `dsPath` folders, a new
+  Assets folder, every `review.imgs[sl].f` and every `state.variants[].bgClip.f` copied with Drive
+  `files/{id}/copy` (same name) into it, state with `StudioBase.newPid()`, `review.sum` / `thumb`
+  carried (so the Animated badge shows at once), log "Copied from <label>". The item is
+  `{design: null, copy: null, from: <source sid>}` — the copies start in design (words, prices and
+  currency are the new market's). One ad set log line "Copied N designs from Local to …".
+- **Why copy the files, not share the ids**: `dsTrashProject` trashes a project's language folder
+  with its Assets, so a copy pointing at Local's files would lose them when Local is removed.
+- **Triggers**: `rsSettingsSave` (Drive), per phase, a market newly in `rsCellsIn` with no project
+  there → `dupMarket` from `dupFrom` (first of MARKETS, not a target, holding a project in the
+  phase). A phase added in the same save is not copied into (its old cells read as all markets).
+  The ad set page: an empty card (no parts) whose `audRoot` another market has designed shows
+  **Copy from <market>** (`.rvd-dup`, `data-a="dupmkt"`, in `.rvd-aur` beside the summary).
+- **Drive stand-in**: `drive_mock.py` answers `POST /drive/v3/files/{id}/copy`.
+- **Verified** on share-dev :8791 (stand-in, admin) with a hand-made broad ad set (Local Broad and
+  Broad · Design 2, ENG + ARB, Design 1 with a clip): settings › International (AR off) › Save →
+  "Copied 2 designs into International", both English, own Assets (picture + mp4 with new ids), new
+  pids, Animated badge on Design 1, cards "In design"; International EUR planned by rsset directly
+  showed **Copy from Local**, which copied 2 more. **Not run**: opening a copy in CAS (the clip
+  comes back through `anLoad` → `clipGet(bgClip.f)`), real Google Drive, CAS's Ad set tab settings
+  path, phones, dark theme.

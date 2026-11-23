@@ -106,7 +106,17 @@ def route(method, path, query, headers, body):
     up = path.startswith('/upload/')
     rest = path.split('/files', 1)[1] if '/files' in path else ''
     fid = rest.strip('/') or None
+    cp = False
+    if fid and fid.endswith('/copy'):   # files.copy: a new file with the same bytes (Copy the Local designs)
+        fid, cp = fid[:-5], True
     with LOCK:
+        if cp:
+            src = FILES.get(fid)
+            if not src or src['trashed']:
+                return _err(404, 'File not found: ' + fid)
+            meta = json.loads(body or b'{}')
+            nf = _add(meta.get('name') or src['name'], src['mimeType'], meta.get('parents') or src['parents'], src['content'])
+            return _json(200, _meta(nf))
         if method == 'GET' and not fid:
             qq = q.get('q', '')
             pids = re.findall(r"'([\w-]+)' in parents", qq)

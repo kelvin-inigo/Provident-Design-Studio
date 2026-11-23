@@ -108,6 +108,11 @@ exports download as a zip. The studios fit tablets and phones.
   settings** each phase has a **Broad** button; a phase added after a broad one starts broad too.
   Un-press it on the phase that goes audience-based (usually the third) and tick its audiences
   under **Audiences**. Projects already made stay where they are.
+- **A new market copies the designs:** switching on International or International EUR in **Ad set
+  settings** and saving copies every Local design of that phase into it (pictures and video
+  background too, so Animated comes with it; Arabic only if that market has it). The copies start
+  In design, for their words, prices and currency to be changed. A market switched on earlier shows
+  **Copy from Local** on its card on the ad set page.
 - **Send to…** lists, grouped **Next** / **Back** / **Finish**: **Copy check** (**Translation
   check** on an Arabic project), **Arabic**, **Animated**, **MVP video**, then **Design**, then
   **Done** (which asks **Mark done?** first). Then, in the same dialog, it asks who gets it: the

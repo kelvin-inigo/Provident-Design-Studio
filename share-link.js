@@ -442,7 +442,7 @@
   // what a step can put back (it.undo.was), how long Undo stays offered, and a note's length
   const UNDO_MS = 30 * 60 * 1000, NOTE_MAX = 300;
   const undoWas = it => ({ design: it.design || null, copy: it.copy || null, task: it.task || null, to: it.to || null, note: it.note || null });
-  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1, rsvideo: 1, rsreq: 1, rsgrant: 1 };
+  const DS_WRITES = { save: 1, rsstep: 1, rsset: 1, rsdel: 1, thumb: 1, relink: 1, rslaunch: 1, rsposted: 1, rsdl: 1, rsvideo: 1, rsreq: 1, rsgrant: 1, rsdup: 1 };
   function dsApi(op, q, body) {
     if (!DS_WRITES[op]) return dsApi1(op, q, body);
     const run = dsQueue.then(() => dsApi1(op, q, body));
@@ -733,6 +733,72 @@
       if (chg.length) dsLog(rs, by, chg.map(text => ({ kind: 'step', text })));
       await dsWrite(R.rid, rs);
       return { rs: pub() };
+    }
+    // A NEW MARKET STARTS FROM THE DESIGNS ALREADY MADE (2026-11-23, by request: "when these are
+    // activated … this should duplicate the designs from here, as well as animated"). Every project
+    // of market `from` in phase `phase` is copied into each market of `to` that plans the same
+    // audience there: its file (state with a new pid), its pictures and its video backgrounds,
+    // each copied on Drive into the new project's own Assets folder, so the copy owns its files and
+    // removing the source later takes nothing from it. Arabic only where the target cell has Arabic
+    // in that phase; a cell that already holds a project is left alone. The copies start in design
+    // (their words, prices and currency are the new market's to check). `onProg(text, 0..1)`.
+    if (op === 'rsdup') {
+      if (!R.rs) throw dsFail(404, 'This project is not in an ad set review.');
+      if (R.role !== 'dd') throw dsFail(403, 'Only the designer copies designs into a market.');
+      const rs = R.rs, by = dsWho(body.by), ph = phList(rs).indexOf(body.phase) >= 0 ? body.phase : phBase(rs);
+      const from = String(body.from || ''), tos = (Array.isArray(body.to) ? body.to : [body.to]).map(String).filter(m => m && m !== from);
+      const prog = typeof body.onProg === 'function' ? body.onProg : () => {};
+      const root = body.root ? String(body.root) : '';
+      const src = (rs.items || []).filter(x => phOf(rs, x) === ph && x.market === from && (!root || audRoot(x.aud) === root));
+      const cells = rsCellsIn(rs, ph), jobs = [];
+      tos.forEach(to => src.forEach(it => {
+        const c = cells.find(y => y.market === to && y.aud === audRoot(it.aud)) || cells.find(y => y.market === to && y.aud === it.aud);
+        if (!c) return;
+        const lang = it.lang || 'ENG';
+        if (lang === 'ARB' && !arbIn(c, ph)) return;
+        if ((rs.items || []).some(x => phOf(rs, x) === ph && x.market === to && x.aud === it.aud && (x.lang || 'ENG') === lang)) return;
+        jobs.push({ it, to: { market: to, aud: it.aud, lang, phase: ph } });
+      }));
+      const copyTo = async (fid, parent) => {
+        const m = await dsMeta(fid);
+        return (await (await dsFetch('/drive/v3/files/' + fid + '/copy?supportsAllDrives=true&fields=' + DS_F, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: m.name, parents: [parent] }) })).json()).id;
+      };
+      const made = [];
+      for (let j = 0; j < jobs.length; j++) {
+        const { it, to } = jobs[j], lab = dsItemLabel(to, rs);
+        prog('Copying ' + dsItemLabel(it, rs) + ' to ' + to.market + ' · ' + (j + 1) + ' of ' + jobs.length + '…', j / jobs.length);
+        const d = await dsRead(it.sid.slice(1), true), rv = d.review || {};
+        const lang = await dsPath(rs.folder, to, rs), name = (rv.meta && rv.meta.name) || dsSafe(lab);
+        const fname = dsSafe(name) + '.adstudio.json';
+        if ((await dsList(lang, fname)).length) continue;
+        const assets = await dsFolder(lang, DS_ASSETS), st = JSON.parse(JSON.stringify(d.state || {})), imgs = {}, now = dsNow();
+        st.pid = StudioBase.newPid();
+        for (const sl of Object.keys(rv.imgs || {})) {
+          const e = rv.imgs[sl]; if (!e) continue;
+          imgs[sl] = Object.assign({}, e);
+          if (e.f) try { imgs[sl].f = await copyTo(e.f, assets); } catch (er) { if (er.gdAuth) throw er; }
+        }
+        // the animated version: each variant's video background, copied beside the pictures
+        for (const v of st.variants || []) {
+          if (v && v.bgClip && v.bgClip.f) try { v.bgClip = Object.assign({}, v.bgClip, { f: await copyTo(v.bgClip.f, assets) }); } catch (er) { if (er.gdAuth) throw er; delete v.bgClip; }
+        }
+        const doc = { app: d.app, state: st, images: d.images || {}, review: { meta: { app: d.app, name, by, created: now }, rev: 1, imgs, rid: R.rid,
+          sum: Object.assign({}, rv.sum || {}, { pid: st.pid, updated: Date.now() }), thumb: rv.thumb || '', thumbAt: rv.thumb ? now : 0,
+          log: [{ by, at: now, burst: '', changes: [{ kind: 'note', text: 'Copied from ' + dsItemLabel(it, rs) }], rev: 1 }] } };
+        const f = await dsCreate(lang, fname, dsJson(doc));
+        DSC[f.id] = { v: f.version, d: doc, at: now, meta: f };
+        const item = Object.assign({ sid: 'D' + f.id, added: now, by, design: null, copy: null, from: it.sid }, to);
+        rs.items = (rs.items || []).concat(item);
+        rs.hist = (rs.hist || []).concat({ act: 'add', by, at: now, sid: item.sid }).slice(-400);
+        made.push(item);
+      }
+      if (made.length) {
+        const ms = [...new Set(made.map(x => x.market))];
+        dsLog(rs, by, [{ kind: 'step', text: 'Copied ' + made.length + ' design' + (made.length === 1 ? '' : 's') + ' from ' + phPre(rs, { phase: ph }) + from + ' to ' + ms.join(' and ') }]);
+        await dsWrite(R.rid, rs);
+      }
+      prog('Done', 1);
+      return { rs: pub(), n: made.length };
     }
     // A DOWNLOAD, IN THE LOG (2026-11-09, by request): performance marketing zipped the package or
     // one audience (the bar's Download, or the Ad sets window's); the ad set's Activity says so
@@ -2856,11 +2922,34 @@
   }
   // Drive keeps the whole plan on the ad set; the old share store keeps the name and product, the
   // Arabic as eng_only, and the plan on this computer (PLAN_LOCAL), as it did when it was made
+  // COPY A MARKET'S DESIGNS INTO ANOTHER (2026-11-23): the market a phase's designs are copied from
+  // is the first in MARKETS order, not among `to`, that holds a project there (Local, usually)
+  function dupFrom(rs, ph, to, root) {
+    return MARKETS.concat(((rs && rs.items) || []).map(x => x.market)).find(m => to.indexOf(m) < 0 &&
+      ((rs && rs.items) || []).some(x => phOf(rs, x) === ph && x.market === m && (!root || audRoot(x.aud) === root))) || '';
+  }
+  // runs rsdup under a progress dialog; resolves to the ad set as saved, or null when it failed
+  async function dupMarket(id, rs, ph, from, to, by, root) {
+    const what = (root ? from + ' · ' + root : from), dlg = busyDlg('Copying the ' + what + ' designs',
+      'Each ' + what + ' design, with its pictures and video background, is copied into ' + to.join(' and ') + ' as its own project. The copies start in design: check their words, prices and currency.');
+    try {
+      const r = await api('rsdup', { id }, { by, phase: ph, from, to, root: root || '', onProg: (t, pr) => dlg.busy(t, pr) });
+      dlg.done(r.n ? 'Copied ' + r.n + ' design' + (r.n === 1 ? '' : 's') + ' into ' + to.join(' and ') + '.' : 'Nothing to copy: every planned ' + to.join(' and ') + ' design already has a project.');
+      return r.rs;
+    } catch (e) { dlg.fail(e.message || String(e)); return null; }
+  }
   async function rsSettingsSave(id, rs, p, by) {
     if (isDs(id) || isDs((rs.tok || {}).dd) || Array.isArray(rs.plan)) {
       const vid = p.video; p = Object.assign({}, p); delete p.video;
       let out = (await api('rsset', { id }, Object.assign({ by }, p))).rs;
       if (vid !== undefined) out = (await api('rsvideo', { id }, { by, act: 'on', on: vid })).rs;
+      // a market just switched on starts from the designs another market already has (dupMarket)
+      if (isDs(id)) for (const ph of phList(out)) {
+        const was = new Set(rsCellsIn(rs, ph).map(c => c.market)), now = [...new Set(rsCellsIn(out, ph).map(c => c.market))];
+        const to = now.filter(m => !was.has(m) && !(out.items || []).some(x => phOf(out, x) === ph && x.market === m));
+        const from = to.length && dupFrom(out, ph, to);
+        if (from) out = (await dupMarket(id, out, ph, from, to, by)) || out;
+      }
       return out;
     }
     const eo = {}; p.plan.forEach(c => { eo[c.market + '|' + c.aud] = !c.arb; });
@@ -5517,6 +5606,13 @@
         else if (window.confirm(VID_RM_Q(v))) { try { await api('rsvideo', { id: this.sel }, { by, vid: v.id, act: 'rm' }); again(); } catch (er) { window.alert(er.message || String(er)); } } }
       return;
     }
+    if (a === 'dupmkt') {
+      const rs = this.det && this.det.rs; if (!rs || viewOnly()) return;
+      t.disabled = true;
+      const r = await dupMarket(this.sel, rs, t.dataset.ph, t.dataset.from, [t.dataset.to], by, t.dataset.root);
+      if (r) { this.at = 0; again(); } else t.disabled = false;
+      return;
+    }
     if (a === 'settings') {
       const rs = this.det && this.det.rs; if (!rs) return;
       const id = this.sel, phWas = phList(rs), r = await rsSettings(rs, p => rsSettingsSave(id, rs, p, by), { ticket: isDs(id) || !!rs.ticket });
@@ -6279,8 +6375,11 @@
           (u ? lookRow(g.market, u.aud, u.a, u.c, b && b.a, 'Unbranded') : two ? lookRow(g.market, b.aud + UB, null, null, b.a, 'Unbranded') : '') + '</div>'; }).join('');
       const nx = g.root + DSG + (Math.max(...g.ds.map(x => x.n)) + 1);
       const add = canDz ? '<div class="rvd-dza"><button type="button" class="rvd-dz" data-a="startcell" data-cell="' + esc(g.market + '|' + nx + '|ENG|' + tab) + '" title="' + esc('Another design for ' + g.market + ' · ' + g.root + ': ' + nx + ', a new project in a new window, with its own copy check and Arabic') + '">' + ico('add') + 'Add a design</button></div>' : '';
+      // an empty market whose audience another market has already designed: copy those designs in
+      const dsrc = canDz && !parts.length ? dupFrom(rs, tab, [g.market], g.root) : '';
+      const dup = dsrc ? '<button type="button" class="p-ghost rvd-dup" data-a="dupmkt" data-from="' + esc(dsrc) + '" data-to="' + esc(g.market) + '" data-root="' + esc(g.root) + '" data-ph="' + esc(tab) + '" title="' + esc('Copies every ' + dsrc + ' · ' + g.root + ' design, with its pictures and video background, into ' + g.market + ' as its own projects') + '">' + ico('copy') + 'Copy from ' + esc(dsrc) + '</button>' : '';
       return li + '<div class="rvd-auh"><h4 class="rvd-aun"><s>' + esc(g.market) + '</s><b>' + esc(g.root) + '</b></h4>' +
-        '<span class="rvd-ausm">' + (g.ds.length > 1 ? g.ds.length + ' designs' + (sum ? ' · ' : '') : '') + sum + '</span></div>' + body + add + '</li>';
+        '<span class="rvd-aur">' + dup + '<span class="rvd-ausm">' + (g.ds.length > 1 ? g.ds.length + ' designs' + (sum ? ' · ' : '') : '') + sum + '</span></span></div>' + body + add + '</li>';
     }).join('');
     const nNew = groups.filter(g => !partsOf(g).length).length;
     const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + groups.length + (nNew ? ' · ' + nNew + ' not started' : '') + '</s>' + (ro ? '' : '<button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button>') + '</h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">' + (ro ? 'No projects yet.' : 'No projects yet. Add the first one.') + '</li>') + '</ul></section>';
@@ -8301,6 +8400,9 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-au{border-radius:16px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
 .rvd-auh{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:16px 20px 14px}
 .rvd-aun{display:flex;flex-direction:column;gap:3px;min-width:0;margin:0;font:inherit}
+.rvd-aur{display:flex;align-items:center;gap:14px;flex:none}
+.rvd-dup{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px 0 10px;font-size:13px;white-space:nowrap}
+.rvd-dup .rva-i{width:16px;height:16px;fill:currentColor}
 .rvd-ausm{flex:none;padding-bottom:2px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
 .rvd-aun s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
 .rvd-aun b{font:500 18px/1.25 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
