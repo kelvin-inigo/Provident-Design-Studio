@@ -3984,6 +3984,12 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-nav-a[data-on]::before{background:var(--ps-link);width:2px;left:-7.5px}
 .as-nav-a[data-on] b{color:var(--ps-accent-i)}
 .as-nav-a[data-on] s{color:var(--ps-ink-2)}
+.as-nav-k{display:flex;align-items:center;gap:4px;margin:2px 0 1px}
+.as-nav-l,.as-nav-t{display:inline-flex;align-items:center;gap:3px;height:16px;padding:0 5px;border-radius:4px;font:500 10px/1 var(--ps-font);font-style:normal;letter-spacing:.04em;color:var(--ps-ink-2);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.as-nav-t{letter-spacing:0;color:var(--ps-dim)}
+.as-nav-t[data-anim]{color:var(--ps-ink);background:var(--ps-fill);box-shadow:none}
+.as-nav-t svg{width:10px;height:10px;fill:currentColor}
+.as-nav-a[data-on] .as-nav-l,.as-nav-a[data-on] .as-nav-t{color:var(--ps-accent-i);box-shadow:inset 0 0 0 1px currentColor;background:transparent}
 .as-nav-a[data-bad]::after{content:'';position:absolute;top:13px;right:12px;width:7px;height:7px;border-radius:50%;background:var(--ps-bad)}
 /* the audience on screen */
 .as-pane{--as-h:clamp(170px,28vh,320px);min-height:0;min-width:0;overflow:auto;padding:0 28px 40px;
@@ -6250,7 +6256,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
               <div class="as-nav-g">
                 <span class="as-nav-m"><b>{{ mn.title }}</b><s>{{ mn.sub }}</s></span>
                 <sc-for list="{{ mn.auds }}" as="au" hint-placeholder-count="2">
-                  <button onClick="{{ au.pick }}" class="as-nav-a" data-on="{{ au.on }}" data-bad="{{ au.bad }}" data-st="{{ au.st }}" title="{{ au.tip }}" aria-current="{{ au.cur }}"><b>{{ au.title }}</b><s>{{ au.sub }}</s></button>
+                  <button onClick="{{ au.pick }}" class="as-nav-a" data-on="{{ au.on }}" data-bad="{{ au.bad }}" data-st="{{ au.st }}" title="{{ au.tip }}" aria-current="{{ au.cur }}"><b>{{ au.title }}</b><span class="as-nav-k"><i class="as-nav-l" title="{{ au.langTip }}" aria-label="{{ au.langTip }}">{{ au.lang }}</i><i class="as-nav-t" data-anim="{{ au.animOn }}" title="{{ au.kindTip }}"><sc-if value="{{ au.animOn }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Z"/></svg></sc-if>{{ au.kind }}</i></span><s>{{ au.sub }}</s></button>
                 </sc-for>
               </div>
             </sc-for>
@@ -18596,7 +18602,12 @@ class Component extends DCLogic {
           if (cols.length) {
             const key = main + '\u0001' + aud, nImg = cols.reduce((a2, c) => a2 + c.plats.reduce((b2, pl) => b2 + pl.tiles.length, 0), 0);
             const bad = cols.some(c => c.plats.some(pl => pl.need));
-            auds.push({ key, main, title: aud, sub: plural(cols.length, 'variant'), navSub: plural(cols.length, 'variant') + ' · ' + plural(nImg, 'image'),
+            // THE LIST SAYS WHAT EACH IS (2026-11-23, by request): its language as a mark (an Arabic
+            // audience's folder ends "· Arabic", RV.pathOf) and Static or Animated (a tile whose design
+            // plays a video carries t.anim) — the name in the list drops the "· Arabic"
+            const arb = / · Arabic$/.test(aud), anim = cols.some(c => c.plats.some(pl => pl.tiles.some(t => t.anim)));
+            auds.push({ key, main, title: aud, navTitle: arb ? aud.replace(/ · Arabic$/, '') : aud, lang: arb ? 'AR' : 'EN', anim,
+              sub: plural(cols.length, 'variant'), navSub: plural(cols.length, 'variant') + ' · ' + plural(nImg, 'image'),
               cols, projs: projOf.get(key) || [], bad });
             mVars += cols.length;
           }
@@ -19556,7 +19567,8 @@ class Component extends DCLogic {
           dl: () => this.asDownload(au.key), dlLabel: this.asDlText(au.key, 'Download · ' + this.asAudImgs(au)), dlTip: 'Download every image of ' + au.main + ' › ' + au.title + ' as one zip' })));
       }
       const nV = cols.length;
-      sel = { main: a.root || 'Ad sets', title: 'All audiences', navSub: auds.length + (auds.length === 1 ? ' audience' : ' audiences') + ' · ' + nV + (nV === 1 ? ' variant' : ' variants') + ' · ' + this.asAllImgs() + ' images', projs: [], cols };
+      const nAn = auds.filter(au => au.anim).length;
+      sel = { main: a.root || 'Ad sets', title: 'All audiences', navSub: auds.length + (auds.length === 1 ? ' audience' : ' audiences') + ' · ' + nV + (nV === 1 ? ' variant' : ' variants') + ' · ' + this.asAllImgs() + ' images' + (nAn ? ' · ' + nAn + ' animated' : ''), projs: [], cols };
     }
     // a review link's audiences say whether they are ready to run (share-link.js audState)
     const AST = k => { const sv = this._asSrc && this._asSrc.kind === 'review' && this._asSrc.share; const r = sv && sv.audState ? sv.audState(k) : null; return r ? r.st : undefined; };
@@ -19564,7 +19576,9 @@ class Component extends DCLogic {
     const ctNav = this._asSrc && this._asSrc.kind === 'review' && !embed && this._asSrc.share && this._asSrc.share.role === 'ct';
     const ASW = k => { const r = ctNav && this._asSrc.share.audState ? this._asSrc.share.audState(k) : null; return r && r.word; };
     const nav = open && !head ? navMains.map(m => ({ title: m.title, sub: m.sub,
-      auds: m.auds.map(au => ({ title: au.title, sub: ASW(au.key) || (embed && this._asSrc.share.projOf && (this._asSrc.share.projOf(au.key) || {}).here ? 'This project · ' : '') + au.navSub, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
+      auds: m.auds.map(au => ({ title: au.navTitle || au.title, lang: au.lang || 'EN', langTip: au.lang === 'AR' ? 'Arabic' : 'English',
+        kind: au.anim ? 'Animated' : 'Static', animOn: au.anim ? '1' : undefined, kindTip: au.anim ? 'Plays a video behind the design on the 1:1 and 9:16' : 'Still images only',
+        sub: ASW(au.key) || (embed && this._asSrc.share.projOf && (this._asSrc.share.projOf(au.key) || {}).here ? 'This project · ' : '') + au.navSub, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
         st: AST(au.key), tip: au.title, pick: () => this.asPickAud(au.key) })) })) : [];
     const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
     // the designer's ad set overview (share-link.js rsOverview): each audience folder is one
@@ -19623,7 +19637,7 @@ class Component extends DCLogic {
       asFinToggle: () => { this._asShowFin = !this._asShowFin; this.forceUpdate(); },
       ...projV,
       asAllOn: all ? '1' : undefined, asAllCur: all ? 'true' : undefined, asPickAll: () => this.asPickAll(),
-      asAllSub: (a.mains || []).reduce((n, m) => n + m.auds.length, 0) + ' audiences · ' + this.asAllImgs() + ' images',
+      asAllSub: (a.mains || []).reduce((n, m) => n + m.auds.length, 0) + ' audiences · ' + this.asAllImgs() + ' images' + ((n => n ? ' · ' + n + ' animated' : '')((a.mains || []).reduce((n, m) => n + m.auds.filter(au => au.anim).length, 0))),
       // a review's projects are live, not files: no file name in the line
       asSel: sel ? { main: sel.main, title: sel.title, sub: sel.navSub + (sel.projs.length && !(this._asSrc && this._asSrc.kind === 'review') ? ' · ' + sel.projs.map(pp => pp.fname).join(', ') : ''), cols: sel.cols } : { cols: [] },
       asImgOn: !!sel && mode === 'images',

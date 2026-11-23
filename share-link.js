@@ -3578,33 +3578,51 @@
   // THUMB_V: a preview drawn before this counts as stale for an animated design (dsInfo1, so a
   // studio's own Status heals it), and CAS draws an animated design's preview again when it opens.
   const THUMB_V = 2;
-  SP.thumbVid = async function (st, a) {
-    const v = ((st && st.variants) || [])[0];
-    if (!v || !v.bgVid) return a;
-    const mine = this._clips && this._clips[0] && this.state && st.pid && st.pid === this.state.pid ? this._clips[0].blob : null;
-    let blob = mine;
-    if (!blob && v.bgClip && v.bgClip.f) try { blob = await dsClipGet(v.bgClip.f); } catch (e) {}
-    if (!blob) return a;
+  // NEVER WITHOUT ITS VIDEO (2026-11-23, by request: "animated thumbnail previews keep on
+  // disappearing"). When the frame could not be had — the clip still downloading, a slow decode,
+  // a tab in the background — the preview used to be drawn anyway, words on black, and saved over
+  // the good one; the Tracker painted its own such redraw at once. Now an animated design with no
+  // frame gets NO preview (null here, undefined from rvThumb): the last good one stays. One frame
+  // per clip is kept (VFRAME, by Drive file id, else by the blob), so a designer saving every few
+  // seconds decodes the clip once, not on every save.
+  const VFRAME = new Map(), VFRAME_B = new WeakMap();
+  async function vidFrame(blob) {
     const url = URL.createObjectURL(blob);
     try {
       const vid = document.createElement('video'); vid.muted = true; vid.playsInline = true; vid.preload = 'auto'; vid.src = url;
-      await new Promise((res, rej) => { vid.onloadeddata = res; vid.onerror = () => rej(new Error('clip')); setTimeout(() => rej(new Error('slow')), 10000); });
+      await new Promise((res, rej) => { vid.onloadeddata = res; vid.onerror = () => rej(new Error('clip')); setTimeout(() => rej(new Error('slow')), 20000); });
       const t = Math.min(.5, (isFinite(vid.duration) && vid.duration ? vid.duration : 1) / 2);
       if (t > 0) await new Promise(res => { vid.onseeked = res; vid.currentTime = t; setTimeout(res, 3000); });
-      if (!vid.videoWidth) return a;
+      if (!vid.videoWidth) return null;
       const fc = document.createElement('canvas'); fc.width = vid.videoWidth; fc.height = vid.videoHeight;
       fc.naturalWidth = fc.width; fc.naturalHeight = fc.height;
       fc.getContext('2d').drawImage(vid, 0, 0, fc.width, fc.height);
-      const own = v.bgVidV && v.bgVidV.sq;
-      return Object.assign({}, a, { bg0: Object.assign({ s: 1, x: 0, y: 0 }, a.bg0 || {}, own || {}, { img: fc, u: 'clip' }) });
-    } catch (e) { return a; }
+      return fc;
+    } catch (e) { return null; }
     finally { URL.revokeObjectURL(url); }
+  }
+  SP.thumbVid = async function (st, a) {
+    const v = ((st && st.variants) || [])[0];
+    if (!v || !v.bgVid) return a;
+    const fid = v.bgClip && v.bgClip.f, mine = this._clips && this._clips[0] && this.state && st.pid && st.pid === this.state.pid ? this._clips[0].blob : null;
+    let fc = (fid && VFRAME.get(fid)) || (mine && VFRAME_B.get(mine)) || null;
+    if (!fc) {
+      let blob = mine;
+      if (!blob && fid) try { blob = await dsClipGet(fid); } catch (e) {}
+      if (!blob) return null;
+      fc = await vidFrame(blob);
+      if (!fc) return null;
+      if (fid) VFRAME.set(fid, fc); else VFRAME_B.set(blob, fc);
+    }
+    const own = v.bgVidV && v.bgVidV.sq;
+    return Object.assign({}, a, { bg0: Object.assign({ s: 1, x: 0, y: 0 }, a.bg0 || {}, own || {}, { img: fc, u: 'clip' }) });
   };
   SP.rvThumb = async function (st, own) {
     if (this.shApp() !== 'provident-ad-studio') return this.postThumb ? this.postThumb(st, own) : undefined;
     try {
       st = st || this.state;
       const a = await this.thumbVid(st, await this.loadAssets(st, own));
+      if (!a) return undefined;   // an animated design whose frame could not be had: keep the last preview
       await projFonts(st);
       const cv = this.renderOpsToCanvas(this.buildOps(st, 0, 'sq', a), .2);
       StudioBase.applyFont(this.state);
@@ -3618,7 +3636,7 @@
     if (this.shApp() !== 'provident-ad-studio') return undefined;
     try {
       st = st || this.state;
-      const a = await this.thumbVid(st, await this.loadAssets(st, own));
+      const a0 = await this.loadAssets(st, own), a = (await this.thumbVid(st, a0)) || a0;
       await projFonts(st);
       const cv = this.renderOpsToCanvas(this.buildOps(st, 0, 'sq', a), .5);
       StudioBase.applyFont(this.state);

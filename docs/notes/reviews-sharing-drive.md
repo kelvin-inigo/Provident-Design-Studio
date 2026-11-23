@@ -2790,3 +2790,26 @@ number again. Verified on :8791 (Damac Replica): removing Local's Design 4 kept 
 EUR held one); removing those two took Design 4 out of the plan and off all three cards ("3 designs",
 Add a design → Design 4); with three Design 4 cells written back into the plan by hand, the page still
 showed Design 1–3 only.
+
+**Animated previews kept going black (same day, by request: "keeps on disappearing").** Live data
+showed every saved preview good at the time of checking — the black ones come and go. Two writers
+could produce them: `rvThumb` in the designer's CAS tab (`shThumb`, after every save) and the Tracker's
+hidden studio (`AV.heal`, which also PAINTS its redraw on the page at once). When `thumbVid` could not
+get the frame (clip still downloading, `loadeddata` slower than 10 s, a background tab) it returned
+the assets unchanged and the design was drawn on black — saved with `thumbV` 2, so nothing healed it.
+Now `thumbVid` returns null for an animated design without a frame; `rvThumb` returns undefined (no
+write, no paint; `roamPic` falls back to the plain assets). `vidFrame` waits 20 s, and `VFRAME` (by
+Drive file id) / `VFRAME_B` (by blob) keep one frame per clip, so a save every few seconds decodes the
+clip once. A tab opened before 1.47 still writes the old way until it is reloaded. Also found: the
+hidden studio wrote `provident-ws` (its `heal…` id) into the TAB's sessionStorage — same origin, same
+tab — so the next CAS opened in that tab used the hidden workspace (seen live). runtime.js skips the
+write on `headless=1`. Verified on :8791: an animated design with an unreadable clip and a version-0
+preview kept its preview (stored and painted 1347 bytes, `thumbV` 0); a black version-0 preview with a
+real clip became the clip's frame (16 KB, `thumbV` 2); the tab's `provident-ws` stayed `mytab123`.
+
+**The Ad sets list marks language and Static/Animated (same day, by request).** CAS `asScan` gives
+each audience `navTitle` (the folder name without " · Arabic"), `lang` ('EN' | 'AR') and `anim` (any
+tile with `t.anim`); the nav row shows `.as-nav-k` with `.as-nav-l` (EN/AR) and `.as-nav-t` (Static, or
+Animated with a play icon, `data-anim`); the pane's headings keep the full name; All audiences' sub
+adds "· N animated". CAS only (OPS has no Ad sets window). Contrast measured on :8791, light and dark,
+unselected and selected rows: lowest 6.21:1 (Static, light), all others 9.9:1 and up.

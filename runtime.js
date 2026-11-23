@@ -59,7 +59,9 @@
         id = (id !== 'auto' && kept && kept !== 'shared') ? kept
           : 'w' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
       }
-      try { W.sessionStorage.setItem(SK, id); } catch (e) {}
+      // a studio loaded hidden in another page (?headless=1, share-link healEng) shares that tab's
+      // sessionStorage: it never writes its workspace there, or the tab's next studio opens in it
+      if (!/[?&]headless=1(&|$)/.test(W.location.search)) { try { W.sessionStorage.setItem(SK, id); } catch (e) {} }
       var u = new URL(W.location.href);
       if (u.searchParams.get('ws') !== id) { u.searchParams.set('ws', id); W.history.replaceState(W.history.state, '', u.toString()); }
       return id;

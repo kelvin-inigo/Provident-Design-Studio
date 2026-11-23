@@ -1363,7 +1363,9 @@ Source folder by itself.
 
 
 - **The list on the left** is every audience, grouped under its main folder (Local, International,
-  International EUR — Local comes first). Each one says how many variants and images it holds.
+  International EUR — Local comes first). Each one says how many variants and images it holds,
+  its language (**EN** or **AR**) and whether it is **Static** or **Animated**; **All audiences**
+  says how many are animated.
 - **Click an audience** to show it on the right: its name and main folder at the top, then one row
   per variant (Variant A, Variant B …). Each row shows its
   **Meta** images: Feed, Portrait 3:4, Story and the Horizontal 1.91:1. A small line under each image
