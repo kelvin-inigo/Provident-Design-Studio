@@ -850,7 +850,7 @@
       } else if (body.act === 'notedone' || body.act === 'noterm') {
         const v = one(), k = (v.notes || []).find(x => x.id === body.nid); if (!k) throw dsFail(404, 'That comment is gone.');
         if (body.act === 'noterm') v.notes = v.notes.filter(x => x !== k); else { k.done = !!body.done; k.doneBy = k.done ? by : ''; }
-      } else if (body.act === 'dl') { const v = one(); dsLog(R.rs, by, [{ kind: 'step', text: 'Downloaded the video “' + v.title + '” · ' + (body.size === '1x1' ? 'Square 1:1' : 'Reel 9:16') }]); }
+      } else if (body.act === 'dl') { const v = one(); dsLog(R.rs, by, [{ kind: 'step', text: 'Downloaded the video “' + v.title + '” · ' + (body.size === 'both' ? 'Reel 9:16 and Square 1:1' : body.size === '1x1' ? 'Square 1:1' : 'Reel 9:16') }]); }
       else throw dsFail(400, 'Unknown video action.');
       await dsWrite(R.rid, R.rs);
       return { rs: pub() };
@@ -4853,6 +4853,13 @@
     }
     return { title: rs.name || 'Ad set', sub: [PRODUCT_NAME[rs.product], pl(auds.length, 'audience'), a && a.sets ? pl(a.sets, 'variant') : '', a && a.files ? pl(a.files, 'image') : '', all.ready ? 'ready ' + dayS(all.at) : ''].filter(Boolean).join(' · ') };
   };
+  // THE MVP VIDEO IN THE AD SETS LIST (2026-11-23, by request): performance marketing's nav ends on
+  // the ad set's videos; a row opens the player (play, comment, download one size or both)
+  RV.vidRows = function () {
+    if (this.role !== 'pm') return [];
+    return vidList(this.rs).map(v => ({ id: v.id, title: v.title || 'Video', sub: [['9x16', '1x1'].filter(k => v.f && v.f[k]).map(k => VID_SIZE[k]).join(' · '), v.dur ? vidT(v.dur) : ''].filter(Boolean).join(' · '),
+      play: () => vidOpen(this.tok, this.rs, v.id, StudioBase.shareName() || 'Performance marketing', r => { if (r) { this.rs = r; this._barH = ''; this.barRender(); } }, this.role) }));
+  };
   // the ad set's audience a folder of the overview belongs to (English and Arabic alike)
   RV.audOf = function (key, auds) {
     return (auds || rsAuds(this.rs)).find(a => a.items.some(it => this.pathOf(it).join('\u0001') === key)) || null;
@@ -4933,7 +4940,7 @@
     const DL = 'M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z';
     const TICK = 'M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z';
     const nDl = auds.filter(canDl).length;
-    const dlBtn = '<button type="button" class="' + (nDl ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (nDl && !busy ? '' : ' disabled') + ' title="' + (all.ready ? 'Every audience, both languages, in one zip' : nDl ? 'Every audience the designer has sent for review, in one zip — the ones not yet approved as they are now' : 'Nothing has been sent for review yet') + '">' + ico(DL) +
+    const dlBtn = '<button type="button" class="' + (nDl ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (nDl && !busy ? '' : ' disabled') + ' title="' + (all.ready ? 'Every audience, both languages, in one zip' : nDl ? 'Every audience the designer has sent for review, in one zip — the ones not yet approved as they are now' : 'Nothing has been sent for review yet') + (nDl && vidList(rs).length ? ', with the MVP video (Reel 9:16 and Square 1:1)' : '') + '">' + ico(DL) +
       (busy === '*' ? 'Zipping…' : all.ready ? 'Download package' : 'Download ' + nDl + ' of ' + all.n) + '</button>';
     // 1 — the top bar: status, then the actions, the download last and loudest
     const html = pillHtml(all.ready, all.ready ? 'Package ready' : all.done + ' of ' + all.n + ' ready') +
@@ -5024,10 +5031,17 @@
         put(it.name, it.pre, new Uint8Array(await it.file.arrayBuffer()));
         if (it.mp4) put(it.mp4.name, it.pre, it.mp4.data);
       }
+      // THE MVP VIDEO GOES IN THE PACKAGE (2026-11-23, by request): the whole-package zip carries
+      // every video of the ad set's Video section, both sizes, beside the images
+      const vids = key === '*' ? vidList(this.rs) : [];
+      for (const v of vids) for (const z of ['9x16', '1x1']) if (v.f && v.f[z]) {
+        try { put(dsSafe(v.title) + '_' + z + '.mp4', 'MVP video', new Uint8Array(await (await vidBlob(v.f[z])).arrayBuffer())); }
+        catch (e) { this.ui.flash('The video “' + v.title + '” (' + VID_SIZE[z] + ') could not be read from Drive, so it is not in the zip.'); }
+      }
       const nm = clean(this.rs.name) + (key === '*' ? '' : ' - ' + clean(auds[0].label)) + (en ? ' - English' : '');
       const how = await this.eng.saveAs(this.eng.zip(files), nm + '.zip', 'Zip archive', 'application/zip', '.zip');
       const not = auds.filter(x => !x.done).length;
-      if (how !== 'cancelled') this.logDl(key === '*' ? (auds.length > 1 ? 'every audience sent for review (' + auds.length + (not ? ', ' + not + ' not yet approved' : '') + ')' : 'the images of ' + auds[0].label + (not ? ' (not yet approved)' : '')) : (en ? 'the English images of ' : 'the images of ') + auds[0].label + (not ? ' (not yet approved)' : ''));
+      if (how !== 'cancelled') this.logDl(key === '*' ? (auds.length > 1 ? 'every audience sent for review (' + auds.length + (not ? ', ' + not + ' not yet approved' : '') + ')' : 'the images of ' + auds[0].label + (not ? ' (not yet approved)' : '')) + (vids.length ? ' and the MVP video' : '') : (en ? 'the English images of ' : 'the images of ') + auds[0].label + (not ? ' (not yet approved)' : ''));
     } catch (e) { this.ui.flash('Could not zip — ' + (e.message || e)); }
     this.dl = null; this.barRender();
   };
@@ -6297,7 +6311,7 @@
       '<div class="p-tabs" role="radiogroup" aria-label="Size" data-sz></div>' +
       '<div class="vdo-stage"><video playsinline controls preload="auto"' + (ro ? ' controlslist="nodownload noremoteplayback" disablepictureinpicture oncontextmenu="return false"' : '') + '></video><p data-wait>Loading the video…</p></div>' +
       '<div class="vdo-tl" data-tl title="Click to move to that moment. The numbered pins are comments."><i></i></div>' +
-      (ro ? '' : '<div class="vdo-dl"><button type="button" class="p-ghost" data-vdl="9x16">Download Reel 9:16</button><button type="button" class="p-ghost" data-vdl="1x1">Download Square 1:1</button></div>') +
+      (ro ? '' : '<div class="vdo-dl"><button type="button" class="p-ghost" data-vdl="9x16">Download Reel 9:16</button><button type="button" class="p-ghost" data-vdl="1x1">Download Square 1:1</button><button type="button" class="p-ghost" data-vdl="both" title="The Reel 9:16 and the Square 1:1 in one zip">Download both</button></div>') +
       '</div><div class="vdo-r"><h3>Comments <s data-n></s></h3>' +
       (ro ? '' : '<form class="vdo-new"><span data-at>Comment at 0:00</span><textarea class="p-in" rows="2" maxlength="600" placeholder="What should change at this moment?" aria-label="Comment"></textarea><div><button type="submit" class="p-btn">Add comment</button></div></form>') +
       '<ol class="vdo-notes"></ol><p class="shl-st" aria-live="polite"></p>' +
@@ -6318,7 +6332,7 @@
       $('#vdo-t').textContent = v.title;
       $('[data-meta]').textContent = [vidT(v.dur), v.aud || 'All audiences', 'Added ' + dayS(v.at) + ' by ' + v.by, v.n > 1 ? 'version ' + v.n : ''].filter(Boolean).join(' · ');
       $('[data-sz]').innerHTML = ['9x16', '1x1'].filter(k => v.f[k]).map(k => '<button type="button" role="radio" aria-checked="' + (size === k) + '" data-size="' + k + '"' + (size === k ? ' data-on="1"' : '') + '>' + VID_SIZE[k] + '</button>').join('');
-      el.querySelectorAll('[data-vdl]').forEach(b => { b.hidden = !v.f[b.dataset.vdl]; });
+      el.querySelectorAll('[data-vdl]').forEach(b => { b.hidden = b.dataset.vdl === 'both' ? !(v.f['9x16'] && v.f['1x1']) : !v.f[b.dataset.vdl]; });
       $('[data-n]').textContent = all.length ? open + ' open of ' + all.length : '';
       tl.querySelectorAll('button').forEach(b => b.remove());
       all.forEach((n, i) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = i + 1; b.dataset.seek = n.t; if (n.done) b.dataset.done = '1'; b.style.left = Math.min(100, n.t / dur() * 100) + '%'; b.title = vidT(n.t) + ' · ' + n.by + ': ' + n.text; b.setAttribute('aria-label', 'Comment ' + (i + 1) + ' at ' + vidT(n.t)); tl.appendChild(b); });
@@ -6357,7 +6371,10 @@
       if (b.dataset.vdl) {
         const k = b.dataset.vdl, was = b.textContent; b.disabled = true; b.textContent = 'Preparing…';
         try {
-          const u = URL.createObjectURL(await vidBlob(v.f[k])), a = document.createElement('a'); a.href = u; a.download = dsSafe(v.title) + '_' + k + '.mp4';
+          // BOTH SIZES AT ONCE (2026-11-23, by request): one zip of the Reel and the Square
+          const both = k === 'both', blob = both ? StudioBase.prototype.zip.call(StudioBase.prototype, await Promise.all(['9x16', '1x1'].map(async z => ({ name: dsSafe(v.title) + '_' + z + '.mp4', data: new Uint8Array(await (await vidBlob(v.f[z])).arrayBuffer()) }))))
+            : await vidBlob(v.f[k]);
+          const u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = dsSafe(v.title) + (both ? '.zip' : '_' + k + '.mp4');
           document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 60000);
           if (isPm) api('rsvideo', { id }, { by, vid: v.id, act: 'dl', size: k }).then(() => { changed = true; }).catch(() => {});
         } catch (er) { st('That file could not be read from Drive.'); }
@@ -6618,7 +6635,21 @@
       '<details class="rvd-out"><summary>Remove or delete this ad set</summary><div><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div></details>' +
       '</aside>';
-    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? '' : audiences) + vidSecHtml(rs, true).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
+    // PERFORMANCE MARKETING AND THE CONTENT TEAM SEE THE DESIGNS (2026-11-23, by request: "on PM view,
+    // have all the designs here as just preview names and thumbnails and animated if they are"): the
+    // phase's projects as a grid of previews — name, language, Animated — and nothing to press
+    const gal = !pmV ? '' : (() => {
+      const its = []; auds.forEach(a => [a.eng, a.arb].concat(a.items.filter(it => it !== a.eng && it !== a.arb)).forEach(it => { if (it && its.every(x => x.it !== it)) its.push({ a, it }); }));
+      if (!its.length) return '';
+      const nAn = its.filter(x => ((proj[x.it.sid] || {}).sum || {}).anim).length;
+      return '<section class="rvd-card rvd-gal" aria-label="Designs"><h3>Designs <s>' + its.length + (nAn ? ' · ' + nAn + ' animated' : '') + '</s></h3><ul>' + its.map(({ a, it }) => {
+        const pj = proj[it.sid] || {}, an = !!(pj.sum || {}).anim, ar = it.lang === 'ARB';
+        return '<li><span class="rvd-gth">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="" loading="lazy">' : '') + '</span>' +
+          '<b>' + esc(audName(a)) + '</b><span class="rvd-gk"><i title="' + (ar ? 'Arabic' : 'English') + '">' + (ar ? 'AR' : 'EN') + '</i>' +
+          (an ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '<i title="Still images only">Static</i>') + '</span></li>';
+      }).join('') + '</ul></section>';
+    })();
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? gal : audiences) + vidSecHtml(rs, true).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.
@@ -8075,6 +8106,14 @@ body:has(.rva-sign) .ds-sign{display:none}
 .rva-lt-t u{display:inline-flex;align-items:center;gap:5px;text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim)}
 .rvd-anim{display:inline-flex;align-items:center;gap:4px;align-self:flex-start;margin-top:4px;padding:2px 8px 2px 6px;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink);font:500 11px/1.4 var(--ps-font);font-style:normal}
 .rvd-anim svg{width:12px;height:12px;fill:currentColor}
+.rvd-gal ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:16px}
+.rvd-gal li{display:flex;flex-direction:column;gap:6px;min-width:0}
+.rvd-gth{display:block;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--ps-fill-h)}
+.rvd-gth img{width:100%;height:100%;object-fit:cover;display:block}
+.rvd-gal li>b{font:400 13px/1.3 var(--ps-font);color:var(--ps-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rvd-gk{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.rvd-gk i,.rvd-gk .rvd-anim{margin:0;font:500 11px/1.4 var(--ps-font);font-style:normal;padding:2px 8px;border-radius:var(--ps-pill);background:var(--ps-fill);color:var(--ps-ink-2)}
+.rvd-gk .rvd-anim{color:var(--ps-ink);padding-left:6px}
 .rva-lt-t u i{width:6px;height:6px;border-radius:50%;background:var(--ps-warn)}
 .rva-lt[data-ok] .rva-lt-t u i{background:var(--ps-good)}
 .rva-lt .rva-pj>.rva-i{flex:none;width:16px;height:16px;fill:currentColor;color:var(--ps-dim)}

@@ -205,6 +205,11 @@ exports download as a zip. The studios fit tablets and phones.
   is in it. Change audience, Move to and renaming a phase move or rename the folders.
 - On the content team's and performance marketing's links, groups that are done from their side
   are hidden under **Show finished** at the foot of the list.
+- The Ad sets list shows each audience's language (**EN**/**AR**) and **Static** or **Animated**
+  only; **All | Static | Animated** under All audiences narrows it to one kind. Performance
+  marketing's list ends on **MVP video**: a row opens the player with **Download Reel 9:16**,
+  **Download Square 1:1** and **Download both**; **Download package** includes the MVP video. On
+  the home's Tracker their ad set page shows the designs as previews (name, EN/AR, Static/Animated).
 - **Already approved** skips the content team for an ad signed off before it came in. On Status it
   is in the project's **⋯** menu, with **Change audience** and **Remove**.
 - **An ad set's Status page** reads top down: the campaign, the phase tabs, then a card per

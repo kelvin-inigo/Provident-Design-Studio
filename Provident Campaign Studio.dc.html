@@ -3985,6 +3985,8 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-nav-a[data-on] b{color:var(--ps-accent-i)}
 .as-nav-a[data-on] s{color:var(--ps-ink-2)}
 .as-nav-k{display:flex;align-items:center;gap:4px;margin:2px 0 1px}
+.as-nav .as-nav-kf{display:flex;margin:-4px 0 14px;align-self:stretch}
+.as-nav .as-nav-kf button{flex:1}
 .as-nav-l,.as-nav-t{display:inline-flex;align-items:center;gap:3px;height:16px;padding:0 5px;border-radius:4px;font:500 10px/1 var(--ps-font);font-style:normal;letter-spacing:.04em;color:var(--ps-ink-2);box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .as-nav-t{letter-spacing:0;color:var(--ps-dim)}
 .as-nav-t[data-anim]{color:var(--ps-ink);background:var(--ps-fill);box-shadow:none}
@@ -6252,14 +6254,23 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
         <div class="as-body">
           <nav class="as-nav" aria-label="Audiences">
             <button onClick="{{ asPickAll }}" class="as-nav-a as-nav-all" data-on="{{ asAllOn }}" aria-current="{{ asAllCur }}" title="Every audience in this folder, in one window"><b>All audiences</b><s>{{ asAllSub }}</s></button>
+            <sc-if value="{{ asKfOn }}" hint-placeholder-val="{{ false }}"><div class="p-seg as-nav-kf" role="radiogroup" aria-label="Show"><sc-for list="{{ asKf }}" as="kf" hint-placeholder-count="3"><button onClick="{{ kf.set }}" data-on="{{ kf.on }}" role="radio" aria-checked="{{ kf.aria }}" title="{{ kf.tip }}">{{ kf.label }}</button></sc-for></div></sc-if>
             <sc-for list="{{ asNav }}" as="mn" hint-placeholder-count="2">
               <div class="as-nav-g">
                 <span class="as-nav-m"><b>{{ mn.title }}</b><s>{{ mn.sub }}</s></span>
                 <sc-for list="{{ mn.auds }}" as="au" hint-placeholder-count="2">
-                  <button onClick="{{ au.pick }}" class="as-nav-a" data-on="{{ au.on }}" data-bad="{{ au.bad }}" data-st="{{ au.st }}" title="{{ au.tip }}" aria-current="{{ au.cur }}"><b>{{ au.title }}</b><span class="as-nav-k"><i class="as-nav-l" title="{{ au.langTip }}" aria-label="{{ au.langTip }}">{{ au.lang }}</i><i class="as-nav-t" data-anim="{{ au.animOn }}" title="{{ au.kindTip }}"><sc-if value="{{ au.animOn }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Z"/></svg></sc-if>{{ au.kind }}</i></span><s>{{ au.sub }}</s></button>
+                  <button onClick="{{ au.pick }}" class="as-nav-a" data-on="{{ au.on }}" data-bad="{{ au.bad }}" data-st="{{ au.st }}" title="{{ au.tip }}" aria-current="{{ au.cur }}"><b>{{ au.title }}</b><span class="as-nav-k"><i class="as-nav-l" title="{{ au.langTip }}" aria-label="{{ au.langTip }}">{{ au.lang }}</i><i class="as-nav-t" data-anim="{{ au.animOn }}" title="{{ au.kindTip }}"><sc-if value="{{ au.animOn }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Z"/></svg></sc-if>{{ au.kind }}</i></span><sc-if value="{{ au.subOn }}" hint-placeholder-val="{{ false }}"><s>{{ au.sub }}</s></sc-if></button>
                 </sc-for>
               </div>
             </sc-for>
+            <sc-if value="{{ asVidOn }}" hint-placeholder-val="{{ false }}">
+              <div class="as-nav-g as-nav-vg">
+                <span class="as-nav-m"><b>MVP video</b><s>{{ asVidSub }}</s></span>
+                <sc-for list="{{ asVids }}" as="vv" hint-placeholder-count="1">
+                  <button onClick="{{ vv.play }}" class="as-nav-a" title="{{ vv.tip }}"><b>{{ vv.title }}</b><span class="as-nav-k"><i class="as-nav-t" data-anim="1"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M320-273v-414q0-17 12-28.5t28-11.5q5 0 10.5 1.5T381-721l326 207q9 6 13.5 15t4.5 19q0 10-4.5 19T707-446L381-239q-5 3-10.5 4.5T360-233q-16 0-28-11.5T320-273Z"/></svg>Video</i></span><s>{{ vv.sub }}</s></button>
+                </sc-for>
+              </div>
+            </sc-if>
             <sc-if value="{{ asFinOn }}" hint-placeholder-val="{{ false }}"><button onClick="{{ asFinToggle }}" class="as-nav-fin" aria-pressed="{{ asFinPressed }}" title="{{ asFinTip }}">{{ asFinLabel }}</button></sc-if>
           </nav>
           <div class="as-pane">
@@ -19558,27 +19569,37 @@ class Component extends DCLogic {
     const mainsAll = a.mains || [], nFin = mainsAll.filter(finM).length, folds = nFin > 0 && nFin < mainsAll.length;
     const navMains = folds ? mainsAll.filter(m => !finM(m)).concat(this._asShowFin ? mainsAll.filter(finM) : []) : mainsAll;
     if (folds && !all && !navMains.some(m => m.auds.some(au => au.key === this._asSel))) this._asSel = navMains[0].auds[0].key;
+    // STATIC OR ANIMATED (2026-11-23, by request): a filter under All audiences, offered when the
+    // folder holds both kinds; it narrows the list and All audiences, never the downloads
+    const auAll = mainsAll.reduce((o, m) => o.concat(m.auds), []), nAnimA = auAll.filter(au => au.anim).length;
+    const kfOn = open && !head && nAnimA > 0 && nAnimA < auAll.length, kf = kfOn ? this._asKind || '' : '';
+    const kOk = au => !kf || (kf === 'anim') === !!au.anim;
+    const navShow = navMains.map(m => kf ? Object.assign({}, m, { auds: m.auds.filter(kOk) }) : m).filter(m => m.auds.length);
+    if (kf && !all && navShow.length && !navShow.some(m => m.auds.some(au => au.key === this._asSel))) this._asSel = navShow[0].auds[0].key;
     let sel = open && !head ? this.asSelAud() : null;
     if (all) {
       const cols = [], auds = [];
       for (const m of a.mains || []) for (const au of m.auds) {
+        if (!kOk(au)) continue;
         auds.push(au);
         au.cols.forEach((c, i) => cols.push(Object.assign({}, c, i ? { headOn: undefined } : { headOn: '1', head: au.title, headSub: au.main + ' · ' + au.navSub,
           dl: () => this.asDownload(au.key), dlLabel: this.asDlText(au.key, 'Download · ' + this.asAudImgs(au)), dlTip: 'Download every image of ' + au.main + ' › ' + au.title + ' as one zip' })));
       }
       const nV = cols.length;
       const nAn = auds.filter(au => au.anim).length;
-      sel = { main: a.root || 'Ad sets', title: 'All audiences', navSub: auds.length + (auds.length === 1 ? ' audience' : ' audiences') + ' · ' + nV + (nV === 1 ? ' variant' : ' variants') + ' · ' + this.asAllImgs() + ' images' + (nAn ? ' · ' + nAn + ' animated' : ''), projs: [], cols };
+      sel = { main: a.root || 'Ad sets', title: 'All audiences', navSub: auds.length + (auds.length === 1 ? ' audience' : ' audiences') + ' · ' + nV + (nV === 1 ? ' variant' : ' variants') + ' · ' + (kf ? auds.reduce((n, au) => n + this.asAudImgs(au), 0) : this.asAllImgs()) + ' images' + (nAn && kf !== 'anim' ? ' · ' + nAn + ' animated' : ''), projs: [], cols };
     }
     // a review link's audiences say whether they are ready to run (share-link.js audState)
     const AST = k => { const sv = this._asSrc && this._asSrc.kind === 'review' && this._asSrc.share; const r = sv && sv.audState ? sv.audState(k) : null; return r ? r.st : undefined; };
     // the content team's nav reads what each project needs from them, not its image count
     const ctNav = this._asSrc && this._asSrc.kind === 'review' && !embed && this._asSrc.share && this._asSrc.share.role === 'ct';
     const ASW = k => { const r = ctNav && this._asSrc.share.audState ? this._asSrc.share.audState(k) : null; return r && r.word; };
-    const nav = open && !head ? navMains.map(m => ({ title: m.title, sub: m.sub,
+    const nav = open && !head ? navShow.map(m => ({ title: m.title, sub: kf ? m.auds.length + (m.auds.length === 1 ? ' audience' : ' audiences') + ' · ' + (kf === 'anim' ? 'animated' : 'static') : m.sub,
       auds: m.auds.map(au => ({ title: au.navTitle || au.title, lang: au.lang || 'EN', langTip: au.lang === 'AR' ? 'Arabic' : 'English',
         kind: au.anim ? 'Animated' : 'Static', animOn: au.anim ? '1' : undefined, kindTip: au.anim ? 'Plays a video behind the design on the 1:1 and 9:16' : 'Still images only',
-        sub: ASW(au.key) || (embed && this._asSrc.share.projOf && (this._asSrc.share.projOf(au.key) || {}).here ? 'This project · ' : '') + au.navSub, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
+        // ONLY LANGUAGE AND TYPE (2026-11-23, by request): the variant and image counts left the row
+        sub: ASW(au.key) || (embed && this._asSrc.share.projOf && (this._asSrc.share.projOf(au.key) || {}).here ? 'This project' : ''),
+        subOn: ASW(au.key) || (embed && this._asSrc.share.projOf && (this._asSrc.share.projOf(au.key) || {}).here) ? '1' : undefined, on: !all && au.key === this._asSel ? '1' : undefined, cur: !all && au.key === this._asSel ? 'true' : undefined, bad: au.bad ? '1' : undefined,
         st: AST(au.key), tip: au.title, pick: () => this.asPickAud(au.key) })) })) : [];
     const step = d => { const t = list[bi + d]; if (t) { this._asBig = t; this.forceUpdate(); } };
     // the designer's ad set overview (share-link.js rsOverview): each audience folder is one
@@ -19631,6 +19652,12 @@ class Component extends DCLogic {
       asNoteHead: head, asNote: note,
       asMains: open && !head ? a.mains : [],
       asNav: nav, asBodyOn: !!sel, asModeBarOn: !!sel && !all && !embed,
+      asKfOn: kfOn ? '1' : undefined,
+      asKf: kfOn ? [['', 'All'], ['static', 'Static'], ['anim', 'Animated']].map(([k, l]) => ({ label: l, on: kf === k ? '1' : undefined, aria: kf === k ? 'true' : 'false',
+        tip: k ? 'Show only the ' + l.toLowerCase() + ' audiences' : 'Show every audience', set: () => { this._asKind = k; this.forceUpdate(); } })) : [],
+      ...(() => { const vr = open && !head && rvw && rvw.vidRows ? rvw.vidRows() : [];
+        return { asVidOn: vr.length ? '1' : undefined, asVidSub: vr.length + (vr.length === 1 ? ' video' : ' videos') + ' · in the package',
+          asVids: vr.map(v => ({ title: v.title, sub: v.sub, tip: 'Play ' + v.title + ', comment on it, download the Reel, the Square or both', play: v.play })) }; })(),
       asFinOn: folds ? '1' : undefined, asFinPressed: this._asShowFin ? 'true' : 'false',
       asFinLabel: this._asShowFin ? 'Hide finished' : 'Show finished · ' + nFin,
       asFinTip: (rvw && rvw.role === 'ct' ? 'Groups whose every audience you have approved' : 'Groups whose every audience is ready to run') + (this._asShowFin ? ' — hide them again' : ' — show them at the foot of the list'),

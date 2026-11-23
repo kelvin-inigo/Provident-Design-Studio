@@ -706,11 +706,14 @@ steps: **Design › ENG copy check › Translation › Done**.
    one row per audience. Each audience the designer has sent for review has **Download**, which
    zips its designed images (English and Arabic once both are), named the way an export names
    them, approved or not. **Download package** (or **Download 1 of 2** before then) takes every
-   audience that has been sent for review. Images are rendered from the projects as
+   audience that has been sent for review, plus the MVP video (both sizes) when the ad set has
+   one. Images are rendered from the projects as
    they are now. **Images | Edit text** at the top switches to the words: change them as the
    content team does, the images update as you type, and your name goes beside the change. Words
    are all it can change. There is no side panel on this link: the bar's **See details**
-   holds the steps, the dates and each audience.
+   holds the steps, the dates and each audience. On the home's **Tracker**, performance
+   marketing's (and the content team's) page of an ad set shows the phase's designs as a grid of
+   previews: name, **EN**/**AR**, **Static** or **Animated**.
 
 The **Ad set** tab lists every audience, with its progress (**AR** on a tile plans or drops its
 Arabic version; **Ad set settings** changes the rest, see below), then the brief and files from
@@ -1363,9 +1366,12 @@ Source folder by itself.
 
 
 - **The list on the left** is every audience, grouped under its main folder (Local, International,
-  International EUR — Local comes first). Each one says how many variants and images it holds,
-  its language (**EN** or **AR**) and whether it is **Static** or **Animated**; **All audiences**
-  says how many are animated.
+  International EUR — Local comes first). Each one shows only its language (**EN** or **AR**) and
+  whether it is **Static** or **Animated**; **All audiences** says how many are animated. Under
+  it, **All | Static | Animated** narrows the list (and All audiences) to one kind, when the
+  ad set has both. On performance marketing's link the list ends on **MVP video**: each video
+  of the ad set opens its player, with **Download Reel 9:16**, **Download Square 1:1** or
+  **Download both** (one zip).
 - **Click an audience** to show it on the right: its name and main folder at the top, then one row
   per variant (Variant A, Variant B …). Each row shows its
   **Meta** images: Feed, Portrait 3:4, Story and the Horizontal 1.91:1. A small line under each image

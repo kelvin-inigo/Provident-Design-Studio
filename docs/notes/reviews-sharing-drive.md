@@ -2837,3 +2837,22 @@ the rule would have frozen: `thumbVid` now returns the plain assets (the photo) 
 anywhere, or when the frame failed but the design has a photo (`a.bg0.img`); null only for a clip whose
 frame failed on a design with no photo. Verified on :8791: bad clip + photo → drawn on the photo (v3);
 Video with no clip + photo → drawn on the photo (v3); bad clip, no photo → kept its preview (v0).
+
+## Performance marketing's list: language and type only, a kind filter, the MVP video (2026-11-23, by request)
+From four annotated screenshots of the PM view. **CAS `asVals`:** a nav row's `<s>` line (variants ·
+images) is gone; it shows only when it says something (`subOn`: the content team's word, or "This
+project" in the designer's overview). **All | Static | Animated** (`.p-seg.as-nav-kf`, `_asKind`,
+`asKf`) sits under All audiences when the folder holds both kinds; it filters the nav (`navShow`,
+groups with nothing left drop out, their line becomes "n audiences · animated") and All audiences,
+never the downloads. **MVP video:** `RV.vidRows()` (share-link.js, role pm only) lists `rs.video`;
+CAS draws them as a last nav group (`.as-nav-vg`, `asVids`), a row opens `vidOpen`. The player has
+**Download both** (`data-vdl="both"`: one zip, `StudioBase.prototype.zip`; logged "Reel 9:16 and
+Square 1:1"). `RV.download('*')` puts every video's two sizes in the package zip
+("<title>_9x16.mp4"), logs "… and the MVP video", and says so in the button's tip. **Tracker:** a
+pm/ct page (`pmV`) shows `.rvd-gal` where the audiences would be: the phase's projects as 1:1
+previews with name (market · audience), EN/AR and Static or the Animated chip, nothing pressable.
+Verified on :8791 (Damac Replica, PM link, a test video uploaded to the stand-in): rows read
+"Broad / EN / Animated"; Animated left 4 audiences, Static 14 (All audiences 14 variants); the
+video row opened the player (reachable by `elementFromPoint`), Download both gave one 14.6 MB zip;
+Download 3 of 9's zip held both MP4s beside the images (animated recording stubbed). Tracker PM
+preview: 18 designs · 4 animated. Contrast light and dark ≥ 6.2:1.
