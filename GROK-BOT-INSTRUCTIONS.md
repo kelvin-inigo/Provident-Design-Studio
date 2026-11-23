@@ -116,8 +116,10 @@ exports download as a zip. The studios fit tablets and phones.
   with a line saying what was sent, when and who has it. Each project on the ad set page
   (Tracker › **Open the ad set**) also has its own **Send to…** button. A missing-items check before a copy check
   shows in the dialog: **Fix it first** or **Send anyway**.
-- The person picker has an optional **Note for them** box; **Design** (back to design) and a reopened copy
-  check ask **What needs changing?** in the list instead (no one to pick). The note shows on the
+- The person picker has an optional **Note for them** box; **Design** (back to design) asks **What
+  needs changing?** in the list instead (no one to pick). A copy or translation check the designer
+  reopens asks **What should they check again?**, then who checks it (the English or Arabic
+  copywriter), and posts a "reopened" message to Roam's Paid Ads Hub. The note shows on the
   tile, in the **Ad set** tab and in the recipient's queue on Home.
 - **Undo** on the line saying what was sent puts the project back where it was: for the person who
   sent it, within 30 minutes, until someone moves it on. A Chrome alert or Paid Ads Hub message

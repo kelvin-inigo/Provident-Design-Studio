@@ -241,7 +241,8 @@ check** — a window asks **who** picks it up, listing that team's people with t
 emails (someone who hasn't signed in yet shows their email). The studio remembers who you chose last.
 From then on the post or campaign reads **With Sara** instead of "With the content team", it shows
 as **Your turn** only for that person, and the activity says "→ Sara". Sending something **back**
-(Back to design, Reopen copy check) returns it to whoever did that step. Only an English copy person
+(Back to design, or the content team reopening their own check) returns it to whoever did that
+step; a designer reopening an approved copy or translation check picks the checker. Only an English copy person
 is offered for an English project, and only an Arabic one for the translation; for a post, both.
 
 The team is set up already: exec10.media (social media manager), exec1.content (English copy),
@@ -653,8 +654,10 @@ steps: **Design › ENG copy check › Translation › Done**.
    also has its own **Send to…** button, so you can hand work on without opening the studio; the
    line saying what was sent stays on that page until you leave it.
    Under the people there is a **Note for them** box (optional): what they should know before
-   they start. **Design** (back to design) and a reopened copy check have no one to pick, since they go
-   back to whoever did that step, so they ask **What needs changing?** in the list instead.
+   they start. **Design** (back to design) has no one to pick, since it goes back to whoever did
+   that step, so it asks **What needs changing?** in the list instead. A copy or translation check
+   that was already approved (**Reopens it**) asks **What should they check again?** in the list,
+   then who checks it: the English or Arabic copywriter, as on the first send.
    The note shows on the project's tile, in the **Ad set** tab and in that person's queue on Home.
    Sent it to the wrong task or person? Press **Undo** on the line saying what was sent. It
    puts the project back where it was, for 30 minutes, as long as nobody has moved it on since.
@@ -704,7 +707,10 @@ picture, the ad set's name, market and audience in bold, **ENG copy check** or *
 an **Ad Set Overview** link (the PM link), then the copywriter for that language (Sana for English,
 Fatema for Arabic) with a **Content Review** link (the content team's link). If Roam cannot be
 reached, the step still goes through and the studio says Roam was not told; if only the picture
-fails, the message goes without it and the studio says so.
+fails, the message goes without it and the studio says so. A designer reopening an approved copy
+or translation check (**Send to… › Translation check**, **Reopen it**) posts the same message,
+marked **reopened**, with a **Check again:** line holding what was typed. The content team
+reopening their own check posts nothing.
 
 **Chrome notifications.** When someone else presses a step button (Send to copy check, Approve,
 Back to design, Reopen), everyone who has that ad set open gets a Chrome notification, whether

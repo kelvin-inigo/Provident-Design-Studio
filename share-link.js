@@ -531,8 +531,10 @@
       it[field] = done ? Object.assign({ by, at: now }, em ? { em } : {}) : null;
       delete it.task;   // a step moves the work: the task picked before no longer says where it is
       const to = body.to && typeof body.to === 'object' && body.to.email ? body.to : null;
-      it.to = done ? (to ? { email: String(to.email).toLowerCase().slice(0, 120), name: String(to.name || '').slice(0, 80), by, at: now } : null)
-        : (prev && prev.em ? { email: prev.em, name: prev.by || '', by, at: now } : null);
+      // a copy check a designer reopens (2026-11-23) names its checker in the picker too (body.to);
+      // with nobody picked it still goes back to whoever approved it
+      it.to = to ? { email: String(to.email).toLowerCase().slice(0, 120), name: String(to.name || '').slice(0, 80), by, at: now }
+        : done ? null : (prev && prev.em ? { email: prev.em, name: prev.by || '', by, at: now } : null);
       const toLine = it.to && it.to.name ? ' → ' + it.to.name : it.to ? ' → ' + it.to.email : '';
       if (body.act === 'approved' && !it.design) it.design = { by, at: now };
       if (isPost(R.rs)) {
@@ -3342,12 +3344,17 @@
   // SEND TO COPY CHECK TELLS ROAM (2026-11-09): a CAS ad set project sent to the content team
   // posts to Paid Ads Hub through the server (api/share.py op roamnote, which holds the key).
   // After the step has saved, and never in its way: a note that fails only says so.
-  function roamNote(rs, sid, ho, flash, pic) {
+  // A REOPENED CHECK TELLS ROAM TOO (2026-11-23, by request): a designer's Send to… › Translation
+  // (or Copy) check on an approved project posts the same note, marked reopened, with what to check
+  // again. The content team reopening their own check (no person picked) posts nothing.
+  const roamWorthy = (a, ho) => a === 'design-done' || (a === 'copy-open' && !!(ho && ho.to));
+  function roamNote(rs, sid, ho, flash, pic, act) {
     const A = window.providentAccess, it = ((rs || {}).items || []).find(x => x.sid === sid);
     if (!A || !A.call || !it || isPost(rs)) return;
     const tk = rs.tok || {};
     A.call('roamnote', { name: rs.name || '', label: [it.market, it.aud].filter(Boolean).join(' · '), lang: it.lang, to: ho && ho.to,
-                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : '', ctlink: tk.ct ? rsLink(tk.ct) : '', pic: pic || '' })
+                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : '', ctlink: tk.ct ? rsLink(tk.ct) : '', pic: pic || '',
+                         kind: act === 'copy-open' ? 'reopen' : 'send', note: (ho && ho.note) || '' })
       .then(r => { if (r && r.pic === false && flash) flash('Sent — Roam was told, without the picture: ' + (r.why || '')); })
       .catch(e => flash && flash('Sent — but Roam was not told: ' + (e.message || e)));
   }
@@ -3568,10 +3575,10 @@
       // the Roam note's picture is drawn BEFORE the step saves (2026-11-23): drawn after, an
       // Arabic design spent seconds loading its font while "Sent" was already showing, and a
       // designer who left the page then lost the note without a word
-      const pic = a === 'design-done' && !isPost(S.rs) ? await this.roamPic().catch(() => undefined) : undefined;
+      const pic = roamWorthy(a, ho) && !isPost(S.rs) ? await this.roamPic().catch(() => undefined) : undefined;
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
-      if (a === 'design-done') roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic);
+      if (roamWorthy(a, ho)) roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic, a);
       if (isPost(r.rs) && this.postAfterStep) this.postAfterStep(a);
       S.ui.flash(stepFlash(a, tkk, ho, isPost(r.rs)));
     } catch (e) { S.ui.flash(e.message || String(e)); }
@@ -3659,7 +3666,7 @@
         const act = stoAct(it, k);
         // the person, in the same place: the task list steps aside until the picker answers
         away = true; el.classList.add('sto-away');
-        const ho = await handOffFor(rs, it, act, { back: true, note: k !== 'done', noteV, lead: 'Send to ' + R[k][0] + ' · ' + itemLabel(it) + '. They get a Chrome alert if they have this ad set open; either way it waits in their queue on Home.' });
+        const ho = await handOffFor(rs, it, act, { back: true, note: k !== 'done' && !noteRow(k), noteV, lead: 'Send to ' + R[k][0] + ' · ' + itemLabel(it) + '. They get a Chrome alert if they have this ad set open; either way it waits in their queue on Home.' });
         away = false; el.classList.remove('sto-away');
         if (ho === 'back') { ask = ''; focusK = k; draw(); return; }
         if (!ho) return close(null);
@@ -4490,13 +4497,13 @@
       for (let i = 0; i < 40 && (this.busy || (this.proj[sid] && this.proj[sid].pend)); i++) { if (!this.busy) await this.save(sid); else await new Promise(r => setTimeout(r, 250)); }
       // the Roam note's picture first, then the step, then the note at once (see SP.rvStep)
       let pic;
-      if (a === 'design-done') {
+      if (roamWorthy(a, ho)) {
         const p = this.proj[sid] || {}, eng = this.eng;
         pic = await Promise.resolve(eng && eng.roamPic && p.st ? Promise.resolve(this.photos(sid)).then(own => eng.roamPic(p.st, own)) : undefined).catch(() => undefined);
       }
       const r = await api('rsstep', { id: this.tok }, Object.assign({ p: sid, act: a, by: StudioBase.shareName() || 'Someone' }, ho));
       this.rs = r.rs;
-      if (a === 'design-done') roamNote(r.rs, sid, ho, m => this.ui.flash(m), pic);
+      if (roamWorthy(a, ho)) roamNote(r.rs, sid, ho, m => this.ui.flash(m), pic, a);
       this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : a === 'design-open' ? 'Back to design' : 'Copy check reopened');
       this.shPoll(true);
     } catch (e) { this.ui.flash(e.message || String(e)); }
@@ -5540,7 +5547,7 @@
         const out = await api('rsstep', { id: this.sel }, Object.assign({ act: tkk ? 'task' : r.act, p: it.sid, by }, tkk ? { k: tkk } : {}, r.ho));
         const ni = ((out.rs || {}).items || []).find(x => x.sid === it.sid);
         this.sentNote = { sid: it.sid, t: stepFlash(r.act, tkk, r.ho, false) + ' · ' + itemLabel(it), at: ni && canUndo(ni) ? ni.undo.at : 0 };
-        if (r.act === 'design-done') roamNote(out.rs || rs, it.sid, r.ho, msg => { this.sentNote = { sid: it.sid, t: msg, bad: true }; this.draw(); });
+        if (roamWorthy(r.act, r.ho)) roamNote(out.rs || rs, it.sid, r.ho, msg => { this.sentNote = { sid: it.sid, t: msg, bad: true }; this.draw(); }, undefined, r.act);
       } catch (er) { this.sentNote = { sid: it.sid, t: 'Not sent: ' + (er.message || String(er)), bad: true }; }
       await again();
       const f = this.el.querySelector('.rvd-snd[data-sid="' + CSS.escape(it.sid) + '"]') || this.el.querySelector('.rvd-sent'); if (f) f.focus();

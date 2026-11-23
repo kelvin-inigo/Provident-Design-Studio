@@ -636,7 +636,8 @@ def rs_step(sid, role, rs, d):
     prev = it.get(field)
     it[field] = dict({'by': by, 'at': now}, **({'em': em} if em else {})) if done else None
     to = d.get('to') if isinstance(d.get('to'), dict) else None
-    if done and to and to.get('email'):
+    # a copy check a designer reopens (2026-11-23) names its checker in the picker too
+    if to and to.get('email'):
         it['to'] = {'email': str(to['email'])[:120].lower(), 'name': str(to.get('name') or '')[:80], 'by': by, 'at': now}
     elif not done:
         it['to'] = {'email': prev.get('em'), 'name': prev.get('by'), 'by': by, 'at': now} if prev and prev.get('em') else None
@@ -1499,11 +1500,16 @@ def roam_note(d):
     title = roam_plain(d.get('name')) or 'An ad set'
     label = roam_plain(d.get('label'))
     pm, ct = url(d.get('link')), url(d.get('ctlink'))
+    # a designer reopening an approved check (2026-11-23): the same note, marked reopened, with
+    # what to check again (page text, stripped like the rest)
+    again = d.get('kind') == 'reopen'
+    note = roam_plain(d.get('note'), 300).replace('*', '') if again else ''
     # Roam reads text as GitHub markdown, where a lone newline is a space: end each line with
     # two spaces (a hard break) so it stays one line per item
     text = '  \n'.join([
         '**' + title.replace('*', '') + (' · ' + label.replace('*', '') if label else '') + '**',
-        'ARABIC copy check' if lang == 'ARB' else 'ENG copy check',
+        ('ARABIC copy check' if lang == 'ARB' else 'ENG copy check') + (' — reopened' if again else '')]
+        + (['Check again: ' + note] if note else []) + [
         tags(os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL']) + ' - ' + ('[Ad Set Overview](' + pm + ')' if pm else 'Ad Set Overview (no link)'),
         tags(os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang]) + ' - ' + ('[Content Review](' + ct + ')' if ct else 'Content Review (no link)')])
     if os.environ.get('ROAM_DRY') == '1':

@@ -708,6 +708,11 @@
     // a project sent to the Arabic, the animated version or the video goes to a designer
     if (/^task-(arabic|animated|video)$/.test(act)) return 'designer-cas';
     if (act === 'design-done') return post ? 'copy' : it && it.lang === 'ARB' ? 'copy-ar' : 'copy-en';
+    // REOPENED BY A DESIGNER (2026-11-23, by request): a CAS copy check reopened from Send to… goes
+    // to the language's checker, picked like a first send; it used to go back to whoever approved
+    // it, which was the designer when they had pressed Already approved. The content team
+    // reopening their own check is asked nothing.
+    if (act === 'copy-open' && !post && role() !== 'ct') return it && it.lang === 'ARB' ? 'copy-ar' : 'copy-en';
     // the copy approved, or a designer finishing without a copy check: the post is ready for social media
     if (post && (act === 'copy-done' || (act === 'approved' && role() !== 'smm'))) return 'smm';
     return null;

@@ -1980,6 +1980,19 @@ membership of Paid Ads Hub were all fine; the bot cannot read the channel's hist
 (`chat.history` → `not_in_chat`), so a missing note cannot be confirmed from here. Not clicked
 through: the seeded demo projects do not open in CAS on share-dev.
 
+**A reopened check goes to the checker and to Roam (2026-11-23, by request):** Send to… ›
+Translation check on an approved Arabic project ("Reopens it") went back to whoever approved it —
+the designer, after **Already approved** — so it read "Translation check · with you" and Roam was
+never told. Now, for a CAS ad set and anyone but the content team (`role() !== 'ct'`),
+`teamFor('copy-open')` returns `copy-ar` / `copy-en`, so the picker asks who checks it (Send to…'s
+own "What should they check again?" row keeps the note; the picker shows no second note box). The
+Drive `rsstep` and server `rs_step` keep a picked `to` on a step sent back (unpicked still goes to
+the approver). `roamWorthy(act, ho)` — design-done, or copy-open with a person picked — gates the
+note in SP.rvStep, RV.rvStep and the ad set page's Send to…; `roamnote` takes `kind: 'reopen'` and
+`note`, and the message reads "ARABIC copy check — reopened" plus "Check again: <note>". The
+content team reopening their own check is unchanged (no picker, no note). Not clicked through
+(share-dev's seeded projects do not open in CAS); syntax checked only.
+
 ## More than one design per audience (2026-11-10, by request)
 "On CAS adset, allow user to add more designs inside an audience" (Investor already had one). A
 further design is **an audience of its own named "<aud> · Design N"**, exactly as the unbranded
