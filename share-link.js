@@ -732,6 +732,8 @@
         // its folder goes to Drive's trash with it (see dsTrash)
         if (gone) await dsTrashProject(rs, gone.sid);
         if (gone) dsLog(rs, by, [{ kind: 'step', text: 'Removed ' + dsItemLabel(gone, rs) + ' from the ad set — its Drive folder is in the trash' }]);
+        // the last project of a further design takes the design out of the plan, every market (rsCells)
+        if (gone && dsgOf(gone.aud) > 1 && Array.isArray(rs.plan) && !(rs.items || []).some(x => x.aud === gone.aud)) rs.plan = rs.plan.filter(c => c.aud !== gone.aud);
       }
       if (chg.length) dsLog(rs, by, chg.map(text => ({ kind: 'step', text })));
       await dsWrite(R.rid, rs);
@@ -2608,7 +2610,12 @@
   // audience, and `arbOff` the phases that skip it (2026-11-04: a fatigue round may need no Arabic).
   function rsCells(rs) {
     const items = ((rs && rs.items) || []).filter(x => x.market && x.aud), eo = (rs && rs.eng_only) || {};
-    const cells = planCells(planOf(rs)).map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [], brand: c.brand === 'unbranded' ? 'unbranded' : 'provident' }));
+    // A FURTHER DESIGN LIVES ONLY WHILE A PROJECT HOLDS IT (2026-11-23, by request: "if it doesn't have
+    // anything, remove these whole placeholders … they can just press Add a design"). Design 2+ cells
+    // reach the plan when the settings are saved with a project in them; once no market holds a
+    // project of that design, its Start placeholders go (Add a design makes it again).
+    const cells = planCells(planOf(rs)).filter(c => dsgOf(c.aud) < 2 || items.some(x => x.aud === c.aud))
+      .map(c => ({ market: c.market, aud: c.aud, arb: !!c.arb, arbOff: c.arb ? arbOffOf(c) : [], brand: c.brand === 'unbranded' ? 'unbranded' : 'provident' }));
     items.forEach(x => { if (!cells.some(c => c.market === x.market && c.aud === x.aud)) {
       // an unbranded version gets the Arabic its branded audience gets; a further design, its audience's
       const bc = x.aud !== audRoot(x.aud) && (cells.find(c => c.market === x.market && c.aud === ubBase(x.aud) && c.aud !== x.aud) || cells.find(c => c.market === x.market && c.aud === audRoot(x.aud)));
@@ -8152,8 +8159,7 @@ html.rv-pm .rvh,html.rv-pm.shl-open .rvh{position:static;inset:auto;z-index:auto
 .rvh .mk-g,.rvp .mk-g{width:17px;height:17px;flex:none;fill:currentColor}
 .rvh button:disabled,.rvp button:disabled{opacity:.45;cursor:default}
 /* the strip */
-.rvp-one{display:flex;align-items:center;gap:16px 20px;padding:14px 16px 14px 18px;border-radius:14px;background:var(--ps-card);box-shadow:0 0 0 1px var(--ps-line)}
-.rvp-one[data-s="done"]{background:var(--ps-good-q);box-shadow:0 0 0 1px color-mix(in srgb,var(--ps-good) 30%,transparent)}
+.rvp-one{display:flex;align-items:center;gap:16px 20px;padding:14px 16px 14px 18px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
 .rvp-ic{flex:none;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;box-sizing:border-box;box-shadow:inset 0 0 0 2px var(--ps-line)}
 [data-s="done"]>.rvp-ic,[data-s="done"] .rvp-ic{background:var(--ps-good);box-shadow:none}
 .rvp-ic .mk-g{width:18px;height:18px;fill:var(--ps-app)}
@@ -8205,7 +8211,6 @@ html[data-rv-role="ct"] .as-dl:not(.as-proj){display:none!important}
 .rvh-act{position:relative}
 .rvh-act[aria-expanded="true"]{background:var(--ps-fill-h)}
 .rvh-n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9999px;background:var(--ps-primary);color:var(--ps-primary-i);font:500 11px/1 var(--ps-font)}
-.rvp-one[data-s="prog"]{background:color-mix(in srgb,var(--ps-warn) 9%,var(--ps-card));box-shadow:0 0 0 1px color-mix(in srgb,var(--ps-warn) 34%,transparent)}
 [data-s="wait"] .rvp-ic{box-shadow:inset 0 0 0 2px var(--ps-line)}
 [data-s="wait"] .rvp-ic::after{content:'';width:12px;height:2px;border-radius:2px;background:var(--ps-dim)}
 .rvp-nx .mk-g{order:2}

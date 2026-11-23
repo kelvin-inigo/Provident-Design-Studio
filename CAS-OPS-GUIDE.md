@@ -611,7 +611,9 @@ It opens a new window on a new project for the next design, for example
 check, Arabic (when the audience has one) and Drive folder (`Local/Investor · Design 2/English`),
 and the performance-marketing link shows and downloads it as its own audience. On Status the
 designs sit in their audience's card one under the other, each tagged **Design 1**, **Design 2**…;
-the audience is done when every design is. **Change audience** also offers the ad set's designs, to
+the audience is done when every design is. Remove every project of a design (from each tile's ⋯) and the design goes
+away entirely, in every market: no empty **Start the English** placeholders are left behind. To
+make it again, press **Add a design**. **Change audience** also offers the ad set's designs, to
 move a project you already made into one. In a pasted copy reply, a block named
 `Investor design 2:` fills Design 2. CAS also recognises a second design on its own: adding a
 project to an ad set (**Add to an ad set**, or **Use an existing design** on a ticket) as an

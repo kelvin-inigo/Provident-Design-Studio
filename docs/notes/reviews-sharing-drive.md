@@ -2776,3 +2776,17 @@ the preview after HEAL_QUIET as before. No frame-blocking headers on Vercel. Eng
 home → cas, check `self`. Verified on :8791 (Damac Replica): opening the ad set page alone saved
 Local Broad and Design 4 ENG at `thumbV` 2 (16 KB, the clip's frame), the five plain designs untouched;
 cache busted first (`fetch(…, {cache: 'reload'})`), as a stale studio-base.js has no `pdsStudioLast`.
+
+**An emptied design leaves no placeholders (same day, by request).** Damac Island 2: Local · Broad ·
+Design 4 ENG was removed, but Design 4 kept Start the English / Start the Arabic in all three markets.
+Cause: the settings save `rsCells(rs)` as the plan, and rsCells adds every item's aud, so a further
+design reaches `rs.plan` the first time the settings are saved while it has a project — and nothing
+took it out again. Now `rsCells` keeps a plan cell with `dsgOf(aud) >= 2` only while some item (any
+market, any phase) has that aud — covering plans already written — and `rsset remove` drops the aud
+from `rs.plan` when the removed item was its last. Design 1 (the audience itself) keeps its
+placeholders as before. A design still held in one market keeps its placeholders in the others (the
+copy needs those cells). Add a design's next number is the highest shown + 1, so it offers the removed
+number again. Verified on :8791 (Damac Replica): removing Local's Design 4 kept it (International and
+EUR held one); removing those two took Design 4 out of the plan and off all three cards ("3 designs",
+Add a design → Design 4); with three Design 4 cells written back into the plan by hand, the page still
+showed Design 1–3 only.
