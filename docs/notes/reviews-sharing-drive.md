@@ -2813,3 +2813,27 @@ tile with `t.anim`); the nav row shows `.as-nav-k` with `.as-nav-l` (EN/AR) and 
 Animated with a play icon, `data-anim`); the pane's headings keep the full name; All audiences' sub
 adds "· N animated". CAS only (OPS has no Ad sets window). Contrast measured on :8791, light and dark,
 unselected and selected rows: lowest 6.21:1 (Static, light), all others 9.9:1 and up.
+
+**First names on every hand-off; previews version 3 (same day).** By request ("just mention their
+first names, goes the same site wide", on "Translation check · with Fatemaelzahraa Abdullah Noureldien
+Mohamed"): `firstName(name, email)` (first word of the name, else the email's local part) behind
+`toName` — so `withWho`, `itState`, the stepper subs, `rsBarWhere`, the Send receipt — plus the ticket's
+"For …" / "Waiting for …" (share-link.js), `toWho` (post-flow.js) and the home's hub rows (index.html).
+Activity log lines keep full names (the record of who did what). Verified on :8791 with a four-word
+name: Tracker "Arabic with Fatemaelzahraa", "Translation check · with Fatemaelzahraa", PM view "Arabic
+with Fatemaelzahraa", the full name nowhere on either page.
+Checking the live site after b56b747: Palm Central by Nakheel's Teaser · Local · Broad · Design 3 ENG
+(animated) had a black preview saved at 12:41 — before the fix — with `thumbV` 2, so nothing redrew it.
+`THUMB_V` is now 3: every animated preview from before is redrawn once more, safely, since a frameless
+one can no longer be drawn. The hidden studio's leftover `provident-ws` (heal…) was cleared from the
+user's live tab by hand.
+Audit of every animated preview on the live site (all ad sets on this computer's list): 19 animated
+designs; two black — Palm Central Teaser · Local · Broad · Design 3 ENG (7% lit) and DAMAC Hills Lilac
+Local · Broad ENG (14% lit), both `thumbV` 2 written ~12:41 by the Tracker's redraw under the old
+10-second frame grab (a dozen designs redrawn at once). Their clips are fine: 10–20 MB MP4s decoding in
+2–4 s. `THUMB_V` 3 redraws them. The audit also found Palm Central Design 2 ENG with Video chosen
+(`bgVid`) and NO clip on Drive (`bgClip` missing — upload never finished), which the first version of
+the rule would have frozen: `thumbVid` now returns the plain assets (the photo) when there is no clip
+anywhere, or when the frame failed but the design has a photo (`a.bg0.img`); null only for a clip whose
+frame failed on a design with no photo. Verified on :8791: bad clip + photo → drawn on the photo (v3);
+Video with no clip + photo → drawn on the photo (v3); bad clip, no photo → kept its preview (v0).

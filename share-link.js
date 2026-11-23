@@ -3454,7 +3454,11 @@
   // WHO A STEP IS WITH (2026-10-30): it.to is the person the last hand-off named (access.js's
   // picker). Unassigned, it is with the whole team.
   function myEmail() { try { const n = window.providentAccess && window.providentAccess.now(); if (n && n.email) return n.email; } catch (e) {} const w = StudioBase.shareWho && StudioBase.shareWho(); return w && w.email ? String(w.email).toLowerCase() : ''; }
-  const toName = it => it && it.to ? (it.to.name || String(it.to.email || '').split('@')[0]) : '';
+  // FIRST NAMES ON EVERY HAND-OFF (2026-11-23, by request: "just mention their first names, the same
+  // site wide"): who a project or ticket is with reads "with Fatemaelzahraa", not the full name. The
+  // Activity log keeps full names: it is the record of who did what.
+  const firstName = (name, email) => String(name || '').trim().split(/\s+/)[0] || String(email || '').split('@')[0];
+  const toName = it => it && it.to ? firstName(it.to.name, it.to.email) : '';
   const toMine = it => !it || !it.to || !it.to.email || !myEmail() || it.to.email === myEmail();
   const withWho = (it, team) => it && it.to ? 'With ' + (it.to.email === myEmail() ? 'you' : toName(it)) : 'With the ' + team;
   async function handOffFor(rs, it, act, opt) {
@@ -3577,12 +3581,15 @@
   // The clip: this tab's own when it is this project, else the copy on Drive (bgClip.f).
   // THUMB_V: a preview drawn before this counts as stale for an animated design (dsInfo1, so a
   // studio's own Status heals it), and CAS draws an animated design's preview again when it opens.
-  const THUMB_V = 2;
+  // 3 (2026-11-23): previews saved before the never-without-its-video fix (b56b747) could carry
+  // version 2 with no frame; they are redrawn once more
+  const THUMB_V = 3;
   // NEVER WITHOUT ITS VIDEO (2026-11-23, by request: "animated thumbnail previews keep on
   // disappearing"). When the frame could not be had — the clip still downloading, a slow decode,
   // a tab in the background — the preview used to be drawn anyway, words on black, and saved over
   // the good one; the Tracker painted its own such redraw at once. Now an animated design with no
-  // frame gets NO preview (null here, undefined from rvThumb): the last good one stays. One frame
+  // frame is drawn on its photo when it has one, and gets NO preview when it has none (null here,
+  // undefined from rvThumb): the last good one stays. One frame
   // per clip is kept (VFRAME, by Drive file id, else by the blob), so a designer saving every few
   // seconds decodes the clip once, not on every save.
   const VFRAME = new Map(), VFRAME_B = new WeakMap();
@@ -3605,13 +3612,17 @@
     const v = ((st && st.variants) || [])[0];
     if (!v || !v.bgVid) return a;
     const fid = v.bgClip && v.bgClip.f, mine = this._clips && this._clips[0] && this.state && st.pid && st.pid === this.state.pid ? this._clips[0].blob : null;
+    // with no frame: the design's photo when it has one (never black); null only when the frame is
+    // all there would be — a design with Video chosen and no clip anywhere (not on Drive, not in
+    // this tab) is drawn as it is, with its photo if any
+    const photo = !!(a && a.bg0 && a.bg0.img);
     let fc = (fid && VFRAME.get(fid)) || (mine && VFRAME_B.get(mine)) || null;
     if (!fc) {
       let blob = mine;
       if (!blob && fid) try { blob = await dsClipGet(fid); } catch (e) {}
-      if (!blob) return null;
+      if (!blob) return fid && !photo ? null : a;
       fc = await vidFrame(blob);
-      if (!fc) return null;
+      if (!fc) return photo ? a : null;
       if (fid) VFRAME.set(fid, fc); else VFRAME_B.set(blob, fc);
     }
     const own = v.bgVidV && v.bgVidV.sq;
@@ -5404,7 +5415,7 @@
   PV.done = function (rs) {
     const link = rsLink(rs.tok.dd), body = this.el.querySelector('.rsp-body'), ft = this.el.querySelector('.rsp-ft');
     body.innerHTML = '<div class="rsp-done"><span class="rsp-ok">' + PICO.tick + '</span><div><span class="rsp-k">Open ticket</span><b>' + esc(rs.name) + '</b>' +
-      '<s>' + (rs.ticket && rs.ticket.to ? 'For ' + esc(rs.ticket.to.name || rs.ticket.to.email) + ' — it is their turn on Status. ' : 'Listed in Status. ') + 'Send the designer the link, or they pick it up from Status.</s></div></div>' +
+      '<s>' + (rs.ticket && rs.ticket.to ? 'For ' + esc(firstName(rs.ticket.to.name, rs.ticket.to.email)) + ' — it is their turn on Status. ' : 'Listed in Status. ') + 'Send the designer the link, or they pick it up from Status.</s></div></div>' +
       '<div class="rsp-lnk"><code title="' + esc(link) + '">' + esc(link.replace(/^https?:\/\//, '')) + '</code><button type="button" class="p-ghost" data-copy="' + esc(link) + '">' + PICO.link + '<span>Copy designer link</span></button></div>';
     ft.innerHTML = '<p class="rsp-st"></p><button type="button" class="p-ghost" data-a="again">File another</button><button type="button" class="p-btn rsp-go" data-a="status">Open Status' + PICO.go + '</button>';
   };
@@ -5928,7 +5939,7 @@
         const tk = rs.ticket || {}, due = dueOf(tk.deadline), cells = planCells(planOf(rs));
         body = (due ? '<span class="rvb-due"' + (due.days < 0 ? ' data-s="late"' : due.days <= 2 ? ' data-s="soon"' : '') + '>' + ico('event', 'rvb-di') + esc(due.label) + '</span>' : '') +
           '<span class="rvb-aud">' + esc(cells.length + (cells.length === 1 ? ' audience' : ' audiences')) + (cells.some(c => c.arb) ? ' · with Arabic' : '') + '</span>' +
-          '<span class="rvb-m">' + (tk.to ? 'For ' + esc(tk.to.email === myEmail() ? 'you' : (tk.to.name || tk.to.email)) + ' · ' : '') + (tk.by ? 'Filed by ' + esc(tk.by) + ' · ' : '') + esc(ago(tk.at || rs.created)) + '</span>';
+          '<span class="rvb-m">' + (tk.to ? 'For ' + esc(tk.to.email === myEmail() ? 'you' : firstName(tk.to.name, tk.to.email)) + ' · ' : '') + (tk.by ? 'Filed by ' + esc(tk.by) + ' · ' : '') + esc(ago(tk.at || rs.created)) + '</span>';
       } else {
         const auds = rsAuds(rs), show = auds.slice(0, 3);
         body = '<ul class="rvb-auds">' + show.map(a => { const si = a.done ? 3 : a.steps.findIndex(q => q.s !== 'done');
@@ -6617,7 +6628,7 @@
     const tiles = cells.map(c => '<li class="rva-tkt"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b><span>' + (c.arb ? 'EN · AR' : 'EN') + '</span></li>').join('');
     return '<header class="rva-dh"><span class="rva-th rva-th-l rva-th-t">' + ico('ticket', 'rva-ti') + '</span>' +
       '<div class="rva-dt"><span class="rv-k">Open ticket</span><h2>' + esc(rs.name || 'Campaign') + '</h2>' +
-      '<div class="rva-st"><span class="rv-pill" data-s="open">' + (tk.to ? 'Waiting for ' + esc(tk.to.email === myEmail() ? 'you' : (tk.to.name || tk.to.email)) : 'Waiting for a designer') + '</span><span>' + facts.map(esc).join(' · ') + '</span></div></div>' +
+      '<div class="rva-st"><span class="rv-pill" data-s="open">' + (tk.to ? 'Waiting for ' + esc(tk.to.email === myEmail() ? 'you' : firstName(tk.to.name, tk.to.email)) : 'Waiting for a designer') + '</span><span>' + facts.map(esc).join(' · ') + '</span></div></div>' +
       '<div class="rva-da">' + (url ? '<a class="p-ghost rva-a" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + ico('ext') + 'Drive folder</a>' : '') +
       (ro ? '<span class="rvd-ro" title="Your role follows ad sets. Nothing here can be changed or downloaded.">' + EYE + 'View only</span>'
         : '<button type="button" class="p-ghost rva-a" data-a="addopen" title="Pick up the ticket with a design that already exists: a project saved in the studio, or a project folder on this computer">' + ico('add') + 'Use an existing design</button>' +

@@ -2165,7 +2165,7 @@ body{-webkit-tap-highlight-color:transparent;
       var st = t.state, open = st === 'queued', ready = st === 'approved' || st === 'delivered';
       var to = t.to && t.to.email ? t.to : null, mineTo = to && to.email === em;
       var step = open ? 'Ticket' : st === 'review' ? 'Copy check' : ready ? 'Ready' : 'Design';
-      var who = to ? (mineTo ? 'you' : to.name || to.email.split('@')[0]) : '';
+      var who = to ? (mineTo ? 'you' : (String(to.name || '').trim().split(/\s+/)[0] || to.email.split('@')[0])) : '';   // first names on hand-offs (2026-11-23)
       var sub = open ? (who ? 'For ' + who : 'Waiting for a designer') : st === 'changes' ? 'Changes asked on the hub' + (who ? ' · ' + who : '')
         : st === 'review' ? 'Waiting for approval on the hub' : ready ? (t.ok && t.ok.by ? 'Copy approved by ' + t.ok.by.split(/\s+/)[0] : 'Approved on the hub') : 'In design' + (who ? ' · ' + who : t.by ? ' · ' + t.by.replace(/\s*\(.*\)$/, '') : '');
       var k = open ? 0 : st === 'review' ? 2 : ready ? 3 : 1;

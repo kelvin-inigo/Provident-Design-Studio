@@ -157,7 +157,8 @@
   }
   // WHO IT IS WITH (2026-10-30): the person the last hand-off named (it.to), else the team
   const myEm = () => { try { const n = window.providentAccess && window.providentAccess.now(); if (n && n.email) return n.email; } catch (e) {} const w = StudioBase.shareWho && StudioBase.shareWho(); return w && w.email ? String(w.email).toLowerCase() : ''; };
-  const toWho = it => it && it.to ? (it.to.email && it.to.email === myEm() ? 'you' : (it.to.name || String(it.to.email || '').split('@')[0])) : '';
+  // first names on every hand-off, as share-link.js toName (2026-11-23)
+  const toWho = it => it && it.to ? (it.to.email && it.to.email === myEm() ? 'you' : (String(it.to.name || '').trim().split(/\s+/)[0] || String(it.to.email || '').split('@')[0])) : '';
   // a ready post names the social media manager it went to
   const waitOf = (rs, k) => { const it = stage(rs).it; return k === 3 && it && it.to ? 'With ' + toWho(it) + ' to download' : k > 0 && k < 3 && it && it.to ? 'With ' + toWho(it) : STEPS[k].wait; };
   // the landing page's queue (StudioBase.inboxSave): every post, judged for the signed-in person
