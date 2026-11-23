@@ -1398,8 +1398,8 @@ def acc_team(d):
 
 # ── SEND TO COPY CHECK TELLS ROAM (2026-11-09, by request) ───────────────────────────────────
 # When a designer sends a CAS ad set project to the copy check, share-link.js calls op
-# 'roamnote' and the Content Engine bot posts to one Roam channel: the ad set's name, performance
-# marketing tagged over the PM link, that language's copywriter tagged over the content review link. ROAM_API_KEY lives in
+# 'roamnote' and the Content Engine bot posts to one Roam channel. Since 2026-11-23 each ad set is
+# one thread there (roam_note: its name, then the checks, Done and back to design as replies). ROAM_API_KEY lives in
 # Vercel env and the local .env only. The channel and the always-tagged people can be changed
 # there too; the defaults below are the ones agreed (Paid Ads Hub; Sana English, Fatema
 # Arabic, Dennis always). Nothing is sent without a signed-in, active sender.
@@ -1476,6 +1476,19 @@ def roam_plain(v, n=120):
     return ' '.join(str(v or '').replace('<', '').replace('>', '').split())[:n]
 
 
+def roam_rooted(tkey, mark=False):
+    """Has this ad set's name been posted (its thread started)? A store that cannot answer says
+    yes, so it never doubles a name or holds a note back."""
+    try:
+        if mark:
+            store().cmd('SET', 'roamthr:' + tkey, '1')
+            store().cmd('EXPIRE', 'roamthr:' + tkey, 400 * 86400)
+            return True
+        return bool(store().cmd('GET', 'roamthr:' + tkey))
+    except Exception:  # noqa: BLE001
+        return True
+
+
 def roam_note(d):
     email, name = acc_who(d.get('tok'))
     me = acc_users().get(email)
@@ -1495,29 +1508,61 @@ def roam_note(d):
                 rid = roam_id(em)
                 out.append('<@' + rid + '>' if rid else '@' + em.split('@')[0])
         return ' '.join(out)
-    # the format the user asked for (2026-11-10): name, then PM tagged over the ad set overview,
-    # then the language's copywriter tagged over the content review link
+    # ONE THREAD PER AD SET (2026-11-23, by request): the ad set's first note (a ticket filed, or
+    # Start designing) posts its name to the channel; every later note replies in that message's
+    # thread. Roam's chat.post threadKey does it: the first message with a key starts the thread,
+    # later ones with the same key reply in it. The key is the ad set's id; a flag in the share
+    # store says the name has been posted, so an ad set from before this posts its name first.
     title = roam_plain(d.get('name')) or 'An ad set'
-    label = roam_plain(d.get('label'))
+    label = roam_plain(d.get('label')).replace('*', '').replace('_', ' ')
     pm, ct = url(d.get('link')), url(d.get('ctlink'))
-    # a designer reopening an approved check (2026-11-23): the same note, marked reopened, with
-    # what to check again (page text, stripped like the rest)
-    again = d.get('kind') == 'reopen'
-    note = roam_plain(d.get('note'), 300).replace('*', '') if again else ''
+    kind = d.get('kind') if d.get('kind') in ('start', 'send', 'reopen', 'done', 'back') else 'send'
+    key = re.sub(r'[^A-Za-z0-9_.-]', '', str(d.get('key') or ''))[:56]
+    tkey = 'pds-' + key if key else ''
+    by = roam_plain(d.get('by'), 60)
+    sub = ['_' + label + '_'] if label else []
+
+    def root_text(how=''):
+        return '  \n'.join(['**' + title.replace('*', '') + '**'] + ([how] if how else []))
     # Roam reads text as GitHub markdown, where a lone newline is a space: end each line with
     # two spaces (a hard break) so it stays one line per item
-    text = '  \n'.join([
-        '**' + title.replace('*', '') + (' · ' + label.replace('*', '') if label else '') + '**',
-        ('ARABIC copy check' if lang == 'ARB' else 'ENG copy check') + (' — reopened' if again else '')]
-        + (['Check again: ' + note] if note else []) + [
-        tags(os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL']) + ' - ' + ('[Ad Set Overview](' + pm + ')' if pm else 'Ad Set Overview (no link)'),
-        tags(os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang]) + ' - ' + ('[Content Review](' + ct + ')' if ct else 'Content Review (no link)')])
+    if kind == 'start':
+        to = d.get('to') if isinstance(d.get('to'), dict) else {}
+        to = roam_plain(to.get('name') or str(to.get('email') or '').split('@')[0], 60)
+        how = ('New ad set — ticket filed' + (' by ' + by if by else '') + (' for ' + to if to else '')) if d.get('how') == 'ticket' \
+            else 'New ad set — ' + (by + ' started designing' if by else 'design started')
+        text = root_text(how + (' · [Ad Set Overview](' + pm + ')' if pm else ''))
+    elif kind in ('send', 'reopen'):
+        # the check: Translation Check (Arabic) or Copy Check (English) with the content review
+        # link inside it, that language's checker tagged; a reopened one says so, and what to check
+        again = kind == 'reopen'
+        note = roam_plain(d.get('note'), 300).replace('*', '') if again else ''
+        what = 'Translation Check' if lang == 'ARB' else 'Copy Check'
+        text = '  \n'.join(
+            [('[' + what + '](' + ct + ')' if ct else what) + (' — reopened' if again else '') + ' - '
+             + tags(os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang])] + sub + (['Check again: ' + note] if note else []))
+    elif kind == 'done':
+        # signed off: performance marketing tagged, the package link inside the line
+        text = '  \n'.join(
+            ['Done - The Package is ' + ('[ready for download](' + pm + ')' if pm else 'ready for download') + ' - '
+             + tags(os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL'])] + sub)
+    else:
+        text = '  \n'.join(['Ad is back to design phase'] + sub)
     if os.environ.get('ROAM_DRY') == '1':
-        return ok({'ok': True, 'dry': True, 'text': text, 'pic': bool(roam_pic_bytes(d.get('pic')))})
-    body = {'groupId': os.environ.get('ROAM_GROUP_ID') or ROAM_GROUP, 'text': text}
-    # the master design rides along as an image (item.upload, scope item:write); a picture that
-    # will not upload never holds the message back
-    pic, pic_err = roam_pic_bytes(d.get('pic')), ''
+        return ok({'ok': True, 'dry': True, 'text': text, 'key': tkey, 'root': kind != 'start' and bool(tkey) and not roam_rooted(tkey),
+                   'pic': kind in ('send', 'reopen') and bool(roam_pic_bytes(d.get('pic')))})
+    group = os.environ.get('ROAM_GROUP_ID') or ROAM_GROUP
+    # an ad set whose name was never posted (filed before 2026-11-23) gets it now, so the note
+    # below lands in a thread under its name rather than starting one of its own
+    if tkey and kind != 'start' and not roam_rooted(tkey):
+        if roam_call('chat.post', {'groupId': group, 'text': root_text(), 'threadKey': tkey}).get('ok'):
+            roam_rooted(tkey, True)
+    body = {'groupId': group, 'text': text}
+    if tkey:
+        body['threadKey'] = tkey
+    # the master design rides along with a check as an image (item.upload, scope item:write); a
+    # picture that will not upload never holds the message back
+    pic, pic_err = roam_pic_bytes(d.get('pic')) if kind in ('send', 'reopen') else None, ''
     if pic:
         try:
             item = roam_upload(*pic)
@@ -1528,6 +1573,8 @@ def roam_note(d):
     r = roam_call('chat.post', body)
     if not r.get('ok'):
         raise Fail(502, 'Roam did not take the message (%s).' % (r.get('error') or 'no reason given'))
+    if tkey and kind == 'start':
+        roam_rooted(tkey, True)
     if pic_err:
         return ok({'ok': True, 'pic': False, 'why': pic_err})
     return ok({'ok': True})
