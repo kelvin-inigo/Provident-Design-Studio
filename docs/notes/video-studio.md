@@ -927,3 +927,26 @@ A landscape photo came out cropped: `frameFor` drew the clip's own framing (Fill
   ("…with more sky above and more pool below"), the confirm at 37 credits, then the server's
   `ext_run` alone in 30 s (2 credits): more sky and pool, no visible seams. The video itself was
   not generated (Cancel). Not handled: photos taller than the video (would need left/right).
+
+## Reframe the Square by double-click and drag (2026-11-23, by request)
+
+"on 1:1 size, user needs to be able to double click and drag the video to reframe".
+- **The Square has its own framing.** A clip's `fx` / `fy` stay the Reel's; on 1:1 it reads `c.sqf`
+  once it is reframed there (`cfr` to read, `cfrW` to write, the same pattern as a graphic's `sq`).
+  Until then the Square shares the Reel's framing. Zoom and Fill / Fit are still shared.
+  `drawCover`, the Framing sliders, the animate panel's thumbnail and the photo extend all go through
+  `cfr`, so export, preview, the Feed mock-up and Send to CAS (which records both sizes) agree.
+- **The gesture.** On 1:1, double-click the picture (anything but a graphic) and the clip under the
+  playhead is selected and reframes; the second press can drag at once, and later single drags keep
+  reframing that clip (`refr`, grab cursor + focus ring, `#cv[data-refr]`) until Esc, another pick or
+  the Reel size. `fx` / `fy` move as % of the overhang, so the picture follows the pointer 1:1.
+- **Chrome gives pointerdown a `detail` of 0**, so the double press is timed in the handler
+  (`lastDown`, 450 ms and 10 px), not read from `e.detail`.
+- **Match the Reel** (under Framing, on 1:1, once `sqf` exists) drops `sqf`. A generated clip that
+  replaces a photo drops it too (it was made at that size, unreframed).
+
+Tested in the Browser pane with a real pointer on `_test-media/palm-springs-v2.mp4` (a 9:16 file on
+the Square): double-click turns reframing on with the toast; a 60 px drag down moved `sqf.fy` 50 →
+20.5 with the Reel's `fx`/`fy` untouched at 50; Esc ends it; click-then-drag within 450 ms (the
+double press held) moved it again; 9:16 shows 50 / 50 and no Square note; Match the Reel clears
+`sqf`. NOT tested: Safari, a photo clip, a clip in Fit mode, a transition straddling the playhead.
