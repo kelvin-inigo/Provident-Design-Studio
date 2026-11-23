@@ -1419,19 +1419,28 @@ Press **Edit text** to work on the words of the audience on screen, without open
   to see it large: the top line says where it sits (Local › Family › Variant A › Meta · Feed), and
   the arrows or **←** / **→** step through every image in the window in order. **Esc** closes it,
   and **Esc** again closes the window.
-- **Details** beside the **Meta** label opens its images beside an analysis of the ad, read
-  from its saved project:
-  - **Marketing angle** — the theme the copy leans on hardest (Workspace and business, Payment
-    plan and entry price, Location and connectivity, Golden Visa and residency, Investment and
-    returns, Launch and urgency, Lifestyle and luxury), with the words that show it and any
-    other angles it also uses. The headline counts most, then the hook.
+- **Each variant is one row: its ads on the left, its run sheet on the right.** The Feed, 3:4
+  and Story are drawn as large as the window allows; the 1.91:1 sits under them. The run sheet
+  holds everything needed to run the variant, with nothing to open:
+  - **Preview placements** (beside the **Meta** label) shows the variant in the Facebook and
+    Instagram feed, Reels and Story.
+  - **Files** — each image with its size, **how much of it the copy covers** (a small bar with
+    the brand's 40% guide marked; a file over the guide turns amber), and its own **download**
+    button, which saves that one file under its exported name. Click a file's name to see it
+    large.
+  - **Words on Meta** — the primary text, headline, description and button the ad goes out
+    with, from its saved project.
+  - **Angle** — the theme the copy leans on hardest (Workspace and business, Payment plan and
+    entry price, Location and connectivity, Golden Visa and residency, Investment and returns,
+    Launch and urgency, Lifestyle and luxury), with the words that show it and any other angles
+    it also uses. The headline counts most, then the hook.
+  - **Selling points** — every selling point the ad states: its tags, key facts, bullets, hook,
+    price and location label.
   - **Audience** — the market and segment from the folders, the currency, and who the copy
     speaks to (investors, business owners, residency seekers, families…).
-  - **USP** — every selling point the ad states: its tags, key facts, bullets, hook, price
-    and location label.
-  - **Copy ratio to image** — how much of the picture the text, panels and buttons cover, for
-    the format you are looking at, against the brand's 40% guide.
-  The analysis reads the words only; it does not change anything.
+  The sheet reads the words only; it does not change anything. A folder of images with no saved
+  project beside them shows the files and downloads only.
+- On a phone or a narrow window the run sheet moves under the ads.
 - Each variant row shows how many images it holds.
 - **Choose folder** (top of the window) opens the folder picker. It needs Chrome or Edge.
 - The bar has one main button, **Share**. The folder controls sit together in one group:

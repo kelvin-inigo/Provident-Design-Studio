@@ -4011,14 +4011,67 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .as-vrow-h{display:flex;align-items:baseline;gap:10px}
 .as-vrow-h b{font:600 15px/1.25 var(--ps-font);color:var(--ps-ink)}
 .as-vrow-h s{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim);text-decoration:none;font-variant-numeric:tabular-nums}
-.as-vrow-b{display:flex;flex-wrap:wrap;align-items:flex-start;gap:20px 32px}
-.as-vrow-b .as-plat{gap:12px}
-.as-vrow-b .as-plat + .as-plat{padding-left:32px}
-.as-plat-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .as-tiles{display:flex;flex-wrap:wrap;align-items:flex-start;gap:14px}
 .as-tiles .as-t{--as-r:var(--as-h)}
 .as-tiles .as-t[data-shape="ls"]{--as-r:calc(var(--as-h) * .5766)}
-.as-plat-top .as-ad-see{height:30px;font-size:12.5px;gap:8px}
+/* THE RUN (2026-11-23): a variant's ads on the left at the size the column and the window allow,
+   its run sheet on the right — files, the words on Meta and the read, nothing behind a pop-up */
+.as-pane{container:aspane / inline-size}
+.as-vrow{gap:16px;padding:24px 0 32px}
+.as-run{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,368px);gap:32px;align-items:start}
+.as-run + .as-run{margin-top:8px;padding-top:24px;border-top:1px solid var(--ps-hair)}
+.as-run-ads{container-type:inline-size;min-width:0}
+.as-run-ads .as-tiles{gap:16px;align-items:flex-start;
+  --as-h:min(clamp(260px,calc(100vh - 360px),720px),calc((100cqw - (var(--as-n,1) - 1) * 16px) / var(--as-sum,1)))}
+.as-run-ads .as-t{gap:10px}
+.as-run-ads .as-t figcaption b{font:500 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.as-sheet{min-width:0;display:flex;flex-direction:column;padding:4px 20px 6px;border-radius:var(--ps-r);
+  background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.as-sh-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--ps-hair)}
+.as-ov .as-sh-prev{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px 0 12px;font:600 13px/1 var(--ps-font);letter-spacing:.16px;white-space:nowrap}
+.as-sh-prev .mk-g{width:17px;height:17px;flex:none;fill:currentColor}
+.as-sh-s{padding:18px 0;border-bottom:1px solid var(--ps-hair)}
+.as-sh-s:last-child,.as-sh-s:has(+ .as-sh-cap:last-child){border-bottom:0}
+.as-sh-s h4{margin:0 0 10px;font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-files{list-style:none;margin:0 -8px;padding:0;display:flex;flex-direction:column;gap:2px}
+.as-files li{display:grid;grid-template-columns:minmax(0,1fr) auto 36px;align-items:center;gap:12px;padding:3px 2px 3px 8px;border-radius:10px;
+  transition:background var(--ps-motion) var(--ps-ease)}
+.as-files li:hover{background:var(--ps-fill)}
+.as-f-open{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;padding:6px 0;border:0;background:none;
+  color:inherit;font:inherit;text-align:left;cursor:zoom-in}
+.as-f-open b{font:500 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.as-f-open s{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:none;
+  font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.as-f-cov{display:flex;align-items:center;gap:8px;white-space:nowrap;font:400 12.5px/1 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
+.as-f-bar{position:relative;flex:none;width:40px;height:4px;border-radius:var(--ps-pill);background:var(--ps-line)}
+.as-f-bar i{position:absolute;inset:0;border-radius:inherit;background:var(--ps-link);transform-origin:left center;transition:transform .3s var(--ps-ease)}
+.as-f-bar u{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:var(--ps-ink-2)}
+.as-files li[data-over] .as-f-bar i{background:var(--ps-warn)}
+.as-files li[data-over] .as-f-cov{color:var(--ps-warn)}
+.as-files li[data-none]{grid-template-columns:minmax(0,1fr) 36px}
+.as-files li[data-none] .as-f-cov{display:none}
+.as-f-dl{display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;border-radius:var(--ps-pill);background:transparent;
+  color:var(--ps-ink-2);cursor:pointer;transition:background var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
+.as-f-dl:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
+.as-f-dl .mk-g{width:19px;height:19px;fill:currentColor}
+.as-f-dl[data-busy]{color:var(--ps-dim);pointer-events:none}
+.as-f-open:focus-visible,.as-f-dl:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px;border-radius:6px}
+.as-f-dl:focus-visible{border-radius:var(--ps-pill)}
+.as-sh-cap{margin:10px 0 0;max-width:62ch;font:400 12.5px/1.5 var(--ps-font);color:var(--ps-dim)}
+.as-sh-cap[data-over]{color:var(--ps-warn)}
+.as-sheet > .as-sh-cap{margin:4px 0 14px}
+.as-words{margin:0;display:flex;flex-direction:column;gap:12px}
+.as-words div{display:flex;flex-direction:column;gap:3px;min-width:0}
+.as-words dt{font:400 12.5px/1.3 var(--ps-font);color:var(--ps-dim)}
+.as-words dd{margin:0;font:400 14px/1.45 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
+.as-sheet .as-an-big{font:500 16px/1.35 var(--ps-font)}
+.as-sheet .as-an-why{font-size:13px;color:var(--ps-ink-2)}
+.as-sheet .as-an-usp li s{font-size:12px}
+@container aspane (max-width:900px){
+  .as-run{grid-template-columns:minmax(0,1fr);gap:20px}
+  .as-run-ads .as-tiles{--as-h:min(clamp(220px,62vh,560px),calc((100cqw - (var(--as-n,1) - 1) * 16px) / var(--as-sum,1)))}
+}
+@media (prefers-reduced-motion:reduce){.as-f-bar i,.as-files li,.as-f-dl{transition:none}}
 /* EDIT TEXT */
 .ae-stat{display:inline-flex;align-items:center;gap:8px;max-width:min(560px,100%);padding:7px 12px;border-radius:var(--ps-pill);
   background:var(--ps-app);box-shadow:0 0 0 1px var(--ps-hair);font:500 12.5px/1.35 var(--ps-font);color:var(--ps-ink-2)}
@@ -4078,7 +4131,6 @@ button.p-tgl-s:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
   .as-pane-h{margin:0 -14px;padding:12px 14px 10px}
   .as-crumb b{font-size:19px}
   .as-mode{margin-left:0;order:3}
-  .as-vrow-b .as-plat + .as-plat{padding-left:0}
   .ae-shot{--ae-h:160px}
   .ae-perm{flex-direction:column;align-items:stretch}
 }
@@ -6206,7 +6258,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </nav>
           <div class="as-pane">
             <header class="as-pane-h">
-              <div class="as-crumb"><s>{{ asSel.main }}</s><b>{{ asSel.title }}</b><i>{{ asSel.sub }}</i></div>
+              <div class="as-crumb"><b>{{ asSel.title }}</b><i>{{ asSel.main }} · {{ asSel.sub }}</i></div>
               <sc-if value="{{ asProjHereOn }}" hint-placeholder-val="{{ false }}"><span class="as-here">Open here</span></sc-if>
               <sc-if value="{{ asProjOn }}" hint-placeholder-val="{{ false }}"><a href="{{ asProjHref }}" target="_blank" rel="noopener" class="p-ghost as-dl as-proj" title="{{ asProjTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M212.31-140Q182-140 161-161q-21-21-21-51.31v-535.38Q140-778 161-799q21-21 51.31-21h227.3q12.77 0 21.39 8.62 8.61 8.61 8.61 21.38t-8.61 21.38q-8.62 8.62-21.39 8.62h-227.3q-4.62 0-8.46 3.85-3.85 3.84-3.85 8.46v535.38q0 4.62 3.85 8.46 3.84 3.85 8.46 3.85h535.38q4.62 0 8.46-3.85 3.85-3.84 3.85-8.46v-227.3q0-12.77 8.62-21.39 8.61-8.61 21.38-8.61t21.38 8.61q8.62 8.62 8.62 21.39v227.3Q820-182 799-161q-21 21-51.31 21H212.31ZM760-717.85 409.38-367.23q-8.3 8.31-20.88 8.5-12.58.19-21.27-8.5-8.69-8.69-8.69-21.08 0-12.38 8.69-21.07L718.15-760H590q-12.77 0-21.38-8.62Q560-777.23 560-790t8.62-21.38Q577.23-820 590-820h193.85q15.46 0 25.81 10.34Q820-799.31 820-783.85V-590q0 12.77-8.62 21.38Q802.77-560 790-560t-21.38-8.62Q760-577.23 760-590v-127.85Z"/></svg>Open in the studio</a></sc-if>
               <sc-if value="{{ asDlAudOn }}" hint-placeholder-val="{{ true }}">
@@ -6225,25 +6277,64 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
                 <sc-if value="{{ c.headOn }}" hint-placeholder-val="{{ false }}"><h3 class="as-agrp"><b>{{ c.head }}</b><s>{{ c.headSub }}</s><button onClick="{{ c.dl }}" class="p-ghost as-dl as-dl-s" data-busy="{{ asDlBusy }}" title="{{ c.dlTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg>{{ c.dlLabel }}</button></h3></sc-if>
                 <section class="as-vrow">
                   <header class="as-vrow-h"><b>{{ c.title }}</b><s>{{ c.sub }}</s></header>
-                  <div class="as-vrow-b">
-                    <sc-for list="{{ c.plats }}" as="pl" hint-placeholder-count="1">
-                      <div class="as-plat">
-                        <div class="as-plat-top">
-                          <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
-                          <button onClick="{{ pl.see }}" class="as-ad-see" title="Marketing angle, audience, USP and how much of the image the copy covers">Details</button>
-                          <sc-if value="{{ pl.prevOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ pl.prev }}" class="as-ad-see" title="See this variant in the Facebook and Instagram feed, Reels and Story">Preview</button></sc-if>
-                        </div>
-                        <div class="as-tiles">
+                  <sc-for list="{{ c.plats }}" as="pl" hint-placeholder-count="1">
+                    <div class="as-run">
+                      <div class="as-run-ads">
+                        <div class="as-tiles" style="{{ pl.tilesStyle }}">
                           <sc-for list="{{ pl.tiles }}" as="t" hint-placeholder-count="2">
                             <figure class="as-t" data-shape="{{ t.shape }}">
                               <button onClick="{{ t.open }}" class="as-img" title="{{ t.name }}" data-an="{{ t.animOn }}" data-tid="{{ t.tid }}"><img data-src="{{ t.thumb }}" alt="{{ t.name }}"><sc-if value="{{ t.animOn }}" hint-placeholder-val="{{ false }}"><span class="as-anim" title="This design plays a video behind it on the 1:1 and 9:16"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="m426-330 195-125q14-9 14-25t-14-25L426-630q-15-10-30.5-1.5T380-605v250q0 18 15.5 26.5T426-330Zm54 250q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>Animated</span></sc-if></button>
-                              <figcaption><b>{{ t.label }}</b><s>{{ t.meta }}</s></figcaption>
+                              <figcaption><b>{{ t.label }}</b></figcaption>
                             </figure>
                           </sc-for>
                         </div>
                       </div>
-                    </sc-for>
-                  </div>
+                      <aside class="as-sheet" aria-label="{{ pl.sheetName }}">
+                        <header class="as-sh-h">
+                          <span class="as-plat-l" data-p="{{ pl.key }}">{{ pl.label }}</span>
+                          <sc-if value="{{ pl.prevOn }}" hint-placeholder-val="{{ true }}"><button onClick="{{ pl.prev }}" class="p-ghost as-sh-prev" title="See this variant in the Facebook and Instagram feed, Reels and Story"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-320q75 0 127.5-52.5T660-500q0-75-52.5-127.5T480-680q-75 0-127.5 52.5T300-500q0 75 52.5 127.5T480-320Zm0-72q-45 0-76.5-31.5T372-500q0-45 31.5-76.5T480-608q45 0 76.5 31.5T588-500q0 45-31.5 76.5T480-392Zm0 192q-134 0-244.5-72T61-462q-5-9-7.5-18.5T51-500q0-10 2.5-19.5T61-538q64-118 174.5-190T480-800q134 0 244.5 72T899-538q5 9 7.5 18.5T909-500q0 10-2.5 19.5T899-462q-64 118-174.5 190T480-200Z"/></svg>Preview placements</button></sc-if>
+                        </header>
+                        <section class="as-sh-s">
+                          <h4>Files</h4>
+                          <ul class="as-files">
+                            <sc-for list="{{ pl.sh.files }}" as="f" hint-placeholder-count="2">
+                              <li data-over="{{ f.over }}" data-none="{{ f.none }}">
+                                <button onClick="{{ f.open }}" class="as-f-open" title="View {{ f.label }} full size"><b>{{ f.label }}</b><s>{{ f.meta }}</s></button>
+                                <span class="as-f-cov" title="{{ f.covTip }}"><span class="as-f-bar" aria-hidden="true"><i style="{{ f.barStyle }}"></i><u style="{{ f.markStyle }}"></u></span><span>{{ f.cov }}</span></span>
+                                <button onClick="{{ f.dl }}" class="as-f-dl" data-busy="{{ f.busy }}" aria-label="{{ f.dlTip }}" title="{{ f.dlTip }}"><svg class="mk-g" viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z"/></svg></button>
+                              </li>
+                            </sc-for>
+                          </ul>
+                          <p class="as-sh-cap" data-over="{{ pl.sh.covOver }}">{{ pl.sh.covNote }}</p>
+                        </section>
+                        <sc-if value="{{ pl.sh.wordsOn }}" hint-placeholder-val="{{ true }}">
+                          <section class="as-sh-s">
+                            <h4>Words on {{ pl.label }}</h4>
+                            <dl class="as-words"><sc-for list="{{ pl.sh.words }}" as="w" hint-placeholder-count="3"><div><dt>{{ w.k }}</dt><dd dir="auto">{{ w.v }}</dd></div></sc-for></dl>
+                          </section>
+                        </sc-if>
+                        <sc-if value="{{ pl.sh.readOn }}" hint-placeholder-val="{{ true }}">
+                          <section class="as-sh-s">
+                            <h4>Angle</h4>
+                            <p class="as-an-big">{{ pl.sh.angle }}</p>
+                            <p class="as-an-why">{{ pl.sh.angleWhy }}</p>
+                            <sc-if value="{{ pl.sh.alsoOn }}" hint-placeholder-val="{{ false }}"><div class="as-an-tags"><span class="as-an-tl">Also</span><sc-for list="{{ pl.sh.also }}" as="x" hint-placeholder-count="2"><span class="as-an-tag" title="{{ x.why }}">{{ x.name }}</span></sc-for></div></sc-if>
+                          </section>
+                          <sc-if value="{{ pl.sh.uspOn }}" hint-placeholder-val="{{ true }}">
+                            <section class="as-sh-s">
+                              <h4>Selling points</h4>
+                              <ul class="as-an-usp"><sc-for list="{{ pl.sh.usp }}" as="u" hint-placeholder-count="3"><li><b>{{ u.t }}</b><s>{{ u.src }}</s></li></sc-for></ul>
+                            </section>
+                          </sc-if>
+                          <section class="as-sh-s">
+                            <h4>Audience</h4>
+                            <dl class="as-an-dl"><sc-for list="{{ pl.sh.aud }}" as="r" hint-placeholder-count="3"><div><dt>{{ r.k }}</dt><dd>{{ r.v }}</dd></div></sc-for></dl>
+                          </section>
+                        </sc-if>
+                        <sc-if value="{{ pl.sh.noteOn }}" hint-placeholder-val="{{ false }}"><p class="as-sh-cap">{{ pl.sh.note }}</p></sc-if>
+                      </aside>
+                    </div>
+                  </sc-for>
                 </section>
               </sc-for>
             </sc-if>
@@ -18460,6 +18551,17 @@ class Component extends DCLogic {
         if (e.file) { got(e.file); t.load = () => Promise.resolve(t.file); }
         else t.load = () => t._ld || (t._ld = e.h.getFile().then(got, er => { t._ld = null; throw er; }));
         t.open = () => { this._asBig = t; this.forceUpdate(); if (!t.file) t.load().then(() => this.forceUpdate(), () => {}); };
+        // the run sheet's own download: this one file, under its exported name
+        t.fname = String(e.path || label).split('/').pop();
+        t.dl = async () => {
+          if (t._dlBusy) return; t._dlBusy = true; this.forceUpdate();
+          try {
+            const f = await t.load(), u = URL.createObjectURL(f), a = document.createElement('a');
+            a.href = u; a.download = t.fname; document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(u), 4000);
+          } catch (er) { console.warn('[provident] download', er); }
+          t._dlBusy = false; this.forceUpdate();
+        };
         // a design with a video background (review links on Drive): badged, and it plays on hover
         if (e.h.anim) { t.anim = e.h.anim; t.animOn = '1'; t.tid = 't' + (this._anTid = (this._anTid || 0) + 1); (this._anTiles = this._anTiles || {})[t.tid] = t; this.anHoverInit(); }
         list.push(t);
@@ -19194,6 +19296,12 @@ class Component extends DCLogic {
       if (t.length) rows.push({ kind, tiles: t });
     }
     const card = { key, label, tiles, rows, ctx, letter, yt, proj: p, need: false };
+    // THE ADS FILL THEIR COLUMN (2026-11-23): the Feed / 3:4 / Story row is sized off the
+    // column's width (the sum of their aspect ratios) and the window's height, whichever is
+    // smaller; the 1.91:1 wraps under it at its old share
+    const AR = { sq: 1, pt: .75, st: .5625 }, main = tiles.filter(t => AR[t.shape]);
+    card.tilesStyle = { '--as-sum': String(main.reduce((n, t) => n + AR[t.shape], 0) || 1), '--as-n': String(main.length || 1) };
+    card.sheetName = label + ' files and read, ' + ctx;
     // img and meta are read off the tile each time: a review link's tile is rendered after this
     Object.defineProperty(card, 'img', { get: () => card.cur.url || card.cur.thumb });
     Object.defineProperty(card, 'meta', { get: () => card.cur.label + ' · ' + card.cur.meta });
@@ -19313,22 +19421,76 @@ class Component extends DCLogic {
     let n = 0; for (let i = 0; i < cells.length; i++) n += cells[i];
     return Math.round(n / cells.length * 100);
   }
-  async asAnalyse(c) {
+  // the project behind a card, read once (a folder's .adstudio.json is read on demand)
+  asStOf(c) {
+    if (c.st) return Promise.resolve(c.st);
+    return c._stP || (c._stP = (async () => {
+      let raw = c.proj.state;
+      if (!raw && c.proj.jsonH) raw = (JSON.parse(await (await c.proj.jsonH.getFile()).text()) || {}).state;
+      return (c.st = CampaignStudio.normState(JSON.parse(JSON.stringify(raw || {}))));
+    })().catch(e => { c._stP = null; throw e; }));
+  }
+  async asAnalyse(c, sk) {
     if (!c || !c.proj) return;
-    const sk = c.shape, key = sk;
+    sk = sk || c.shape;
     c.an = c.an || {};
-    if (c.an[key] != null) return;
-    c.an[key] = 'busy';
-    try {
-      if (!c.st) {
-        let raw = c.proj.state;
-        if (!raw && c.proj.jsonH) raw = (JSON.parse(await (await c.proj.jsonH.getFile()).text()) || {}).state;
-        c.st = CampaignStudio.normState(JSON.parse(JSON.stringify(raw || {})));
-      }
-      await this.aeFonts(c.st);
-      c.an[key] = this.copyRatio(c.st, c.letter.charCodeAt(0) - 65, CampaignStudio.PXT[sk] ? sk : 'sq');
-    } catch (e) { console.warn('[provident] ad analysis', e); c.an[key] = 'fail'; }
-    finally { StudioBase.applyFont(this.eng.state); this.forceUpdate(); }
+    if (c.an[sk] != null) return;
+    c.an[sk] = 'busy';
+    // ONE AT A TIME: every run publishes its own project's face globally, and the run sheet
+    // asks for every format of every variant on screen at once
+    const run = async () => {
+      try {
+        const st = await this.asStOf(c);
+        await this.aeFonts(st);
+        c.an[sk] = this.copyRatio(st, c.letter.charCodeAt(0) - 65, CampaignStudio.PXT[sk] ? sk : 'sq');
+      } catch (e) { console.warn('[provident] ad analysis', e); c.an[sk] = 'fail'; }
+      finally { StudioBase.applyFont(this.eng.state); this.forceUpdate(); }
+    };
+    return (this._anQ = (this._anQ || Promise.resolve()).then(run, run));
+  }
+  // ══ THE RUN SHEET (2026-11-23) ══════════════════════════════════════════════════════════
+  // Beside a variant's ads, everything a person running them needs without opening anything:
+  // each file with its size, how much of it the copy covers and its own download; the words
+  // that go around it on Meta; and the read Details used to keep behind a pop-up — the angle,
+  // the selling points, the audience.
+  asSheet(c) {
+    const C = CampaignStudio, MAX = C.COVER_MAX, vi = Math.max(0, c.letter.charCodeAt(0) - 65);
+    let st = c.st || null;
+    if (!st && c.proj && c.proj.state) { try { st = c.st = C.normState(JSON.parse(JSON.stringify(c.proj.state))); } catch (e) { st = null; } }
+    if (!st && c.proj && !c._stP) this.asStOf(c).then(() => this.forceUpdate(), () => {});
+    if (st && !c.read) { try { c.read = Component.adRead(st, vi, c.ctx); } catch (e) { c.read = null; } }
+    const files = c.tiles.map(t => {
+      const pct = c.proj && c.an ? c.an[t.shape] : null;
+      if (c.proj && pct == null) this.asAnalyse(c, t.shape);
+      const ok = typeof pct === 'number', over = ok && pct > MAX;
+      return { label: t.label, meta: t.meta || '', open: t.open, dl: t.dl, busy: t._dlBusy ? '1' : undefined, dlTip: 'Download ' + t.fname,
+        over: over ? '1' : undefined, none: c.proj ? undefined : '1',
+        cov: !c.proj ? '' : ok ? pct + '% copy' : pct === 'fail' ? 'Not measured' : 'Measuring',
+        covTip: 'How much of the ' + t.label + ' the copy covers — text, panels and buttons. The guide is ' + MAX + '% or less.',
+        barStyle: { transform: 'scaleX(' + (ok ? Math.min(100, pct) / 100 : 0) + ')' }, markStyle: { left: MAX + '%' } };
+    });
+    const overs = files.filter(f => f.over).map(f => f.label), done = c.proj && files.every(f => /copy$/.test(f.cov));
+    const covNote = !c.proj ? 'No saved project sits beside these files, so the copy cover, the words and the read are not shown.'
+      : !done ? 'Measuring how much of each file the copy covers…'
+      : overs.length ? overs.join(' and ') + (overs.length === 1 ? ' is' : ' are') + ' over the ' + MAX + '% guide: the copy is starting to outweigh the picture.'
+      : 'Every file is within the ' + MAX + '% copy guide, so the picture leads.';
+    const words = [];
+    if (st && st.variants) {
+      const m = C.mockCopyOf(st, vi), mods = C.modulesFor(st, vi), has = t => mods.some(x => x.type === t && String(x.text || '').trim());
+      words.push({ k: 'Primary text', v: has('hook') || has('body') || has('eyebrow') ? m.primary : 'Not written yet' });
+      words.push({ k: 'Headline', v: m.headline });
+      if (m.desc && m.desc !== m.domain) words.push({ k: 'Description', v: m.desc });
+      words.push({ k: 'Button', v: m.cta });
+    }
+    const r = c.read;
+    return {
+      files, covNote, covOver: overs.length ? '1' : undefined,
+      wordsOn: words.length ? '1' : undefined, words,
+      readOn: r ? '1' : undefined,
+      angle: r ? r.angle : '', angleWhy: r ? r.angleWhy : '', also: r ? r.also : [], alsoOn: r && r.also.length ? '1' : undefined,
+      usp: r ? r.usp : [], uspOn: r && r.usp.length ? '1' : undefined, aud: r ? r.aud : [],
+      noteOn: c.proj && !st ? '1' : undefined, note: 'Reading the project…'
+    };
   }
   asDetVals() {
     const c = this._asDet;
@@ -19417,6 +19579,8 @@ class Component extends DCLogic {
     // (and so is the content team's, with what is left to check in the line under it)
     const PMH = (rvRole === 'pm' || rvRole === 'ct') && this._asSrc.share && this._asSrc.share.pmHead ? this._asSrc.share.pmHead(a) : null;
     const RVV = { pm: ['Ad set overview', 'Performance marketing'], ct: ['Content review', 'Content team'], dd: ['Designer overview', 'Designer'] }[rvRole];
+    // each variant's run sheet, for the ads on screen
+    if (sel && mode === 'images') sel.cols.forEach(c => c.plats.forEach(pl => { pl.sh = this.asSheet(pl); }));
     return {
       asTitle: PMH ? PMH.title : RVV ? RVV[0] : 'Ad sets',
       asRoleOn: RVV ? '1' : undefined,
