@@ -1970,6 +1970,16 @@ it as `items`. A picture that fails never holds the message back (`{pic:false, w
 earlier tests landed there. Test as a DM instead: `chat.post` with `userIds` (Anandu
 `59e8c1fc…`); the DM test was approved by the user.
 
+**Changed 2026-11-23 (an Arabic translation check posted nothing, with no message):** the picture
+was drawn AFTER the step saved, so "Sent to the content team" showed while the page still loaded
+the Arabic font and rendered; a designer who left the page then lost the note silently (every
+other failure flashes). `SP.rvStep` / `RV.rvStep` now await the picture before `rsstep`, then call
+`roamNote` the moment the step returns. Send to… on the home's ad set page already posts at once
+with no picture. Checked on 2026-11-23: the tag rule, Fatema's Roam id (`e2ce88e8…`) and her
+membership of Paid Ads Hub were all fine; the bot cannot read the channel's history
+(`chat.history` → `not_in_chat`), so a missing note cannot be confirmed from here. Not clicked
+through: the seeded demo projects do not open in CAS on share-dev.
+
 ## More than one design per audience (2026-11-10, by request)
 "On CAS adset, allow user to add more designs inside an audience" (Investor already had one). A
 further design is **an audience of its own named "<aud> · Design N"**, exactly as the unbranded

@@ -3565,9 +3565,13 @@
       for (let i = 0; i < 40 && pend(); i++) { if (!S.busy) await this.shSave(); else await new Promise(r => setTimeout(r, 250)); if (pend()) await new Promise(r => setTimeout(r, 250)); }
       const body = Object.assign({ act: tkk ? 'task' : a, p: sid || S.id, by: StudioBase.shareName() || 'Someone' }, tkk ? { k: tkk } : {}, ho);
       if (a === 'design-done' || (isPost(S.rs) && /-done$/.test(a))) body.thumb = await this.rvThumb();
+      // the Roam note's picture is drawn BEFORE the step saves (2026-11-23): drawn after, an
+      // Arabic design spent seconds loading its font while "Sent" was already showing, and a
+      // designer who left the page then lost the note without a word
+      const pic = a === 'design-done' && !isPost(S.rs) ? await this.roamPic().catch(() => undefined) : undefined;
       const r = await api('rsstep', { id: S.id }, body);
       this.rsSet(r.rs);
-      if (a === 'design-done') this.roamPic().then(pic => roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic));
+      if (a === 'design-done') roamNote(r.rs, sid || S.id, ho, m => S.ui.flash(m), pic);
       if (isPost(r.rs) && this.postAfterStep) this.postAfterStep(a);
       S.ui.flash(stepFlash(a, tkk, ho, isPost(r.rs)));
     } catch (e) { S.ui.flash(e.message || String(e)); }
@@ -4484,13 +4488,15 @@
     try {
       // the approval covers the words just typed: a pending save goes first
       for (let i = 0; i < 40 && (this.busy || (this.proj[sid] && this.proj[sid].pend)); i++) { if (!this.busy) await this.save(sid); else await new Promise(r => setTimeout(r, 250)); }
-      const r = await api('rsstep', { id: this.tok }, Object.assign({ p: sid, act: a, by: StudioBase.shareName() || 'Someone' }, ho));
-      this.rs = r.rs;
+      // the Roam note's picture first, then the step, then the note at once (see SP.rvStep)
+      let pic;
       if (a === 'design-done') {
         const p = this.proj[sid] || {}, eng = this.eng;
-        Promise.resolve(eng && eng.roamPic && p.st ? Promise.resolve(this.photos(sid)).then(own => eng.roamPic(p.st, own)) : undefined).catch(() => undefined)
-          .then(pic => roamNote(r.rs, sid, ho, m => this.ui.flash(m), pic));
+        pic = await Promise.resolve(eng && eng.roamPic && p.st ? Promise.resolve(this.photos(sid)).then(own => eng.roamPic(p.st, own)) : undefined).catch(() => undefined);
       }
+      const r = await api('rsstep', { id: this.tok }, Object.assign({ p: sid, act: a, by: StudioBase.shareName() || 'Someone' }, ho));
+      this.rs = r.rs;
+      if (a === 'design-done') roamNote(r.rs, sid, ho, m => this.ui.flash(m), pic);
       this.ui.flash(a === 'copy-done' ? 'Approved' : a === 'approved' ? 'Marked approved' : a === 'design-done' ? 'Marked done' : a === 'design-open' ? 'Back to design' : 'Copy check reopened');
       this.shPoll(true);
     } catch (e) { this.ui.flash(e.message || String(e)); }
