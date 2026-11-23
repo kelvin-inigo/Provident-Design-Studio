@@ -2749,3 +2749,15 @@ adopted the same sid, no second file. **The live ad set**: once deployed, Intern
 offers Copy the rest from Local — it adopts the four left files (Design 1 ENG + ARB, Design 2–3 ENG).
 Its Design 2 and 3 ARB copies stay (made before the fix, against the plan's Arabic) — remove them
 from the card's ⋯ if not wanted.
+
+**Recheck (same day, by request: "it copies but not entirely everything").** Live Damac Island 2 at
+12:15: International switched on, "Copied 1 design" (Design 4 ENG) — the run before `e87a391` was
+deployed, skipping the files an earlier cut-short run left. At 12:16 the user removed the copies, so
+Drive holds International/ and International EUR/ in the trash (explicitlyTrashed) and the ad set only
+Local. A third cause found on a replica (:8791, "Damac Replica": Local Broad + Design 2–3 ENG/ARB,
+Design 4 ENG only, Design 1 and 4 with a real clip): the settings' `toggle('m', …)` gave a new
+market's cells `arb: a === BROAD`, so Design 2–4 had no Arabic and their ARB copies were not jobs.
+Now a market switched on takes each audience's `arb` / `arbOff` from a cell of the same aud in another
+market. Re-run: Settings › International + International EUR › Copy → "Copied 14 designs" (7 each,
+same as Local; Design 4 shows Start the Arabic as Local does), the four animated copies with their own
+clip files; International's 7 removed (rsset remove), the card offered Copy from Local → 7 again.

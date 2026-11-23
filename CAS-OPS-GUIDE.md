@@ -539,7 +539,8 @@ where it is, whatever the reach.
 Local designs** (the default) and press **Save changes**: every
 Local design of that phase (Design 1, Design 2…) is copied into the new market as its own project,
 with its pictures and its video background, so the **Animated** version comes too. The English is
-always copied; the Arabic only if that market has Arabic. The copies start **In design**: change
+always copied, and the Arabic too: a market you switch on starts with the same Arabic settings as
+Local (you can still turn a design's **AR** off before saving). The copies start **In design**: change
 their words, prices and currency for the new market, then send them on as usual. A market that was
 switched on before it had anything to copy shows **Copy from Local** on its card on the ad set
 page; press it to copy the designs in. A market that is missing some designs (one added to Local

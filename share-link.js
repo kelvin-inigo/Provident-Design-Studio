@@ -2782,8 +2782,9 @@
         if (dsrc) {
           const dt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.dup === k) + '" data-dup="' + (k ? '1' : '0') + '"' + (d.dup === k ? ' data-on="1"' : '') + '>' + l + '</button>';
           $('.rsp-dupt').innerHTML = dt(true, 'Copy the ' + esc(dsrc) + ' designs') + dt(false, 'Start from scratch');
-          $('[data-duphelp]').textContent = d.dup ? mNew.join(' and ') + ' starts with a copy of every ' + dsrc + ' design, its pictures and video background too. Check the words, prices and currency.'
-            : mNew.join(' and ') + ' starts empty: each design is started on the ad set page and made from scratch.';
+          const sv = mNew.length > 1 ? ' start' : ' starts';
+          $('[data-duphelp]').textContent = d.dup ? mNew.join(' and ') + sv + ' with a copy of every ' + dsrc + ' design, in the same languages, its pictures and video background too. Check the words, prices and currency.'
+            : mNew.join(' and ') + sv + ' empty: each design is started on the ad set page and made from scratch.';
         }
       }
       $('[data-g="a"]').innerHTML = [BROAD].concat(AUDS[d.product], [...as].filter(a => a !== BROAD && AUDS[d.product].indexOf(a) < 0)).map(a => tg('a', a, as.has(a), AUD_TIP[a])).join('');
@@ -2839,7 +2840,11 @@
         cells = cells.filter(c => drop.indexOf(c) < 0);
       } else {
         const nm = g === 'm' ? [v] : ms, na = g === 'a' ? [v] : as;
-        nm.forEach(m => na.forEach(a => { if (!cells.some(c => c.market === m && c.aud === a)) cells.push({ market: m, aud: a, arb: a === BROAD }); }));
+        // A MARKET SWITCHED ON TAKES EACH AUDIENCE'S ARABIC FROM A MARKET ALREADY PLANNED (2026-11-23,
+        // live case): it was on for Broad and off for Design 2–4, so a copy of Local left out their Arabic
+        nm.forEach(m => na.forEach(a => { if (cells.some(c => c.market === m && c.aud === a)) return;
+          const tw = g === 'm' && cells.find(c => c.aud === a && c.market !== m);
+          cells.push(tw ? { market: m, aud: a, arb: !!tw.arb, arbOff: tw.arb ? arbOffOf(tw).slice() : [] } : { market: m, aud: a, arb: a === BROAD }); }));
       }
       st(''); ord(); draw();
     };
