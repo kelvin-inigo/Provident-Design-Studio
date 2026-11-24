@@ -7,7 +7,7 @@
 @font-face{font-family:'Google Sans Flex';src:url('../../_ds/provident-estate-design-system-fefe9827-a837-4a34-8c55-259bc5c8a319/assets/fonts/GoogleSansFlex-Variable.woff2') format('woff2');font-weight:1 1000}
 :root{--navy:#1A2942;--pnavy:#2F4960;--orange:#F3793C;--paper:#FAF8F4;--cream:#F4F1EC;--mist:#ECE7DF;--stone:#D4CFC4;--muted:#5E6573;--brass:#8C6F3F}
 @page{size:A4;margin:17mm 17mm 19mm;
-  @bottom-left{content:"Provident Design Studio  ·  Architecture  ·  Revision 1.56  ·  23 Nov 2026, 17:57 GST";font:300 7.5pt 'Google Sans Flex';color:#5E6573}
+  @bottom-left{content:"Provident Design Studio  ·  Architecture  ·  Revision 1.58  ·  24 Nov 2026, 10:57 GST";font:300 7.5pt 'Google Sans Flex';color:#5E6573}
   @bottom-right{content:counter(page);font:500 7.5pt 'Google Sans Flex';color:#1A2942}}
 @page cover{margin:0;@bottom-left{content:none}@bottom-right{content:none}}
 html{background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -93,7 +93,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     </div>
   </div>
   <div class="foot">
-    <div><b>Current state as of 23rd November 2026</b> · Revision 1.56<br>Changes are logged with a timestamp in section 17<br>Written for the AI engineering team · internal</div>
+    <div><b>Current state as of 24th November 2026</b> · Revision 1.58<br>Changes are logged with a timestamp in section 17<br>Written for the AI engineering team · internal</div>
     <div style="text-align:right">Repository <b>kelvin-inigo/Provident-Design-Studio</b><br>Live site provident-design-studio.vercel.app</div>
   </div>
 </section>
@@ -242,6 +242,8 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
         <tr><td>Default branch</td><td><code>main</code>. Vercel deploys it to <code>provident-design-studio.vercel.app</code></td></tr>
         <tr><td>History</td><td>395 commits since 10th September 2026</td></tr>
         <tr><td>Main working copy</td><td class="wrap"><code>/Users/rizi/Documents/Provident Design Studio</code></td></tr>
+        <tr><td>Second remote</td><td><code>github.com/Provident-AI-ops/Design-Studio</code> (remote <code>provident-ai</code>): <code>main</code> pushed 24th November 2026, after a secret scan of the whole history</td></tr>
+        <tr><td>Office server</td><td>A copy on the office server (<code>~/Provident-Design-Studio</code>, <code>.env</code> at 0600) served at <code>design-studio.ngrok-free.dev</code> by <code>tools/office-server/</code>. Updated by rsync, so it can lag <code>main</code></td></tr>
         <tr><td>Build</td><td>None. There's no <code>vercel.json</code>; <code>api/*.py</code> are detected automatically. <code>requirements.txt</code> lists only <code>anthropic</code></td></tr>
       </table>
     </div>
@@ -886,7 +888,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
     <tr><td><b>Provident Content Hub</b></td><td>Social copy and approvals</td><td>A separate app on the office Mac behind ngrok. It pushes tasks in with <code>hubpush</code>; OPS sends finished carousels to its <code>/api/imports</code>; <code>#hubopen=</code> links open a hub post in OPS</td></tr>
     <tr><td><b>GitHub</b></td><td>The repository, and the Engine feed</td><td>The code lives in a public repository; Vercel deploys <code>main</code> and reports each deployment there. <code>op=engine</code> reads both through the REST API</td></tr>
     <tr><td><b>Grok (xAI)</b></td><td>Team assistant bot</td><td>A Grok custom connector or the xAI Responses API <code>mcp</code> tool, through a tunnel to <code>remote.py</code>. Instructions live in <code>GROK-BOT-INSTRUCTIONS.md</code></td></tr>
-    <tr><td><b>ngrok / Cloudflare Tunnel</b></td><td>Public https addresses</td><td>A login item in front of port 7313 (studio tools); the hub uses its own ngrok address</td></tr>
+    <tr><td><b>ngrok / Cloudflare Tunnel</b></td><td>Public https addresses</td><td>A login item in front of port 7313 (studio tools); the hub uses its own ngrok address. <code>design-studio.ngrok-free.dev</code> serves PDS from the office server: static files on loopback port 8800, Google sign-in at ngrok for providentestate.com accounts, its own agent beside the hub's (Revision 1.58)</td></tr>
     <tr><td><b>Claude Desktop / Cowork</b></td><td>Agentic design work</td><td>The stdio MCP server <code>provident-studio</code>; <code>CAS-OPS-GUIDE.md</code> is the guide Cowork reads</td></tr>
     <tr><td><b>Higgsfield</b></td><td>Photo-to-video for CASV and CAS animated ads</td><td>The Higgsfield MCP (through the <code>/animate-photos</code> skill) or the Higgsfield CLI run by CASV's server, always after a cost quote. CAS generates only through CASV's server, so it needs CASV running on the same computer. People can also upload clips made on the Higgsfield site. <b>Generative fill</b> (CAS) also uses it: the helper on :7315 runs the Higgsfield CLI with <code>nano_banana_2_1</code> (<code>upload create</code> the frame and mask, then <code>generate create … --is_inpaint true --mask {id, type: "media_input"}</code>, <code>wait</code>, <code>get</code>), 2 credits per variation at 2K, priced first</td></tr>
     <tr><td><b>Adobe Photoshop / Illustrator</b></td><td>Retouching and extending pictures</td><td>The local helper on :7312 runs <code>open -a</code> and watches for the save. PSD, TIFF and HEIC are converted with <code>sips</code>; SVG goes to Illustrator</td></tr>
@@ -965,6 +967,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
         <li>The public repo holds no secrets. They live in Vercel, a git-ignored <code>.env</code>, per-browser storage or per-Mac files (mode 0600).</li>
         <li>The remote MCP needs a per-person token, logs every call, and keeps remote callers inside one folder.</li>
         <li>Cost-bearing generation (Higgsfield, music) always shows a quote and waits for a yes.</li>
+        <li>The office server's copy is behind ngrok's Google sign-in (providentestate.com only) and serves static files only: no <code>/api</code>, no dev sign-in, and <code>.env</code>, <code>.git</code>, <code>api/</code> and <code>tools/</code> answer 404.</li>
       </ul>
     </div>
     <div class="card">
@@ -978,6 +981,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
         <li><b>A token in the remote MCP path</b> can end up in tunnel logs. Signed <code>/f/</code> links open without a token for 14 days.</li>
         <li>The refresh cookie is sealed with a home-made cipher (SHA-256 keystream + HMAC) rather than a vetted AEAD.</li>
         <li>Identity is cached for 5 minutes, so a revoked person keeps access that long.</li>
+        <li><b>The office server holds a full copy with <code>.env</code></b>: every local key, readable by its login. The copy is updated by hand and can lag <code>main</code>. Running <code>tools/share-dev/serve.py</code> behind its tunnel would make anyone admin.</li>
         <li><code>hubtasks</code> accepts any Google token while <code>ACCESS_ADMIN</code> is unset. <code>health</code> and <code>accstatus</code> are public.</li>
         <li><b>The Engine</b> shows public repository data (commits, deployments) and connection health to the admin and AI Engineers; its feed (<code>op=engine</code>) is gated on the server, reports keys by name only, and the page escapes every value. The page shell itself is hidden on the client only.</li>
         <li>Employee email addresses are hard-coded in <code>api/share.py</code> (access seed, Roam tags) and in <code>tools/share-dev/serve.py</code>, in a public repo.</li>
@@ -1029,6 +1033,7 @@ svg .lf{stroke:#D4CFC4;stroke-width:1;fill:none;stroke-dasharray:2 3}
   <p class="lede">This document follows the code. Every change to PDS that lands on <code>main</code> is written into the matching section in the same pass and logged here, newest first. Times are Gulf Standard Time (UTC+4).</p>
   <table>
     <tr><th style="width:11mm">Rev.</th><th style="width:30mm">Date and time</th><th>Change</th><th style="width:20mm">Sections</th><th style="width:15mm">Commit</th></tr>
+    <tr><td>1.58</td><td>24 Nov 2026, 10:57</td><td><b>PDS from the office server</b>, by request ("deploy the system in server ... with ngrok https link"): <code>main</code> pushed to a second remote, <code>Provident-AI-ops/Design-Studio</code>, after a secret scan of every commit; the repository with <code>.env</code> copied to the office server and served at <code>design-studio.ngrok-free.dev</code> (<code>tools/office-server/</code>: a static server on loopback that refuses hidden paths, <code>api/</code> and <code>tools/</code>; ngrok with Google sign-in for providentestate.com accounts; started at boot). The Engine map gains the office server and its check (<code>office</code>). Studio sign-in there needs the address in the OAuth client's JavaScript origins.</td><td>03, 13, 15, 17</td><td>—</td></tr>
     <tr><td>1.56</td><td>23 Nov 2026, 17:57</td><td><b>Performance marketing's view, simplified</b>, by request from annotated screenshots: the CAS Ad sets list shows each audience's language and Static/Animated only; an All | Static | Animated filter under All audiences; the MVP video as the list's last group on performance marketing's link, its player with Download both (one zip), and the MVP video (both sizes) inside Download package; the Tracker's ad set page for performance marketing and the content team shows the designs as previews with name, EN/AR and Static/Animated.</td><td>09, 17</td><td>667e705</td></tr>
     <tr><td>1.55</td><td>23 Nov 2026, 13:03</td><td><b>First names on every hand-off</b>, by request ("just mention their first names, the same site wide"): "Arabic with Fatemaelzahraa", "Translation check · with …", "For …", "Waiting for …" on the Tracker, the CAS Ad set tab, the performance marketing and content team views, OPS posts and the home's hub rows; the Activity log keeps full names. <b>Previews version 3</b>: checking the live site found Palm Central by Nakheel's Design 3 English preview black, saved without its frame at 12:41 (before the fix) and marked 2, so nothing redrew it; previews marked 2 are now redrawn once more. An audit of every animated preview found two black (Palm Central Design 3 ENG, DAMAC Hills Lilac Broad ENG), both written at 12:41 by the old 10-second frame grab; their clips decode in 2–4 s. A design with Video chosen but no clip on Drive (Palm Central Design 2 ENG) would have stopped getting previews under the never-without-video rule: with no frame, a design is now drawn on its photo when it has one, and left alone only when it has none.</td><td>09, 17</td><td>60b000d</td></tr>
     <tr><td>1.54</td><td>23 Nov 2026, 12:54</td><td><b>Animated previews stop going black; the Ad sets list says what each audience is</b>, by request. A preview drawn while the clip's frame could not be had (still downloading, slow to decode) was the words on black, saved over the good one by the designer's CAS tab and painted at once by the Tracker's redraw; such a preview is now never drawn, and the frame is decoded once per clip. The hidden studio no longer leaves its workspace id in the tab. In CAS's Ad sets window (performance marketing and content team views), each audience in the list carries <b>EN</b> or <b>AR</b> (the "· Arabic" leaves its name) and <b>Static</b> or <b>Animated</b> (with a play icon); All audiences counts the animated ones.</td><td>05, 09, 17</td><td><code>b56b747</code></td></tr>

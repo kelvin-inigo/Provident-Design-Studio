@@ -303,6 +303,8 @@
     if (k === 'anthropic' || k === 'roam') return L[k] || { s: 'wait', t: E.at ? 'Not reported' : 'Checking…' };
     if (k === 'hubkeys') { var ks = L.keys || {}; return L.keys ? (ks.HUB_PUSH_KEY ? { s: 'ok', t: 'Push key set' } : { s: 'off', t: 'HUB_PUSH_KEY not set' }) : { s: 'wait', t: 'Checking…' }; }
     if (k === 'grok') { var m = E.health.mcp; return m ? (m.s === 'ok' ? { s: 'ok', t: 'remote.py is running here' } : { s: 'off', t: 'Runs from the office Mac' }) : { s: 'off', t: 'Runs from the office Mac' }; }
+    // PDS served from the office server through ngrok (tools/office-server): its Google gate stops a cross-origin check, so it is known only from inside
+    if (k === 'office') return /^design-studio\.ngrok-free\.dev$/.test(location.hostname) ? { s: 'ok', t: 'You are on it' } : { s: 'off', t: 'Runs on the office server; open its address to check' };
     if (['rembg', 'ps', 'casv', 'mcp', 'genfill'].indexOf(k) >= 0 && !E.health[k]) return { s: 'off', t: 'Not checked: press Check this Mac' };
     return E.health[k] || { s: 'wait', t: 'Checking…' };
   }

@@ -4,7 +4,7 @@
   {
    "id": "mac",
    "name": "This Mac and the office",
-   "about": "Helpers on a designer’s Mac, and the office Mac’s tunnels"
+   "about": "Helpers on a designer’s Mac, and the office machines’ tunnels"
   },
   {
    "id": "web",
@@ -71,6 +71,13 @@
    "name": "Grok bot",
    "about": "xAI, through the tunnel to remote.py",
    "check": "grok"
+  },
+  {
+   "id": "office",
+   "lane": "mac",
+   "name": "PDS on the office server",
+   "about": "design-studio.ngrok-free.dev · Google sign-in at ngrok · tools/office-server",
+   "check": "office"
   },
   {
    "id": "home",
@@ -356,6 +363,12 @@
    "to": "higgsfield",
    "check": "genfill",
    "carries": "Nano Banana 2.1: frame and mask up, filled frame back (Higgsfield's CLI)"
+  },
+  {
+   "from": "office",
+   "to": "share",
+   "check": "server",
+   "carries": "Studios opened there use the site's store and sign-in"
   }
  ]
 }

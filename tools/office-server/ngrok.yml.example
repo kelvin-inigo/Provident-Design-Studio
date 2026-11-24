@@ -1,0 +1,23 @@
+version: "3"
+agent:
+  authtoken: <NGROK_AUTHTOKEN from .env>
+  web_addr: 127.0.0.1:4042
+endpoints:
+  - name: design-studio
+    url: https://design-studio.ngrok-free.dev
+    upstream:
+      url: 127.0.0.1:8800
+    traffic_policy:
+      on_http_request:
+        # Google sign-in at the door; only Provident Estate accounts get through (same gate as the Content Hub).
+        - actions:
+            - type: oauth
+              config:
+                provider: google
+        - expressions:
+            - "!actions.ngrok.oauth.identity.email.endsWith('@providentestate.com')"
+          actions:
+            - type: custom-response
+              config:
+                status_code: 403
+                content: "Only Provident Estate Google accounts (@providentestate.com) can open the Design Studio."
