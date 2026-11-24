@@ -218,7 +218,7 @@
       const vals = d.map(e => e[1]).sort((p1, p2) => p1 - p2), med = vals[vals.length >> 1] || 0, thr = Math.max(40, med * 5), cuts = [];
       d.forEach(e => { if (e[1] < thr) return; const last = cuts[cuts.length - 1]; if (last && e[0] - last.t < .5) { if (e[1] > last.v) { last.t = e[0]; last.v = e[1]; } } else cuts.push({ t: e[0], v: e[1] }); });
       rec.cutsV = 2; rec.cuts = cuts.map(k => Math.round(k.t * 100) / 100).filter(t => t > .2 && t < (rec.dur || 1e9) - .2);
-      DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster, cuts: rec.cuts, cutsV: 2 });
+      DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster, peaks: rec.peaks, cuts: rec.cuts, cutsV: 2 });
       renderTimeline();
     } catch (e) {} finally { rec._cutting = false; }
   }
@@ -313,7 +313,7 @@
     return { all, bars: all.filter((t, k) => k % 4 === bo), bpm: Math.round(60 * fr / bp) };
   }
   async function findBeats(rec) {
-    if (!rec || rec.kind !== 'audio' || rec.beats || rec._beating || exporting) return;
+    if (!rec || (rec.kind !== 'audio' && !rec.peaks) || rec.beats || rec._beating || exporting) return;
     rec._beating = true;
     try {
       const AC = window.AudioContext || window.webkitAudioContext, c = new AC();
@@ -454,6 +454,31 @@
     const a = { id: uid(), mid, at, dur, in: 0, vol: track === 'music' ? .8 : 1, fi: 0, fo: track === 'music' ? 1 : 0, track };
     P.audio.push(a); sel = { kind: 'audio', id: a.id };
     if (!quiet) renderAll();
+  }
+  // Detach audio: the clip's own sound becomes a piece on the Music track (the same file, no copy),
+  // lined up under the clip and at its speed, and the clip is muted. The loudness read doubles
+  // as the test that the file has any sound at all.
+  async function detachAudio(c) {
+    const m = c && media[c.mid]; if (!m || m.kind !== 'video' || m._det) return;
+    if (!m.peaks) {
+      m._det = true; toast('Reading the sound…');
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext, x = new AC();
+        const buf = await x.decodeAudioData(await m.blob.arrayBuffer()); x.close();
+        const d = buf.getChannelData(0), n = Math.max(1, Math.ceil(buf.duration * 40)), step = Math.floor(d.length / n) || 1, pk = [];
+        for (let i = 0; i < n; i++) { let q = 0; for (let j = i * step, e = Math.min(d.length, j + step); j < e; j += 8) { const v = Math.abs(d[j]); if (v > q) q = v; } pk.push(Math.round(q * 100) / 100); }
+        m.peaks = pk; DB.put({ id: m.id, kind: m.kind, name: m.name, blob: m.blob, dur: m.dur, w: m.w, h: m.h, poster: m.poster, peaks: pk, cuts: m.cuts, cutsV: m.cutsV });
+      } catch (e) {} finally { m._det = false; }
+    }
+    const i = P.clips.indexOf(c);
+    if (i < 0) return;
+    if (!m.peaks || !m.peaks.some(v => v > .01)) { toast('This clip has no sound to detach.'); return; }
+    mark();
+    const a = { id: uid(), mid: c.mid, at: clipStarts()[i], dur: clipLen(c), in: c.in, vol: c.mute ? 1 : c.vol, fi: 0, fo: 0, track: 'music' };
+    if (c.rate && c.rate !== 1) a.rate = c.rate;
+    c.mute = true; P.audio.push(a); sel = { kind: 'audio', id: a.id };
+    save(); renderAll(); toast('Sound moved to the Music track. The clip itself is now muted.');
+    return a;
   }
   function addText(preset) {
     mark();
@@ -1928,7 +1953,8 @@
       const m = media[it.mid] || {}, vid = m.kind === 'video';
       h = cap(vid ? 'Video clip' : 'Photo clip', esc(m.name));
       if (vid) h += '<div class="vs-sec">' + row('Length', '<s>' + fmt(clipLen(it)) + ' of ' + fmt(m.dur) + '</s>') +
-        row('Sound', seg('mute', [[false, 'On'], [true, 'Muted']], 's')) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) + '</div>' + sec('Speed', '', speedSec(it, clipLen(it), VRATE));
+        row('Sound', seg('mute', [[false, 'On'], [true, 'Muted']], 's')) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) +
+        '<div class="vs-acts"><button class="p-ghost p-sm" id="detachBtn" title="Put this clip\'s sound on the Music track as its own piece, and mute the clip">Detach audio</button></div></div>' + sec('Speed', '', speedSec(it, clipLen(it), VRATE));
       else h += '<div class="vs-sec">' + row('Lasts', '<span class="vs-numw"><input class="p-in vs-num" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '" aria-label="Lasts, seconds"><i>s</i></span>') + '</div>';
       if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', row('Style', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>') + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
       h += sec('Framing', '', seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
@@ -2104,6 +2130,7 @@
     if (b.id === 'descBtn') return descSend(it);
     if (b.id === 'descCancel') { const id = it.descJob; mark(); delete it.descJob; JOBS = JOBS.filter(j => j.id !== id); api('/api/animate/cancel', { id }).catch(() => {}); renderAll(); return; }
     if (b.id === 'promptReset') { mark(); delete it.genPrompt; delete it.genPromptBy; delete it.genPromptFor; delete it.descErr; renderAll(); return; }
+    if (b.id === 'detachBtn') return detachAudio(it);
     if (b.id === 'rateReset') { mark(); setRate(it, sel.kind, 1); save(); renderAll(); return; }
     if (b.id === 'animBtn') return animSend(it);
     if (b.id === 'animNow') return animSend(it, true);

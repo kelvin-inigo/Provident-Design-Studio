@@ -930,3 +930,21 @@ A landscape photo came out cropped: `frameFor` drew the clip's own framing (Fill
   ("…with more sky above and more pool below"), the confirm at 37 credits, then the server's
   `ext_run` alone in 30 s (2 credits): more sky and pool, no visible seams. The video itself was
   not generated (Cancel). Not handled: photos taller than the video (would need left/right).
+
+## Detach audio (2026-11-24)
+
+- **Where:** a video clip's inspector, under Sound: **Detach audio** (`#detachBtn` → `detachAudio(c)`).
+- **What it does:** adds a piece on the Music track that points at the SAME media record (no second
+  copy of the file), at the clip's start, with the clip's `in`, length and `rate`, then mutes the clip.
+  The piece is an ordinary audio item afterwards (volume, fades, speed, trim, split, captions).
+- **No sound:** the loudness read (`decodeAudioData` → `media.peaks`, 40 a second, also the waveform)
+  doubles as the test; a file with no audio track, or only silence, toasts "This clip has no sound to
+  detach." and nothing changes. Peaks are stored on the video's record (the scene-cut `DB.put` now
+  keeps them too).
+- `findBeats` accepts a video record that has peaks, so a detached piece gets bar markers.
+- It does not follow the clip: moving or reordering clips later leaves the piece where it is.
+- Not on the bot's `edit` (that function is synchronous; the read is not).
+- Verified on :8797 with two clips recorded in the page (tone / no audio track): piece at 0 s for
+  3.99 s, clip muted, waveform drawn and still drawn after a reload, silent clip refused. Not checked:
+  hearing it (the pane has no sound), export.
+
