@@ -20,6 +20,15 @@
         ],
         "createdAt": "2026-11-19T07:20:04.786Z",
         "reason": "Claude triage: the looping motion is the indeterminate 'Generating' bar (Higgsfield reports no percentage) and the camera-move previews the user asked for on 2026-11-18 ('so i know what i will generate', docs/notes/video-studio.md); both are domain motion, off under reduced motion"
+      },
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "engine.js"
+        ],
+        "createdAt": "2026-11-24T06:59:50.868Z",
+        "reason": "Claude triage: engine.js .eg-wire transitions stroke-width on SVG <path> wires (Engine map), which does not trigger layout; pre-existing since 690ba9f"
       }
     ]
   }
