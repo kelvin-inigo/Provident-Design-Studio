@@ -110,6 +110,16 @@
     if (/\.vercel\.app$/.test(location.hostname)) return location.origin;
     return PUBLIC;
   };
+  // WHERE A LINK OPENS (2026-11-24, by request): the site the studio is running on, so a link made
+  // on the office server (design-studio.ngrok-free.dev) opens there and not on the Vercel site. The
+  // share STORE still answers at shareBase(): the office server serves files only, it has no /api.
+  // Anywhere else (a local file, localhost) a link still opens on the public site.
+  const SITES = /(^|\.)vercel\.app$|^design-studio\.ngrok-free\.dev$/;
+  StudioBase.linkBase = function () {
+    const o = lsGet('provident-share-base');
+    if (/^https?:\/\/[^/]+$/.test(o)) return o;
+    return SITES.test(location.hostname) ? location.origin : PUBLIC;
+  };
   // a name typed once wins; otherwise the Google account this computer signed in with
   // WHO IS EDITING: the Google account signed in on this computer when there is one (every
   // review link stored on Drive needs that sign-in anyway), so nobody is asked their name; a
@@ -127,7 +137,7 @@
   SP.shSpec = function () { return StudioBase.SESSIONS[this.shApp()]; };
   SP.shLink = function (id) {
     const sp = this.shSpec();
-    return StudioBase.shareBase() + '/' + encodeURIComponent(sp ? sp.file : '') + '#share=' + id;
+    return StudioBase.linkBase() + '/' + encodeURIComponent(sp ? sp.file : '') + '#share=' + id;
   };
   async function api(op, q, body, raw) {
     if (q && isDs(q.id)) return dsApi(op, q, body);
@@ -3338,7 +3348,7 @@
   const dayS = ms => ms ? new Date(ms).toLocaleDateString([], { day: 'numeric', month: 'short' }) : '';
   const itemLabel = (it, rs) => (rs ? phPre(rs, it) : '') + ([it.market, it.aud, it.lang].filter(Boolean).join(' · ') || 'Project');
   const casFile = () => encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file);
-  const rsLink = id => StudioBase.shareBase() + '/' + casFile() + '#share=' + id;
+  const rsLink = id => StudioBase.linkBase() + '/' + casFile() + '#share=' + id;
 
   // Each audience, its ENG and ARB projects and its four steps — the one derivation every
   // surface reads, so the panel, the header and the archive cannot disagree.
@@ -6815,7 +6825,7 @@
           k++; say();
         });
         await api('save', { id: r.id }, { base: r.rev, state: pub, by: name, imgs: map });
-        const link = StudioBase.shareBase() + '/' + encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '#share=' + r.id;
+        const link = StudioBase.linkBase() + '/' + encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '#share=' + r.id;
         const copied = await copyText(link);
         dlg.done(link, copied);
         const d = await api('get', { id: r.id });
@@ -6869,7 +6879,7 @@
     this.shRender();
   }
   const AP = AsShare.prototype;
-  AP.link = function () { return StudioBase.shareBase() + '/' + encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '#share=' + this.id; };
+  AP.link = function () { return StudioBase.linkBase() + '/' + encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + '#share=' + this.id; };
   AP.view = function () { this.shell.asView({ kind: 'share', handle: this.dir, name: this.data.root, share: this }); };
   AP.here = function () { const sh = this.shell; return !!(sh.state.adSetsOpen && sh._asSrc && sh._asSrc.share === this); };
   AP.onTick = function () {

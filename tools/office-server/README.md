@@ -32,5 +32,10 @@ scp .env <user>@<office server>:Provident-Design-Studio/.env
 and `Provident-AI-ops/Design-Studio`), and `tools/git-hooks/post-commit`, installed in `.git/hooks/`,
 pushes `main` to both after each commit on it (log `.git/autopush.log`; `GIT_AUTOPUSH=0` skips).
 
+**Links made here open here.** `StudioBase.linkBase()` (share-link.js) builds edit, ad set, review
+and post links from this address; the share store still answers on Vercel (`shareBase()`). Only
+Provident Google accounts pass the door, so a review link for someone outside is made on the Vercel
+site.
+
 **Google sign-in inside the studios** needs `https://design-studio.ngrok-free.dev` in the OAuth
 client's Authorised JavaScript origins (`docs/google-drive-setup.md`, step 4).

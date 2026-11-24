@@ -1472,3 +1472,24 @@ Four tools join the eight: `video_new`, `video_add_media`, `video_edit`, `video_
   `_inbox/` (removed after). Not run: a video or sound file, an https url, the remote wrapper's
   link, the prompt in a real CASV, a real Grok call. **Re-run `install-remote.sh` on the office
   Mac** for the bot to get the tools.
+
+## A link opens on the site it was made on: `StudioBase.linkBase()` (2026-11-24, by request)
+
+PDS is served at two addresses, the Vercel site and the office server
+(`design-studio.ngrok-free.dev`, `tools/office-server/`). Every link the studios build used
+`shareBase()`, which is the share STORE's address, so a link made on the office server opened CAS
+or OPS on the Vercel site, where that person's saved projects are not.
+
+- `shareBase()` is now only where `/api/share` answers (unchanged: the office server has no `/api`).
+- `linkBase()` (share-link.js, beside it) is where a link opens: the page's own origin on
+  `*.vercel.app` and on `design-studio.ngrok-free.dev`, the public Vercel site anywhere else (a
+  local file, localhost), and `localStorage['provident-share-base']` when set (the test server
+  serves both).
+- Uses: `shLink` (edit links), `rsLink` (ad set page and review links, and the links in Roam
+  notes), the Arabic panel's link (`AP.link`), `projLink` in `post-flow.js` (a post's Copy link and
+  the copy-check frame), `engLink()` in `engine.js`.
+- Links are built from ids at render, never stored, so an ad set made on one site shows the other
+  site's address when opened there. Only a Roam note carries a fixed address: the sender's.
+- THE TRAP: the office server's door is ngrok's Google sign-in, Provident accounts only. A review
+  link made there does not open for anyone outside the company. Make those on the Vercel site.
+- A new served address is added to `SITES` in `share-link.js`.

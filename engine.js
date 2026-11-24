@@ -427,14 +427,16 @@
   // the admin: let an engineer in as AI Engineers by email (op accset, the same as Access) and open
   // an email to them with the link. Nothing is sent from here: the mail opens in the admin's own
   // mail app.
-  var LINK = 'https://provident-design-studio.vercel.app/#/engine';
+  // the link opens on the site this page is running on (StudioBase.linkBase, share-link.js): the office
+  // server's Engine shares the office server's address, not the Vercel site's (2026-11-24)
+  function engLink() { return (typeof StudioBase !== 'undefined' && StudioBase.linkBase ? StudioBase.linkBase() : 'https://provident-design-studio.vercel.app') + '/#/engine'; }
   function paintShare() {
     var P = document.getElementById('eg-share'); if (!P) return;
     var A = window.providentAccess, adm = !!(A && A.now && A.now().admin), sh = E.share || {};
     var ai = (sh.team || []).filter(function (p) { return p.role === 'ai'; });
     P.innerHTML = '<b class="eg-sh-h">Share the Engine</b>' +
       '<p>It opens for the admin and AI Engineers only, after they sign in with their Provident Google account.</p>' +
-      '<div class="eg-sh-l"><input readonly value="' + esc(LINK) + '" aria-label="Link to the Engine" id="eg-sh-in"><button class="b b-g" type="button" data-eg="copy">' + ico(sh.copied ? 'check' : 'copy') + (sh.copied ? 'Copied' : 'Copy link') + '</button></div>' +
+      '<div class="eg-sh-l"><input readonly value="' + esc(engLink()) + '" aria-label="Link to the Engine" id="eg-sh-in"><button class="b b-g" type="button" data-eg="copy">' + ico(sh.copied ? 'check' : 'copy') + (sh.copied ? 'Copied' : 'Copy link') + '</button></div>' +
       (ai.length ? '<div class="eg-sh-w"><small>AI Engineers</small>' + ai.map(function (p) { return '<span>' + esc(p.name || p.email) + '</span>'; }).join('') + '</div>' : '') +
       (adm ? '<form class="eg-sh-f" data-eg="invite"><label for="eg-sh-em">Let an engineer in</label><div><input id="eg-sh-em" type="email" required placeholder="name@providentestate.com" autocomplete="off"' + (sh.em ? ' value="' + esc(sh.em) + '"' : '') + '>' +
         '<button class="b b-p" type="submit"' + (sh.busy ? ' disabled' : '') + '>' + (sh.busy ? 'Letting in…' : 'Let in as AI Engineer') + '</button></div>' +
@@ -445,7 +447,7 @@
   function mailto(to) {
     return 'mailto:' + encodeURIComponent(to) + '?subject=' + encodeURIComponent('PDS Engine: the architecture and every change, live') +
       '&body=' + encodeURIComponent('Hi,\n\nYou can now open the PDS Engine page: how Provident Design Studio is built, every commit and deployment, and a live map of its connections.\n\n' +
-        LINK + '\n\nSign in with your Provident Google account. It opens for the admin and AI Engineers only.\n\nThe architecture reference (PDF) is linked from the page.');
+        engLink() + '\n\nSign in with your Provident Google account. It opens for the admin and AI Engineers only.\n\nThe architecture reference (PDF) is linked from the page.');
   }
   function shareOpen(open) {
     var P = document.getElementById('eg-share'), B = document.querySelector('[data-eg="share"]'); if (!P || !B) return;
@@ -582,7 +584,7 @@
     var a = t.dataset.eg;
     if (a === 'refresh') poll(true);
     else if (a === 'share') shareOpen(document.getElementById('eg-share').hidden);
-    else if (a === 'copy') { var inp = document.getElementById('eg-sh-in'); (navigator.clipboard ? navigator.clipboard.writeText(LINK) : Promise.reject()).catch(function () { if (inp) { inp.select(); document.execCommand('copy'); } })
+    else if (a === 'copy') { var inp = document.getElementById('eg-sh-in'); (navigator.clipboard ? navigator.clipboard.writeText(engLink()) : Promise.reject()).catch(function () { if (inp) { inp.select(); document.execCommand('copy'); } })
       .then(function () { E.share.copied = true; paintShare(); setTimeout(function () { if (E.share) { E.share.copied = false; paintShare(); } }, 2000); }); }
     else if (a === 'alerts') {
       var on = false; try { on = localStorage.getItem(NOTE_LS) === '1'; } catch (x) {}

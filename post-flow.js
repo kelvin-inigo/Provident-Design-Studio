@@ -122,7 +122,7 @@
   const role = () => { try { const n = window.providentAccess && window.providentAccess.now(); return n && n.role; } catch (e) { return null; } };
   const may = k => { const r = role(); return !r || r === 'admin' || STEPS[k].roles.indexOf(r) >= 0; };
   const fidOf = tok => { tok = String(tok || ''); return tok[0] === 'R' ? tok.slice(tok.indexOf('.') + 1) : ''; };
-  const projLink = sid => StudioBase.shareBase() + '/' + encodeURIComponent(StudioBase.SESSIONS['provident-smp-studio'] ? StudioBase.SESSIONS['provident-smp-studio'].file : 'Provident Organic Studio.dc.html') + '#share=' + sid;
+  const projLink = sid => StudioBase.linkBase() + '/' + encodeURIComponent(StudioBase.SESSIONS['provident-smp-studio'] ? StudioBase.SESSIONS['provident-smp-studio'].file : 'Provident Organic Studio.dc.html') + '#share=' + sid;
   const day = t => t ? new Date(t).toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '';
   const dueDay = d => d ? new Date(d + 'T00:00').toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) : '';
   const overdue = d => d && new Date(d + 'T23:59') < new Date();

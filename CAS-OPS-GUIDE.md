@@ -392,6 +392,12 @@ nothing in it goes there.
 **Share › Share an edit link** makes a link to the open project that other people can open, look
 at and change. It works the same in CAS and OPS.
 
+A link opens on the site it was made on: one made on the office server's address
+(`design-studio.ngrok-free.dev`) opens there, one made on the Vercel site opens on Vercel. This
+goes for edit links, ad set and review links, and a post's **Copy link**. The office server only
+lets Provident Google accounts in, so make a review link for someone outside the company on the
+Vercel site.
+
 1. Press **Share an edit link** and **Make the link** (type your name if you're not signed in with Google). The project and its
    photos are uploaded, and the link is copied.
 2. Send the link to the people who should edit. Anyone signed in with their Google account on
