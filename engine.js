@@ -137,7 +137,7 @@
     timed('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=home')
       .then(function (x) { E.health.translate = x.r.ok ? { s: 'ok', t: 'Answering · ' + x.ms + ' ms' } : { s: 'warn', t: 'HTTP ' + x.r.status }; })
       .catch(function () { E.health.translate = { s: 'bad', t: 'Not reachable' }; }).then(done);
-    var hub = hubOrigin(), hh = window.StudioBase && StudioBase.hubTunnel ? StudioBase.hubTunnel(hub, {}) : { 'ngrok-skip-browser-warning': '1' };
+    var hub = hubOrigin(), hh = typeof StudioBase !== 'undefined' && StudioBase.hubTunnel ? StudioBase.hubTunnel(hub, {}) : { 'ngrok-skip-browser-warning': '1' };
     // the hub's own list (the route OPS's From the hub reads; it answers CORS): 200, or 401 without
     // a key, both mean the hub is up behind its tunnel
     var hn = hub.replace(/^https?:\/\//, '');
@@ -158,7 +158,7 @@
     });
   }
   function health() {
-    var base = (window.StudioBase && StudioBase.shareBase ? StudioBase.shareBase() : '');
+    var base = (typeof StudioBase !== 'undefined' && StudioBase.shareBase ? StudioBase.shareBase() : '');
     var mac = false; try { mac = localStorage.getItem(MAC_LS) === '1'; } catch (x) {}
     linkProbes(mac);
     function probe(k, url, read) {
@@ -253,7 +253,7 @@
   ];
   function paintEndpoints() {
     var U = document.getElementById('eg-ep'); if (!U) return;
-    var base = (window.StudioBase && StudioBase.shareBase ? StudioBase.shareBase() : '') || location.origin;
+    var base = (typeof StudioBase !== 'undefined' && StudioBase.shareBase ? StudioBase.shareBase() : '') || location.origin;
     var gh = E.err ? { s: E.commits.length ? 'warn' : 'bad' } : E.at ? { s: 'ok' } : null;
     U.innerHTML = EPS.map(function (x) {
       var v = x[4] === 'gh' ? gh : x[4] ? E.health[x[4]] : null, sv = v ? v.s : 'old';

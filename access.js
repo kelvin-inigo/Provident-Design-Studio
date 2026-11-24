@@ -91,7 +91,8 @@
                set: (k, v) => { try { v == null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} } };
   const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const D = () => window.providentDrive;
-  const base = () => (window.StudioBase && StudioBase.shareBase ? StudioBase.shareBase() : '') + '/api/share?op=';
+  // StudioBase is a class, so it is never on window: asked there, every address but the Vercel site sent these calls to its own origin (the office server has no /api, 2026-11-24)
+  const base = () => (typeof StudioBase !== 'undefined' && StudioBase.shareBase ? StudioBase.shareBase() : '') + '/api/share?op=';
   const initials = (n, e) => { const w = String(n || '').trim().split(/\s+/).filter(Boolean); return ((w.length ? (w[0][0] + (w.length > 1 ? w[w.length - 1][0] : '')) : String(e || '?')[0]) || '?').toUpperCase(); };
   // GOOGLE ACCOUNT PHOTOS (2026-11-11, by request): each person's photo where their initials were.
   // The server keeps the photo Google reports at each sign-in (accme, acclist, accteam carry it);
