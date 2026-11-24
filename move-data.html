@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Move PDS data — Provident Design Studio</title>
+<link rel="stylesheet" href="ui-design-system/provident-ui.css">
+<script>try { if (localStorage.getItem('provident-theme') === 'light') document.documentElement.setAttribute('data-theme', 'light'); } catch (e) {}</script>
+<style>
+  /* Chrome only: --ps-* tokens, no artwork. */
+  body{margin:0;background:var(--ps-app);color:var(--ps-ink);font:300 15px/1.55 var(--ps-font)}
+  main{max-width:640px;margin:0 auto;padding:48px 16px 64px}
+  h1{font-weight:400;font-size:28px;line-height:1.2;margin:0 0 8px}
+  h2{font-weight:400;font-size:20px;margin:0 0 6px}
+  .eb{font-weight:500;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ps-dim);margin:0 0 12px}
+  .lede{color:var(--ps-ink-2);margin:0 0 32px}
+  .card{border:1px solid var(--ps-line);border-radius:12px;padding:20px;margin:0 0 16px}
+  .card p{color:var(--ps-ink-2);margin:0 0 16px}
+  button,.file{font:500 14px var(--ps-font);border-radius:8px;padding:10px 16px;min-height:44px;cursor:pointer;border:0;
+    background:var(--ps-primary);color:var(--ps-primary-i)}
+  button:hover{background:var(--ps-primary-h)}
+  button:disabled{opacity:.5;cursor:default}
+  input[type=file]{font:300 14px var(--ps-font);color:var(--ps-ink-2);max-width:100%}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  #log{white-space:pre-wrap;font:300 13px/1.5 var(--ps-font);color:var(--ps-ink-2);margin-top:12px;min-height:1.5em}
+  .where{font-weight:500;color:var(--ps-ink)}
+  a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+  <p class="eb">Provident Design Studio</p>
+  <h1>Move this browser’s PDS data</h1>
+  <p class="lede">Each address keeps its own saved work in the browser: projects on this computer, photos, clips, settings.
+    To carry it to another address (the Vercel site and the office server’s ngrok link), save it here as a file, then open
+    this page at the other address and load the file. You are on <span class="where" id="here"></span>.</p>
+
+  <section class="card">
+    <h2>Save this address’s data</h2>
+    <p>Writes every database and setting this browser holds for this address into one file. Nothing leaves the computer.
+      Sign-in tokens are left out; you sign in again at the other address.</p>
+    <div class="row"><button id="save">Save to a file</button></div>
+  </section>
+
+  <section class="card">
+    <h2>Load a saved file here</h2>
+    <p>Adds the file’s data to this address. An item already here with the same name is replaced; nothing else is removed.
+      Close other PDS tabs on this address first.</p>
+    <div class="row"><input type="file" id="pick" accept=".pdsdata,application/json"><button id="load" disabled>Load</button></div>
+  </section>
+
+  <div id="log" role="status" aria-live="polite"></div>
+  <p class="lede" style="margin-top:24px"><a href="./">Back to PDS</a></p>
+</main>
+<script>
+(function () {
+  'use strict';
+  var FORMAT = 'pds-browser-data', V = 1;
+  // Everything this address stores travels (the address serves only PDS; custom CAS components are
+  // 'adstudio-custom-lib'), except SKIP_LS. Known databases are for browsers without indexedDB.databases();
+  // workspaces add 'provident-design-studio~<id>'.
+  var KNOWN = ['provident-design-studio', 'provident-cas-clips', 'provident-webimg'];
+  // Per-address keys that must not travel: sign-in tokens and same-origin overrides.
+  var SKIP_LS = { 'provident-drive-tok': 1, 'provident-drive-srv': 1, 'provident-share-base': 1, 'provident-drive-base': 1 };
+  var $ = function (id) { return document.getElementById(id); };
+  var log = function (s) { $('log').textContent = s; };
+  $('here').textContent = location.host || location.href;
+
+  function req(r) { return new Promise(function (res, rej) { r.onsuccess = function () { res(r.result); }; r.onerror = function () { rej(r.error); }; }); }
+  function b64(blob) {
+    return new Promise(function (res, rej) {
+      var fr = new FileReader();
+      fr.onload = function () { var s = String(fr.result); res(s.slice(s.indexOf(',') + 1)); };
+      fr.onerror = function () { rej(fr.error); };
+      fr.readAsDataURL(blob);
+    });
+  }
+  function unb64(s, type) {
+    var bin = atob(s), u = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    return type === undefined ? u : new Blob([u], { type: type });
+  }
+
+  // Values are tagged so Blobs, binary data and dates survive JSON. A value that cannot be
+  // carried (a folder handle, say) throws SKIP and its record is left out.
+  var SKIP = {};
+  async function enc(v) {
+    if (v === null || typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return v;
+    if (v === undefined) return { $u: 1 };
+    if (v instanceof Blob) return { $b: await b64(v), t: v.type, n: v instanceof File ? v.name : undefined };
+    if (v instanceof ArrayBuffer) return { $ab: await b64(new Blob([v])) };
+    if (ArrayBuffer.isView(v)) return { $ta: v.constructor.name, d: await b64(new Blob([v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength)])) };
+    if (v instanceof Date) return { $d: v.getTime() };
+    if (Array.isArray(v)) { var a = []; for (var i = 0; i < v.length; i++) a.push(await enc(v[i])); return { $a: a }; }
+    var p = Object.getPrototypeOf(v);
+    if (p === Object.prototype || p === null) { var o = {}; for (var k in v) if (Object.prototype.hasOwnProperty.call(v, k)) o[k] = await enc(v[k]); return { $o: o }; }
+    throw SKIP;
+  }
+  function dec(v) {
+    if (v === null || typeof v !== 'object') return v;
+    if (v.$u) return undefined;
+    if ('$b' in v) { var b = unb64(v.$b, v.t || ''); return v.n ? new File([b], v.n, { type: v.t || '' }) : b; }
+    if ('$ab' in v) return unb64(v.$ab).buffer;
+    if ('$ta' in v) { var C = window[v.$ta] || Uint8Array, u = unb64(v.d); return new C(u.buffer); }
+    if ('$d' in v) return new Date(v.$d);
+    if ('$a' in v) return v.$a.map(dec);
+    if ('$o' in v) { var o = {}; for (var k in v.$o) o[k] = dec(v.$o[k]); return o; }
+    return v;
+  }
+
+  async function names() {
+    var n = [];
+    if (indexedDB.databases) { try { n = (await indexedDB.databases()).map(function (d) { return d.name; }); } catch (e) {} }
+    if (!n.length) {
+      n = KNOWN.slice();
+      try { var ws = JSON.parse(localStorage.getItem('provident-ws') || '[]'); (Array.isArray(ws) ? ws : Object.keys(ws)).forEach(function (w) { if (w && typeof w === 'string') n.push('provident-design-studio~' + w); }); } catch (e) {}
+    }
+    return n.filter(Boolean);
+  }
+  function open(name, ver, up) {
+    return new Promise(function (res, rej) {
+      var q = ver ? indexedDB.open(name, ver) : indexedDB.open(name);
+      if (up) q.onupgradeneeded = function () { up(q.result, q.transaction); };
+      q.onsuccess = function () { res(q.result); };
+      q.onerror = function () { rej(q.error); };
+      q.onblocked = function () { rej(new Error('Another PDS tab on this address has “' + name + '” open. Close it and try again.')); };
+    });
+  }
+
+  $('save').onclick = async function () {
+    var btn = this; btn.disabled = true;
+    try {
+      var out = { format: FORMAT, v: V, from: location.origin, at: new Date().toISOString(), ls: {}, dbs: [] }, rows = 0, skipped = 0;
+      for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (!SKIP_LS[k]) out.ls[k] = localStorage.getItem(k); }
+      var list = await names();
+      for (var n = 0; n < list.length; n++) {
+        log('Reading ' + list[n] + '…');
+        var d; try { d = await open(list[n]); } catch (e) { continue; }
+        var dbo = { name: d.name, version: d.version, stores: [] };
+        for (var s = 0; s < d.objectStoreNames.length; s++) {
+          // the store's layout and both reads in one transaction, before any await lets it close
+          var sn = d.objectStoreNames[s], st = d.transaction(sn, 'readonly').objectStore(sn);
+          var so = { name: sn, keyPath: st.keyPath, autoIncrement: st.autoIncrement, indexes: [], rows: [] };
+          for (var x = 0; x < st.indexNames.length; x++) { var ix = st.index(st.indexNames[x]); so.indexes.push({ name: ix.name, keyPath: ix.keyPath, unique: ix.unique, multiEntry: ix.multiEntry }); }
+          var kq = st.getAllKeys(), vq = st.getAll(), keys = await req(kq), vals = await req(vq);
+          for (var r = 0; r < keys.length; r++) {
+            try { so.rows.push([await enc(keys[r]), await enc(vals[r])]); rows++; } catch (e) { if (e === SKIP) skipped++; else throw e; }
+          }
+          dbo.stores.push(so);
+        }
+        d.close(); out.dbs.push(dbo);
+      }
+      var blob = new Blob([JSON.stringify(out)], { type: 'application/json' });
+      var a = document.createElement('a'), host = location.hostname.split('.')[0];
+      a.href = URL.createObjectURL(blob); a.download = 'PDS data from ' + host + ' ' + out.at.slice(0, 10) + '.pdsdata';
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 60000);
+      log('Saved: ' + out.dbs.length + ' databases, ' + rows + ' items, ' + Object.keys(out.ls).length + ' settings (' + (blob.size / 1048576).toFixed(1) + ' MB).' +
+        (skipped ? '\n' + skipped + ' item(s) could not be carried, such as a linked Source folder; pick it again at the other address.' : '') +
+        '\nNow open this page at the other address and load the file.');
+    } catch (e) { log('Could not save: ' + (e && e.message || e)); }
+    btn.disabled = false;
+  };
+
+  $('pick').onchange = function () { $('load').disabled = !this.files.length; };
+  $('load').onclick = async function () {
+    var btn = this, f = $('pick').files[0]; if (!f) return; btn.disabled = true;
+    try {
+      log('Reading the file…');
+      var data = JSON.parse(await f.text());
+      if (!data || data.format !== FORMAT) throw new Error('This is not a PDS data file.');
+      if (data.from === location.origin && !confirm('This file was saved from this same address. Load it anyway?')) { btn.disabled = false; return log(''); }
+      var rows = 0, sets = 0;
+      for (var n = 0; n < data.dbs.length; n++) {
+        var src = data.dbs[n]; log('Writing ' + src.name + '…');
+        var d = await open(src.name);
+        var missing = src.stores.filter(function (s) { return !d.objectStoreNames.contains(s.name); });
+        if (missing.length) {
+          var v = d.version + 1; d.close();
+          d = await open(src.name, v, function (db) {
+            missing.forEach(function (s) {
+              var o = db.createObjectStore(s.name, { keyPath: s.keyPath == null ? undefined : s.keyPath, autoIncrement: !!s.autoIncrement });
+              (s.indexes || []).forEach(function (ix) { o.createIndex(ix.name, ix.keyPath, { unique: ix.unique, multiEntry: ix.multiEntry }); });
+            });
+          });
+        }
+        for (var s = 0; s < src.stores.length; s++) {
+          var so = src.stores[s];
+          await new Promise(function (res, rej) {
+            var tx = d.transaction(so.name, 'readwrite'), st = tx.objectStore(so.name);
+            so.rows.forEach(function (r) { if (st.keyPath == null) st.put(dec(r[1]), dec(r[0])); else st.put(dec(r[1])); rows++; });
+            tx.oncomplete = res; tx.onerror = function () { rej(tx.error); }; tx.onabort = function () { rej(tx.error); };
+          });
+        }
+        d.close();
+      }
+      Object.keys(data.ls || {}).forEach(function (k) { if (!SKIP_LS[k]) { try { localStorage.setItem(k, data.ls[k]); sets++; } catch (e) {} } });
+      log('Loaded ' + rows + ' items and ' + sets + ' settings from ' + data.from.replace(/^https?:\/\//, '') + ' (saved ' + new Date(data.at).toLocaleString() + ').\nOpen PDS here and sign in with Google.');
+    } catch (e) { log('Could not load: ' + (e && e.message || e)); }
+    btn.disabled = false;
+  };
+})();
+</script>
+</body>
+</html>
