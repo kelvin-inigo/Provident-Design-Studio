@@ -16,12 +16,21 @@ The studios served from the office server (`provident-marketing`, Ubuntu) at
 
 Never run `tools/share-dev/serve.py` behind the tunnel: its stand-in sign-in makes anyone admin.
 
-**Updating.** The server holds a copy, not a checkout that pulls. From the main working copy
-(the login is `SERVER_CONNECTION` in `.env`; this Mac's SSH key is installed there):
+**Updating is automatic.** `pds-sync` (installed as `~/pds-deploy/pds-sync`, cron every minute)
+fetches `main` from the public repository, no keys, and resets the copy to it when it moved;
+`.env` and other ignored files stay. So the site follows `main` within a minute of a push, and
+only pushed, committed work is served. Its log is `~/pds-deploy/logs/sync.log`.
+
+`.env` is not in git, so a change to it is copied by hand (the login is `SERVER_CONNECTION` in
+`.env`; this Mac's SSH key is installed there):
 
 ```bash
-rsync -az --exclude '.claude/worktrees/' --exclude 'tools/rembg/.venv/' --exclude '__pycache__/' --exclude 'scratchpad/' --exclude '.DS_Store' ./ <user>@<office server>:Provident-Design-Studio/
+scp .env <user>@<office server>:Provident-Design-Studio/.env
 ```
+
+**Pushes reach both repositories.** `origin` has two push URLs (`kelvin-inigo/Provident-Design-Studio`
+and `Provident-AI-ops/Design-Studio`), and `tools/git-hooks/post-commit`, installed in `.git/hooks/`,
+pushes `main` to both after each commit on it (log `.git/autopush.log`; `GIT_AUTOPUSH=0` skips).
 
 **Google sign-in inside the studios** needs `https://design-studio.ngrok-free.dev` in the OAuth
 client's Authorised JavaScript origins (`docs/google-drive-setup.md`, step 4).

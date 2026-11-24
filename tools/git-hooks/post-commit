@@ -1,0 +1,15 @@
+#!/bin/sh
+# After each commit on main, push main to both repositories: origin has two push URLs
+# (kelvin-inigo/Provident-Design-Studio and Provident-AI-ops/Design-Studio). Runs in the
+# background so the commit returns at once; the result goes to .git/autopush.log.
+# Branches, rebases (detached HEAD) and GIT_AUTOPUSH=0 are left alone.
+# Install: cp tools/git-hooks/post-commit .git/hooks/ && chmod +x .git/hooks/post-commit
+[ "$GIT_AUTOPUSH" = 0 ] && exit 0
+[ "$(git rev-parse --abbrev-ref HEAD 2>/dev/null)" = main ] || exit 0
+LOG="$(git rev-parse --git-common-dir)/autopush.log"
+SHA=$(git rev-parse --short HEAD)
+nohup sh -c '
+  if git push -q origin main 2>>"$1"; then echo "$(date "+%F %T") pushed $2 to both" >>"$1";
+  else echo "$(date "+%F %T") push of $2 FAILED (see above); run: git push origin main" >>"$1"; fi
+' sh "$LOG" "$SHA" >/dev/null 2>&1 &
+exit 0

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Keep the office server's copy on the newest main. Cron runs it every minute.
+# Fetches the public repo (no keys), and when main moved, or a tracked file differs, resets the copy
+# to it. .env and other ignored or untracked files are left alone. Installed as ~/pds-deploy/pds-sync.
+R=$HOME/Provident-Design-Studio
+L=$HOME/pds-deploy/logs/sync.log
+mkdir -p "$(dirname "$L")"
+exec 9>"$HOME/pds-deploy/.sync.lock"; flock -n 9 || exit 0
+cd "$R" || exit 1
+if ! timeout 60 git fetch -q https://github.com/kelvin-inigo/Provident-Design-Studio.git main; then
+  echo "$(date '+%F %T') fetch failed" >>"$L"; exit 1
+fi
+new=$(git rev-parse FETCH_HEAD); cur=$(git rev-parse HEAD)
+[ "$new" = "$cur" ] && [ -z "$(git status --porcelain --untracked-files=no)" ] && exit 0
+git checkout -q -f -B main "$new" && git reset -q --hard "$new" \
+  && echo "$(date '+%F %T') ${cur:0:7} -> ${new:0:7}" >>"$L" \
+  || echo "$(date '+%F %T') update to ${new:0:7} failed" >>"$L"
