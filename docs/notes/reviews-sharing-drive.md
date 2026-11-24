@@ -2856,3 +2856,31 @@ Verified on :8791 (Damac Replica, PM link, a test video uploaded to the stand-in
 video row opened the player (reachable by `elementFromPoint`), Download both gave one 14.6 MB zip;
 Download 3 of 9's zip held both MP4s beside the images (animated recording stubbed). Tracker PM
 preview: 18 designs · 4 animated. Contrast light and dark ≥ 6.2:1.
+
+## Tracker previews draw at once (2026-11-24, by request: "make the Tracker previews load faster")
+
+An ad set's page on the home's Tracker drew from the list card (no previews) and waited for its own
+`rsinfo full=1` — every project file read again — before the gallery showed thumbnails or Animated.
+Now `dsInfo1` keeps `e.proj` (sum + thumb) on every read (the list already read each file; in
+memory only, `listKeep` still drops it), `AV.open`'s first draw uses it, and the gallery's Animated
+mark falls back to `d.anim`. A cold open (link, reload) reads `localStorage`
+`provident-tracker-previews` (`prevAll` / `prevKeep`: per ad set, newest first, capped ~1.5 MB),
+written after the list read and each full read. Measured locally with every Drive request delayed
+3 s: previews 0.1 s, full read 6.2 s.
+
+## The PM download carries everything, or names what it could not (2026-11-24, by request)
+"On PM link, the download package downloads everything in an adset, including animated and mvp
+videos." It already did (images, `anRecord` MP4s since 11-17, `rs.video` since 11-23), but
+`RV.download` had no per-file protection: a tile whose `load()` rejected, or an animated tile whose
+`t.anim()` rejected (clip gone from Drive: `dsClipGet` HTTP 404) or whose `anRecord` threw, fell to
+the outer catch, "Could not zip", nothing saved. Now each is caught alone and pushed to `missing`
+(also projects that failed to load, `proj.gone`, and video sizes with no file id); the zip saves
+what it has and `ui.flash(t, 12000)` names up to six missing files. `ui.flash` takes an optional
+duration. A per-audience Download carries `vidFor(rs, a)`: videos whose `aud` matches the
+audience by `vidRoot` (drops " · Unbranded" / " · Design n", the Status MVP-cell rule) or have no
+audience; `'*'` carries every video. Tips on the package and audience buttons name the animated MP4s
+and the MVP video. CAS's own `.as-dl` buttons stay hidden on the PM link (`html.rv-pm`), so
+`RV.download` is the only download there. Verified on :8791 (Damac Lagoons, as PM, real clicks):
+Family Download = 8 images + both `_animated.mp4` recorded + Family and All-audiences videos, not
+the Investor one; Download package = 14 images + 2 animated + 5 videos, note named the Investor
+1:1 (bad id); clip deleted from the stand-in → 17 files, note named both animated ads.

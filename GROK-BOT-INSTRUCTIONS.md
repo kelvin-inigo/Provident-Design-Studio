@@ -208,7 +208,7 @@ exports download as a zip. The studios fit tablets and phones.
 - The Ad sets list shows each audience's language (**EN**/**AR**) and **Static** or **Animated**
   only; **All | Static | Animated** under All audiences narrows it to one kind. Performance
   marketing's list ends on **MVP video**: a row opens the player with **Download Reel 9:16**,
-  **Download Square 1:1** and **Download both**; **Download package** includes the MVP video. On
+  **Download Square 1:1** and **Download both**; **Download package** includes every animated ad and every MVP video, and an audience's **Download** its animated ads and the MVP video made for it (or for All audiences); a file that cannot be read is left out and named in a note after the download. On
   the home's Tracker their ad set page shows the designs as previews (name, EN/AR, Static/Animated).
 - **Already approved** skips the content team for an ad signed off before it came in. On Status it
   is in the project's **⋯** menu, with **Change audience** and **Remove**.

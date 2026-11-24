@@ -711,9 +711,11 @@ steps: **Design › ENG copy check › Translation › Done**.
 7. **Performance marketing** opens their link. A bar at the top shows the ad set's progress and
    one row per audience. Each audience the designer has sent for review has **Download**, which
    zips its designed images (English and Arabic once both are), named the way an export names
-   them, approved or not. **Download package** (or **Download 1 of 2** before then) takes every
-   audience that has been sent for review, plus the MVP video (both sizes) when the ad set has
-   one. Images are rendered from the projects as
+   them, approved or not, with its animated ads as MP4 and the MVP video made for it (or for
+   All audiences). **Download package** (or **Download 1 of 2** before then) takes every
+   audience that has been sent for review, every animated ad, and every MVP video (both sizes).
+   If a file cannot be read (a clip gone from Drive, a video not fully uploaded), the zip still
+   comes and a note names what is missing: try again, then tell the designer. Images are rendered from the projects as
    they are now. **Images | Edit text** at the top switches to the words: change them as the
    content team does, the images update as you type, and your name goes beside the change. Words
    are all it can change. There is no side panel on this link: the bar's **See details**

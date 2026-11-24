@@ -1053,7 +1053,11 @@
             if (full) (rv.log || []).slice(-100).forEach(x => plog.push(Object.assign({}, x, { page: dsItemLabel(it, R.rs) })));
           } catch (er) { if (er.gdAuth) throw er; e.live[it.sid] = false; }
         }));
-        if (full) { e.log = (R.rs.log || []).slice(-300); e.rs.hist = R.rs.hist || []; e.plog = plog; e.proj = proj; }
+        if (full) { e.log = (R.rs.log || []).slice(-300); e.rs.hist = R.rs.hist || []; e.plog = plog; }
+        // every read keeps the designs' previews (2026-11-24, "make the Tracker previews load faster"):
+        // the list has already read each project file, so an ad set's page draws its previews from
+        // the list's copy at once instead of waiting for its own full read. In memory only (listKeep drops it).
+        e.proj = proj;
         // the card shows the project changed last, so its preview is the one that must be current
         if (e.lead && proj[e.lead] && proj[e.lead].thumb) e.thumb = proj[e.lead].thumb;
         return e;
@@ -4936,9 +4940,10 @@
   // only its English is designed while it has (or wants) an Arabic: the button says so
   const dlEn = a => !a.done && !a.engOnly && dlIts(a).every(it => it.lang !== 'ARB');
   const dlWord = a => dlEn(a) ? 'Download English' : 'Download';
-  const dlTip = a => a.done ? 'Every image of ' + a.label + ', English and Arabic, in one zip'
+  // what the zip holds beyond the images: animated ads as MP4, the audience's MVP video
+  const dlTip = (a, rs) => (a.done ? 'Every image of ' + a.label + ', English and Arabic, in one zip'
     : canDl(a) ? 'The images of ' + a.label + ' the designer has sent for review, as they are now, in one zip — not approved yet, so the copy may still change'
-    : 'It can be downloaded once the designer sends it for review';
+    : 'It can be downloaded once the designer sends it for review') + (canDl(a) ? ' — with any animated ad as MP4' + (vidFor(rs, a).length ? ' and the MVP video (Reel 9:16 and Square 1:1)' : '') : '');
   RV.barRender = function () {
     const el = this.bar; if (!el) return;
     // a step moved: the studio redraws the window's title line and the nav's dots and words
@@ -4950,7 +4955,7 @@
     const DL = 'M480-337q-8 0-15-2.5t-13-8.5L308-492q-12-12-11.5-28t11.5-28q12-12 28.5-12.5T365-549l75 75v-286q0-17 11.5-28.5T480-800q17 0 28.5 11.5T520-760v286l75-75q12-12 28.5-11.5T652-548q11 12 11.5 28T652-492L508-348q-6 6-13 8.5t-15 2.5ZM240-160q-33 0-56.5-23.5T160-240v-80q0-17 11.5-28.5T200-360q17 0 28.5 11.5T240-320v80h480v-80q0-17 11.5-28.5T760-360q17 0 28.5 11.5T800-320v80q0 33-23.5 56.5T720-160H240Z';
     const TICK = 'M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z';
     const nDl = auds.filter(canDl).length;
-    const dlBtn = '<button type="button" class="' + (nDl ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (nDl && !busy ? '' : ' disabled') + ' title="' + (all.ready ? 'Every audience, both languages, in one zip' : nDl ? 'Every audience the designer has sent for review, in one zip — the ones not yet approved as they are now' : 'Nothing has been sent for review yet') + (nDl && vidList(rs).length ? ', with the MVP video (Reel 9:16 and Square 1:1)' : '') + '">' + ico(DL) +
+    const dlBtn = '<button type="button" class="' + (nDl ? 'p-btn' : 'p-ghost') + ' rvh-dl" data-dl="*"' + (nDl && !busy ? '' : ' disabled') + ' title="' + (all.ready ? 'Every audience, both languages, in one zip' : nDl ? 'Every audience the designer has sent for review, in one zip — the ones not yet approved as they are now' : 'Nothing has been sent for review yet') + (nDl ? ', with every animated ad as MP4' + (vidList(rs).length ? ' and the MVP video (Reel 9:16 and Square 1:1)' : '') : '') + '">' + ico(DL) +
       (busy === '*' ? 'Zipping…' : all.ready ? 'Download package' : 'Download ' + nDl + ' of ' + all.n) + '</button>';
     // 1 — the top bar: status, then the actions, the download last and loudest
     const html = pillHtml(all.ready, all.ready ? 'Package ready' : all.done + ' of ' + all.n + ' ready') +
@@ -4963,7 +4968,7 @@
     if (bh && el.parentNode !== bh) bh.appendChild(el);
     // 2 — the pane's strip: the audience on screen, or every audience under All audiences
     const st = this.strip;
-    const dlA = a => '<button type="button" class="' + (canDl(a) ? 'p-btn' : 'p-ghost') + ' rvp-dl" data-dl="' + esc(a.key) + '"' + (canDl(a) && !busy ? '' : ' disabled') + ' title="' + esc(dlTip(a)) + '">' + ico(DL) + (busy === a.key ? 'Zipping…' : dlWord(a)) + '</button>';
+    const dlA = a => '<button type="button" class="' + (canDl(a) ? 'p-btn' : 'p-ghost') + ' rvp-dl" data-dl="' + esc(a.key) + '"' + (canDl(a) && !busy ? '' : ' disabled') + ' title="' + esc(dlTip(a, rs)) + '">' + ico(DL) + (busy === a.key ? 'Zipping…' : dlWord(a)) + '</button>';
     const who = a => { const e = a.eng, r = a.arb, out = []; if (e && e.design) out.push('Design · ' + e.design.by); if (e && e.copy) out.push('Copy · ' + e.copy.by); if (r && r.copy) out.push('Arabic · ' + r.copy.by); return out.join('   '); };
     const line = a => a.done ? 'Ready to run' + (a.at ? ' · ' + dayS(a.at) : '') : (a.now ? a.now.label + ' — ' + a.now.sub : '');
     const goKey = a => this.pathOf(a.eng || a.items[0]).join('\u0001');
@@ -4985,7 +4990,7 @@
     const dlg = this.dlg; if (!dlg) return;
     const meta = [PRODUCT_NAME[rs.product], 'Created ' + day(rs.created) + (rs.by ? ' by ' + String(rs.by).split(' ')[0] : '')].filter(Boolean).join(' · ');
     const audCard = a => '<li data-s="' + (a.done ? 'done' : 'prog') + '"><div class="rvh-ah"><div><b>' + esc(a.label) + '</b><s>' + esc(a.done ? 'Ready to run' : a.now ? a.now.sub : '') + '</s></div>' +
-      (canDl(a) ? '<button type="button" class="p-ghost" data-dl="' + esc(a.key) + '"' + (busy ? ' disabled' : '') + ' title="' + esc(dlTip(a)) + '">' + (busy === a.key ? 'Zipping…' : dlWord(a)) + '</button>' : '') + '</div>' +
+      (canDl(a) ? '<button type="button" class="p-ghost" data-dl="' + esc(a.key) + '"' + (busy ? ' disabled' : '') + ' title="' + esc(dlTip(a, rs)) + '">' + (busy === a.key ? 'Zipping…' : dlWord(a)) + '</button>' : '') + '</div>' +
       stepperHtml(a.steps, false, true) + '</li>';
     const det = '<header class="rvh-dh"><div><h2>' + esc(rs.name || 'Ad set') + '</h2><p class="rvh-sub">' + esc(meta) + '</p></div>' +
       '<div class="rvh-dhr">' + pillHtml(all.ready) + '<button type="button" class="p-ghost rvh-x" data-x="1" aria-label="Close">×</button></div></header>' +
@@ -5006,9 +5011,17 @@
     for (const m of a.mains || []) for (const au of m.auds) if (want.has(au.key)) for (const c of au.cols) for (const pl of c.plats) for (const t of pl.tiles) items.push({ t, name: String(t.name).split('/').pop(), pre: au.key.replace('\u0001', ' ') });
     if (!items.length) return;
     this.dl = key; this.barRender();
+    // EVERYTHING, OR SAY WHAT IS NOT (2026-11-24, by request: "the download package downloads
+    // everything in an adset, including animated and mvp videos"): one design that cannot be
+    // rendered, one clip that cannot be read or recorded, one video Drive will not give, no longer
+    // stops the zip or the animated ads after it. Each is left out, the rest is zipped, and the
+    // closing note names every file that is missing.
+    const missing = [];
+    auds.forEach(a => dlIts(a).forEach(it => { const p = this.proj[it.sid]; if (!p || !p.st) missing.push(itemLabel(it, this.rs) + ' (its project could not be read)'); }));
     try {
       // the window renders tiles in the background, the audience on screen first: wait for the rest
-      await Promise.all(items.map(async it => { it.file = it.t.load ? await it.t.load() : it.t.file; }));
+      await Promise.all(items.map(async it => { try { it.file = it.t.load ? await it.t.load() : it.t.file; } catch (e) { it.file = null; } }));
+      for (let i = items.length - 1; i >= 0; i--) if (!items[i].file) { missing.unshift(items[i].name); items.splice(i, 1); }
       // THE ANIMATED ADS GO IN THE PACKAGE (2026-11-17): a design with a video background also
       // gets its 1:1 and 9:16 as MP4, recorded here by the export's own method (anRecord) from the
       // project and the clip on Drive — in real time, so the dialog says so. Kept for the session:
@@ -5016,20 +5029,28 @@
       const anims = items.filter(it => it.t.anim);
       if (anims.length) {
         const C = this.eng.constructor, mime = C.anMime && C.anMime();
-        if (!mime) this.ui.flash('This browser cannot record video, so the animated ads are not in the zip. Use Chrome.');
+        const anNm = it => String(it.name).replace(/\.jpg$/i, '') + '_animated';
+        if (!mime) { this.ui.flash('This browser cannot record video, so the animated ads are not in the zip. Use Chrome.', 8000); anims.forEach(it => missing.push(anNm(it))); }
         else {
           const ui = this.eng.anDlg(), cache = this.anMp4 || (this.anMp4 = new WeakMap());
           ui.el.querySelector('h2').textContent = 'Recording the animated ads';
           try {
             for (let i = 0; i < anims.length && !ui.cancelled; i++) {
-              const it = anims[i], info = await it.t.anim(); if (!info) continue;
-              const got = cache.get(info.st) || {}, ck = info.vi + ':' + info.sk;
+              const it = anims[i];
               ui.say((i + 1) + ' of ' + anims.length + ' · ' + String(it.name).replace(/\.jpg$/i, '') + '. Each takes as long as its clip; keep this tab in front.');
               ui.progress(0);
-              const data = got[ck] || await info.eng.anRecord(info.st, info.vi, info.sk, info.assets, { url: info.url }, mime, ui);
-              if (!data) break;
-              got[ck] = data; cache.set(info.st, got);
-              it.mp4 = { name: String(it.name).replace(/\.jpg$/i, '') + '_animated.' + (/mp4/.test(mime) ? 'mp4' : 'webm'), data };
+              let data = null;
+              try {
+                const info = await it.t.anim();
+                if (info) {
+                  const got = cache.get(info.st) || {}, ck = info.vi + ':' + info.sk;
+                  data = got[ck] || await info.eng.anRecord(info.st, info.vi, info.sk, info.assets, { url: info.url }, mime, ui);
+                  if (data) { got[ck] = data; cache.set(info.st, got); }
+                }
+              } catch (e) { data = null; }
+              if (ui.cancelled) break;
+              if (!data) { missing.push(anNm(it)); continue; }
+              it.mp4 = { name: anNm(it) + '.' + (/mp4/.test(mime) ? 'mp4' : 'webm'), data };
             }
           } finally { ui.close(); }
           if (ui.cancelled) { this.ui.flash('Download stopped.'); this.dl = null; this.barRender(); return; }
@@ -5042,17 +5063,24 @@
         if (it.mp4) put(it.mp4.name, it.pre, it.mp4.data);
       }
       // THE MVP VIDEO GOES IN THE PACKAGE (2026-11-23, by request): the whole-package zip carries
-      // every video of the ad set's Video section, both sizes, beside the images
-      const vids = key === '*' ? vidList(this.rs) : [];
-      for (const v of vids) for (const z of ['9x16', '1x1']) if (v.f && v.f[z]) {
-        try { put(dsSafe(v.title) + '_' + z + '.mp4', 'MVP video', new Uint8Array(await (await vidBlob(v.f[z])).arrayBuffer())); }
-        catch (e) { this.ui.flash('The video “' + v.title + '” (' + VID_SIZE[z] + ') could not be read from Drive, so it is not in the zip.'); }
+      // every video of the ad set's Video section, both sizes, beside the images; an audience's own
+      // zip carries the videos added for it or for All audiences (2026-11-24; vidFor)
+      const vids = vidFor(this.rs, key === '*' ? null : auds[0]), vidsIn = new Set();
+      for (const v of vids) for (const z of ['9x16', '1x1']) {
+        const fn = dsSafe(v.title) + '_' + z + '.mp4';
+        if (!(v.f && v.f[z])) { missing.push(fn + ' (not uploaded)'); continue; }
+        try { put(fn, 'MVP video', new Uint8Array(await (await vidBlob(v.f[z])).arrayBuffer())); vidsIn.add(v.id); }
+        catch (e) { missing.push(fn); }
       }
+      if (!files.length) throw new Error('nothing could be read');
       const nm = clean(this.rs.name) + (key === '*' ? '' : ' - ' + clean(auds[0].label)) + (en ? ' - English' : '');
       const how = await this.eng.saveAs(this.eng.zip(files), nm + '.zip', 'Zip archive', 'application/zip', '.zip');
-      const not = auds.filter(x => !x.done).length;
-      if (how !== 'cancelled') this.logDl(key === '*' ? (auds.length > 1 ? 'every audience sent for review (' + auds.length + (not ? ', ' + not + ' not yet approved' : '') + ')' : 'the images of ' + auds[0].label + (not ? ' (not yet approved)' : '')) + (vids.length ? ' and the MVP video' : '') : (en ? 'the English images of ' : 'the images of ') + auds[0].label + (not ? ' (not yet approved)' : ''));
-    } catch (e) { this.ui.flash('Could not zip — ' + (e.message || e)); }
+      const not = auds.filter(x => !x.done).length, andV = vidsIn.size ? ' and the MVP video' : '';
+      if (how !== 'cancelled') {
+        this.logDl((key === '*' ? (auds.length > 1 ? 'every audience sent for review (' + auds.length + (not ? ', ' + not + ' not yet approved' : '') + ')' : 'the images of ' + auds[0].label + (not ? ' (not yet approved)' : '')) : (en ? 'the English images of ' : 'the images of ') + auds[0].label + (not ? ' (not yet approved)' : '')) + andV);
+        if (missing.length) this.ui.flash('Downloaded, but ' + missing.length + (missing.length === 1 ? ' file is' : ' files are') + ' not in the zip: ' + missing.slice(0, 6).join(', ') + (missing.length > 6 ? ' and ' + (missing.length - 6) + ' more' : '') + '. Try the download again; if it stays missing, tell the designer.', 12000);
+      }
+    } catch (e) { this.ui.flash('Could not zip — ' + (e.message || e), 8000); }
     this.dl = null; this.barRender();
   };
   // performance marketing's download goes in the ad set's Activity (op rsdl, Drive ad sets only);
@@ -5578,6 +5606,19 @@
     if (j.length > 1500000) j = JSON.stringify({ at: Date.now(), items: keep.map(x => Object.assign({}, x, { thumb: '' })) });
     lsSet(LIST_KEY, j);
   }
+  // THE TRACKER'S PREVIEWS, KEPT ON THIS COMPUTER (2026-11-24): each ad set's designs (summary and
+  // preview) as last read, so its page — opened from the list, a link or a reload — shows the
+  // pictures and the Animated marks before Drive answers. Newest ad sets first, under ~1.5 MB.
+  const PREV_KEY = 'provident-tracker-previews';
+  function prevAll() { try { const c = JSON.parse(localStorage.getItem(PREV_KEY) || 'null'); return c && typeof c === 'object' ? c : {}; } catch (e) { return {}; } }
+  function prevKeep(items) {
+    const c = prevAll();
+    (items || []).forEach(x => { if (x && x.id && !x.gone && x.proj && Object.keys(x.proj).length) c[x.id] = { at: Date.now(), proj: x.proj }; });
+    const ids = Object.keys(c).sort((a, b) => (c[b].at || 0) - (c[a].at || 0)), out = {};
+    let n = 0;
+    for (const id of ids) { const j = JSON.stringify(c[id]); if (n + j.length > 1500000) break; n += j.length; out[id] = c[id]; }
+    lsSet(PREV_KEY, JSON.stringify(out));
+  }
   AV.load = async function (quiet) {
     if (!seesAds()) { this.items = []; this.sign = 0; this.at = Date.now(); if (!this.sel) this.draw(); return; }
     const cache = !quiet && !this.items ? listCache() : null;
@@ -5607,6 +5648,7 @@
       // a read that needed the Google sign-in (sign > 0) left those ad sets out: never save it as
       // the queue, or Home and Status lose every Drive campaign until the next good read (2026-11-04)
       if (!sign) { statusSave(this.items, this.eng); listKeep(this.items); }
+      prevKeep(this.items);
     } catch (e) { if (!quiet || !this.items) this.items = []; this.err = e.message || String(e); }
     this.healPaint(this.items);
     if (!this.sel) this.draw();
@@ -5708,9 +5750,14 @@
     // THE PAGE DRAWS AT ONCE (2026-11-05) from the ad set's card on the list (this page's, or the
     // one kept on this computer) — name, audiences and steps; `part` until the full read lands
     // with the previews, the brief's files and the activity
-    const known = id => { const x = (this.items || (listCache() || {}).items || []).find(y => y && y.id === id && y.rs); return x ? Object.assign({}, x, { part: true }) : null; };
-    this.sel = id; if (!quiet) { this.det = known(id); this.draw(); }
-    try { const r = await api('rsinfo', { ids: id, full: '1' }); this.det = (r.items || [])[0] || { id, gone: true }; this.at = Date.now(); this.healPaint([this.det]); }
+    const known = id => {
+      const x = (this.items || (listCache() || {}).items || []).find(y => y && y.id === id && y.rs); if (!x) return null;
+      const o = Object.assign({}, x, { part: true });
+      if (!o.proj || !Object.keys(o.proj).length) o.proj = (prevAll()[id] || {}).proj || {};
+      return o;
+    };
+    this.sel = id; if (!quiet) { this.det = known(id); if (this.det) this.healPaint([this.det]); this.draw(); }
+    try { const r = await api('rsinfo', { ids: id, full: '1' }); this.det = (r.items || [])[0] || { id, gone: true }; this.at = Date.now(); this.healPaint([this.det]); prevKeep([this.det]); }
     catch (e) { if (!quiet) this.det = { id, error: e.message || String(e), auth: !!e.gdAuth }; }
     if (this.sel === id) this.draw();
     if (this.det && this.det.stale) this.heal([this.det]);
@@ -6041,6 +6088,10 @@
   const vidCan = () => { const r = accRole(); return !r || r === 'designer' || r === 'admin'; };
   const vidT = t => { t = Math.max(0, +t || 0); return Math.floor(t / 60) + ':' + ('0' + Math.floor(t % 60)).slice(-2); };
   const vidList = rs => ((rs && rs.video && rs.video.list) || []);
+  // the videos an audience's download carries: those added for it (its designs and unbranded
+  // version count as it, as on Status) or for All audiences; no audience = every video
+  const vidRoot = s => String(s || '').replace(/ · Unbranded$/, '').replace(/ · Design \d+$/, '');
+  const vidFor = (rs, a) => vidList(rs).filter(v => !a || !v.aud || vidRoot(v.aud) === vidRoot(a.label));
   const VID_RM_Q = v => 'Remove “' + v.title + '” from this ad set?\n\nIts comments go with it. The Reel, the Square and its Video Studio project go to Google Drive’s trash, where they can be restored for 30 days.';
   const vidOn = rs => !!(rs && rs.video && (rs.video.on || vidList(rs).length));
   const VID_SIZE = { '9x16': 'Reel 9:16', '1x1': 'Square 1:1' };
@@ -6651,9 +6702,9 @@
     const gal = !pmV ? '' : (() => {
       const its = []; auds.forEach(a => [a.eng, a.arb].concat(a.items.filter(it => it !== a.eng && it !== a.arb)).forEach(it => { if (it && its.every(x => x.it !== it)) its.push({ a, it }); }));
       if (!its.length) return '';
-      const nAn = its.filter(x => ((proj[x.it.sid] || {}).sum || {}).anim).length;
+      const nAn = its.filter(x => ((proj[x.it.sid] || {}).sum || {}).anim || (d.anim || {})[x.it.sid]).length;
       return '<section class="rvd-card rvd-gal" aria-label="Designs"><h3>Designs <s>' + its.length + (nAn ? ' · ' + nAn + ' animated' : '') + '</s></h3><ul>' + its.map(({ a, it }) => {
-        const pj = proj[it.sid] || {}, an = !!(pj.sum || {}).anim, ar = it.lang === 'ARB';
+        const pj = proj[it.sid] || {}, an = !!(pj.sum || {}).anim || !!(d.anim || {})[it.sid], ar = it.lang === 'ARB';
         return '<li><span class="rvd-gth">' + (pj.thumb ? '<img src="' + esc(pj.thumb) + '" alt="" loading="lazy">' : '') + '</span>' +
           '<b>' + esc(audName(a)) + '</b><span class="rvd-gk"><i title="' + (ar ? 'Arabic' : 'English') + '">' + (ar ? 'AR' : 'EN') + '</i>' +
           (an ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '<i title="Still images only">Static</i>') + '</span></li>';
@@ -7237,7 +7288,7 @@
           : kind === 'view' ? 'View only' : 'Saved';
         $('.shl-state').className = 'shl-state ' + kind;
       },
-      flash(t) { const el = $('.shl-toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 3200); },
+      flash(t, ms) { const el = $('.shl-toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), ms || 3200); },
       set(v) {
         $('.shl-share input').value = v.link; $('.shl-share button').title = v.link;
         // in an ad set the link to hand out is the ad set's designer link, not this project's own
