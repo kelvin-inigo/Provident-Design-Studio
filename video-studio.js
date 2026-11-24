@@ -220,6 +220,7 @@
       rec.cutsV = 2; rec.cuts = cuts.map(k => Math.round(k.t * 100) / 100).filter(t => t > .2 && t < (rec.dur || 1e9) - .2);
       DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster, peaks: rec.peaks, cuts: rec.cuts, cutsV: 2 });
       renderTimeline();
+      if (sel && sel.kind === 'clip' && (find(sel) || {}).mid === rec.id) renderInspector();   // its Cut at scene changes count
     } catch (e) {} finally { rec._cutting = false; }
   }
   // ── filmstrips: a video clip on the timeline shows ITS OWN stretch of the file ─────────────
@@ -521,6 +522,32 @@
     }
     L.splice(L.indexOf(it) + 1, 0, nb);
     sel = { kind: tg.kind, id: nb.id }; renderAll();
+  }
+  // CUT AT MARKERS (2026-11-24): a video clip is cut at each scene change found in its file, a
+  // voiceover piece (Sound track) at each voice pause. File times, so speed and trims hold; a cut
+  // nearer than 0.2 s to an end or to the cut before it is skipped. The pieces stay where they were.
+  const sceneCuts = c => { const m = media[c.mid], r = c.rate || 1, out = []; if (!m || m.kind !== 'video' || !m.cuts) return out;
+    m.cuts.slice().sort((x, y) => x - y).forEach(t => { if (t > (out.length ? out[out.length - 1] : c.in) + .2 * r && t < c.out - .2 * r) out.push(t); }); return out; };
+  const voiceCuts = a => { const m = media[a.mid], r = a.rate || 1, end = a.in + a.dur * r, out = []; if (a.track !== 'sfx' || !m) return out;
+    voiceStops(m).forEach(t => { if (t > (out.length ? out[out.length - 1] : a.in) + .2 * r && t < end - .2 * r) out.push(t); }); return out; };
+  function cutAtMarkers(kind, one) {
+    const L = kind === 'clip' ? P.clips : P.audio, cutsOf = kind === 'clip' ? sceneCuts : voiceCuts;
+    const jobs = (one ? [one] : L.slice()).map(it => [it, cutsOf(it)]).filter(j => j[1].length);
+    if (!jobs.length) {
+      const wait = kind === 'clip' && (one ? [one] : P.clips).some(c => { const m = media[c.mid]; return m && m.kind === 'video' && !m.cuts; });
+      toast(wait ? 'Still looking for scene changes. Try again in a moment.' : kind === 'clip' ? 'No scene changes were found to cut at.' : 'No voice pauses were found to cut at.'); return 0;
+    }
+    mark(); let made = 0;
+    jobs.forEach(([it, cuts]) => {
+      const r = it.rate || 1, parts = [it], end = kind === 'clip' ? it.out : it.in + it.dur * r, fo = it.fo;
+      cuts.forEach(t => { const nb = Object.assign({}, parts[parts.length - 1], { id: uid(), in: t }); if (kind === 'clip') delete nb.tr; else nb.fi = 0; parts.push(nb); });
+      parts.forEach((p, i) => { const to = i + 1 < parts.length ? parts[i + 1].in : end;
+        if (kind === 'clip') p.out = to; else { if (i) p.at = it.at + (p.in - it.in) / r; p.dur = (to - p.in) / r; p.fo = i + 1 < parts.length ? 0 : fo; } });
+      L.splice.apply(L, [L.indexOf(it) + 1, 0].concat(parts.slice(1))); made += cuts.length;
+    });
+    save(); renderAll();
+    toast((made === 1 ? '1 cut' : made + ' cuts') + ' made at ' + (kind === 'clip' ? 'scene changes.' : 'voice pauses.'));
+    return made;
   }
   function del() {
     const it = find(sel); if (!it) return;
@@ -1869,6 +1896,7 @@
   // Layout column). Picking something turns to Selected, dropping it turns back to Whole video,
   // and the switch lets either be opened by hand.
   let rtab = 'doc', selKey = '';
+  const cutBtn = (kind, n, label, one) => '<button class="p-ghost p-sm" data-mkcut="' + kind + '"' + (one ? ' data-one="1"' : '') + (n ? '' : ' disabled') + '>' + label + (n ? ' · ' + n : '') + '</button>';
   function mkPaint() {
     const pop = $('#mkPop'); if (!pop) return;
     const seg = (k, opts, cls) => '<div class="vs-seg' + (cls ? ' ' + cls : '') + '">' + opts.map(o => '<button data-mk="' + k + '" data-v="' + o[0] + '"' + (String(MK[k]) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
@@ -1878,7 +1906,10 @@
     const beat = MK.beat === 'off' ? '' : !mus.length ? 'There is no music on the Music track yet. ' : mus.some(m => m._beating || !m.beats) ? 'Listening to the music… ' : mus.every(m => !m.beats.all.length) ? 'No steady beat was found in the music. ' : 'The music runs at about ' + mus.filter(m => m.beats.bpm).map(m => m.beats.bpm).join(' and ') + ' beats a minute. ';
     pop.innerHTML = '<b>Markers</b>' + row('scene', 'Scene changes', seg('scene', onoff, 's')) + row('cut', 'Clip cuts', seg('cut', onoff, 's')) +
       row('voice', 'Voice pauses', seg('voice', onoff, 's')) + row('beat', 'Music beats', seg('beat', [['off', 'Off'], ['bar', 'Bars'], ['beat', 'Beats']])) +
-      '<p>' + beat + 'The playhead and anything you drag snap to the markers that are on. Voice pauses are read from the Sound track, beats from the Music track.</p>';
+      '<p>' + beat + 'The playhead and anything you drag snap to the markers that are on. Voice pauses are read from the Sound track, beats from the Music track.</p>' +
+      '<b>Cut at markers</b><div class="vs-acts">' + cutBtn('clip', P.clips.reduce((q, c) => q + sceneCuts(c).length, 0), 'Clips at scene changes') +
+      cutBtn('audio', P.audio.reduce((q, a) => q + voiceCuts(a).length, 0), 'Voiceover at pauses') + '</div>' +
+      '<p>Cuts every video clip where a scene change was found, and every piece on the Sound track where the voice pauses. Nothing moves; one Undo takes it back.</p>';
   }
   function paintPane() {
     const p = document.body.dataset.pane || 'add';
@@ -1954,7 +1985,7 @@
       h = cap(vid ? 'Video clip' : 'Photo clip', esc(m.name));
       if (vid) h += '<div class="vs-sec">' + row('Length', '<s>' + fmt(clipLen(it)) + ' of ' + fmt(m.dur) + '</s>') +
         row('Sound', seg('mute', [[false, 'On'], [true, 'Muted']], 's')) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) +
-        '<div class="vs-acts"><button class="p-ghost p-sm" id="detachBtn" title="Put this clip\'s sound on the Music track as its own piece, and mute the clip">Detach audio</button></div></div>' + sec('Speed', '', speedSec(it, clipLen(it), VRATE));
+        '<div class="vs-acts"><button class="p-ghost p-sm" id="detachBtn" title="Put this clip\'s sound on the Music track as its own piece, and mute the clip">Detach audio</button>' + cutBtn('clip', sceneCuts(it).length, 'Cut at scene changes', 1) + '</div></div>' + sec('Speed', '', speedSec(it, clipLen(it), VRATE));
       else h += '<div class="vs-sec">' + row('Lasts', '<span class="vs-numw"><input class="p-in vs-num" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '" aria-label="Lasts, seconds"><i>s</i></span>') + '</div>';
       if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', row('Style', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>') + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
       h += sec('Framing', '', seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
@@ -1965,7 +1996,8 @@
       const m = media[it.mid] || {};
       h = cap('Audio', esc(m.name)) +
         '<div class="vs-sec">' + row('Track', seg('track', [['music', 'Music'], ['sfx', 'Sound']])) + rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%') +
-        rng('i', 'fi', 'Fade in', it.fi, 0, 5, 's', .1) + rng('i', 'fo', 'Fade out', it.fo, 0, 5, 's', .1) + '</div>' +
+        rng('i', 'fi', 'Fade in', it.fi, 0, 5, 's', .1) + rng('i', 'fo', 'Fade out', it.fo, 0, 5, 's', .1) +
+        (it.track === 'sfx' ? '<div class="vs-acts">' + cutBtn('audio', voiceCuts(it).length, 'Cut at voice pauses', 1) + '</div>' : '') + '</div>' +
         sec('Speed', '', speedSec(it, it.dur, ARATE)) +
         sec('Captions', it.capOn ? '' : 'Off', row('Show', seg('capOn', [[true, 'On'], [false, 'Off']], 's')) +
         (it.capOn ? f('Voiceover script', '<textarea class="p-in" data-s="cap" rows="6" placeholder="Paste exactly what is said in this audio">' + esc(it.cap || '') + '</textarea>') +
@@ -2131,6 +2163,7 @@
     if (b.id === 'descCancel') { const id = it.descJob; mark(); delete it.descJob; JOBS = JOBS.filter(j => j.id !== id); api('/api/animate/cancel', { id }).catch(() => {}); renderAll(); return; }
     if (b.id === 'promptReset') { mark(); delete it.genPrompt; delete it.genPromptBy; delete it.genPromptFor; delete it.descErr; renderAll(); return; }
     if (b.id === 'detachBtn') return detachAudio(it);
+    if (b.dataset.mkcut) { cutAtMarkers(b.dataset.mkcut, it); return; }
     if (b.id === 'rateReset') { mark(); setRate(it, sel.kind, 1); save(); renderAll(); return; }
     if (b.id === 'animBtn') return animSend(it);
     if (b.id === 'animNow') return animSend(it, true);
@@ -3196,6 +3229,7 @@
   $('#mkBtn').innerHTML = sico('flag') + 'Markers';
   $('#mkPop').addEventListener('toggle', e => { if (e.newState === 'open') mkPaint(); popAt($('#mkPop'), $('#mkBtn'))(e); });
   $('#mkPop').addEventListener('click', e => {
+    const k = e.target.closest('[data-mkcut]'); if (k) { cutAtMarkers(k.dataset.mkcut); mkPaint(); return; }
     const b = e.target.closest('[data-mk]'); if (!b) return;
     const v = b.dataset.v; MK[b.dataset.mk] = v === 'true' ? true : v === 'false' ? false : v;
     try { localStorage.setItem(MKEY, JSON.stringify(MK)); } catch (x) {}

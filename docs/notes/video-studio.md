@@ -948,3 +948,20 @@ A landscape photo came out cropped: `frameFor` drew the clip's own framing (Fill
   3.99 s, clip muted, waveform drawn and still drawn after a reload, silent clip refused. Not checked:
   hearing it (the pane has no sound), export.
 
+## Cut at markers (2026-11-24)
+
+- **What:** `cutAtMarkers(kind, one)` cuts a video clip at each scene change in its file (`sceneCuts`,
+  from `media.cuts`) and a Sound-track piece at each voice pause (`voiceCuts`, from `voiceStops`).
+  File times, so speed and trims hold; a cut within 0.2 s of an end or of the cut before is skipped.
+  Nothing moves. One `mark()` for the whole pass, so one Undo takes it back. Later clip pieces drop
+  `tr`; inner audio pieces get no fades (the first keeps fade in, the last fade out).
+- **Where:** Markers menu › **Cut at markers** (every clip / every Sound-track piece, with counts,
+  disabled at 0), and on the selected item: clip inspector › Sound › **Cut at scene changes · N**,
+  audio inspector (Sound track only) › **Cut at voice pauses · N**. All are `[data-mkcut]` (`cutBtn`).
+- It works whether or not that marker kind is switched on in the menu. Music is never cut (beats).
+- A voice pause marker sits where the speech STOPS, so each later piece starts with its silence.
+- Captions: as with Cut, every piece keeps the whole script; set captions before cutting, or not at all.
+- The scene-cut finder now repaints the inspector when the selected clip's cuts arrive (its count).
+- Verified on :8797: a clip with two colour jumps → 3 pieces at 1.42 / 2.81 s; a WAV with two gaps →
+  pieces of 1.0 / 1.6 / 1.6 s in place; counts drop to 0 after; Undo restores. Not checked: export.
+
