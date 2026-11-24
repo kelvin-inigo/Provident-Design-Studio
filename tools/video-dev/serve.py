@@ -27,7 +27,8 @@ QUEUE = os.path.join(ROOT, '_animate')
 # <id>_1x1.mp4, <id>.jpg the poster, <id>.notes.json the comments CAS sends back.
 OUTBOX = os.path.join(ROOT, '_outbox')
 # Only these pages may read the outbox from a browser. Add more with CASV_ORIGINS="https://a,https://b".
-SITES = ['https://provident-design-studio.vercel.app'] + [o.strip() for o in os.environ.get('CASV_ORIGINS', '').split(',') if o.strip()]
+# The second is PDS served from the office server (tools/office-server on main, 2026-11-24).
+SITES = ['https://provident-design-studio.vercel.app', 'https://design-studio.ngrok-free.dev'] + [o.strip() for o in os.environ.get('CASV_ORIGINS', '').split(',') if o.strip()]
 PARTS = {'9x16': ('_9x16.mp4', 'video/mp4'), '1x1': ('_1x1.mp4', 'video/mp4'), 'poster': ('.jpg', 'image/jpeg'),
          'project': ('.casv', 'application/octet-stream'),
          # CAS's Edit in CASV: the video CASV's "Send back to CAS" records, which CAS places as the

@@ -406,6 +406,9 @@ serve.py). `P.cas = { id, title, at }` keeps the outbox id, so sending again rep
 CASV never signs in: CAS's Add video (share-link.js, see reviews-sharing-drive.md) reads the outbox
 from the website and uploads to Drive. The outbox answers only the site's origin, localhost origins
 and `CASV_ORIGINS`, and answers Chrome's private-network preflight.
+(2026-11-24: `SITES` also lists `https://design-studio.ngrok-free.dev`, PDS served from the office
+server. Until then CAS's Generate from the photo, Add video and the comments were refused there.
+A running server must be restarted to pick the list up.)
 **Comments back:** CAS posts a video's timeline comments to `/api/outbox/notes`; `casNotes()` polls
 every 15 s and shows open ones as numbered pins on the ruler (`.vs-nt`) and all of them under
 "Comments from CAS" in the Whole video rail. Read-only here.
