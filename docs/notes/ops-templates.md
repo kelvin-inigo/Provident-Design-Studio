@@ -6581,3 +6581,21 @@ margin, everything centred in it; the preview lines are `nowrap`. Census against
 8 templates × feed/story, listno and DLD on): 302 of 328 ops identical; the 26 others are the QR
 rrects and rings, the property page's bottom scrim band (it follows `K.qr`) and the listing number
 (feed: now flush right, +10.7px). Preview `.qrbox` measured equal to the ops (485/1220, 845.6/1180).
+
+## Generate on the background picture (Generative fill, 2026-11-25)
+
+By request ("build this also for OPS … as background image, not intended for profile photo").
+
+- The photo row's `up-acts` gains **Generate** after Reframe (`a.slotGen` / `a.slotGenOn`, one markup
+  for the guided run and the All-controls rail). `slotGenOn` needs `v.isPhoto && v.photoSlot`, a
+  filled slot and `window.ProvidentGenfill`: never the agent portrait, cut-out, graphic, mark or QR.
+- `genOpen(id)` opens CAS's `genfill.js` unchanged (script tag after image-slot.js) with two sizes from
+  `OrganicStudio.PXT`: `st` "9:16 story" first, then `ft` "3:4 feed". Both write the SAME slot
+  (`smp-bg-<slide>`, `IS.putUrl`, crop reset) because a page has one background for both formats; a
+  9:16 result covers the feed by cover fit. A photo store write: Undo does not take it back.
+- Helper, engines and limits: `docs/notes/cas-genfill.md`.
+- No paint path touched: the diff is the script tag, one button, `slotGen`, `slotGenOn`, `genOpen`.
+- Verified on :8798 (test sign-in, `?ws=gentest`, Just listed): Generate shows on Background picture
+  only (agent photo and QR rows: Upload / Replace / Remove), in Guided and All controls; the editor
+  opens on 9:16 story with the template's margins; a stand-in result stored 1080 × 1920 in the slot
+  and the canvas repainted. NOT run from OPS: a real Nano Banana or Firefly generation.

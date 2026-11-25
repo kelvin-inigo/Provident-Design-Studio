@@ -127,3 +127,7 @@ with /usr/bin:/bin. `claude` is found by serve.py's own glob in Application Supp
 after any change to serve.py (the login item runs the copy). genfill.js's off message names the
 installer. Installed here: /health `{ok, claude: true, higgsfield: ok}`; fetched from a page on
 provident-design-studio.vercel.app. Chrome may ask once per site to allow local network access.
+
+## OPS and CASV open the same editor (2026-11-25)
+OPS: **Generate** on a page's Background picture (`genOpen(id)`, see `docs/notes/ops-templates.md`).
+CASV (branch `video-studio`): **Extend photo** on a photo clip. Neither changes `genfill.js`.

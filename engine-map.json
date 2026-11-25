@@ -354,6 +354,12 @@
    "carries": "Generative fill: the photo and the pixels to fill per size"
   },
   {
+   "from": "ops",
+   "to": "genfill",
+   "check": "genfill",
+   "carries": "Generative fill on a page's background picture: the photo and the pixels to fill (story or feed)"
+  },
+  {
    "from": "genfill",
    "to": "anthropic",
    "check": "genfill",

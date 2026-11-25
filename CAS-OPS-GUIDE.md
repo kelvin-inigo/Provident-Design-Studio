@@ -83,7 +83,7 @@ moves, because it records where the folder is.
 |---|---|---|
 | Background removal | `sh tools/rembg/install.sh` | cuts agent photos out automatically in OPS. Downloads about 1.1 GB once |
 | Edit in Photoshop | `sh tools/photoshop/install.sh` | the **Photoshop** / **Illustrator** button on a picture |
-| Generative fill (CAS) | `sh tools/genfill/install.sh` | the **Generate** button on the photo. Nano Banana needs Higgsfield's tool signed in (`higgsfield auth login`); Firefly needs Claude Code signed in, with the Adobe connector on your Claude account |
+| Generative fill (CAS and OPS) | `sh tools/genfill/install.sh` | the **Generate** button on the photo. Nano Banana needs Higgsfield's tool signed in (`higgsfield auth login`); Firefly needs Claude Code signed in, with the Adobe connector on your Claude account |
 
 Run these from inside the folder (`cd "$HOME/Documents/Provident Design Studio"` first).
 
@@ -1876,6 +1876,13 @@ This is the full editor.
     (the Vercel site, the office server's ngrok link, localhost). Without it **Generate** in the
     editor is greyed out and says so. Nano Banana spends Higgsfield credits on the account signed in on that computer;
     Firefly spends Adobe generative credits on the Adobe account connected to your Claude account.
+- **Generate (OPS, Generative fill):** the same editor on a page's **Background picture**. Press
+  **Generate** in its row (after **Reframe**), in Guided or All controls. Pick **9:16 story** or
+  **3:4 feed**, set the crosshair, **Generate**, then **Use on** that size.
+  - A page has one background picture for the feed and the story, so the result replaces that
+    picture. A **9:16 story** result also covers the feed (the feed shows its middle).
+  - It is on the background picture only: never the agent photo, a cut-out, a logo or the QR.
+  - Undo does not bring the old picture back; keep the original file if you may want it.
 - **Quality and privacy:** uploads are kept at up to 3840 px, so exports never upscale, and the
   photo's location data is removed.
 
