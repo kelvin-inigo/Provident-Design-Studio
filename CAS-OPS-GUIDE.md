@@ -1180,9 +1180,28 @@ What's on the screen, from left to right:
     covers (amber over the brand's 40%).
   - Click another canvas (the 9:16, say) and the choices apply to that one. On a canvas you
     separated with the link button they change only that size, and say "this size only".
+  - **Arrangement**: **Stacked** keeps the copy in the top and bottom stacks. **Free** lets every
+    component float exactly where it is, so you can drag each one anywhere on that canvas and set
+    its width with the two grips on its sides (the copy rewraps). Nothing moves when you switch.
+    Free works on the canvas you clicked: on the 1:1, the other sizes keep their own layouts; on
+    another size, that size is separated for you. Components always stay inside the margins (and
+    clear of the Reels buttons on the 9:16). While you drag, the padding, the centre lines and the
+    focal circle show and the component snaps to them; hold Alt (⌥) to place it freely. Picking
+    At the top, Split or At the bottom puts the copy back in the stacks.
+  - **Focal point**: press **Set** and click the subject on the canvas (a face, the building, the
+    view). A pink circle marks the area to keep clear; **Keep clear** sets its size and the eye
+    button shows or hides it. It follows the subject through each size's crop.
+  - **Recommended layout** reads the photo on the canvas you clicked and places the copy on its
+    quietest areas, clear of the focal point, the wordmark and the QR, as a top and a bottom block
+    in reading order. Then it switches that canvas to Free so you can fine-tune it. If no focal
+    point is set it keeps the busiest part of the photo clear. The message says if the copy could
+    not fully clear the subject or is over 40%: shrink Keep clear, step Scaling down or trim the copy.
+    The wordmark and the QR never move.
 
-  Then: **Spacing** (Tight, Medium or Roomy), **Scaling** (the size of all the content,
-  in steps of the type scale, set per canvas size), **Background** (Dark or Light) and **Scrim**
+  Then: **Spacing** (Tight, Medium or Roomy), **Scaling** (the size of the content, set per canvas
+  size: 100% is the default and the top of each slider, with three smaller steps of the type scale,
+  83%, 69% and 58%; uploaded graphics scale with the type, the provident. wordmark and the QR code
+  never do), **Background** (Dark or Light) and **Scrim**
   (the wash behind the copy: Opacity, Fade and Colour). **Scaling** and **Scrim** are open to start
   with; you can fold either away and it shows its setting when closed. The app remembers which ones
   you leave open or closed. A reset button only

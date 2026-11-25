@@ -103,6 +103,13 @@ exports download as a zip. The studios fit tablets and phones.
    earlier, approved or not. The campaign moves to **Closed**.
 
 - **Markets:** Local (AED), International (USD), International EUR.
+- **Free layout (Layout › Arrangement › Free):** every component floats where it is and can be dragged
+  anywhere inside the margins of that canvas; its side grips set its width. **Focal point › Set** then a
+  click on the subject marks what to keep clear; **Recommended layout** places the copy around it (top
+  and bottom blocks, quietest parts of the photo, off the wordmark and QR) and leaves it Free to
+  fine-tune. A different arrangement per design is the quickest answer to "Meta says our ads look the
+  same". **Scaling** is 100% by default with three smaller steps (83, 69, 58%); the wordmark and QR
+  never scale, uploaded graphics do.
 - **Graphics on a carousel:** select an uploaded SVG / PNG and turn on **Same size on every page** to
   keep it one size across the pages. Dragging a floating graphic shows the padding, the centre lines
   and (on 9:16) the Reels safe area, and snaps to them; hold Alt (⌥) to place it freely.

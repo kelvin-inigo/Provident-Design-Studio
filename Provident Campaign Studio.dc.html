@@ -5480,6 +5480,20 @@ html.lk-open .p-lkcv{transform:none}
 .lm-cap{margin:10px 0 0;font:400 12px/1.4 var(--ps-font);color:var(--ps-ink-2)}
 .lm-cap span[data-over]{color:var(--ps-warn)}
 .lm-cap:empty{display:none}
+/* Layout › Arrangement, Focal point and the Recommended layout (2026-11-25). Chrome only:
+   kit classes (.lm-seg, .p-ghost, .p-btn) carry the look; these lay them out. */
+.fr .fr-seg{width:100%}
+.fr-row{display:flex;align-items:center;gap:6px;margin-top:10px}
+.fr-l{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;font:500 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.fr-l .tip{width:fit-content}
+.fr-l s{text-decoration:none;font:400 11.5px/1.3 var(--ps-font);color:var(--ps-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fr-eye{width:29px;padding:0;justify-content:center}
+.fr-eye svg{width:16px;height:16px;fill:currentColor}
+.fr-r{display:flex;align-items:center;gap:8px;margin-top:8px;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.fr-r input{flex:1;min-width:0}
+.fr-r s{text-decoration:none;width:34px;text-align:right;color:var(--ps-dim)}
+.fr-rec{width:100%;margin-top:10px}
+.fr-rec[data-busy]{opacity:.7;cursor:progress}
 .lm-msg{display:flex;align-items:center;gap:10px;margin:10px 0 0;padding:8px 8px 8px 12px;border-radius:10px;background:var(--ps-fill);font:400 12.5px/1.35 var(--ps-font);color:var(--ps-ink)}
 .lm-msg span{flex:1;min-width:0}
 .lm-msg button{flex:none;height:28px;padding:0 12px;border:0;border-radius:9999px;background:var(--ps-primary);color:var(--ps-primary-i);font:600 12.5px/1 var(--ps-font);cursor:pointer}
@@ -6729,6 +6743,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <sc-for list="{{ v.sq.items }}" as="m" hint-placeholder-count="5">
               <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-for list="{{ m.fHandles }}" as="fh" hint-placeholder-count="0"><span onPointerDown="{{ m.fDrag }}" data-gdir="{{ fh.dir }}" style="{{ fh.style }}"></span></sc-for>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
                 <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
@@ -6749,6 +6764,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.sq.fgStyle }}"><div style="{{ v.sq.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ v.sq.fpRingOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.sq.fpRing }}"><i style="{{ v.sq.fpDot }}"></i></div></sc-if><sc-if value="{{ v.sq.fpOn }}" hint-placeholder-val="{{ false }}"><div data-fpick="1" style="{{ v.sq.fpStyle }}" onClick="{{ v.sq.fpPick }}" title="Click the subject to keep clear"></div></sc-if>
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.sq.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if><sc-if value="{{ admShow }}" hint-placeholder-val="{{ false }}"><div style="{{ v.sq.admBoxStyle }}"><sc-for list="{{ v.sq.admEls }}" as="ae" hint-placeholder-count="0"><div style="{{ ae.style }}">{{ ae.t }}</div></sc-for></div></sc-if>
       </div>
       <span class="p-meta">{{ v.sqMeta }} · <span class="p-cov tip" data-over="{{ v.sq.coverOver }}" data-tip="{{ v.sq.coverTip }}"><i><b style="{{ v.sq.coverBar }}"></b></i>{{ v.sq.coverLabel }}</span></span>
@@ -6764,6 +6780,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <sc-for list="{{ v.pt.items }}" as="m" hint-placeholder-count="5">
               <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-for list="{{ m.fHandles }}" as="fh" hint-placeholder-count="0"><span onPointerDown="{{ m.fDrag }}" data-gdir="{{ fh.dir }}" style="{{ fh.style }}"></span></sc-for>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
                 <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
@@ -6784,6 +6801,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.pt.fgStyle }}"><div style="{{ v.pt.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ v.pt.fpRingOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.pt.fpRing }}"><i style="{{ v.pt.fpDot }}"></i></div></sc-if><sc-if value="{{ v.pt.fpOn }}" hint-placeholder-val="{{ false }}"><div data-fpick="1" style="{{ v.pt.fpStyle }}" onClick="{{ v.pt.fpPick }}" title="Click the subject to keep clear"></div></sc-if>
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.pt.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if><sc-if value="{{ admShow }}" hint-placeholder-val="{{ false }}"><div style="{{ v.pt.admBoxStyle }}"><sc-for list="{{ v.pt.admEls }}" as="ae" hint-placeholder-count="0"><div style="{{ ae.style }}">{{ ae.t }}</div></sc-for></div></sc-if>
       </div>
       <span class="p-meta">1080 × 1440 · <span class="p-cov tip" data-over="{{ v.pt.coverOver }}" data-tip="{{ v.pt.coverTip }}"><i><b style="{{ v.pt.coverBar }}"></b></i>{{ v.pt.coverLabel }}</span></span>
@@ -6800,6 +6818,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <sc-for list="{{ v.st.items }}" as="m" hint-placeholder-count="5">
               <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-for list="{{ m.fHandles }}" as="fh" hint-placeholder-count="0"><span onPointerDown="{{ m.fDrag }}" data-gdir="{{ fh.dir }}" style="{{ fh.style }}"></span></sc-for>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
                 <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
@@ -6820,6 +6839,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.st.fgStyle }}"><div style="{{ v.st.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ v.st.fpRingOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.st.fpRing }}"><i style="{{ v.st.fpDot }}"></i></div></sc-if><sc-if value="{{ v.st.fpOn }}" hint-placeholder-val="{{ false }}"><div data-fpick="1" style="{{ v.st.fpStyle }}" onClick="{{ v.st.fpPick }}" title="Click the subject to keep clear"></div></sc-if>
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.st.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if><sc-if value="{{ admShow }}" hint-placeholder-val="{{ false }}"><div style="{{ v.st.admBoxStyle }}"><sc-for list="{{ v.st.admEls }}" as="ae" hint-placeholder-count="0"><div style="{{ ae.style }}">{{ ae.t }}</div></sc-for></div></sc-if>
       </div>
       <span class="p-meta">{{ v.stMeta }} · <span class="p-cov tip" data-over="{{ v.st.coverOver }}" data-tip="{{ v.st.coverTip }}"><i><b style="{{ v.st.coverBar }}"></b></i>{{ v.st.coverLabel }}</span></span>
@@ -6836,6 +6856,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <sc-for list="{{ v.ls.items }}" as="m" hint-placeholder-count="5">
               <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-for list="{{ m.fHandles }}" as="fh" hint-placeholder-count="0"><span onPointerDown="{{ m.fDrag }}" data-gdir="{{ fh.dir }}" style="{{ fh.style }}"></span></sc-for>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
                 <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
@@ -6856,6 +6877,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.ls.fgStyle }}"><div style="{{ v.ls.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ v.ls.fpRingOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.ls.fpRing }}"><i style="{{ v.ls.fpDot }}"></i></div></sc-if><sc-if value="{{ v.ls.fpOn }}" hint-placeholder-val="{{ false }}"><div data-fpick="1" style="{{ v.ls.fpStyle }}" onClick="{{ v.ls.fpPick }}" title="Click the subject to keep clear"></div></sc-if>
         <sc-if value="{{ qrShow }}" hint-placeholder-val="{{ true }}"><div class="qrbox" style="{{ v.ls.qrStyle }}"><image-slot id="adstudio-qr" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot></div></sc-if><sc-if value="{{ admShow }}" hint-placeholder-val="{{ false }}"><div style="{{ v.ls.admBoxStyle }}"><sc-for list="{{ v.ls.admEls }}" as="ae" hint-placeholder-count="0"><div style="{{ ae.style }}">{{ ae.t }}</div></sc-for></div></sc-if>
       </div>
       <span class="p-meta">1200 × 628 · <span class="p-cov tip" data-over="{{ v.ls.coverOver }}" data-tip="{{ v.ls.coverTip }}"><i><b style="{{ v.ls.coverBar }}"></b></i>{{ v.ls.coverLabel }}</span></span>
@@ -6872,6 +6894,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <sc-for list="{{ v.bn.items }}" as="m" hint-placeholder-count="5">
               <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-for list="{{ m.fHandles }}" as="fh" hint-placeholder-count="0"><span onPointerDown="{{ m.fDrag }}" data-gdir="{{ fh.dir }}" style="{{ fh.style }}"></span></sc-for>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
                 <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
@@ -6892,6 +6915,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.bn.fgStyle }}"><div style="{{ v.bn.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ v.bn.fpRingOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.bn.fpRing }}"><i style="{{ v.bn.fpDot }}"></i></div></sc-if><sc-if value="{{ v.bn.fpOn }}" hint-placeholder-val="{{ false }}"><div data-fpick="1" style="{{ v.bn.fpStyle }}" onClick="{{ v.bn.fpPick }}" title="Click the subject to keep clear"></div></sc-if>
       </div>
       <span class="p-meta">1880 × 940 · <span class="p-cov tip" data-over="{{ v.bn.coverOver }}" data-tip="{{ v.bn.coverTip }}"><i><b style="{{ v.bn.coverBar }}"></b></i>{{ v.bn.coverLabel }}</span></span>
       <div onClick="{{ v.bs.select }}" data-cwpx="{{ v.bs.cwPx }}" data-lmk="{{ v.bs.lmKey }}" style="{{ v.bs.canvasStyle }}">
@@ -6904,6 +6928,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
             <sc-for list="{{ v.bs.items }}" as="m" hint-placeholder-count="5">
               <div class="modwrap" data-selmod="{{ m.selMark }}" data-mid="{{ m.dragId }}" data-cl="{{ m.dragCl }}" style="{{ m.wrapStyle }}" onClick="{{ m.select }}" onPointerDown="{{ m.reorder }}">
                 <span class="modhandle" style="{{ m.handleStyle }}">⠿</span>
+                <sc-for list="{{ m.fHandles }}" as="fh" hint-placeholder-count="0"><span onPointerDown="{{ m.fDrag }}" data-gdir="{{ fh.dir }}" style="{{ fh.style }}"></span></sc-for>
                 <sc-if value="{{ m.isEyebrow }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}">{{ m.text }}</div></sc-if>
                 <sc-if value="{{ m.isEyebrowRule }}" hint-placeholder-val="{{ false }}"><div style="{{ m.rowStyle }}"><span style="{{ m.ruleStyle }}"></span><div style="{{ m.tStyle }}">{{ m.text }}</div><span style="{{ m.ruleEndStyle }}"></span></div></sc-if>
                 <sc-if value="{{ m.isHero }}" hint-placeholder-val="{{ false }}"><div style="{{ m.tStyle }}"><sc-for list="{{ m.hlines }}" as="hl" hint-placeholder-count="2"><span style="{{ hl.style }}">{{ hl.t }}</span></sc-for></div></sc-if>
@@ -6924,6 +6949,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
           </div>
         </div>
         <sc-if value="{{ v.fgOn }}" hint-placeholder-val="{{ false }}"><div data-fgv="{{ v.fgVi }}" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1"><div style="{{ v.bs.fgStyle }}"><div style="{{ v.bs.fgTintStyle }}"></div></div></div></sc-if>
+        <sc-if value="{{ v.bs.fpRingOn }}" hint-placeholder-val="{{ false }}"><div style="{{ v.bs.fpRing }}"><i style="{{ v.bs.fpDot }}"></i></div></sc-if><sc-if value="{{ v.bs.fpOn }}" hint-placeholder-val="{{ false }}"><div data-fpick="1" style="{{ v.bs.fpStyle }}" onClick="{{ v.bs.fpPick }}" title="Click the subject to keep clear"></div></sc-if>
       </div>
       <span class="p-meta">758 × 380 · email size · <span class="p-cov tip" data-over="{{ v.bs.coverOver }}" data-tip="{{ v.bs.coverTip }}"><i><b style="{{ v.bs.coverBar }}"></b></i>{{ v.bs.coverLabel }}</span></span>
       </sc-if>
@@ -7239,6 +7265,17 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
       <div class="lw-h"><span class="tip" data-tip="The corner the wordmark sits in. Right is not offered: the brand places it left or center only.">Logo</span></div>
       <div class="lw-2"><sc-for list="{{ lmMap.logo }}" as="o" hint-placeholder-count="3"><button class="lw-o" data-g="{{ o.key }}" data-on="{{ o.on }}" aria-pressed="{{ o.aria }}" title="{{ o.tip }}" onClick="{{ o.set }}" onPointerEnter="{{ o.enter }}" onPointerLeave="{{ o.leave }}" onFocus="{{ o.enter }}" onBlur="{{ o.leave }}"><span class="lw-gl" aria-hidden="true"><i></i><i></i><i></i></span><span class="lw-t">{{ o.label }}</span><svg class="lw-k" viewBox="0 -960 960 960" aria-hidden="true"><path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/></svg></button></sc-for></div>
     </div>
+    <div class="lw fr" role="group" aria-label="Arrangement">
+      <div class="lw-h"><span class="tip" data-tip="Stacked keeps the copy in the top and bottom stacks. Free floats every component where it stands, so each can be dragged anywhere inside the margins and its width set with the side grips. On a size laid out separately, only that size changes; linked sizes share the placement, each kept inside its own margins.">Arrangement</span><sc-if value="{{ lmMap.scopeOn }}" hint-placeholder-val="{{ false }}"><s>this size only</s></sc-if></div>
+      <div class="lm-seg fr-seg" role="group" aria-label="Arrangement"><sc-for list="{{ frMap.modes }}" as="o" hint-placeholder-count="2"><button onClick="{{ o.set }}" data-on="{{ o.on }}" aria-pressed="{{ o.aria }}" title="{{ o.tip }}">{{ o.label }}</button></sc-for></div>
+      <div class="fr-row">
+        <span class="fr-l"><span class="tip" data-tip="The subject the copy should stay off — a face, the building, the view. Click Set, then click it on any canvas of this variant. It is stored on the photo, so it follows the subject through each size's crop.">Focal point</span><s>{{ frMap.focalState }}</s></span>
+        <sc-if value="{{ frMap.focalOn }}" hint-placeholder-val="{{ false }}"><button class="p-ghost p-sm fr-eye" onClick="{{ frMap.show }}" data-on="{{ frMap.showOn }}" title="{{ frMap.showTip }}" aria-label="{{ frMap.showTip }}"><svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-312q70 0 119-49t49-119q0-70-49-119t-119-49q-70 0-119 49t-49 119q0 70 49 119t119 49Zm0-72q-40 0-68-28t-28-68q0-40 28-68t68-28q40 0 68 28t28 68q0 40-28 68t-68 28Zm0 192q-142 0-259-78.5T48-480q56-131 173-209.5T480-768q142 0 259 78.5T912-480q-56 131-173 209.5T480-192Z"/></svg></button></sc-if>
+        <button class="p-ghost p-sm" onClick="{{ frMap.pick }}" data-on="{{ frMap.pickOn }}">{{ frMap.pickLabel }}</button>
+      </div>
+      <sc-if value="{{ frMap.focalOn }}" hint-placeholder-val="{{ false }}"><label class="fr-r"><span>Keep clear</span><input type="range" min="10" max="40" step="2" value="{{ frMap.r }}" onChange="{{ frMap.onR }}" aria-label="Keep-clear radius"><s>{{ frMap.r }}%</s></label></sc-if>
+      <button class="p-btn fr-rec" onClick="{{ frMap.recommend }}" data-busy="{{ frMap.busyOn }}" title="{{ frMap.recTip }}">{{ frMap.recLabel }}</button>
+    </div>
     <p class="lm-cap" aria-live="polite"><span data-over="{{ lmMap.coverOver }}">{{ lmMap.cover }}</span></p>
     <sc-if value="{{ lmMap.msgOn }}" hint-placeholder-val="{{ false }}"><div class="lm-msg" role="status"><span>{{ lmMap.msg }}</span><button onClick="{{ lmMap.undo }}">Undo</button></div></sc-if>
 
@@ -7264,7 +7301,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
         </div>
       </div>
       <details class="lm-f p-acc" data-acc="scaling" data-def="1">
-        <summary class="lm-row lm-sum"><span class="lm-l"><span class="tip" data-tip="Scales the content — type, design components, spacing, the wordmark and the QR box. Canvas margins stay fixed, so the brand grid holds. Each size scales on its own; the background photo is untouched.">Scaling</span></span><span class="lm-v"><span class="lm-vt">{{ scaleSummary }}</span><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+        <summary class="lm-row lm-sum"><span class="lm-l"><span class="tip" data-tip="Scales the content — type, design components, spacing and uploaded graphics — in three steps of the type scale below 100% (83, 69, 58%). The wordmark and the QR code never scale, and the canvas margins stay fixed, so the brand grid holds. Each size scales on its own; the background photo is untouched.">Scaling</span></span><span class="lm-v"><span class="lm-vt">{{ scaleSummary }}</span><svg class="p-acc-c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span></summary>
         <div class="lm-b">
       <sc-for list="{{ scaleRows }}" as="sc" hint-placeholder-count="2">
         <div class="p-scale">
@@ -7778,6 +7815,7 @@ class CampaignStudio extends StudioBase {
     // dropped only when it is not a card id, so a hand-edited value cannot send a bad header.
     if (p.hubCardId != null && !StudioBase.hubCardOf(p)) delete p.hubCardId;
     delete p.fx;   // exchange rates, from the withdrawn price-conversion pass
+    delete p.focalPick; delete p.focalShow;   // Layout › Focal point's on-screen state, never saved
     p.variants = (p.variants || []).map(CampaignStudio.normVariant);
     if (!p.variants.length) p.variants = [CampaignStudio.newVariant('Master')];
     p.modules = CampaignStudio.normModList(p.modules, p.variants);
@@ -8032,7 +8070,7 @@ class CampaignStudio extends StudioBase {
     window.addEventListener('focus', this._syncLS);
     window.addEventListener('storage', this._syncLS);
     this.loadRecents();
-    this._assetView = { crops: {}, fg: {} };
+    this._assetView = { crops: {}, fg: {}, bg: {} };
     this._refreshAV = () => {
       StudioBase.sidecar().catch(() => ({})).then(sc => {
         sc = sc || {};
@@ -8045,8 +8083,21 @@ class CampaignStudio extends StudioBase {
         if (JSON.stringify(nf) !== JSON.stringify(this._filled || {})) { this._filled = nf; this.forceUpdate(); }
         const qrv = norm(sc['adstudio-qr']), qu = qrv && qrv.u ? qrv.u : '';
         if (qu !== (this._qrU || '')) { this._qrU = qu; this.qrRead(qu); }
+        // THE PHOTO'S CROP AND PIXEL SIZE, per variant and per size's own photo (`vi_sz`), so the
+        // editor can map the focal point (Layout › Focal point) through the crop each canvas
+        // shows — buildOps' own maths, CampaignStudio.bgRect.
+        const bgDim = (key, b) => {
+          if (!(b && b.u)) { delete this._assetView.bg[key]; return; }
+          const cur = this._assetView.bg[key];
+          if (cur && cur.u === b.u) { cur.s = b.s || 1; cur.x = b.x || 0; cur.y = b.y || 0; return; }
+          const im = new Image();
+          im.onload = () => { this._assetView.bg[key] = { u: b.u, w: im.naturalWidth, h: im.naturalHeight, s: b.s || 1, x: b.x || 0, y: b.y || 0 }; this.forceUpdate(); };
+          im.src = b.u;
+        };
         for (let i = 0; i < 3; i++) {
           const b = norm(sc['adstudio-bg-' + i]);
+          bgDim(i, b);
+          ['st', 'ls', 'bn', 'pt'].forEach(sz => bgDim(i + '_' + sz, norm(sc['adstudio-bg-' + i + '-' + sz])));
           this._assetView.crops[i] = b ? { s: b.s || 1, x: b.x || 0, y: b.y || 0 } : { s: 1, x: 0, y: 0 };
           const f = norm(sc['adstudio-fg-' + i]);
           if (f && f.u) {
@@ -9937,15 +9988,20 @@ class CampaignStudio extends StudioBase {
       this.fill(force);
     }
   };
-  static SCALE_MIN = 80;
-  static SCALE_MAX = 130;
+  static SCALE_MIN = 57.8;
+  static SCALE_MAX = 100;
   // The range is PER SIZE. A 9:16 carries the same copy down a much narrower column
   // between a 174px top margin and a 360px bottom one, so it needs to come down a long
   // way — to half — far more than it ever needs to go up.
   // The 758 banner goes higher than the rest: an email shows it at 1:1, where 100% of the
   // 1880 design sets the smallest caps near 10px, so its type is the one that needs to come
   // UP. Each banner scales on its own, like every size.
-  static SCALE_RANGE = { sq: [80, 130], pt: [80, 130], st: [50, 100], ls: [80, 130], bn: [80, 130], bs: [80, 150] };
+  // THE FOUR META SIZES SHARE ONE RANGE (2026-11-25, by request): 100% is the default and the
+  // top of every slider, with three rungs of the minor third below it — 83 / 69 / 58%. The 9:16
+  // used to be the only size whose range ENDED at 100 (50–100, against 80–130 elsewhere), so its
+  // knob sat at the far right at 100% while the others sat mid-track: same value, two knob
+  // positions. Saved values above 100 on these sizes open at 100. The banners keep their own.
+  static SCALE_RANGE = { sq: [57.8, 100], pt: [57.8, 100], st: [57.8, 100], ls: [57.8, 100], bn: [80, 130], bs: [80, 150] };
   static scaleRange(sizeKey) {
     return CampaignStudio.SCALE_RANGE[sizeKey] || [CampaignStudio.SCALE_MIN, CampaignStudio.SCALE_MAX];
   }
@@ -10279,7 +10335,7 @@ class CampaignStudio extends StudioBase {
   static kOf(tk) { return (tk && tk.k) || 1; }
   // Every per-component map a variant (and a detached size) keeps, keyed by component id.
   // Fork, delete and migrate all walk THIS list, so a new per-id setting is one entry here.
-  static IDMAPS = ['clusters', 'mvar', 'msize', 'hidden', 'gapB', 'gfloat', 'gpos'];
+  static IDMAPS = ['clusters', 'mvar', 'msize', 'hidden', 'gapB', 'gfloat', 'gpos', 'fw'];
   // A detached size's own style and size choices over the variant's, for one render.
   // THE RECORD "EDIT SEPARATELY" CREATES, and it has to reproduce the size EXACTLY as it was
   // drawn the moment before. It used to copy the clusters alone, so the component ORDER fell
@@ -10294,6 +10350,7 @@ class CampaignStudio extends StudioBase {
     if (Array.isArray(vv.ord)) r.ord = vv.ord.slice();
     if (vv.gfloat) r.gfloat = cp(vv.gfloat);
     if (vv.gpos) r.gpos = cp(vv.gpos);
+    if (vv.fw) r.fw = cp(vv.fw);
     return r;
   }
   static withOv(v, eff) {
@@ -10342,16 +10399,22 @@ class CampaignStudio extends StudioBase {
     const ar = CampaignStudio.isArabic() ? CampaignStudio.AR.eyebrow : 1;
     if (k === 1 && ar === 1) return b;
     if (k === 1) return Object.assign({}, b, { eyebrow: b.eyebrow * ar });
-    // Content only: type, component boxes, gaps, the wordmark, the QR box. The
-    // canvas and its frame geometry — margins and the 16:9 text column — hold at
-    // every scale, so the brand grid and the 9:16 platform-safe margins survive.
-    const FIXED = { W: 1, H: 1, pad: 1, col: 1 };
+    // Content only: type, component boxes, gaps and the uploaded graphics (`sk`, read by
+    // graphicW / graphicH). The canvas and its frame geometry — margins and the 16:9 text
+    // column — hold at every scale, so the brand grid and the 9:16 platform-safe margins
+    // survive. THE WORDMARK AND THE QR NEVER SCALE (2026-11-25, by request): `logo` and `qr`
+    // are fixed too, and with them the wordmark's clear-space row and the co-brand lockup.
+    // `railR`, the Reels action rail, is the PLATFORM's geometry like the margins: it was being
+    // scaled with the content, so below 100% the 9:16 QR slid toward the rail (806 -> 876 at
+    // 58%) and the bottom cluster's clearance shrank from 170 to 98. Fixed from 2026-11-25.
+    const FIXED = { W: 1, H: 1, pad: 1, col: 1, logo: 1, qr: 1, railR: 1 };
     const o = {};
     for (const key in b) {
       const val = b[key];
       o[key] = (FIXED[key] || typeof val !== 'number') ? val : val * k;
     }
     o.eyebrow = o.eyebrow * ar;
+    o.sk = k;
     return o;
   }
   // Bottom opacity of the `fade` headline: the ramp loses 90% of the ink by the
@@ -10391,8 +10454,77 @@ class CampaignStudio extends StudioBase {
   // `eff` beside `clusters`, because "where this sits" is exactly what a variant is for.
   // They were on the module at first, which linked every variant to the master's
   // placement; the module still only owns the art and its scale.
+  // FREE LAYOUT (2026-11-25, by request): ANY component can float now, not only a graphic —
+  // the same per-record `gfloat` / `gpos` (centre, fraction of the canvas), read through `eff`,
+  // so a detached size keeps its own placement. A spacer never floats (it is only space in a
+  // stack). The name is kept: every caller already filters floaters out of the clusters, which
+  // is exactly what a floating headline needs too.
   static isFloatG(eff, m) {
-    return m.type === 'graphic' && !!(eff && eff.gfloat && eff.gfloat[m.id]);
+    return m.type !== 'spacer' && !!(eff && eff.gfloat && eff.gfloat[m.id]);
+  }
+  // A floating TEXT component (anything but a graphic) also has a width: `fw[id]`, a fraction
+  // of the content column, FW_MIN–1, absent = the whole column. Its height is modPx at that
+  // width, so narrowing it rewraps the copy rather than squeezing it.
+  static FW_MIN = .3;
+  static isFreeT(eff, m) { return m.type !== 'graphic' && CampaignStudio.isFloatG(eff, m); }
+  static freeW(eff, m, innerW) {
+    const f = eff && eff.fw && eff.fw[m.id];
+    return innerW * ((typeof f === 'number' && f > 0) ? Math.max(CampaignStudio.FW_MIN, Math.min(1, f)) : 1);
+  }
+  // Floating boxes read as RUNS: boxes whose vertical gap is at most four stack gaps join one
+  // run, the way a stack's members do. A run is what takes a scrim band (by which half its
+  // centre is in) and what the cover readout measures (its height, like a stack's) — so a
+  // stack floated in place keeps its band and its cover figure exactly.
+  static freeRuns(boxes, tk) {
+    const bs = boxes.slice().sort((a, b) => a.y - b.y), out = [], gap = tk.gapS * 4;
+    bs.forEach(b => {
+      const r = out[out.length - 1];
+      if (r && b.y - r.y1 <= gap) r.y1 = Math.max(r.y1, b.y + b.h);
+      else out.push({ y0: b.y, y1: b.y + b.h });
+    });
+    return out;
+  }
+  // The record is laid out free when any text component on it floats (Layout › Arrangement).
+  static isFreeRec(eff, list) { return !!(eff && eff.gfloat) && list.some(m => CampaignStudio.isFreeT(eff, m)); }
+  // Move ops already pushed (from index `from`) sideways by dx canvas px. drawMod lays a free
+  // component out in a box centred in the margin band — where a centred stack would put it —
+  // and this carries it to its own x, so every component draws through the one drawMod.
+  static shiftOps(ops, from, dx) {
+    if (!dx) return;
+    for (let i = from; i < ops.length; i++) {
+      const o = ops[i];
+      if (o.op === 'poly') { o.pts = o.pts.map(q => [q[0] + dx, q[1]]); continue; }
+      if (o.x != null) o.x += dx;
+      if (o.clip) o.clip = Object.assign({}, o.clip, { x: o.clip.x + dx });
+      if (o.vec) o.vec = [o.vec[0] + dx, o.vec[1], o.vec[2] + dx, o.vec[3]];
+    }
+  }
+  // Where the background photo sits on the canvas, in canvas px — buildOps' own crop maths
+  // (cover, zoom `s`, offset clamped to the overhang). The focal point is stored in PHOTO
+  // fractions, so it follows the subject through each size's crop.
+  static bgRect(bg, W, H) {
+    if (!bg || !bg.img) return { x: 0, y: 0, w: W, h: H };
+    const iw = bg.img.naturalWidth || bg.img.width || 1, ih = bg.img.naturalHeight || bg.img.height || 1;
+    const base = Math.max(W / iw, H / ih), k = base * (bg.s || 1);
+    const dw = iw * k, dh = ih * k;
+    const mx = Math.max(0, (dw / W - 1) * 50), my = Math.max(0, (dh / H - 1) * 50);
+    const bx = Math.max(-mx, Math.min(mx, bg.x || 0)), by = Math.max(-my, Math.min(my, bg.y || 0));
+    const cx = (50 + bx) / 100 * W, cy = (50 + by) / 100 * H;
+    return { x: cx - dw / 2, y: cy - dh / 2, w: dw, h: dh };
+  }
+  // The variant's focal point: `v.focal = { x, y, r }` — x/y fractions of the PHOTO, r the
+  // keep-clear radius as a fraction of the canvas's shorter side (default .22).
+  static FOCAL_R = .22;
+  static focalOf(v) {
+    const f = v && v.focal;
+    if (!f || typeof f.x !== 'number' || typeof f.y !== 'number') return null;
+    return { x: f.x, y: f.y, r: (typeof f.r === 'number' && f.r > 0) ? f.r : CampaignStudio.FOCAL_R };
+  }
+  static focalPx(v, bg, W, H) {
+    const f = CampaignStudio.focalOf(v);
+    if (!f) return null;
+    const R = CampaignStudio.bgRect(bg, W, H);
+    return { cx: R.x + f.x * R.w, cy: R.y + f.y * R.h, r: f.r * Math.min(W, H) };
   }
   static floatPos(eff, m) {
     const p = (eff && eff.gpos && eff.gpos[m.id]) || null;
@@ -10403,7 +10535,7 @@ class CampaignStudio extends StudioBase {
     return { cx: p.fx * tk.W, cy: p.fy * tk.H };
   }
   static floatBox(eff, m, tk, innerW, gh, ov) {
-    const gw = CampaignStudio.graphicW(ov, m, innerW);
+    const gw = CampaignStudio.graphicW(ov, m, innerW, tk);
     const c = CampaignStudio.floatCentre(eff, m, tk);
     return { w: gw, h: gh, x: c.cx - gw / 2, y: c.cy - gh / 2 };
   }
@@ -10442,7 +10574,9 @@ class CampaignStudio extends StudioBase {
   // Every edge is symmetric left/right, so the Arabic mirror needs no flip (the rail is the
   // platform's UI and is drawn on the screen's right either way).
   static GSNAP_PX = 8;
-  static gGuides(cwEl, tk, sizeKey, hair) {
+  // `focal` ({ cx, cy, r } canvas px, from focalPx), when the variant has one: its keep-clear
+  // circle is drawn too, so a component being placed can be kept off the subject.
+  static gGuides(cwEl, tk, sizeKey, hair, focal) {
     if (!cwEl) return null;
     const [pT, pR, pB, pL] = tk.pad, W = tk.W, H = tk.H;
     const g = document.createElement('div');
@@ -10459,6 +10593,11 @@ class CampaignStudio extends StudioBase {
     const box = ln('left:' + pL + 'px;top:' + pT + 'px;width:' + (W - pL - pR) + 'px;height:' + (H - pT - pB) + 'px;box-sizing:border-box;border:' + h + 'px dashed color-mix(in srgb,var(--ps-guide) 85%,transparent);box-shadow:0 0 0 ' + h + 'px rgba(0,0,0,.18)');
     const vx = ln('left:' + (W / 2 - h / 2) + 'px;top:0;width:' + h + 'px;height:' + H + 'px;background:' + dash + '180deg,color-mix(in srgb,var(--ps-guide) 60%,transparent) 0 ' + 6 * h + 'px,transparent ' + 6 * h + 'px ' + 12 * h + 'px)');
     const hy = ln('left:0;top:' + (H / 2 - h / 2) + 'px;width:' + W + 'px;height:' + h + 'px;background:' + dash + '90deg,color-mix(in srgb,var(--ps-guide) 60%,transparent) 0 ' + 6 * h + 'px,transparent ' + 6 * h + 'px ' + 12 * h + 'px)');
+    if (focal && focal.r > 0) {
+      // the overlay is in SCREEN coordinates and the photo is never mirrored, so no flip here
+      const fcx = focal.cx;
+      ln('left:' + (fcx - focal.r) + 'px;top:' + (focal.cy - focal.r) + 'px;width:' + 2 * focal.r + 'px;height:' + 2 * focal.r + 'px;box-sizing:border-box;border-radius:50%;border:' + 2 * h + 'px dashed var(--ps-guide);background:color-mix(in srgb,var(--ps-guide) 8%,transparent)');
+    }
     cwEl.appendChild(g);
     const solid = 'var(--ps-guide)';
     return {
@@ -10514,11 +10653,14 @@ class CampaignStudio extends StudioBase {
   // How many steps Undo and Redo keep.
   static UNDO_MAX = 10;
   static gRef(innerW) { return Math.min(innerW, CampaignStudio.GREF); }
-  static graphicW(ov, m, innerW) {
+  // `tk.sk` is the Scaling step (1 at 100%, absent on an unscaled tk), so an uploaded graphic
+  // follows Scaling like the type does; the column it is a fraction of is fixed geometry.
+  static graphicW(ov, m, innerW, tk) {
     innerW = CampaignStudio.gRef(innerW);
+    const sk = (tk && tk.sk) || 1;
     const g = CampaignStudio.gScaleOf(ov, m);
-    return g == null ? innerW
-      : innerW * Math.max(CampaignStudio.GSCALE_MIN, Math.min(CampaignStudio.GSCALE_MAX, g));
+    return (g == null ? innerW
+      : innerW * Math.max(CampaignStudio.GSCALE_MIN, Math.min(CampaignStudio.GSCALE_MAX, g))) * sk;
   }
   static graphicH(ov, m, tk, innerW, mv, a) {
     const g = CampaignStudio.gScaleOf(ov, m);
@@ -10527,9 +10669,9 @@ class CampaignStudio extends StudioBase {
       // has no asset to hand) and buildOps (which does) agree on the height
       const asp = CampaignStudio.gAspOf(ov, m)
         || (a && a.img ? (a.img.naturalHeight || 1) / (a.img.naturalWidth || 1) : 1);
-      return CampaignStudio.graphicW(ov, m, innerW) * asp;
+      return CampaignStudio.graphicW(ov, m, innerW, tk) * asp;
     }
-    return CampaignStudio.GH[m.gsize] || CampaignStudio.GH.m;
+    return (CampaignStudio.GH[m.gsize] || CampaignStudio.GH.m) * ((tk && tk.sk) || 1);
   }
   // Display order, per variant. `target.ord` is a list of component ids; anything
   // missing from it (a newly added component, or a session saved before order was
@@ -11525,16 +11667,44 @@ class CampaignStudio extends StudioBase {
     if (CampaignStudio.mirrored()) { const x0 = Math.max(pL, r); return { x0, w: Math.min(innerW, tk.W - tk.pad[1] - x0) }; }
     return { x0: pL, w: Math.min(innerW, tk.W - r - pL) };
   }
-  scrimStops(v, tk, list, clusterOf, ov, qrR) {
+  // The box a floating text component draws in, canvas px. Its centre is `gpos`, its width
+  // `fw` x the column; it is KEPT INSIDE THE MARGINS — the brand grid and the 9:16 Reels safe
+  // area bind wherever it is put — and on a canvas with an action rail (`railR`) a box that
+  // reaches the rail's lower two-thirds stops short of it, narrowing (and so rewrapping) if
+  // it has to. A record laid out on one size and read by another linked size therefore
+  // still lands inside that size's own safe area. Mirrored, the rail is reserved on the left
+  // of the Latin frame, as railBox does.
+  freeBox(eff, m, v, tk, innerW, ov) {
+    const [pT, pR, pB, pL] = tk.pad, W = tk.W, H = tk.H;
+    const p = CampaignStudio.floatPos(eff, m);
+    let w = CampaignStudio.freeW(eff, m, innerW);
+    let h = this.modPx(m, v, tk, w, ov);
+    let lo = pL, hi = W - pR;
+    const yOf = hh => Math.max(pT, Math.min(H - pB - hh, p.fy * H - hh / 2));
+    if (tk.railR && yOf(h) + h > H / 3) {
+      if (CampaignStudio.mirrored()) lo = Math.max(pL, tk.railR); else hi = W - Math.max(pR, tk.railR);
+      if (w > hi - lo) { w = hi - lo; h = this.modPx(m, v, tk, w, ov); }
+    }
+    const x = Math.max(lo, Math.min(hi - w, p.fx * W - w / 2));
+    return { x, y: yOf(h), w, h };
+  }
+  scrimStops(v, tk, list, clusterOf, ov, qrR, eff) {
     const [pT, pR, pB, pL] = tk.pad, W = tk.W, H = tk.H;
     const center = v.align === 'center';
     const useCol = !!tk.col && !center;
     const innerW = useCol ? tk.col : W - pL - pR;
     const A = Math.max(0, Math.min(100, v.scrimH == null ? 65 : v.scrimH)) / 100;
+    // FLOATING TEXT (free layout) is out of the clusters; each box instead extends the band of
+    // the half it sits in, so the wash still sits behind the copy wherever it is placed. A
+    // floating GRAPHIC is left exactly as it was (callers decide), so nothing saved moves.
+    const flT = eff ? list.filter(m => CampaignStudio.isFreeT(eff, m) && m.type !== 'divider') : [];
+    if (flT.length) list = list.filter(m => !CampaignStudio.isFreeT(eff, m));
+    const flB = CampaignStudio.freeRuns(flT.map(m => this.freeBox(eff, m, v, tk, innerW, ov)), tk).map(r => ({ y: r.y0, h: r.y1 - r.y0 }));
     // unbranded, the scrim takes the look's scrim role; its shape, opacity and fade stay the variant's
     const base = CampaignStudio._look ? CampaignStudio.rgbOf(CampaignStudio._look.pal[4], '#000000')
       : CampaignStudio.rgbOf(v.scrimHex, v.scrimC === 'black' ? '#000000' : CampaignStudio.palOf(v).scrim);
-    const has = c => list.some(m => clusterOf(m.id) === c && m.type !== 'divider' && m.type !== 'spacer');
+    const has = c => list.some(m => clusterOf(m.id) === c && m.type !== 'divider' && m.type !== 'spacer')
+      || flB.some(b => (c === 'top') === (b.y + b.h / 2 < H / 2));
     // Per-component gaps, so the wash follows the real stack height — the first in a
     // cluster contributes none, exactly as the layout places it.
     // The wash is sized from the stack, so it has to measure each cluster at the width the
@@ -11575,12 +11745,18 @@ class CampaignStudio extends StudioBase {
       stops = [[0, A], [Math.max(0, edge - fade), A], [edge, 0], [1, 0]];
     } else {
       // Inner edge of each box, in canvas px.
-      const topEnd = (wTop
+      const stT = list.some(m => clusterOf(m.id) === 'top' && m.type !== 'divider' && m.type !== 'spacer');
+      const stB = list.some(m => clusterOf(m.id) === 'bottom' && m.type !== 'divider' && m.type !== 'spacer');
+      let topEnd = (stT
         ? (logoBottom ? pT + (qrR || 0) : pT + logoH + CLEAR) + clusterH('top')
         : pT + logoH) + PAD;
-      const botStart = (wBot
+      let botStart = (stB
         ? (logoBottom ? H - pB - logoH - CLEAR : H - pB) - clusterH('bottom')
         : H - pB - logoH) - PAD;
+      flB.forEach(b => {
+        if (b.y + b.h / 2 < H / 2) topEnd = Math.max(topEnd, b.y + b.h + PAD);
+        else botStart = Math.min(botStart, b.y - PAD);
+      });
       let tB = topOn ? Math.max(0, Math.min(1, topEnd / H)) : null;
       let bT = botOn ? Math.max(0, Math.min(1, botStart / H)) : null;
       // Tall copy at both ends can make the boxes meet — split the difference so
@@ -11648,7 +11824,7 @@ class CampaignStudio extends StudioBase {
     const hid = v.hidden || {};
     const list = CampaignStudio.orderedFor(eff, CampaignStudio.modulesFor(state, vi)).filter(m => !hid[m.id]);
     const qrR = CampaignStudio.qrTopRes(state, v, tk);
-    const sc = this.scrimStops(v, tk, list, clusterOf, gov, qrR);
+    const sc = this.scrimStops(v, tk, list, clusterOf, gov, qrR, eff);
     const scrimCss = sc.stops.map(st2 => [st2[0], `rgba(${sc.base},${+st2[1].toFixed(3)})`]);
     ops.push({ op: 'grad', x: 0, y: 0, w: W, h: H, stops: scrimCss, horiz: sc.horiz });
     // logo — 80px clear space around it
@@ -12281,7 +12457,7 @@ class CampaignStudio extends StudioBase {
           // the art off its own pixel dimensions while the preview used the column — the art
           // came out at a completely different size in the export only.
           const aw = a.img.naturalWidth || 1, ah = a.img.naturalHeight || 1;
-          const k = Math.min(CampaignStudio.graphicW(gov, m, iw) / aw, gh / ah);
+          const k = Math.min(CampaignStudio.graphicW(gov, m, iw, tk) / aw, gh / ah);
           const dw = aw * k, dh = ah * k;
           const gx = center ? cctr(dw) : px0;
           ops.push({ op: 'image', img: a.img, url: a.u, x: gx, y: y + (gh - dh) / 2, w: dw, h: dh,
@@ -12311,10 +12487,18 @@ class CampaignStudio extends StudioBase {
     // Note which ops belong to a hero: ops carry absolute coordinates, so they can
     // be restacked afterwards without moving anything.
     const heroAt = [];
+    // `this._boxRec`, when a caller sets it, collects where each component was laid out —
+    // Layout › Free reads it to float the stack exactly where it stands.
+    const rec = this._boxRec || null;
     const draw = (m, yy, g) => {
       const from = ops.length;
       drawMod(m, yy, g);
       if (m.type === 'hero') heroAt.push([from, ops.length]);
+      if (rec) {
+        const im = m.type === 'graphic' ? ops.slice(from).find(o => o.op === 'image') : null;
+        rec.push({ id: m.id, type: m.type, y: yy, h: modH(m, g), x0: g ? g.x0 : pL, w: g ? g.w : innerW,
+          img: im ? { x: im.x, y: im.y, w: im.w, h: im.h } : null });
+      }
     };
     // Space is taken BEFORE each component, so a per-component override reads as
     // "push this one down" and the first in a cluster stays pinned to its margin.
@@ -12335,12 +12519,21 @@ class CampaignStudio extends StudioBase {
     // Floating graphics go last, so they sit over the clusters — that is what makes
     // them free to be placed anywhere without the stack deciding for them.
     floaters.forEach(m => {
+      if (m.type !== 'graphic') {
+        // FREE LAYOUT: laid out by the one drawMod in a box centred in the margin band (where
+        // a centred stack puts it, so `center` centres inside the box), then carried to its x.
+        const B = this.freeBox(eff, m, v, tk, innerW, gov);
+        const from = ops.length, bx0 = cctr(B.w);
+        draw(m, B.y, { x0: bx0, w: B.w });
+        CampaignStudio.shiftOps(ops, from, B.x - bx0);
+        return;
+      }
       const a = assets['mod' + m.id];
       if (!(a && a.img)) return;
       const mvF = v.mvar[m.id];
       const gh = CampaignStudio.graphicH(gov, m, tk, innerW, mvF, a);
       const iw = a.img.naturalWidth || 1, ih = a.img.naturalHeight || 1;
-      const k = Math.min(CampaignStudio.graphicW(gov, m, innerW) / iw, gh / ih);
+      const k = Math.min(CampaignStudio.graphicW(gov, m, innerW, tk) / iw, gh / ih);
       const dw = iw * k, dh = ih * k;
       const c = CampaignStudio.floatCentre(eff, m, tk);
       ops.push({ op: 'image', img: a.img, url: a.u, x: c.cx - dw / 2, y: c.cy - dh / 2, w: dw, h: dh,
@@ -14010,6 +14203,325 @@ class CampaignStudio extends StudioBase {
     clearTimeout(this._lmMsgT);
     this._lmMsgT = setTimeout(() => { this._lmMsg = ''; this.forceUpdate(); }, 9000);
     this.forceUpdate();
+  }
+  // ── FREE LAYOUT AND THE RECOMMENDED LAYOUT (2026-11-25, by request) ───────────────────────
+  // Meta flagged our ads as too similar (79–84% pairs off the same templates), so the copy can
+  // now leave the two stacks. Layout › Arrangement › Free floats every component of the record
+  // the selected canvas reads EXACTLY where the stack drew it (buildOps' own boxes, via
+  // `_boxRec`), so nothing moves until it is dragged; Stacked puts them back in their clusters.
+  // The record is the selected canvas's: a size laid out separately keeps its own placement,
+  // and linked sizes share the variant's (fractions of the canvas, each kept inside its own
+  // margins by freeBox).
+  static lmSz(x) { return (x.sel && x.sel.size) || x.focusSz || 'sq'; }
+  // FREE AND RECOMMENDED ACT ON THE SELECTED CANVAS ONLY — positions are fractions of ONE
+  // canvas's shape. A linked size is given its own record first (Edit separately, layout only;
+  // the photo stays shared); on the 1:1, whose record the linked sizes read, each linked size
+  // that is shown is detached first, so it keeps exactly what it shows. Returns the record.
+  static OVK_OF = { st: 'story', ls: 'wideOv', bn: 'banOv', bs: 'banOv', pt: 'ptOv' };
+  static freeScope(x, vi, sz) {
+    const C = CampaignStudio, vv = x.variants[vi] || x.variants[0];
+    const own = C.sizeOv(vv, sz);
+    if (own) return { tgt: own, how: 'own' };
+    if (sz !== 'sq') { vv[C.OVK_OF[sz]] = C.detachRec(vv); return { tgt: vv[C.OVK_OF[sz]], how: 'detached' }; }
+    const shown = { st: true, pt: !!vv.ptOn, ls: !!vv.wide, bn: !!vv.banner };
+    let n = 0;
+    Object.keys(shown).forEach(k => { if (shown[k] && !C.sizeOv(vv, k)) { vv[C.OVK_OF[k]] = C.detachRec(vv); n++; } });
+    return { tgt: vv, how: n ? 'kept' : 'base' };
+  }
+  static freeHow(how) {
+    return how === 'detached' ? ' (this size is now laid out separately)' : how === 'kept' ? ' on the 1:1 (the other sizes keep their own layouts)' : how === 'own' ? ' on this size' : '';
+  }
+  layoutFree() {
+    const go = assets => {
+      let n0 = 0, how = '';
+      this.upd(x => {
+        const C = CampaignStudio, vi = x.activeVi, sz = C.lmSz(x);
+        const vv = x.variants[vi] || x.variants[0];
+        const sc = C.freeScope(x, vi, sz), tgt = sc.tgt, own = C.sizeOv(vv, sz);
+        how = sc.how;
+        const tk = C.tkFor(sz, vv), W = tk.W, H = tk.H;
+        const v = C.withOv(vv, tgt), center = v.align === 'center';
+        const rec = [];
+        this._boxRec = rec;
+        try { this.buildOps(x, vi, sz, assets || {}); } finally { this._boxRec = null; }
+        tgt.gfloat = tgt.gfloat || {}; tgt.gpos = tgt.gpos || {}; tgt.fw = tgt.fw || {};
+        const [, pR, , pL] = tk.pad, innerW = (tk.col && !center) ? tk.col : W - pL - pR;
+        const mods = C.modulesFor(x, vi);
+        rec.forEach(b => {
+          const m = mods.find(mm => mm.id === b.id);
+          if (!m || m.type === 'spacer' || tgt.gfloat[b.id]) return;
+          let cx, cy;
+          if (m.type === 'graphic') {
+            if (b.img) { cx = b.img.x + b.img.w / 2; cy = b.img.y + b.img.h / 2; }
+            else { const gw = C.graphicW(own || null, m, innerW, tk); cx = center ? b.x0 + b.w / 2 : b.x0 + gw / 2; cy = b.y + b.h / 2; }
+          } else {
+            cx = b.x0 + b.w / 2; cy = b.y + b.h / 2;
+            const f = b.w / innerW;
+            if (Math.abs(f - 1) > 1e-9) tgt.fw[b.id] = f; else delete tgt.fw[b.id];
+          }
+          tgt.gpos[b.id] = { x: cx / W, y: cy / H };
+          tgt.gfloat[b.id] = true;
+          n0++;
+        });
+        return x;
+      });
+      this.lmNote(n0 ? 'Free layout' + CampaignStudio.freeHow(how) + ' — drag any component; the side grips set its width' : 'Nothing to float — add a component first');
+    };
+    this.loadAssets(this.state).then(go, () => go({}));
+  }
+  layoutStack() {
+    this.upd(x => {
+      const C = CampaignStudio, vv = x.variants[x.activeVi] || x.variants[0];
+      const tgt = C.sizeOv(vv, C.lmSz(x)) || vv;
+      tgt.gfloat = {}; delete tgt.fw;
+      return x;
+    });
+    this.lmNote('Back in the stacks — top and bottom');
+  }
+  // THE RECOMMENDED LAYOUT. The designer marks the subject (Focal point); the photo, as this
+  // canvas crops it, is read into a busyness map (Sobel edge energy per 12px cell, normalised
+  // to its 90th percentile — busy texture is where copy reads worst); and the components'
+  // own two clusters are placed as two blocks, each at the width, side and height that costs
+  // least. Hard rules: inside the margins (the 9:16 Reels safe area, and clear of the action
+  // rail in its lower two-thirds), off the wordmark's row and its 80px clear space, off the QR
+  // and its corner, off the other block, and never over the focal circle when anything else
+  // fits. Soft: quiet photo, hugging the top or bottom margin (the brand's top/bottom
+  // clusters), wider over narrower, each cluster staying on its own half. The result is a FREE
+  // layout, so every piece can then be fine-tuned by hand. The wordmark and QR never move.
+  recommendLayout() {
+    const st0 = this.state, vi = st0.activeVi, sz = CampaignStudio.lmSz(st0);
+    this._frBusy = true; this.forceUpdate();
+    const go = assets => {
+      let plan = null;
+      try { plan = this.planLayout(st0, vi, sz, assets || {}); } catch (e) { console.warn('recommend', e); }
+      this._frBusy = false;
+      if (!plan) { this.forceUpdate(); this.lmNote('The copy does not fit inside this canvas’s margins as two blocks — step Scaling down or trim the copy, then try again'); return; }
+      let how = '';
+      this.upd(x => {
+        const C = CampaignStudio, vv = x.variants[vi] || x.variants[0];
+        const sc = C.freeScope(x, vi, sz), tgt = sc.tgt;
+        how = sc.how;
+        tgt.gfloat = tgt.gfloat || {}; tgt.gpos = tgt.gpos || {}; tgt.fw = tgt.fw || {};
+        Object.keys(plan.place).forEach(id => {
+          const p = plan.place[id];
+          tgt.gfloat[id] = true;
+          tgt.gpos[id] = { x: +p.x.toFixed(4), y: +p.y.toFixed(4) };
+          if (p.fw != null && p.fw < .9999) tgt.fw[id] = +p.fw.toFixed(4); else delete tgt.fw[id];
+        });
+        if (plan.focal && !C.focalOf(vv)) vv.focal = plan.focal;
+        x.focalShow = true;
+        return x;
+      });
+      this.lmNote(plan.note.replace('Recommended layout', 'Recommended layout' + CampaignStudio.freeHow(how)));
+    };
+    this.loadAssets(st0).then(go, () => go({}));
+  }
+  planLayout(st, vi, sz, assets) {
+    const C = CampaignStudio, vv = st.variants[vi] || st.variants[0];
+    const eff = C.sizeOv(vv, sz) || vv, gov = C.sizeOv(vv, sz) || null;
+    StudioBase.applyFont(st);
+    const v = C.withOv(vv, eff), tk = C.tkFor(sz, vv), W = tk.W, H = tk.H;
+    const [pT, pR, pB, pL] = tk.pad, center = v.align === 'center';
+    const innerW = (tk.col && !center) ? tk.col : W - pL - pR;
+    const mir = C.mirrored();
+    const psz = C.photoSize(sz);
+    const bg = (psz !== 'sq' && v.bgSep && v.bgSep[psz] && assets['bg' + vi + '_' + psz]) || assets['bg' + vi];
+    // ── the busyness map, in the LATIN frame the layout is stored in (the photo is never
+    // mirrored, so on an Arabic ad the map is flipped to meet the layout before it is reflected)
+    const G = 12, gw = Math.ceil(W / G), gh = Math.ceil(H / G);
+    const busy = new Float32Array(gw * gh);
+    if (bg && bg.img) {
+      try {
+        const R = C.bgRect(bg, W, H), S = 2;
+        const cv = document.createElement('canvas'); cv.width = gw * S; cv.height = gh * S;
+        const cx = cv.getContext('2d', { willReadFrequently: true });
+        cx.drawImage(bg.img, R.x / G * S, R.y / G * S, R.w / G * S, R.h / G * S);
+        const d = cx.getImageData(0, 0, cv.width, cv.height).data, cw = cv.width, chh = cv.height;
+        const L = new Float32Array(cw * chh);
+        for (let i = 0; i < cw * chh; i++) L[i] = .2126 * d[i * 4] + .7152 * d[i * 4 + 1] + .0722 * d[i * 4 + 2];
+        for (let y = 1; y < chh - 1; y++) for (let x = 1; x < cw - 1; x++) {
+          const i = y * cw + x;
+          const gx = (L[i - cw + 1] + 2 * L[i + 1] + L[i + cw + 1]) - (L[i - cw - 1] + 2 * L[i - 1] + L[i + cw - 1]);
+          const gy = (L[i + cw - 1] + 2 * L[i + cw] + L[i + cw + 1]) - (L[i - cw - 1] + 2 * L[i - cw] + L[i - cw + 1]);
+          const cxl = Math.floor(x / S), cyl = Math.floor(y / S);
+          busy[cyl * gw + (mir ? gw - 1 - cxl : cxl)] += Math.abs(gx) + Math.abs(gy);
+        }
+        const sorted = Array.from(busy).sort((a, b) => a - b), p90 = sorted[Math.floor(sorted.length * .9)] || 1;
+        for (let i = 0; i < busy.length; i++) busy[i] = Math.min(1, busy[i] / p90);
+      } catch (e) { busy.fill(0); }
+    }
+    // summed-area table: the mean busyness of any box in O(1)
+    const sat = new Float64Array((gw + 1) * (gh + 1));
+    for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++)
+      sat[(y + 1) * (gw + 1) + x + 1] = busy[y * gw + x] + sat[y * (gw + 1) + x + 1] + sat[(y + 1) * (gw + 1) + x] - sat[y * (gw + 1) + x];
+    const meanBusy = b => {
+      const x0 = Math.max(0, Math.floor(b.x / G)), y0 = Math.max(0, Math.floor(b.y / G));
+      const x1 = Math.min(gw, Math.ceil((b.x + b.w) / G)), y1 = Math.min(gh, Math.ceil((b.y + b.h) / G));
+      const n = Math.max(1, (x1 - x0) * (y1 - y0));
+      return (sat[y1 * (gw + 1) + x1] - sat[y0 * (gw + 1) + x1] - sat[y1 * (gw + 1) + x0] + sat[y0 * (gw + 1) + x0]) / n;
+    };
+    // ── the focal point (screen frame), or — none set — the busiest region of the photo
+    let F = C.focalPx(vv, bg, W, H), autoFocal = null;
+    if (!F) {
+      let sx = 0, sy = 0, sw = 0;
+      for (let y = 0; y < gh; y++) for (let x = 0; x < gw; x++) {
+        const b = busy[y * gw + x]; if (b < .6) continue;
+        const xs = mir ? gw - 1 - x : x;
+        sx += (xs + .5) * G * b; sy += (y + .5) * G * b; sw += b;
+      }
+      F = sw ? { cx: sx / sw, cy: sy / sw, r: C.FOCAL_R * Math.min(W, H) } : { cx: W / 2, cy: H / 2, r: C.FOCAL_R * Math.min(W, H) };
+      const R = C.bgRect(bg, W, H);
+      autoFocal = { x: Math.max(0, Math.min(1, (F.cx - R.x) / R.w)), y: Math.max(0, Math.min(1, (F.cy - R.y) / R.h)), r: C.FOCAL_R };
+    }
+    const Fl = { cx: mir ? W - F.cx : F.cx, cy: F.cy, r: F.r };
+    // ── what may not be covered (Latin frame)
+    const unb = !!C._look, logoBottom = !unb && v.logoPos === 'bottom', CLEAR = 80, logoH = tk.logo * 1.2;
+    const forb = [];
+    if (!unb) forb.push(logoBottom ? { x: 0, y: H - pB - logoH - CLEAR, w: W, h: pB + logoH + CLEAR } : { x: 0, y: 0, w: W, h: pT + logoH + CLEAR });
+    if (st.qr && st.qr.show && !tk.noQr && !unb) {
+      const q = C.qrBox(st, tk), g2 = tk.gapS;
+      forb.push({ x: q.qx - g2, y: q.qy - g2, w: q.qs + g2 * 2, h: q.qs + g2 * 2 });
+      const qrR = C.qrTopRes(st, v, tk);
+      if (qrR) forb.push({ x: 0, y: 0, w: W, h: pT + qrR });
+    }
+    const hits = (a, b, pad) => a.x < b.x + b.w + pad && a.x + a.w + pad > b.x && a.y < b.y + b.h + pad && a.y + a.h + pad > b.y;
+    const distTo = (b, p) => { const dx = Math.max(b.x - p.cx, 0, p.cx - (b.x + b.w)), dy = Math.max(b.y - p.cy, 0, p.cy - (b.y + b.h)); return Math.hypot(dx, dy); };
+    // how much of the keep-clear circle a box covers, 0–1 (a 16 x 16 sample of the circle's
+    // square), so a layout that cannot clear the subject at least covers the least of it
+    const circS = []; for (let j = 0; j < 16; j++) for (let i = 0; i < 16; i++) { const u = (i + .5) / 8 - 1, w2 = (j + .5) / 8 - 1; if (u * u + w2 * w2 <= 1) circS.push([u, w2]); }
+    const overF = b => { let n = 0; circS.forEach(([u, w2]) => { const px = Fl.cx + u * Fl.r, py = Fl.cy + w2 * Fl.r; if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) n++; }); return n / circS.length; };
+    // ── the two blocks: the designer's own clusters, in their own order
+    const hid = v.hidden || {};
+    const list = C.orderedFor(eff, C.modulesFor(st, vi)).filter(m => !hid[m.id] && m.type !== 'spacer');
+    if (!list.length) return null;
+    const clOf = id => (eff.clusters || {})[id] || 'bottom';
+    const groups = [{ side: 'top', ms: list.filter(m => clOf(m.id) === 'top') }, { side: 'bottom', ms: list.filter(m => clOf(m.id) !== 'top') }].filter(g => g.ms.length);
+    const gapB = m => C.gapBefore(v, m, tk);
+    // the narrowest a component can go without a word, a chip or a button label running past
+    // its box (copy wraps between words, never inside one)
+    const minW = m => {
+      const tkm = C.tkMod(tk, v, m), words = t => String(t || '').split(/\s+/).filter(Boolean);
+      const wmax = (t, px, wt, up, ls) => words(t).reduce((a, wd) => Math.max(a, this.meas(up ? wd.toUpperCase() : wd, px, wt, false, ls || 0)), 0);
+      if (m.type === 'hero') return wmax(m.text, tkm.hero, 400) * 1.04;
+      if (m.type === 'eyebrow') return wmax(m.text, tkm.eyebrow, 500, true, C.trackOf(tkm.eyebrow));
+      if (m.type === 'cta') return this.meas(String(m.text || ''), tkm.ctaF, 300, false, 0) + tkm.ctaF * 3;
+      if (m.type === 'tags') return C.chipsOf(m).reduce((a, c) => Math.max(a, this.meas(c.t, tkm.eyebrow, 300, false, 0) + 56 * C.kOf(tkm) + tkm.eyebrow * 1.9), 0);
+      if (typeof m.text === 'string') return wmax(m.text, tkm.hook, 300);
+      return 0;
+    };
+    const minWs = {};
+    list.forEach(m => { if (m.type !== 'graphic') minWs[m.id] = minW(m); });
+    const measure = (ms, w) => {
+      if (ms.some(m => (minWs[m.id] || 0) > w + .5)) return null;
+      let y = 0, bw = w;
+      const items = ms.map((m, i) => {
+        if (i) y += gapB(m);
+        let it;
+        if (m.type === 'graphic') {
+          const gwid = C.graphicW(gov, m, innerW, tk), ght = C.graphicH(gov, m, tk, innerW, v.mvar[m.id], assets['mod' + m.id] || null);
+          bw = Math.max(bw, gwid);
+          it = { m, y, h: ght, w: gwid };
+        } else it = { m, y, h: this.modPx(m, v, tk, w, gov), w };
+        y += it.h;
+        return it;
+      });
+      return { items, h: y, w: bw };
+    };
+    const lo = mir && tk.railR ? Math.max(pL, tk.railR) : pL;
+    const railHi = tk.railR && !mir ? W - Math.max(pR, tk.railR) : W - pR;
+    // the rail guard's own width (the 9:16 bottom stack's) is a candidate too
+    const fracs = [1, tk.railR ? (railHi - lo) / innerW : null, .8, .65, .5, .4].filter(f => f && (f === 1 || f * innerW >= 320));
+    const step = Math.max(6, Math.round(H / 160));
+    // the cheapest box for one block, given the blocks already placed
+    // `other` is the block already placed, if any: READING ORDER holds, so the top block ends
+    // above where the bottom one starts (a gap of two stack gaps between them)
+    const placeBlock = (ms, side, placed, other) => {
+      const all = [];
+      for (const f of fracs) {
+        const w = f * innerW, M = measure(ms, w);
+        if (!M) continue;
+        const bw = M.w, bh = M.h;
+        if (bh > H - pT - pB) continue;
+        for (let y = pT; y + bh <= H - pB + .01; y += step) {
+          // the span this height allows: the margins, and clear of the Reels rail where the
+          // block reaches its lower two-thirds; left, centred and right inside it
+          const rail = tk.railR && y + bh > H / 3, sL = rail ? lo : pL, sR = rail ? railHi : W - pR;
+          if (bw > sR - sL + .01) continue;
+          const xs = [sL, sL + (sR - sL - bw) / 2, sR - bw].filter((x, i, a) => a.findIndex(z => Math.abs(z - x) < 1) === i);
+          xs.forEach((x, xi) => {
+            const b = { x, y, w: bw, h: bh };
+            if (forb.some(r => hits(b, r, 0)) || placed.some(r => hits(b, r, tk.gapS * 2))) return;
+            if (other && (side === 'top' ? y + bh + tk.gapS * 2 > other.y : y < other.y + other.h + tk.gapS * 2)) return;
+            const dF = distTo(b, Fl), inF = dF < Fl.r;
+            const cyB = y + bh / 2;
+            // THE SCRIM BAND this block will need: the wash runs full width from the nearer
+            // canvas edge to the far side of the block, so a block mid-canvas darkens everything
+            // between it and the edge — the brand's top/bottom clusters, in one number
+            const band = Math.min(y + bh, H - y) / H;
+            const cost = meanBusy(b)
+              + (inF ? 10 + overF(b) * 40 : 0)
+              + (dF < Fl.r * 1.6 && !inF ? .25 * (1 - (dF - Fl.r) / (Fl.r * .6)) : 0)
+              + band * 1.2
+              + (1 - f) * .35
+              + ((side === 'top') !== (cyB < H / 2) ? .15 : 0)
+              + (xi === 1 && !center ? .05 : 0);
+            all.push({ cost, b, f, M, inF, band });
+          });
+        }
+      }
+      return all.sort((a, b) => a.cost - b.cost);
+    };
+    // EVERY WAY TO CUT THE LIST INTO A TOP BLOCK AND A BOTTOM BLOCK, in its own order (the
+    // designer's own clusters first, then each split point, then a single block), each pair
+    // placed bigger-first; the cheapest pair wins. One tall block rarely clears a subject on a
+    // square; two usually can.
+    const tries = [], seen = {};
+    const addTry = (a, b) => { const k = a.map(m => m.id).join() + '|' + b.map(m => m.id).join(); if (seen[k]) return; seen[k] = 1; tries.push([a, b]); };
+    if (groups.length === 2) addTry(groups[0].ms, groups[1].ms);
+    for (let k = 1; k < list.length; k++) addTry(list.slice(0, k), list.slice(k));
+    addTry([], list); addTry(list, []);
+    let win = null;
+    tries.forEach(([topMs, botMs]) => {
+      const blocks = [{ side: 'top', ms: topMs }, { side: 'bottom', ms: botMs }].filter(g => g.ms.length)
+        .map(g => ({ g, a: (measure(g.ms, innerW) || { h: 1e9 }).h })).sort((a, b) => b.a - a.a).map(o => o.g);
+      // over the ~40% ceiling, a layout pays for every point of scrim beyond it
+      const over = got => Math.max(0, got.reduce((a, g2) => a + g2.band, 0) - C.COVER_MAX / 100) * 3;
+      const c1 = placeBlock(blocks[0].ms, blocks[0].side, [], null);
+      if (!c1.length) return;
+      if (blocks.length === 1) { const got = [c1[0]], total = c1[0].cost + over(got); if (!win || total < win.total) win = { total, got }; return; }
+      // the bigger block's best 40 positions, each with the other block's best answer to it —
+      // placing the first at its own best can leave the second no room at all
+      c1.slice(0, 40).forEach(a => {
+        const b2 = placeBlock(blocks[1].ms, blocks[1].side, [a.b], a.b)[0];
+        if (!b2) return;
+        const got = [a, b2], total = a.cost + b2.cost + over(got);
+        if (!win || total < win.total) win = { total, got };
+      });
+    });
+    if (!win) return null;
+    const boxes = [], out = {};
+    let overFocal = false;
+    win.got.forEach(best => {
+      if (best.inF) overFocal = true;
+      const B = best.b, M = best.M, wT = best.f * innerW;
+      M.items.forEach(it => {
+        const cy = B.y + it.y + it.h / 2;
+        if (it.m.type === 'graphic') {
+          const cx = center ? B.x + B.w / 2 : B.x + it.w / 2;
+          out[it.m.id] = { x: cx / W, y: cy / H };
+        } else {
+          const tx = B.x + (center ? (B.w - wT) / 2 : 0);
+          out[it.m.id] = { x: (tx + wT / 2) / W, y: cy / H, fw: best.f };
+        }
+        boxes.push({ y: B.y + it.y, h: it.h });
+      });
+    });
+    const cover = Math.round(C.freeRuns(boxes, tk).reduce((a, r) => a + r.y1 - r.y0, 0) / H * 100);
+    const note = 'Recommended layout — '
+      + (overFocal ? 'the copy could not fully clear the focal point; ' : 'clear of the focal point; ')
+      + 'covers ' + cover + '%' + (cover > C.COVER_MAX ? ', over the ' + C.COVER_MAX + '% ceiling' : '')
+      + (autoFocal ? '. No focal point was set, so the busiest part of the photo was kept clear' : '') + '. Drag to fine-tune.';
+    return { place: out, focal: autoFocal, note, cover };
   }
   static canvasMove(x, vi, size, id, tid, after, cl) {
     if (!id || id === tid) return;
@@ -15833,7 +16345,17 @@ class CampaignStudio extends StudioBase {
       const colW0 = (tk.col && !center) ? tk.col : tk.W - tk.pad[3] - tk.pad[1];
       const isFl = m => CampaignStudio.isFloatG(eff, m);
       const qrR = CampaignStudio.qrTopRes(s, v, tk);
-      const sc = this.scrimStops(v, tk, plist.filter(m => !hid[m.id] && !isFl(m)), clusterOf, gov, qrR);
+      // floating text goes in with `eff`, so scrimStops sizes its band from the box; a floating
+      // graphic stays out, as it always has
+      const sc = this.scrimStops(v, tk, plist.filter(m => !hid[m.id] && !(isFl(m) && m.type === 'graphic')), clusterOf, gov, qrR, eff);
+      // the focal point on THIS canvas (canvas px), through the crop this size shows
+      const fpBg = (() => {
+        const A = this._assetView && this._assetView.bg; if (!A) return null;
+        const psz = CampaignStudio.photoSize(sizeKey);
+        const b = (psz !== 'sq' && s.variants[vi].bgSep && s.variants[vi].bgSep[psz] && A[vi + '_' + psz]) || A[vi];
+        return b && b.w ? { img: { naturalWidth: b.w, naturalHeight: b.h }, s: b.s, x: b.x, y: b.y } : null;
+      })();
+      const focalC = CampaignStudio.focalPx(s.variants[vi], fpBg, tk.W, tk.H);
       const scrim = `linear-gradient(${sc.horiz ? 'to right' : 'to bottom'}, ${sc.stops.map(st2 => `rgba(${sc.base},${+st2[1].toFixed(3)}) ${(st2[0] * 100).toFixed(1)}%`).join(', ')})`;
       const [pT, pR, pB, pL] = tk.pad;
       // The 1880 banner is shown as wide as the 16:9; the 758 one smaller, so the pair reads
@@ -15841,6 +16363,9 @@ class CampaignStudio extends StudioBase {
       // The YouTube 1.91:1 sits as wide as the 16:9, and the 4:5 a little narrower than the
       // 1:1 so the two read at one height.
       const width = sizeKey === 'sq' ? dispW : ((sizeKey === 'ls' || sizeKey === 'bn') ? Math.round(dispW * 1.18) : (sizeKey === 'pt' ? Math.round(dispW * .75) : (sizeKey === 'bs' ? Math.round(dispW * .76) : Math.round(dispW * .58))));
+      // SCREEN px in canvas units: the canvas is laid out at tk.W and shrunk with a transform, so
+      // chrome drawn inside it (grips, the focal ring) is sized by the canvas's on-screen width
+      const scr = n => cq(n * tk.W / Math.max(1, width));
       // The canvas's own tokens, named apart so mk can shadow `tk` with the component's.
       const tkC = tk;
       const mk = (m, g) => {
@@ -15952,6 +16477,8 @@ class CampaignStudio extends StudioBase {
           // lays it out; equal negative margins cancel it. `stamp` reads this when it adds the gap.
           hitPad: m.type === 'divider' ? 10.8 * .9 * (tk.W / 1080) : 0,
           selMark: seld ? '1' : undefined,
+          // a floating text component's width grips (set on the floaters only)
+          fHandles: [], fDrag: undefined,
           // The drag grip is CHROME, not artwork: no canvas op draws it, it never
           // reaches an export, and its two neighbours in this same affordance — the
           // dashed selection outline above and `.p-selctl` — are already chrome blue.
@@ -16437,7 +16964,7 @@ class CampaignStudio extends StudioBase {
           }
         } else if (m.type === 'graphic') {
           const iW = gW;
-          const gw = CampaignStudio.graphicW(gov, m, iW);
+          const gw = CampaignStudio.graphicW(gov, m, iW, tk);
           const gh = CampaignStudio.graphicH(gov, m, tk, iW, mv, null);
           view.tStyle = { width: cq(gw), height: cq(gh), position: 'relative', flex: 'none' };
           if (isFl(m)) {
@@ -16477,7 +17004,7 @@ class CampaignStudio extends StudioBase {
             // guides + snapping (CampaignStudio.gGuides / gSnap): the box is the art's own
             // w x h in canvas px, the tolerance GSNAP_PX screen px; Alt places it freely
             const gF = CampaignStudio.floatBox(eff, m, tk, iW, gh, gov);
-            const guides = CampaignStudio.gGuides(cwEl, tk, sizeKey, tk.W / cw);
+            const guides = CampaignStudio.gGuides(cwEl, tk, sizeKey, tk.W / cw, focalC);
             const tol = CampaignStudio.GSNAP_PX * tk.W / cw;
             const mvFn = ev => {
               let fx = cl(p0.fx + (ev.clientX - startX) * mirS / cw);
@@ -16512,7 +17039,9 @@ class CampaignStudio extends StudioBase {
             const cwEl = e.target.closest('[data-cwpx]');
             const cw = cwEl ? +cwEl.getAttribute('data-cwpx') : 460;
             const gRW = CampaignStudio.gRef(iW);
-            const innerPx = Math.max(1, gRW * cw / tk.W);
+            // gscale is a fraction of the column at 100%; Scaling multiplies the drawn width by sk
+            const gSk = tk.sk || 1;
+            const innerPx = Math.max(1, gRW * gSk * cw / tk.W);
             const dirSign = e.target.getAttribute('data-gdir') === 'w' ? -1 : 1;
             const node = e.target.parentElement;
             const slot = node && node.querySelector('image-slot');
@@ -16525,7 +17054,7 @@ class CampaignStudio extends StudioBase {
             // at tk.W and shrunk with `zoom`, so measure it against iW (canvas units) — not
             // innerPx, which is CSS px and is only right for the clientX delta below.
             const startG = CampaignStudio.gScaleOf(gov, m);
-            const start = startG != null ? startG : (node ? node.offsetWidth / Math.max(1, gRW) : 1);
+            const start = startG != null ? startG : (node ? node.offsetWidth / Math.max(1, gRW * gSk) : 1);
             const guides = CampaignStudio.gGuides(cwEl, tk, sizeKey, tk.W / cw);
             const mvFn = ev => {
               const g = Math.max(CampaignStudio.GSCALE_MIN, Math.min(CampaignStudio.GSCALE_MAX,
@@ -16737,7 +17266,121 @@ class CampaignStudio extends StudioBase {
       };
       const ordered = CampaignStudio.orderedFor(eff, plist);
       // NOT `.map(mk)` — mk takes a second argument now, and map would hand it the index
-      const floatMods = ordered.filter(m => isFl(m) && !hid[m.id]).map(m => mk(m));
+      // FREE LAYOUT: a floating text component is built at its own box's width and pinned at the
+      // box buildOps draws in (freeBox — same centre, width, margin clamp and rail rule). Its
+      // body is the move handle; the selected one gets two side grips that set its width.
+      const freeMove = (m, B) => e => {
+        if (e.button !== 0) return;
+        if (e.target.closest && e.target.closest('[data-gdir], input, textarea, button')) return;
+        const cwEl = e.currentTarget.closest('[data-cwpx]');
+        if (!cwEl) return;
+        e.stopPropagation();
+        const cw = +cwEl.getAttribute('data-cwpx') || 460, ch = cw * tk.H / tk.W;
+        const sx = e.clientX, sy = e.clientY, id = m.id, pid = e.pointerId;
+        const [pT2, pR2, pB2, pL2] = tk.pad;
+        // from the DRAWN box (already inside the margins), and kept there: the centre can only
+        // travel as far as the box can, so dragging back never starts from a dead zone
+        const fx0 = (B.x + B.w / 2) / tk.W, fy0 = (B.y + B.h / 2) / tk.H;
+        const xl = [(pL2 + B.w / 2) / tk.W, (tk.W - pR2 - B.w / 2) / tk.W], yl = [(pT2 + B.h / 2) / tk.H, (tk.H - pB2 - B.h / 2) / tk.H];
+        const cl = (n2, r) => Math.max(r[0], Math.min(Math.max(r[0], r[1]), n2));
+        const tol = CampaignStudio.GSNAP_PX * tk.W / cw;
+        let on = false, guides = null;
+        const mvFn = ev => {
+          if (ev.pointerId !== pid) return;
+          if (!on) {
+            if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 4) return;
+            on = true;
+            guides = CampaignStudio.gGuides(cwEl, tk, sizeKey, tk.W / cw, focalC);
+          }
+          let fx = cl(fx0 + (ev.clientX - sx) * mirS / cw, xl), fy = cl(fy0 + (ev.clientY - sy) / ch, yl);
+          if (!ev.altKey) {
+            const sp = CampaignStudio.gSnap(fx * tk.W, fy * tk.H, B.w, B.h, tk, tol);
+            fx = cl(sp.cx / tk.W, xl); fy = cl(sp.cy / tk.H, yl);
+            if (guides) guides.mark(sp.sn);
+          } else if (guides) guides.mark(null);
+          this.setState(st => {
+            const n = JSON.parse(JSON.stringify(st));
+            const nv = n.variants[vi], tgt = CampaignStudio.sizeOv(nv, sizeKey) || nv;
+            tgt.gpos = tgt.gpos || {};
+            tgt.gpos[id] = { x: +fx.toFixed(4), y: +fy.toFixed(4) };
+            n.sel = { vi, size: sizeKey, id }; n.activeVi = vi;
+            return n;
+          });
+        };
+        const end = () => {
+          document.removeEventListener('pointermove', mvFn);
+          document.removeEventListener('pointerup', upFn);
+          document.removeEventListener('pointercancel', upFn);
+          if (guides) guides.drop();
+          if (!on) return;
+          // the release fires a click on the canvas; it must not clear the selection
+          const swallow = ce => { ce.stopPropagation(); ce.preventDefault(); };
+          document.addEventListener('click', swallow, { capture: true, once: true });
+          setTimeout(() => document.removeEventListener('click', swallow, true), 0);
+          this.markDirty(); this.persist();
+        };
+        const upFn = ev => { if (ev.pointerId === pid) end(); };
+        document.addEventListener('pointermove', mvFn);
+        document.addEventListener('pointerup', upFn);
+        document.addEventListener('pointercancel', upFn);
+      };
+      // a side grip: the far edge stays put, the width follows the pointer, and the TOP stays
+      // put too (the copy rewraps downward), so the centre is re-derived from the new height
+      const freeSize = (m, B) => e => {
+        e.stopPropagation(); e.preventDefault();
+        const cwEl = e.target.closest('[data-cwpx]');
+        const cw = cwEl ? +cwEl.getAttribute('data-cwpx') : 460;
+        const dir = e.target.getAttribute('data-gdir') === 'w' ? -1 : 1;
+        const sx = e.clientX, id = m.id, pid = e.pointerId;
+        const guides = CampaignStudio.gGuides(cwEl, tk, sizeKey, tk.W / cw, focalC);
+        const mvFn = ev => {
+          if (ev.pointerId !== pid) return;
+          const d = (ev.clientX - sx) * mirS * tk.W / cw * dir;
+          const nw = Math.max(CampaignStudio.FW_MIN * colW0, Math.min(colW0, B.w + d));
+          const nh = this.modPx(m, v, tk, nw, gov);
+          const cx = dir > 0 ? B.x + nw / 2 : B.x + B.w - nw / 2;
+          this.setState(st => {
+            const n = JSON.parse(JSON.stringify(st));
+            const nv = n.variants[vi], tgt = CampaignStudio.sizeOv(nv, sizeKey) || nv;
+            tgt.fw = tgt.fw || {}; tgt.fw[id] = +(nw / colW0).toFixed(4);
+            tgt.gpos = tgt.gpos || {};
+            tgt.gpos[id] = { x: +(cx / tk.W).toFixed(4), y: +((B.y + nh / 2) / tk.H).toFixed(4) };
+            return n;
+          });
+        };
+        const upFn = ev => {
+          if (ev.pointerId !== pid) return;
+          document.removeEventListener('pointermove', mvFn);
+          document.removeEventListener('pointerup', upFn);
+          document.removeEventListener('pointercancel', upFn);
+          if (guides) guides.drop();
+          // the release fires a click on the canvas; it must not clear the selection
+          const swallow = ce => { ce.stopPropagation(); ce.preventDefault(); };
+          document.addEventListener('click', swallow, { capture: true, once: true });
+          setTimeout(() => document.removeEventListener('click', swallow, true), 0);
+          this.markDirty(); this.persist();
+        };
+        document.addEventListener('pointermove', mvFn);
+        document.addEventListener('pointerup', upFn);
+        document.addEventListener('pointercancel', upFn);
+      };
+      const freeBoxes = {};
+      const floatMods = ordered.filter(m => isFl(m) && !hid[m.id]).map(m => {
+        if (m.type === 'graphic') return mk(m);
+        const B = freeBoxes[m.id] = this.freeBox(eff, m, v, tk, colW0, gov);
+        const it = mk(m, { x0: B.x, w: B.w });
+        const seldF = !!it.selMark;
+        it.wrapStyle = Object.assign({}, it.wrapStyle, { position: 'absolute', left: cq(B.x), top: cq(B.y), width: cq(B.w),
+          maxWidth: 'none', alignSelf: 'auto', zIndex: 5, cursor: 'move', boxSizing: 'border-box' });
+        it.reorder = freeMove(m, B);
+        it.fDrag = freeSize(m, B);
+        // chrome: the selection's own blue, sized in screen px whatever the canvas zoom
+        it.fHandles = seldF ? [['w', 'left'], ['e', 'right']].map(([dir, side]) => ({ dir, style: {
+          position: 'absolute', top: '50%', [side]: scr(-7), width: scr(10), height: scr(26),
+          transform: 'translateY(-50%)', background: 'var(--ps-primary)', border: scr(2) + ' solid #fff', borderRadius: scr(3),
+          boxSizing: 'border-box', cursor: 'ew-resize', zIndex: 6, pointerEvents: 'auto' } })) : [];
+        return it;
+      });
       const topM = ordered.filter(m => !isFl(m) && clusterOf(m.id) === 'top' && !hid[m.id]);
       const botM = ordered.filter(m => !isFl(m) && clusterOf(m.id) === 'bottom' && !hid[m.id]);
       const stamp = (ms, g) => ms.map((m, i) => {
@@ -16776,8 +17419,10 @@ class CampaignStudio extends StudioBase {
       // ops lay out with, so the readout cannot disagree with what is drawn.
       const clusterPx = (ms, w) => ms.reduce((a, m, i) =>
         a + this.modPx(m, v, tk, w, gov) + (i ? gapPx(m) : 0), 0);
-      const coverPct = Math.round((clusterPx(topM, colW0) + clusterPx(botM, railG.w)) / tk.H * 100);
-      const spacer = { isSpacer: true, ruleEndStyle: { display: 'none' }, hlines: [], isEyebrow: false, isEyebrowRule: false, isHero: false, isText: false, isTags: false, isSpec: false, isSpecLadder: false, isCta: false, isPrice: false, isDiv: false, isSpacerMod: false, isGraphic: false, isRows: false, isList: false, prows: [], rows: [], chips: [], cols: [], select: () => {}, wrapStyle: { flex: 1, alignSelf: 'stretch', pointerEvents: 'none' }, handleStyle: { display: 'none' } };
+      // floating text counts as its RUNS' heights (freeRuns), the stack's own measure
+      const freeH = CampaignStudio.freeRuns(Object.keys(freeBoxes).map(k => freeBoxes[k]), tk).reduce((a, r) => a + r.y1 - r.y0, 0);
+      const coverPct = Math.round((clusterPx(topM, colW0) + clusterPx(botM, railG.w) + freeH) / tk.H * 100);
+      const spacer = { isSpacer: true, fHandles: [], ruleEndStyle: { display: 'none' }, hlines: [], isEyebrow: false, isEyebrowRule: false, isHero: false, isText: false, isTags: false, isSpec: false, isSpecLadder: false, isCta: false, isPrice: false, isDiv: false, isSpacerMod: false, isGraphic: false, isRows: false, isList: false, prows: [], rows: [], chips: [], cols: [], select: () => {}, wrapStyle: { flex: 1, alignSelf: 'stretch', pointerEvents: 'none' }, handleStyle: { display: 'none' } };
       let fgStyle = { display: 'none' }, fgTintStyle = { display: 'none' };
       const fgA = this._assetView && this._assetView.fg[vi];
       if (fgA && fgA.w) {
@@ -16888,14 +17533,39 @@ class CampaignStudio extends StudioBase {
         // ADM & CN in the code's corner: buildOps' own elements (admEls), drawn by elsView; the
         // mirror reflects them with the rest of the tree
         admEls: CampaignStudio.admOn(s) && !tk.noQr && !(s.look && s.look.on) ? this.elsView(this.admEls(s, tk, pal), null, cq) : [],
-        admBoxStyle: { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2 }
+        admBoxStyle: { position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2 },
+        // THE FOCAL POINT (Layout › Focal point) — chrome over the photo, never an op. The ring is
+        // the keep-clear circle the Recommended layout places around; the pick layer takes the
+        // next click on any canvas of this variant. Both sit in SCREEN coordinates (the photo is
+        // never mirrored), so they are kept out of the Arabic mirror below.
+        fpRingOn: focalC && vi === s.activeVi && (s.focalPick || s.focalShow) ? '1' : undefined,
+        fpRing: focalC ? { position: 'absolute', left: cq(focalC.cx - focalC.r), top: cq(focalC.cy - focalC.r), width: cq(2 * focalC.r), height: cq(2 * focalC.r),
+          boxSizing: 'border-box', borderRadius: '50%', border: scr(2) + ' dashed var(--ps-guide)', background: 'color-mix(in srgb,var(--ps-guide) 8%,transparent)',
+          pointerEvents: 'none', zIndex: 69 } : {},
+        fpDot: { position: 'absolute', left: '50%', top: '50%', width: scr(10), height: scr(10), transform: 'translate(-50%,-50%)',
+          borderRadius: '50%', background: 'var(--ps-guide)', boxShadow: '0 0 0 ' + scr(2) + ' #fff' },
+        fpOn: s.focalPick && vi === s.activeVi ? '1' : undefined,
+        fpStyle: { position: 'absolute', inset: 0, zIndex: 70, cursor: 'crosshair', pointerEvents: 'auto' },
+        fpPick: e => {
+          e.stopPropagation();
+          const r = e.currentTarget.getBoundingClientRect();
+          const cx = (e.clientX - r.left) / Math.max(1, r.width) * tk.W, cy = (e.clientY - r.top) / Math.max(1, r.height) * tk.H;
+          const R = CampaignStudio.bgRect(fpBg, tk.W, tk.H);
+          const fx = Math.max(0, Math.min(1, (cx - R.x) / R.w)), fy = Math.max(0, Math.min(1, (cy - R.y) / R.h));
+          this.upd(x => {
+            const vv = x.variants[vi], old = CampaignStudio.focalOf(vv);
+            vv.focal = { x: +fx.toFixed(4), y: +fy.toFixed(4), r: old ? old.r : CampaignStudio.FOCAL_R };
+            x.focalPick = false; x.focalShow = true; x.activeVi = vi;
+            return x;
+          });
+        }
       };
       // ARABIC: the same tree, mirrored — see CampaignStudio.mirrored(). The canvas box
       // itself is not mirrored (it sits in the plate); everything drawn inside it is.
       if (mir) {
         // The partner mark's file sits at an offset INSIDE its ink box, and the file is not
         // reflected — so that offset stays as it is; only the ink box itself moves.
-        const keep = { canvasStyle: cvOut.canvasStyle, bgWrapStyle: cvOut.bgWrapStyle, fgStyle: cvOut.fgStyle, fgTintStyle: cvOut.fgTintStyle, coImgStyle: cvOut.coImgStyle, coPaintStyle: cvOut.coPaintStyle };
+        const keep = { canvasStyle: cvOut.canvasStyle, bgWrapStyle: cvOut.bgWrapStyle, fgStyle: cvOut.fgStyle, fgTintStyle: cvOut.fgTintStyle, coImgStyle: cvOut.coImgStyle, coPaintStyle: cvOut.coPaintStyle, fpRing: cvOut.fpRing, fpDot: cvOut.fpDot };
         CampaignStudio.mirView(cvOut);
         Object.assign(cvOut, keep);
         cvOut.frameStyle = Object.assign({}, cvOut.frameStyle, { direction: 'rtl' });
@@ -17340,10 +18010,38 @@ class CampaignStudio extends StudioBase {
         if (changed && note) this.lmNote(note + lmWhere);
       }
     });
+    // a stack preset is a STACKED layout: it also brings any floating text back into the stacks
+    // (a floating graphic keeps its own placement, as it always has)
     const copyTo = fn => x => { const r = lmRec(x); (r.own ? [r.own] : CampaignStudio.recsOf(r.vv)).forEach(o => {
-      if (!o || !o.clusters) return; CampaignStudio.modulesFor(x, x.activeVi).forEach(m => { o.clusters[m.id] = fn(m); }); }); return x; };
+      if (!o || !o.clusters) return; CampaignStudio.modulesFor(x, x.activeVi).forEach(m => { o.clusters[m.id] = fn(m); if (o.gfloat && m.type !== 'graphic') delete o.gfloat[m.id]; }); }); return x; };
     const onOf = (o, cur) => Object.assign(o, { on: o.key === cur ? '1' : undefined, aria: o.key === cur ? 'true' : 'false' });
     const lmCov = ((variantViews[s.activeVi] || {})[selSz] || {}).coverPct;
+    // FREE LAYOUT AND THE RECOMMENDED LAYOUT (see layoutFree / recommendLayout)
+    const frFree = CampaignStudio.isFreeRec(selEff, list.filter(m => !(selV.hidden || {})[m.id]));
+    const frFocal = CampaignStudio.focalOf(av);
+    const frMap = {
+      modes: [['stack', 'Stacked', 'The copy sits in the top and bottom stacks; drag a component to reorder it'],
+        ['free', 'Free', 'Every component floats where it stands; drag it anywhere inside the margins, and set its width with the side grips']]
+        .map(([k, label, tip]) => {
+          const on = (k === 'free') === frFree;
+          return { label, tip, on: on ? '1' : undefined, aria: on ? 'true' : 'false', set: () => { if (!on) { if (k === 'free') this.layoutFree(); else this.layoutStack(); } } };
+        }),
+      focalOn: frFocal ? '1' : undefined,
+      focalState: s.focalPick ? 'Click the subject on the canvas' : (frFocal ? 'Keep clear ' + Math.round(frFocal.r * 100) + '%' : 'Not set'),
+      pickOn: s.focalPick ? '1' : undefined,
+      pickLabel: s.focalPick ? 'Cancel' : (frFocal ? 'Move' : 'Set'),
+      pick: () => this.setState({ focalPick: !s.focalPick, focalShow: true }),
+      showOn: frFocal && s.focalShow ? '1' : undefined,
+      showTip: s.focalShow ? 'Hide the focal ring on the canvas' : 'Show the focal ring on the canvas',
+      show: () => this.setState({ focalShow: !s.focalShow }),
+      r: frFocal ? Math.round(frFocal.r * 100) : 22,
+      onR: e => { const r = +e.target.value / 100; this.upd(x => { const vv = x.variants[x.activeVi] || x.variants[0]; if (vv.focal) vv.focal.r = r; x.focalShow = true; return x; }); },
+      clear: () => this.upd(x => { const vv = x.variants[x.activeVi] || x.variants[0]; delete vv.focal; x.focalPick = false; return x; }),
+      busyOn: this._frBusy ? '1' : undefined,
+      recLabel: this._frBusy ? 'Reading the photo…' : 'Recommended layout',
+      recommend: () => { if (!this._frBusy) this.recommendLayout(); },
+      recTip: 'Reads the photo as this canvas crops it and places the copy on its quietest areas, clear of the focal point, the wordmark and the QR — then switches to Free so you can fine-tune. Inside the margins and the 9:16 safe area; the wordmark and QR never move.'
+    };
     const lmMap = {
       scopeOn: lmScoped ? '1' : undefined,
       copy: [
@@ -17383,7 +18081,7 @@ class CampaignStudio extends StudioBase {
     return {
       ...this.copyVals(),
       ...this.usageVals(labels, this.useSource(), addDefaults),
-      paletteCats, variantViews, outline, outlineOn: olN ? '1' : undefined, outlineEmptyOn: olN ? undefined : '1', outlineCount: olN === 1 ? '1 component' : olN + ' components', lmMap,
+      paletteCats, variantViews, outline, outlineOn: olN ? '1' : undefined, outlineEmptyOn: olN ? undefined : '1', outlineCount: olN === 1 ? '1 component' : olN + ' components', lmMap, frMap,
       // THE CUSTOM GROUP — this computer's library plus anything the project carries. A
       // palette card cannot hold a second button (a button in a button), so Remove sits
       // beside it in the row.

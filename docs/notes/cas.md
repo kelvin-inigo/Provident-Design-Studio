@@ -4117,3 +4117,116 @@ CAS only; buildOps and both renderers untouched (whole-file diff: zero artwork-p
   a real corner drag wrote gscale .6452 / gaspect .5 to all three; a move snapped to exactly .5/.5
   and to the padding (x .3489 = (80 + w/2)/1080), Alt gave .358; overlay gone after pointer up;
   9:16 bands and rail drawn. Not exercised: the mirrored (Arabic) drag with a real pointer.
+
+# CAS: FREE LAYOUT, THE RECOMMENDED LAYOUT AND SCALING STEPS (2026-11-25, branch `cas-free-layout`)
+
+By request, for layout variety (Meta flagged our ads as 79–84% alike off the same templates):
+components placed anywhere, an automatic layout around a focal point, and Scaling reworked.
+**SUPERSEDES** the per-size `SCALE_RANGE` above (*Scaling is per size*, *Scaling is stepped*) for
+the four Meta sizes.
+
+## Free layout — the graphic float model, extended to every component
+
+- `isFloatG(eff, m)` no longer requires a graphic: any component but a spacer floats when the record
+  (`eff`: the variant, or a detached size's own) has `gfloat[id]`; `gpos[id]` is its CENTRE as a
+  fraction of the canvas. New per-record map **`fw[id]`**: a floating TEXT component's width as a
+  fraction of the content column (`FW_MIN` .3–1, absent = the column). `fw` is in `IDMAPS` and
+  `detachRec` copies it. `isFreeT` = floating and not a graphic; `isFreeRec` = any text floats.
+- **`freeBox(eff, m, v, tk, innerW, ov)`** is the one geometry: width `fw x column`, height `modPx`
+  at that width, centred on `gpos`, **clamped inside the margins**; on a canvas with `railR` a box
+  reaching the lower two-thirds stops short of the rail (narrowing and rewrapping if it must;
+  mirrored, on the left of the Latin frame, as `railBox`). Graphics keep their own `floatBox` (no
+  clamp), so a floating graphic saved before this draws exactly as it did.
+- **buildOps** draws a floating text component through the ONE `drawMod`, in a box centred in the
+  margin band (`cctr(w)` — where a centred stack puts it, so `center` centres inside the box), then
+  `CampaignStudio.shiftOps(ops, from, dx)` carries it to its x (x, clip.x, poly pts, grad vec).
+  Both renderers draw ops, so no renderer changed. The preview pins the wrap at the same box
+  (`position:absolute`, `left/top/width` in cq) and builds the component at `{ x0, w }`.
+- **scrimStops(…, eff)**: floating text leaves the clusters; its boxes join into RUNS
+  (`freeRuns`: boxes within four stack gaps of each other, like a stack) and each run extends the
+  band of the half its centre is in. The cover readout adds the runs' heights, the stack's own
+  measure. A floating graphic is untouched (buildOps still passes it in the list, the preview
+  leaves it out — that pre-existing mismatch is recorded, not changed).
+- **Layout › Arrangement › Free** (`layoutFree`): `buildOps` with `this._boxRec` set records each
+  component's laid-out box, and every component is floated at exactly that box — **nothing moves**
+  (verified: 0 differing ops on 1:1, 3:4, 9:16, 1.91:1, left and centred, starting from each size).
+  **Stacked** (`layoutStack`) clears the record's `gfloat` and `fw`; the Copy presets
+  (At the top / Split / At the bottom) also bring floating TEXT back into the stacks.
+- **Scope (`freeScope`)**: Free and Recommended act on the selected canvas only, because a position
+  is a fraction of ONE canvas's shape. A linked size gets its own record first (`detachRec`, layout
+  only; the photo stays shared). On the 1:1 — whose record the linked sizes read — every shown
+  linked size is detached first, so it keeps exactly what it shows. The note says which happened.
+- **Canvas gestures** (pointer events): the body of a floating text component moves it
+  (`freeMove`: 4px threshold, the release click swallowed, guides + `gSnap`, Alt frees it, the
+  centre clamped so the box can travel only as far as the margins allow); the selected one has two
+  side grips (`fHandles` / `freeSize`, `data-gdir`, chrome `--ps-primary`, sized in SCREEN px via
+  `scr(n)` = n x tk.W / on-screen width — the canvas is a transform, `--z` is not defined there):
+  the far edge and the TOP stay put, the copy rewraps. Mirrored, the pointer delta runs through
+  `mirS`, as every other canvas gesture.
+
+## The focal point and the Recommended layout
+
+- `v.focal = { x, y, r }` on the VARIANT: x/y fractions of the PHOTO (so it follows the subject
+  through each size's crop — `bgRect` is buildOps' crop maths), r the keep-clear radius as a
+  fraction of the canvas's shorter side (`FOCAL_R` .22; the rail slider 10–40%). `focalPx` maps it.
+  Set by **Focal point › Set** then a click on any canvas of the variant (`fpPick`, a chrome layer
+  over the canvas). `state.focalPick` / `focalShow` are on-screen state, deleted by `normState`.
+- The ring (`fpRing` / `fpDot`, `--ps-guide`) and the drag guides (`gGuides(…, focal)`) are CHROME:
+  never an op, kept out of the Arabic mirror (the photo is never mirrored, so screen coordinates).
+  `_assetView.bg[vi]` / `[vi_sz]` now carry each photo's pixel size and crop for this.
+- **`planLayout(st, vi, sz, assets)`** (pure; `recommendLayout` writes the result through
+  `freeScope` and switches to Free):
+  - busyness map: the photo as this canvas crops it, Sobel energy per 12px cell, normalised to its
+    90th percentile, flipped on an Arabic ad into the Latin frame; a summed-area table gives any
+    box's mean in O(1). No focal point: the busy-weighted centroid of the busiest cells is kept
+    clear and stored as the focal point.
+  - hard rules: inside the margins; in the 9:16's lower two-thirds inside the rail-safe span; off
+    the wordmark's row and its 80 clear space; off the QR (+ one stack gap) and the top-right QR's
+    reserved row; off the other block (two gaps); reading order — the top block ends above the
+    bottom one; no width below a component's longest word / chip / button label (`minW`).
+  - cost: mean busyness + focal overlap (10 + 40 x the share of the circle covered, so an
+    impossible case covers the least of it) + a near-miss halo + **the scrim band the block forces**
+    (`min(y+h, H-y)/H` x 1.2 — the wash is full width from the nearer edge, which is the brand's
+    top/bottom clusters in one number) + narrowness + wrong half + off-centre-on-left; the pair pays
+    3x every point of band beyond `COVER_MAX`.
+  - search: every cut of the ordered list into a top and a bottom block (the designer's clusters
+    first, every split point, one block); widths 1, the rail guard, .8, .65, .5, .4 of the column;
+    left/centre/right in the allowed span; y in H/160 steps; the bigger block's best 40 positions
+    each with the other block's best answer. 5–50 ms.
+  - Verified on a synthetic photo (quiet sky, busy subject right of centre, busy ground): Latin
+    9:16 / 3:4 / 1.91:1 clear of a 12–20% circle, 0 text outside the margins; a 1:1 with five
+    components and a centred subject reports "could not fully clear". With this copy in Arabic the
+    1:1 and 9:16 return no plan — the copy is taller than the space inside the margins (the stack
+    already overflows the wordmark's clear space there) — and the message says to step Scaling down.
+
+## Scaling
+
+- `SCALE_RANGE` for `sq`, `pt`, `st`, `ls` is **[57.8, 100]**: 100% is the default and the TOP of
+  every slider, three rungs below (83 / 69 / 58). **Why the 9:16 knob sat at the far right at 100%:**
+  it was the only size whose range ENDED at 100 (50–100, against 80–130 elsewhere). Saved values
+  above 100 on these sizes now open at 100. The banners keep their own ranges (bn 80–130, bs 80–150).
+- `tkFor`'s `FIXED` adds **`logo` and `qr`** (the wordmark, its clear-space row, the co-brand
+  lockup and the QR never scale) and **`railR`** — the action rail is platform geometry, and being
+  scaled it slid the 9:16 QR toward the rail (806 -> 876 at 58%) and cut the bottom cluster's
+  clearance from 170 to 98. A 9:16 saved below 100% therefore redraws its QR and bottom-cluster
+  width where the rail rule puts them.
+- **Uploaded graphics scale** (`tk.sk`, the scaling step): `graphicW(ov, m, innerW, tk)` and the
+  S/M/L/XL preset heights in `graphicH` multiply by it; the corner drag divides by it so the handle
+  stays under the pointer. Verified: logo 41/50px and QR 86/104px fixed at 100/83/69/58% on all four
+  sizes; a gscale .4 graphic 368 -> 307 -> 256 -> 213 on the 1:1.
+
+## Verified (share-dev 8791, `?ws=freelayout`, `_FREE` / `_PRE` copies served from the main checkout)
+
+- **Op census against the pre-change file, both warm, fonts loaded (Readex Pro and the unbranded
+  faces forced first — a cold face measures Latin in the fallback and mirrors every x): 3,072
+  builds, 512 groups, 36,840 ops, 0 differing** — 4 templates x dark/light x left/centre x
+  Latin/Arabic x branded/unbranded x QR right/left/top x logo as built/flipped, plus a floating
+  graphic and a detached 9:16 with its own clusters and alignment, x sq/pt/st/ls/bn/bs.
+- Preview vs export for free components: every text op's x within 0.1 canvas px of its DOM run
+  (0.3 mirrored), baseline offset 0.34–0.36em on all four sizes, as in the stacked layout.
+- Real pointer drags: a move (also on the mirrored frame — 40 screen px right, the Latin x down),
+  a width grip (rewrapped to two lines, top held, selection kept); grips 10x26 screen px and hit by
+  `elementFromPoint`.
+- New chrome in both themes (reloaded into each): lowest contrast 6.21:1 light, 6.47:1 dark.
+- Not covered: a real photo library (the planner was tuned on one synthetic photo), the phone
+  layout of the rail, and banners (bn/bs) as Recommended targets beyond the margin rules.
