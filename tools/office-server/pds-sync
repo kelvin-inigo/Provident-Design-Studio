@@ -22,7 +22,8 @@ if git checkout -q -f -B main "$new" && git reset -q --hard "$new"; then
     for f in pds-studio pds-sync; do
       cp "$R/tools/office-server/$f" "$D/$f.new" && chmod +x "$D/$f.new" && mv -f "$D/$f.new" "$D/$f"
     done
-    "$D/pds-studio" restart-server >>"$L" 2>&1
+    # 9>&- : the server must not inherit the lock, or it holds it for life and every later sync quits
+    "$D/pds-studio" restart-server >>"$L" 2>&1 9>&-
     echo "$(date '+%F %T') server code changed: restarted" >>"$L"
   fi
 else

@@ -64,6 +64,9 @@ a link made on one does not open on the other, and the Content Hub's `hubpush` s
 fetches `main` from the public repository, no keys, and resets the copy to it when it moved;
 `.env` and other ignored files stay. When `api/` or `tools/office-server/` changed it reinstalls
 both scripts and restarts the server. Its log is `~/pds-deploy/logs/sync.log`.
+The restart closes the sync's lock (`9>&-`): a server that inherits it holds it for life, and every
+later sync then quits silently. If ngrok lags `main` and the log is quiet, `lsof ~/pds-deploy/.sync.lock`
+shows the holder; `~/pds-deploy/pds-studio restart-server 9>&-` frees it.
 
 `.env` is not in git, so a change to it is copied by hand (the login is `SERVER_CONNECTION` in
 `.env`; this Mac's SSH key must be in the server's `~/.ssh/authorized_keys`):
