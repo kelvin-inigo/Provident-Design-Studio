@@ -1057,3 +1057,49 @@ keep Higgsfield's four settings visible in Animate, keep the library's filters a
 Verified on :8797: photo inspector 2069 → 1092 px tall, 0 unlabelled fields, a clip selected by Tab +
 Enter with focus kept, Generate tab folds 3 foreign jobs, phone at 375 with no overlap or overflow.
 
+## Critique, audit and declutter (2026-11-25)
+
+`/impeccable critique and audit`: design health 27/40, technical audit 13/20; the report is in
+`.impeccable/critique/2026-11-25T12-26-06Z__provident-video-studio-html.md`. The user chose
+"Everything", "Keep Higgsfield's four" visible in Animate, and to KEEP the library filters and folders.
+
+- **Removed:** the inspector's sticky Duplicate / Delete footer (toolbar, Cmd-D and Delete remain);
+  Animate's read-only Aspect ratio row and three notes; the End card's Position switch (the slider
+  sets the same value); the "CASV · prototype" chip and the repeated size name over the canvas; the
+  Markers menu's Cut at markers block (the per-piece buttons in the inspector stay); the Audio tab's
+  "Or make one" (Voiceover and Music live in the right rail only); most `.vs-note` paragraphs (40 → 21,
+  the rest are cost, consequence or error notes; several became `title` tooltips).
+- **Renamed:** the right rail's Queue tab is **Generate**; its count is this video's jobs only.
+- **Collapsed** (`acc(key, title, meta, body)`, open state in `ACC`): Apply to all, Captions ›
+  Fine-tune, Speed › Fit to a length, Generate › Other videos. Animate shows 6 camera moves with
+  **More moves**; Extend, Prompt, direction and the queue link sit under More options.
+- **Merged:** "From Higgsfield" is a link under the drop zone; Graphics lists a photo only once it is
+  placed as a graphic (`libAll`).
+- **Accessibility:** every timeline piece is a tab stop with a name (Enter or Space selects it);
+  `labelFields(root)` gives each `.vs-f` control its label's text as `aria-label`; Send has a label;
+  targets 22 → 24 px; 10 / 10.5 px text → 11 px.
+- **Phone:** the Add / Edit switch is pinned at the foot; the timecode keeps its own width and
+  Markers and Lengths are icon-only under 520 px (they overlapped); the file name has room.
+- Measured after: photo inspector 2,069 → 1,381 px tall, 5 notes → 1, no console errors.
+- NOT done: the kit-level field edge contrast (1.29:1, it would change CAS and OPS too), following
+  the system light/dark setting, a heading structure, roving focus in the tab lists, Clear stalled.
+
+## Playhead snapping on clip resizes, and clip lengths (2026-11-25)
+
+By request ("snap on play head when resizing clip layers, for all elements in timeline; a live preview
+of how much time a clip currently is, maybe switched on with a toggle").
+
+- Texts, graphics and sounds already snapped their ends to the playhead (`snapT` includes `T`). Now a
+  **video or photo clip** does too, on either handle: clips sit end to end, so both handles move the
+  clip's END on the timeline, and that end is what snaps (to the playhead and to other pieces' edges,
+  8 px). **Option-drag stretch** snaps the same way for clips and sounds. A group of clips resized
+  together does not snap.
+- The playhead turns `--ps-link` while a dragged end sits on it (`.vs-tl[data-snapped]`).
+- **Lengths** (`#lenBtn`, timeline bar, beside Markers; `provident-video-lens`): each piece shows its
+  length ("2.2 s", m:ss from a minute). Off, the piece being resized or stretched still shows it
+  while it is dragged (`lenTag`), and it goes with the release.
+- Verified on :8797 with real drags: playhead at 1.50 s, a clip's right end dragged to within 5 px →
+  `out` exactly 1.5; the tag showed during the drag and cleared after; toggle on showed "2.2 s" and
+  was remembered; no overlap at 375 px. Not checked: Option-drag snapping (the pane sends no modifier
+  keys), light theme.
+

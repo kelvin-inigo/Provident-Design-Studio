@@ -18,6 +18,7 @@
     add_box: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8.5v7M8.5 12h7"/>',
     folder: '<path d="M3.5 8V6.5a2 2 0 0 1 2-2h3.6l2 2.2h7.4a2 2 0 0 1 2 2V17.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M3.5 10h17"/>',
     flag: '<path d="M6 20.5V4.5"/><path d="M6 5.5h11l-2.2 3.5 2.2 3.5H6"/>',
+    timer: '<circle cx="12" cy="13.5" r="7"/><path d="M12 10v3.5l2.2 2.2"/><path d="M9.5 3.5h5"/>',
     search: '<circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/>',
     star: '<path d="m12 3.8 2.5 5.1 5.6.8-4 4 .9 5.6-5-2.7-5 2.7.9-5.6-4-4 5.6-.8z"/>',
     folder: '<path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/>',
@@ -337,6 +338,13 @@
   }
   function markers() { return markersAll().map(x => x.t); }
   const spdTag = x => (x.rate || 1) !== 1 ? ' · ' + Math.round(x.rate * 100) + '%' : '';
+  // CLIP LENGTHS (2026-11-25, by request): each piece on the timeline can carry its length. Always on
+  // the piece being resized or stretched, so the figure is read as it changes; on every piece when the
+  // toggle in the timeline bar is on (remembered per browser).
+  const LENKEY = 'provident-video-lens';
+  let LENS = false; try { LENS = localStorage.getItem(LENKEY) === '1'; } catch (e) {}
+  const lenFmt = t => t < 60 ? (Math.round(t * 10) / 10).toFixed(1) + ' s' : fmt(t).replace(/\.\d+$/, '');
+  const lenTag = (id, t) => LENS || (drag && drag.moved && !drag.done && drag.mode !== 'move' && drag.mode !== 'seek' && (drag.id === id || (drag.g && drag.g.some(x => x.id === id)))) ? '<em class="vs-len">' + lenFmt(t) + '</em>' : '';
   function clipStarts() { let t = 0; return P.clips.map(c => { const s = t; t += clipLen(c); return s; }); }
   function videoEnd() { return P.clips.reduce((a, c) => a + clipLen(c), 0); }
   function total() {
@@ -1238,7 +1246,7 @@
         P.clips.forEach((c, i) => {
           const m = media[c.mid] || {};
           body += '<div class="vs-it" data-kind="clip" data-id="' + c.id + '" tabindex="0" role="button" aria-label="' + esc((m.name || 'Clip') + ', ' + (m.kind === 'video' ? 'video' : 'photo') + ' clip') + '"' + on('clip', c.id) + ' style="left:' + (LBL + st[i] * pps) + 'px;width:' + Math.max(6, clipLen(c) * pps - 1) + 'px;top:4px;' +
-            (m.poster || m.kind === 'image' ? "background-image:url('" + (m.poster || m.url) + "')" : '') + '">' + (m.kind === 'video' ? '<canvas data-strip="' + c.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(m.name || 'Clip') + spdTag(c) + (c.mute ? ' · muted' : '') + (c.job && c.job.status === 'working' ? ' · generating…' : c.job && c.job.status === 'queued' ? ' · queued' : '') + '</span></div>';
+            (m.poster || m.kind === 'image' ? "background-image:url('" + (m.poster || m.url) + "')" : '') + '">' + (m.kind === 'video' ? '<canvas data-strip="' + c.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(m.name || 'Clip') + spdTag(c) + (c.mute ? ' · muted' : '') + (c.job && c.job.status === 'working' ? ' · generating…' : c.job && c.job.status === 'queued' ? ' · queued' : '') + '</span>' + lenTag(c.id, clipLen(c)) + '</div>';
         });
       } else {
         const kind = tr.id === 'text' ? 'text' : tr.id === 'logo' ? 'logo' : 'audio';
@@ -1250,7 +1258,7 @@
           const name = kind === 'text' ? (it.call ? ({ ruler: 'Measure', count: 'Count', box: 'Box', cta: 'End card' }[it.call] + ' · ' + (it.value || it.label || it.head || '')) : plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0]) : (m.name || kind);
           body += '<div class="vs-it" data-kind="' + kind + '" data-id="' + it.id + '" tabindex="0" role="button" aria-label="' + esc(name + ', ' + (kind === 'audio' ? 'sound' : kind === 'text' ? 'text' : 'graphic')) + '"' + on(kind, it.id) + (it.track === 'sfx' ? ' data-sfx="1"' : '') +
             ' style="left:' + (LBL + it.at * pps) + 'px;width:' + Math.max(6, it.dur * pps - 1) + 'px;top:' + (4 + ln.map[it.id] * (ih + 4)) + 'px">' +
-            (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + (kind === 'audio' ? spdTag(it) : '') + '</span></div>';
+            (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + (kind === 'audio' ? spdTag(it) : '') + '</span>' + lenTag(it.id, it.dur) + '</div>';
         });
       }
       h += '<div class="vs-trk" data-trk="' + tr.id + '" style="height:' + rowH + 'px"><div class="vs-trk-l">' + ico(tr.icon) + tr.name + '</div>' + body + '</div>';
@@ -1338,7 +1346,12 @@
     const it = find(drag), o = drag.o, d = dx / pps, m = media[it.mid];
     if (drag.st && !(drag.kind === 'clip' && drag.g)) {   // Option-drag an end: TIME STRETCH. The same stretch of the file, faster or slower
       const lim = drag.kind === 'clip' ? VRATE : ARATE, r0 = o.rate || 1, len0 = drag.kind === 'clip' ? (o.out - o.in) / r0 : o.dur, span = len0 * r0;
-      const len = clamp(len0 + (drag.mode === 'trimr' ? d : -d), span / lim[1], span / lim[0]);
+      // the end being dragged snaps to the playhead and the other edges, like every other resize
+      let want = len0 + (drag.mode === 'trimr' ? d : -d);
+      if (drag.kind === 'clip') { const s0 = clipStarts()[P.clips.indexOf(it)] || 0; want = snapT(s0 + want, it.id) - s0; }
+      else if (drag.mode === 'trimr') want = snapT(o.at + want, it.id) - o.at;
+      else want = o.at + o.dur - snapT(o.at + o.dur - want, it.id);
+      const len = clamp(want, span / lim[1], span / lim[0]);
       it.rate = +(span / len).toFixed(4); if (Math.abs(it.rate - 1) < .015) it.rate = 1;
       if (drag.kind === 'audio') { it.dur = span / it.rate; if (drag.mode === 'triml') it.at = Math.max(0, o.at + o.dur - it.dur); }
     } else if (drag.kind === 'clip' && drag.g) {     // several clips: every length by one factor, or the block moves
@@ -1357,8 +1370,11 @@
     } else if (drag.kind === 'clip') {
       const lim = m && m.kind === 'video' ? m.dur : 120;
       const r = o.rate || 1;                 // the pointer moves timeline seconds; the file moves r times as far
-      if (drag.mode === 'triml') it.in = clamp(o.in + d * r, 0, o.out - .2 * r);
-      else if (drag.mode === 'trimr') it.out = clamp(o.out + d * r, o.in + .2 * r, lim);
+      // clips sit end to end, so either handle moves this clip's END on the timeline: that end snaps
+      // to the playhead and to the other edges (2026-11-25, by request)
+      const s0 = drag.mode === 'move' ? 0 : clipStarts()[P.clips.indexOf(it)] || 0, len0 = (o.out - o.in) / r;
+      if (drag.mode === 'triml') it.in = clamp(o.out - (snapT(s0 + len0 - d, it.id) - s0) * r, 0, o.out - .2 * r);
+      else if (drag.mode === 'trimr') it.out = clamp(o.in + (snapT(s0 + len0 + d, it.id) - s0) * r, o.in + .2 * r, lim);
       else {                                  // reorder: the clip lands before every clip whose middle is past the pointer
         const t = xToT(e), rest = P.clips.filter(c => c !== it); let acc = 0, idx = rest.length;
         for (let i = 0; i < rest.length; i++) { const L = clipLen(rest[i]); if (t < acc + L / 2) { idx = i; break; } acc += L; }
@@ -1391,8 +1407,12 @@
       } else it.dur = clamp(snapT(o.at + o.dur + d, it.id) - o.at, .2, isA ? (lim - o.in) / (o.rate || 1) : lim);
     }
     dirty = true; renderTimeline();
+    const sp = drag.mode !== 'move' && !drag.g && span(drag.kind, it);   // the playhead lights while an end sits on it
+    tl.toggleAttribute('data-snapped', !!sp && (Math.abs(sp[0] - T) < 1e-4 || Math.abs(sp[1] - T) < 1e-4));
   });
   const endDrag = () => {
+    tl.removeAttribute('data-snapped');
+    if (drag) drag.done = true;            // the length tag of a resize goes with the release
     if (drag && drag.moved) renderAll();
     else if (drag && drag.kind) {
       if (drag.g && !drag.add) { multi.clear(); renderAll(); }   // a plain click on one of the group goes back to that one             // a plain click on an item also brings the playhead to it
@@ -3287,7 +3307,11 @@
     else if ((el = e.target.closest('[data-go2]'))) { rtab = el.dataset.go2; renderInspector(); }
     else if ((el = e.target.closest('[data-mk]'))) { gtab = el.dataset.mk; rtab = 'gen'; document.body.dataset.pane = 'edit'; paintPane(); renderInspector(); }
   });
-  $('#mkBtn').innerHTML = sico('flag') + 'Markers';
+  $('#mkBtn').innerHTML = sico('flag') + '<span>Markers</span>'; $('#mkBtn').setAttribute('aria-label', 'Markers');
+  const lenBtn = $('#lenBtn');
+  const lenPaint = () => { lenBtn.setAttribute('aria-pressed', LENS); if (LENS) lenBtn.dataset.on = '1'; else delete lenBtn.dataset.on; };
+  lenBtn.innerHTML = sico('timer') + '<span>Lengths</span>'; lenPaint();
+  lenBtn.addEventListener('click', () => { LENS = !LENS; try { localStorage.setItem(LENKEY, LENS ? '1' : '0'); } catch (e) {} lenPaint(); renderTimeline(); });
   $('#mkPop').addEventListener('toggle', e => { if (e.newState === 'open') mkPaint(); popAt($('#mkPop'), $('#mkBtn'))(e); });
   $('#mkPop').addEventListener('click', e => {
     const b = e.target.closest('[data-mk]'); if (!b) return;
