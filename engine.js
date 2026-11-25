@@ -176,7 +176,15 @@
       var pc = j.bytes && j.limit ? Math.round(100 * j.bytes / j.limit) : null;
       return { s: pc != null && pc >= 90 ? 'warn' : 'ok', t: (pc != null ? pc + '% full' : 'Answering') + ' · ' + (j.ms || 0) + ' ms' };
     });
+    // the office server's own store (tools/office-server, 2026-11-25): its /api answers on its own
+    // origin, behind ngrok's Google gate, so it is checked only from a page opened there
+    if (OFFICE.test(location.hostname)) probe('officestore', location.origin + '/api/share?op=health', function (r, j) {
+      if (r.status === 404) return { s: 'off', t: 'Not switched on yet (install.sh)' };
+      if (!r.ok || !j.ok) return { s: 'bad', t: (j && j.error) || 'HTTP ' + r.status };
+      return { s: 'ok', t: (j.keys || 0) + ' keys · ' + (j.bytes != null ? Math.round(j.bytes / 1e6) + ' MB' : 'answering') + ' · ' + (j.ms || 0) + ' ms' };
+    });
   }
+  var OFFICE = /^design-studio\.ngrok-free\.dev$/;
 
   // ── painting ───────────────────────────────────────────────────────────────────────────
   function shell() {
@@ -304,6 +312,7 @@
     if (k === 'hubkeys') { var ks = L.keys || {}; return L.keys ? (ks.HUB_PUSH_KEY ? { s: 'ok', t: 'Push key set' } : { s: 'off', t: 'HUB_PUSH_KEY not set' }) : { s: 'wait', t: 'Checking…' }; }
     if (k === 'grok') { var m = E.health.mcp; return m ? (m.s === 'ok' ? { s: 'ok', t: 'remote.py is running here' } : { s: 'off', t: 'Runs from the office Mac' }) : { s: 'off', t: 'Runs from the office Mac' }; }
     // PDS served from the office server through ngrok (tools/office-server): its Google gate stops a cross-origin check, so it is known only from inside
+    if (k === 'officestore') return OFFICE.test(location.hostname) ? (E.health.officestore || { s: 'wait', t: 'Checking…' }) : { s: 'off', t: 'On the office server; open its address to check' };
     if (k === 'office') return /^design-studio\.ngrok-free\.dev$/.test(location.hostname) ? { s: 'ok', t: 'You are on it' } : { s: 'off', t: 'Runs on the office server; open its address to check' };
     if (['rembg', 'ps', 'casv', 'mcp', 'genfill'].indexOf(k) >= 0 && !E.health[k]) return { s: 'off', t: 'Not checked: press Check this Mac' };
     return E.health[k] || { s: 'wait', t: 'Checking…' };

@@ -80,6 +80,13 @@
    "check": "office"
   },
   {
+   "id": "officestore",
+   "lane": "mac",
+   "name": "Office store",
+   "about": "~/pds-data · store.db and images/ (photos, previews, links, view) · its own /api/share and /api/gauth",
+   "check": "officestore"
+  },
+  {
    "id": "home",
    "lane": "web",
    "name": "Home",
@@ -368,7 +375,25 @@
    "from": "office",
    "to": "share",
    "check": "server",
-   "carries": "Studios opened there use the site's store until the cut-over; pull-vercel.py copies it to ~/pds-data"
+   "carries": "Until the cut-over: the site's store and sign-in"
+  },
+  {
+   "from": "office",
+   "to": "officestore",
+   "check": "officestore",
+   "carries": "Links, ad sets, photos, access list, hub tasks (after the cut-over)"
+  },
+  {
+   "from": "store",
+   "to": "officestore",
+   "check": "officestore",
+   "carries": "pull-vercel.py copies every key, photos into images/ folders"
+  },
+  {
+   "from": "officestore",
+   "to": "google",
+   "check": "officestore",
+   "carries": "Checks every token, refresh tokens (keys in the server .env)"
   }
  ]
 }
