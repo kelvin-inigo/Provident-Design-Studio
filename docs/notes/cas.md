@@ -4086,3 +4086,34 @@ same number OPS's reel thumbnail carries.
 
 The **Generate** button in the Photo row and its Firefly editor (`genfill.js`, helper
 `tools/genfill/serve.py` on :7315). Full record in `docs/notes/cas-genfill.md`.
+
+# CAS: SAME SIZE ON EVERY PAGE, DRAG GUIDES AND SNAPPING (2026-11-25)
+
+By request: "make the uploaded svg/png the same size throughout the pages" on a carousel, and
+"when dragging, show guides like safe line, padding … centre (vertical, horizontal) snapping".
+CAS only; buildOps and both renderers untouched (whole-file diff: zero artwork-path lines).
+
+- **`x.gSame`** (project switch, carousel only, off by default): **Same size on every page**, a
+  `.p-tgl` in the Graphic group (`gSameShow` / `gSameToggle`). `CampaignStudio.syncGSize(x, vi, id)`
+  copies the graphic's `gsize` / `gscale` / `gaspect` to the graphic in the SAME POSITION
+  (`gIndexOf`: nth graphic in the page's list) on every other page, and each detached size's
+  `gscale` / `gaspect` onto the matching detached size of that page (a linked size stays linked).
+  Called by the corner drag (`gDrag`), the S/M/L/XL presets (`setSize`) and on switching on.
+  The size is the BOX, aspect included — a different file on another page fits the same box.
+  Placement (`gfloat` / `gpos`) stays per page. Pages remain disconnected otherwise; this is a
+  write-time copy, not a shared record, so turning it off leaves every page where it is.
+- **Guides** (`CampaignStudio.gGuides(cwEl, tk, sizeKey, hair)`): a chrome-only overlay appended to
+  the `[data-cwpx]` canvas element on pointer down and removed on pointer up — never in state or an
+  export. Canvas px (the element is laid out at tk.W and shrunk with a transform), hairline =
+  `tk.W / cw`. Dashed padding box (`tk.pad`), dashed centre lines that go solid when snapped; on
+  9:16 the Reels header (pad top 260), footer (460) and the rail strip (`railR`, lower two-thirds)
+  are tinted. Colour `--ps-guide` #FF3C78, one hue in every theme (it sits over artwork), added to
+  `ui-design-system/` (css + tokens.json) and both studios' first `:root`.
+- **Snapping** (`gSnap`): the floating graphic's centre to W/2 and H/2, its edges to the padding,
+  within `GSNAP_PX` (8) screen px. It can still be dragged past the padding (the centre clamp 0..1
+  is unchanged). Alt places freely. The corner drag shows the guides but does not snap.
+- All guide edges are left/right symmetric, so the Arabic mirror needs no flip.
+- Verified on share-dev 8791 (admin, 3-page carousel): toggle by real click synced L to all three;
+  a real corner drag wrote gscale .6452 / gaspect .5 to all three; a move snapped to exactly .5/.5
+  and to the padding (x .3489 = (80 + w/2)/1080), Alt gave .358; overlay gone after pointer up;
+  9:16 bands and rail drawn. Not exercised: the mirrored (Arabic) drag with a real pointer.

@@ -1083,6 +1083,15 @@ What's on the screen, from left to right:
   - Divider: the size is the line's weight.
   - Spacer: the size scales the gap you dragged.
   - Graphic: preset heights. Dragging a corner overrides them; picking a size resets the drag.
+- **Same size on every page (carousel):** select a graphic (an uploaded SVG or PNG) and turn on
+  **Same size on every page** under **This component**. Every page's graphic in the same place
+  (the first graphic on each page, then the second …) takes this one's size, and while it is on,
+  resizing it on any page — a corner drag or S / M / L / XL — resizes the others. A different file
+  on another page fits the same box. Where it sits stays per page.
+- **Guides while you drag a floating graphic:** the padding shows as a dashed box and the canvas's
+  centre lines appear; on the 9:16 the Reels header, footer and action rail are shaded. The graphic
+  snaps to the centre (across and down) and to the padding edges, and the line it snapped to turns
+  solid. It can still go past the padding. Hold **Alt (⌥)** while dragging to place it freely.
 - **Eyebrow colour:** **This component** → **Ink**: Canvas ink, Brass, Soft or Mute, or type a
   hex code. The rule, frame or dot follows the label's colour.
 - **Older projects:** a style that was removed opens as the nearest new style, with the size or

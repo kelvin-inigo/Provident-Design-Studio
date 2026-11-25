@@ -103,6 +103,9 @@ exports download as a zip. The studios fit tablets and phones.
    earlier, approved or not. The campaign moves to **Closed**.
 
 - **Markets:** Local (AED), International (USD), International EUR.
+- **Graphics on a carousel:** select an uploaded SVG / PNG and turn on **Same size on every page** to
+  keep it one size across the pages. Dragging a floating graphic shows the padding, the centre lines
+  and (on 9:16) the Reels safe area, and snaps to them; hold Alt (⌥) to place it freely.
 - **The Dirham sign:** in CAS, "AED" typed in any component draws as the UAE Dirham sign on the
   ad and in every export. The copy itself keeps "AED" (fields, Copy view, ad text), so write AED.
 - **Audiences:** Residential: Family, Investor. Commercial: Investor, Hybrid (an end user who rents

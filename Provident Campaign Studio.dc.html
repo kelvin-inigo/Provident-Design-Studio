@@ -1999,6 +1999,7 @@ select.p-in{padding-right:32px}
 :root{
   --ps-ink-2:#A8B0BA; --ps-dim:#8A939F; --ps-mute:#8A939F;
   --ps-focus:#9CB8EA;
+  --ps-guide:#FF3C78; /* canvas drag guides, every theme — ui-design-system */
 }
 :root[data-theme="light"]{
   /* #646E7C cleared --ps-app at 4.67 and --ps-stage at only 4.15; --ps-stage is the
@@ -7100,8 +7101,11 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
               </button>
             </div>
             <sc-if value="{{ gFloatingOn }}" hint-placeholder-val="{{ false }}">
-              <span class="p-hint">Drag it on the canvas to place it. The corner handles still scale it.</span>
+              <span class="p-hint">Drag it on the canvas to place it — it snaps to the centre lines and the padding, and the guides show the safe area. Hold Alt (⌥) to place it freely. The corner handles still scale it.</span>
               <button onClick="{{ gFloatCentre }}" class="p-ghost p-sm">Centre it</button>
+            </sc-if>
+            <sc-if value="{{ gSameShow }}" hint-placeholder-val="{{ false }}">
+              <button onClick="{{ gSameToggle }}" class="p-tgl" role="switch" aria-checked="{{ gSameAria }}" data-on="{{ gSameOn }}"><span class="p-tgl-t"><b>Same size on every page</b><s>{{ gSameSub }}</s></span><i class="p-tgl-s" aria-hidden="true"></i></button>
             </sc-if>
             <span class="p-cap">Colour<s>follows the canvas</s></span>
             <div class="p-opts">
@@ -10420,6 +10424,88 @@ class CampaignStudio extends StudioBase {
     const o = ov && ov.gaspect && ov.gaspect[m.id];
     if (typeof o === 'number' && o > 0) return o;
     return (typeof m.gaspect === 'number' && m.gaspect > 0) ? m.gaspect : null;
+  }
+  // SAME SIZE ON EVERY PAGE (carousel, by request 2026-11-25). Pages are disconnected by
+  // design, so an uploaded SVG / PNG drifts to a different size on each page. `x.gSame` is a
+  // project switch: while it is on, every size write on a graphic (corner drag, S/M/L/XL)
+  // is copied to the graphic in the SAME POSITION on every other page — the 1st graphic of
+  // page 1 to the 1st graphic of page 2, and so on; a page without one is skipped. The size
+  // is the box (preset, scale AND aspect), so a different file on another page fits the same
+  // box rather than the same width. A detached size copies onto the page's matching detached
+  // size only; a linked one stays linked. Writes through writeMod / sizeOv only.
+  // DRAG GUIDES (2026-11-25). While a graphic is moved or scaled on a canvas, a chrome-only
+  // overlay is laid into the canvas element: the padding box (dashed), on the 9:16 the Reels
+  // UI bands outside the safe area and the action rail, and the canvas centre lines, which
+  // turn solid when the art snaps to them. It is built imperatively and removed on pointer
+  // up, so it never reaches the state, buildOps or an export. Units are canvas px — the
+  // element is laid out at tk.W x tk.H and shrunk with a transform — and `hair` is one CSS px.
+  // Every edge is symmetric left/right, so the Arabic mirror needs no flip (the rail is the
+  // platform's UI and is drawn on the screen's right either way).
+  static GSNAP_PX = 8;
+  static gGuides(cwEl, tk, sizeKey, hair) {
+    if (!cwEl) return null;
+    const [pT, pR, pB, pL] = tk.pad, W = tk.W, H = tk.H;
+    const g = document.createElement('div');
+    g.setAttribute('data-gguides', '1');
+    g.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:50';
+    const ln = (css) => { const d = document.createElement('i'); d.style.cssText = 'position:absolute;display:block;' + css; g.appendChild(d); return d; };
+    const h = Math.max(1, hair), dash = 'repeating-linear-gradient(';
+    if (sizeKey === 'st') {
+      const band = 'background:color-mix(in srgb,var(--ps-guide) 10%,transparent);';
+      ln(band + 'left:0;top:0;width:' + W + 'px;height:' + pT + 'px');
+      ln(band + 'left:0;top:' + (H - pB) + 'px;width:' + W + 'px;height:' + pB + 'px');
+      if (tk.railR) ln(band + 'left:' + (W - tk.railR) + 'px;top:' + Math.round(H / 3) + 'px;width:' + tk.railR + 'px;height:' + (H - pB - Math.round(H / 3)) + 'px');
+    }
+    const box = ln('left:' + pL + 'px;top:' + pT + 'px;width:' + (W - pL - pR) + 'px;height:' + (H - pT - pB) + 'px;box-sizing:border-box;border:' + h + 'px dashed color-mix(in srgb,var(--ps-guide) 85%,transparent);box-shadow:0 0 0 ' + h + 'px rgba(0,0,0,.18)');
+    const vx = ln('left:' + (W / 2 - h / 2) + 'px;top:0;width:' + h + 'px;height:' + H + 'px;background:' + dash + '180deg,color-mix(in srgb,var(--ps-guide) 60%,transparent) 0 ' + 6 * h + 'px,transparent ' + 6 * h + 'px ' + 12 * h + 'px)');
+    const hy = ln('left:0;top:' + (H / 2 - h / 2) + 'px;width:' + W + 'px;height:' + h + 'px;background:' + dash + '90deg,color-mix(in srgb,var(--ps-guide) 60%,transparent) 0 ' + 6 * h + 'px,transparent ' + 6 * h + 'px ' + 12 * h + 'px)');
+    cwEl.appendChild(g);
+    const solid = 'var(--ps-guide)';
+    return {
+      // which lines the art is snapped to: { cx, cy, l, r, t, b } booleans
+      mark(sn) {
+        sn = sn || {};
+        vx.style.background = sn.cx ? solid : dash + '180deg,color-mix(in srgb,var(--ps-guide) 60%,transparent) 0 ' + 6 * h + 'px,transparent ' + 6 * h + 'px ' + 12 * h + 'px)';
+        hy.style.background = sn.cy ? solid : dash + '90deg,color-mix(in srgb,var(--ps-guide) 60%,transparent) 0 ' + 6 * h + 'px,transparent ' + 6 * h + 'px ' + 12 * h + 'px)';
+        box.style.borderLeftStyle = sn.l ? 'solid' : 'dashed'; box.style.borderRightStyle = sn.r ? 'solid' : 'dashed';
+        box.style.borderTopStyle = sn.t ? 'solid' : 'dashed'; box.style.borderBottomStyle = sn.b ? 'solid' : 'dashed';
+      },
+      drop() { if (g.parentNode) g.parentNode.removeChild(g); }
+    };
+  }
+  // Snap a floating graphic's centre (canvas px) to the canvas centre lines and its edges to
+  // the padding. `tol` is in canvas px. The art may still be dragged past the padding —
+  // snapping only catches it near a line; Alt turns it off.
+  static gSnap(cx, cy, w, h, tk, tol) {
+    const [pT, pR, pB, pL] = tk.pad, W = tk.W, H = tk.H, sn = {};
+    const pick = (v, cands) => { let best = null; cands.forEach(([target, key]) => { const d = Math.abs(v - target); if (d <= tol && (!best || d < best.d)) best = { d, target, key }; }); return best; };
+    const bx = pick(cx, [[W / 2, 'cx'], [pL + w / 2, 'l'], [W - pR - w / 2, 'r']]);
+    const by = pick(cy, [[H / 2, 'cy'], [pT + h / 2, 't'], [H - pB - h / 2, 'b']]);
+    if (bx) { cx = bx.target; sn[bx.key] = true; if (Math.abs(cx - W / 2) < .5) sn.cx = true; }
+    if (by) { cy = by.target; sn[by.key] = true; if (Math.abs(cy - H / 2) < .5) sn.cy = true; }
+    return { cx, cy, sn };
+  }
+  static gIndexOf(list, id) { return list.filter(m => m.type === 'graphic').findIndex(m => m.id === id); }
+  static syncGSize(x, vi, id) {
+    if (!CampaignStudio.isCarousel(x) || !x.gSame) return;
+    const src = CampaignStudio.modulesFor(x, vi), m = src.find(mm => mm.id === id);
+    if (!m || m.type !== 'graphic') return;
+    const n = CampaignStudio.gIndexOf(src, id), sv = x.variants[vi] || x.variants[0];
+    const put = (o, k, v) => { if (v == null) delete o[k]; else o[k] = v; };
+    x.variants.forEach((tv, k) => {
+      if (tv === sv) return;
+      const t = CampaignStudio.modList(x, k).filter(mm => mm.type === 'graphic')[n];
+      if (!t) return;
+      CampaignStudio.writeMod(x, k, t.id, tm => { put(tm, 'gsize', m.gsize); put(tm, 'gscale', m.gscale); put(tm, 'gaspect', m.gaspect); });
+      ['st', 'ls', 'bn', 'pt'].forEach(sk => {
+        const so = CampaignStudio.sizeOv(sv, sk), to = CampaignStudio.sizeOv(tv, sk);
+        if (!so || !to) return;
+        ['gscale', 'gaspect'].forEach(f => {
+          const val = so[f] && so[f][id];
+          if (val == null) { if (to[f]) delete to[f][t.id]; } else { to[f] = to[f] || {}; to[f][t.id] = val; }
+        });
+      });
+    });
   }
   // A graphic's scale is a fraction of the SQUARE's column (920), never of a wider one:
   // on the 1.91:1 and the banners the column is ~1680 wide, and the same gscale drew the
@@ -16388,9 +16474,19 @@ class CampaignStudio extends StudioBase {
             const startX = e.clientX, startY = e.clientY, id = m.id;
             const p0 = CampaignStudio.floatPos(eff, m);
             const cl = n2 => Math.max(0, Math.min(1, n2));
+            // guides + snapping (CampaignStudio.gGuides / gSnap): the box is the art's own
+            // w x h in canvas px, the tolerance GSNAP_PX screen px; Alt places it freely
+            const gF = CampaignStudio.floatBox(eff, m, tk, iW, gh, gov);
+            const guides = CampaignStudio.gGuides(cwEl, tk, sizeKey, tk.W / cw);
+            const tol = CampaignStudio.GSNAP_PX * tk.W / cw;
             const mvFn = ev => {
-              const fx = cl(p0.fx + (ev.clientX - startX) * mirS / cw);
-              const fy = cl(p0.fy + (ev.clientY - startY) / ch);
+              let fx = cl(p0.fx + (ev.clientX - startX) * mirS / cw);
+              let fy = cl(p0.fy + (ev.clientY - startY) / ch);
+              if (!ev.altKey) {
+                const sp = CampaignStudio.gSnap(fx * tk.W, fy * tk.H, gF.w, gF.h, tk, tol);
+                fx = cl(sp.cx / tk.W); fy = cl(sp.cy / tk.H);
+                if (guides) guides.mark(sp.sn);
+              } else if (guides) guides.mark(null);
               this.setState(st => {
                 const n = JSON.parse(JSON.stringify(st));
                 // write to the SAME record the canvas reads — a detached size keeps its
@@ -16405,6 +16501,7 @@ class CampaignStudio extends StudioBase {
             const upFn = () => {
               document.removeEventListener('pointermove', mvFn);
               document.removeEventListener('pointerup', upFn);
+              if (guides) guides.drop();
               this.markDirty(); this.persist();
             };
             document.addEventListener('pointermove', mvFn);
@@ -16429,6 +16526,7 @@ class CampaignStudio extends StudioBase {
             // innerPx, which is CSS px and is only right for the clientX delta below.
             const startG = CampaignStudio.gScaleOf(gov, m);
             const start = startG != null ? startG : (node ? node.offsetWidth / Math.max(1, gRW) : 1);
+            const guides = CampaignStudio.gGuides(cwEl, tk, sizeKey, tk.W / cw);
             const mvFn = ev => {
               const g = Math.max(CampaignStudio.GSCALE_MIN, Math.min(CampaignStudio.GSCALE_MAX,
                 start + (ev.clientX - startX) * dirSign * mirS / innerPx));
@@ -16440,12 +16538,14 @@ class CampaignStudio extends StudioBase {
                 const t = CampaignStudio.sizeOv(nv, sizeKey);
                 if (t) { t.gscale = t.gscale || {}; t.gaspect = t.gaspect || {}; t.gscale[id] = g; t.gaspect[id] = asp; }
                 else CampaignStudio.writeMod(n, vi, id, mm => { mm.gscale = g; mm.gaspect = asp; });
+                CampaignStudio.syncGSize(n, vi, id);
                 return n;
               });
             };
             const upFn = () => {
               document.removeEventListener('pointermove', mvFn);
               document.removeEventListener('pointerup', upFn);
+              if (guides) guides.drop();
               this.persist();
             };
             document.addEventListener('pointermove', mvFn);
@@ -17104,6 +17204,7 @@ class CampaignStudio extends StudioBase {
       if (selM.type === 'graphic') {
         CampaignStudio.writeMod(x, svi, sel.id, m => { if (k === 'm') delete m.gsize; else m.gsize = k; delete m.gscale; delete m.gaspect; });
         CampaignStudio.recsOf(vv).forEach(r => { if (r && r.gscale) delete r.gscale[sel.id]; if (r && r.gaspect) delete r.gaspect[sel.id]; });
+        CampaignStudio.syncGSize(x, svi, sel.id);
         return x;
       }
       const o = CampaignStudio.sizeOv(vv, sel.size);
@@ -18340,6 +18441,17 @@ class CampaignStudio extends StudioBase {
         t.gpos = t.gpos || {}; if (!t.gpos[selM.id]) t.gpos[selM.id] = { x: .5, y: .5 };
       }); },
       gFloatCentre: () => { if (selM) setSelTarget(t => { t.gpos = t.gpos || {}; t.gpos[selM.id] = { x: .5, y: .5 }; }); },
+      // Carousel only: keep this graphic the same size on every page (CampaignStudio.syncGSize).
+      // Turning it on copies the selected one's size out at once, so the pages agree now.
+      gSameShow: selM && selM.type === 'graphic' && CampaignStudio.isCarousel(s) && s.variants.length > 1 ? '1' : undefined,
+      gSameOn: s.gSame ? '1' : undefined,
+      gSameAria: s.gSame ? 'true' : 'false',
+      gSameSub: s.gSame ? 'resizing it here resizes the others' : 'every page matches this one',
+      gSameToggle: () => { if (selM) this.upd(x => {
+        x.gSame = !x.gSame;
+        if (x.gSame) CampaignStudio.syncGSize(x, sel && sel.vi != null ? sel.vi : x.activeVi, selM.id);
+        return x;
+      }); },
       gTintSet: () => { if (selM) this.upd(x => { CampaignStudio.writeMod(x, x.activeVi, selM.id, mm => { mm.tintIcon = true; }); return x; }); },
       gTintClear: () => { if (selM) this.upd(x => { CampaignStudio.writeMod(x, x.activeVi, selM.id, mm => { mm.tintIcon = false; }); return x; }); },
       saveSession: () => this.saveSessionFile(),

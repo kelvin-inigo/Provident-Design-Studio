@@ -148,6 +148,11 @@
      one ring that cannot fail on any ground. --ps-focus stays declared because ~30
      rules read it as an ON-state hairline; the RING itself is --ps-ink (section 15). */
   --ps-focus:#879CC5;
+  /* CANVAS DRAG GUIDES (CAS floating graphic): padding, centre lines, safe area. One hue in
+     every theme, because the guides sit over the ARTWORK, not the chrome; a hot magenta is
+     the one colour that reads on a navy, cream or photo ground alike. Chrome only — the
+     overlay never reaches an export. */
+  --ps-guide:#FF3C78;
   /* brand orange — the LOGOTYPE's period, and nothing else. Coinbase's palette is a
      blue-and-white binary and carries no orange; the wordmark's dot is Provident's
      own mark rather than chrome, and it is the one deliberate departure. It measures
