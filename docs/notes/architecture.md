@@ -1493,3 +1493,35 @@ or OPS on the Vercel site, where that person's saved projects are not.
 - THE TRAP: the office server's door is ngrok's Google sign-in, Provident accounts only. A review
   link made there does not open for anyone outside the company. Make those on the Vercel site.
 - A new served address is added to `SITES` in `share-link.js`.
+
+## The office server gets its own API and store (2026-11-25, by request)
+
+"Transfer all data from Vercel … so that our ngrok portal will hold it all", with folders for the
+images. The Vercel store (Upstash) then held 545 keys, 232.5 MB of its 250 MB free-plan limit.
+
+- `tools/office-server/store_disk.py` (`Disk`) answers the Redis commands `api/share.py` sends
+  (GET SET EXPIRE PERSIST DEL EXISTS STRLEN TTL SCAN DBSIZE INFO PING, the hash and list ones) from
+  `~/pds-data`: records in `store.db` (SQLite), photo keys as files — `img:<c>:<i>` →
+  `images/photos/<c>/<i>.part`, `pv:<h>` → `images/previews/<h>.txt`, `sh:<id>:img|pv:…` →
+  `images/links/<id>/…`. `images/view/` holds decoded copies for browsing, never read back.
+  Expiry is a deadline on the row; a key past it reads as missing and is removed with its file.
+- `SAVE_LUA` cannot run there: `do_save` calls the store's own `save()` when it has one (one SQLite
+  transaction, same steps). The `isinstance(s, Memory)` dev paths (devexpire, `dev` in health)
+  stay off for `Disk` on purpose — it is not a Memory subclass.
+- `serve.py` routes `/api/share` and `/api/gauth` to the unchanged modules (`share._store` is set
+  to the Disk store before any request), loads the repo's `.env`, and pops `SHARE_DEV` and the
+  Google stand-in variables. `SHARE_STORE_MB` defaults to 20000 there.
+- `pull-vercel.py` copies every key with TYPE and PTTL (STRLEN only on strings: on another type it
+  is a WRONGTYPE error that fails the whole pipeline). `install.sh` is the one-time switch;
+  `pds-sync` now reinstalls itself and `pds-studio` and restarts the server when `api/` or
+  `tools/office-server/` change.
+- THE TRAP: `shareBase()` must not answer with the ngrok origin before the server runs the new
+  `serve.py`, or every studio there calls a 404 `/api`. The cut-over line is held back until then
+  (README "The cut-over"). After it the two addresses keep separate stores, and the Content Hub's
+  `hubpush` still lands on Vercel.
+- THE OTHER TRAP: without `ACCESS_ADMIN` in the server's `.env` the studios' role gate is off
+  there (ngrok's Google door still applies).
+- The app's preview launcher cannot read `~/Documents` (macOS privacy: "Operation not permitted"),
+  so the test server ran from the shell. The studios' own sign-in screen needs a real Google
+  account, so the browser test stopped there; the API was tested over HTTP and against a stand-in
+  Upstash instead.

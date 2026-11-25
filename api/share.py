@@ -300,6 +300,8 @@ def do_save(k, base, state, entry, burst, slots):
     s = store()
     if isinstance(s, Memory):
         return s.save(k, base, state, entry, burst, slots, TTL)
+    if hasattr(s, 'save'):  # the office server's disk store (tools/office-server/store_disk.py)
+        return s.save(k, base, state, entry, burst, slots, TTL, LOG_MAX)
     args = ['EVAL', SAVE_LUA, 5, k + 'rev', k + 'state', k + 'imgs', k + 'log', k + 'rid',
             base, state or '', entry or '', burst or '', TTL, LOG_MAX]
     for sl, v in slots:

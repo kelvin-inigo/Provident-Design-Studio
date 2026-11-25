@@ -76,7 +76,7 @@
    "id": "office",
    "lane": "mac",
    "name": "PDS on the office server",
-   "about": "design-studio.ngrok-free.dev · Google sign-in at ngrok · tools/office-server",
+   "about": "design-studio.ngrok-free.dev · Google sign-in at ngrok · its own /api on ~/pds-data · tools/office-server",
    "check": "office"
   },
   {
@@ -368,7 +368,7 @@
    "from": "office",
    "to": "share",
    "check": "server",
-   "carries": "Studios opened there use the site's store and sign-in"
+   "carries": "Studios opened there use the site's store until the cut-over; pull-vercel.py copies it to ~/pds-data"
   }
  ]
 }

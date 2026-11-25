@@ -1,18 +1,28 @@
 #!/bin/bash
-# Provident Design Studio on this server: static files on 127.0.0.1:8800, published by ngrok at
-# https://design-studio.ngrok-free.dev (Google sign-in, @providentestate.com only).
+# Provident Design Studio on this server: the repo's files AND its own /api (share store on this
+# disk, ~/pds-data) on 127.0.0.1:8800, published by ngrok at https://design-studio.ngrok-free.dev
+# (Google sign-in, @providentestate.com only).
 #   pds-studio start | stop | restart | status
 D=$HOME/pds-deploy; L=$D/logs; mkdir -p "$L"
+R=$HOME/Provident-Design-Studio
 CFG=$HOME/.config/ngrok-pds/ngrok.yml
+SRV="office-server/serve.py 8800"
 running() { pgrep -f "$1" >/dev/null; }
 start() {
-  running "pds-deploy/serve.py" || setsid nohup python3 "$D/serve.py" 8800 "$HOME/Provident-Design-Studio" >>"$L/serve.log" 2>&1 < /dev/null &
+  # the old copy-installed server (before 2026-11-25) answers on the same port: stop it first
+  pkill -f "pds-deploy/serve.py" 2>/dev/null
+  running "$SRV" || PDS_DATA="${PDS_DATA:-$HOME/pds-data}" setsid nohup python3 "$R/tools/office-server/serve.py" 8800 "$R" >>"$L/serve.log" 2>&1 < /dev/null &
   running "ngrok-pds/ngrok.yml" || setsid nohup ngrok start --all --config "$CFG" --log "$L/ngrok.log" >/dev/null 2>&1 < /dev/null &
   sleep 3; status
 }
-stop() { pkill -f "pds-deploy/serve.py"; pkill -f "ngrok-pds/ngrok.yml"; echo stopped; }
+stop() { pkill -f "$SRV"; pkill -f "pds-deploy/serve.py"; pkill -f "ngrok-pds/ngrok.yml"; echo stopped; }
+restart_server() { pkill -f "$SRV"; pkill -f "pds-deploy/serve.py"; sleep 1; start; }
 status() {
-  running "pds-deploy/serve.py" && echo "server: running (127.0.0.1:8800)" || echo "server: stopped"
+  running "$SRV" && echo "server: running (127.0.0.1:8800, store ${PDS_DATA:-$HOME/pds-data})" || echo "server: stopped"
   running "ngrok-pds/ngrok.yml" && echo "ngrok:  running (https://design-studio.ngrok-free.dev)" || echo "ngrok:  stopped"
+  curl -s -m 5 "http://127.0.0.1:8800/api/share?op=health" && echo
 }
-case "$1" in start) start;; stop) stop;; restart) stop; sleep 1; start;; status) status;; *) echo "usage: $0 start|stop|restart|status";; esac
+case "$1" in
+  start) start;; stop) stop;; restart) stop; sleep 1; start;; restart-server) restart_server;; status) status;;
+  *) echo "usage: $0 start|stop|restart|restart-server|status";;
+esac
