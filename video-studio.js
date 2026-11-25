@@ -1237,7 +1237,7 @@
         rowH = 54; const st = clipStarts();
         P.clips.forEach((c, i) => {
           const m = media[c.mid] || {};
-          body += '<div class="vs-it" data-kind="clip" data-id="' + c.id + '"' + on('clip', c.id) + ' style="left:' + (LBL + st[i] * pps) + 'px;width:' + Math.max(6, clipLen(c) * pps - 1) + 'px;top:4px;' +
+          body += '<div class="vs-it" data-kind="clip" data-id="' + c.id + '" tabindex="0" role="button" aria-label="' + esc((m.name || 'Clip') + ', ' + (m.kind === 'video' ? 'video' : 'photo') + ' clip') + '"' + on('clip', c.id) + ' style="left:' + (LBL + st[i] * pps) + 'px;width:' + Math.max(6, clipLen(c) * pps - 1) + 'px;top:4px;' +
             (m.poster || m.kind === 'image' ? "background-image:url('" + (m.poster || m.url) + "')" : '') + '">' + (m.kind === 'video' ? '<canvas data-strip="' + c.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(m.name || 'Clip') + spdTag(c) + (c.mute ? ' · muted' : '') + (c.job && c.job.status === 'working' ? ' · generating…' : c.job && c.job.status === 'queued' ? ' · queued' : '') + '</span></div>';
         });
       } else {
@@ -1248,7 +1248,7 @@
         items.forEach(it => {
           const m = media[it.mid] || {};
           const name = kind === 'text' ? (it.call ? ({ ruler: 'Measure', count: 'Count', box: 'Box', cta: 'End card' }[it.call] + ' · ' + (it.value || it.label || it.head || '')) : plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0]) : (m.name || kind);
-          body += '<div class="vs-it" data-kind="' + kind + '" data-id="' + it.id + '"' + on(kind, it.id) + (it.track === 'sfx' ? ' data-sfx="1"' : '') +
+          body += '<div class="vs-it" data-kind="' + kind + '" data-id="' + it.id + '" tabindex="0" role="button" aria-label="' + esc(name + ', ' + (kind === 'audio' ? 'sound' : kind === 'text' ? 'text' : 'graphic')) + '"' + on(kind, it.id) + (it.track === 'sfx' ? ' data-sfx="1"' : '') +
             ' style="left:' + (LBL + it.at * pps) + 'px;width:' + Math.max(6, it.dur * pps - 1) + 'px;top:' + (4 + ln.map[it.id] * (ih + 4)) + 'px">' +
             (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + (kind === 'audio' ? spdTag(it) : '') + '</span></div>';
         });
@@ -1290,6 +1290,14 @@
     return best;
   }
   let drag = null;
+  // KEYBOARD (2026-11-25, from the audit: nothing on the timeline could be reached by Tab). Every
+  // piece is a tab stop; Enter or Space selects it, then S, Delete and Cmd-D act on it as ever.
+  tl.addEventListener('keydown', e => {
+    const el = e.target.closest && e.target.closest('.vs-it'); if (!el || e.target !== el || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault(); e.stopPropagation();
+    multi.clear(); sel = { kind: el.dataset.kind, id: el.dataset.id }; rtab = 'sel'; renderAll();
+    const again = tl.querySelector('.vs-it[data-id="' + el.dataset.id + '"]'); if (again) again.focus({ preventScroll: true });
+  });
   tl.addEventListener('pointerdown', e => {
     if (e.button) return;
     const itEl = e.target.closest('.vs-it');
@@ -1488,8 +1496,8 @@
   // Speed, for a video clip and a sound: a slider, an exact length, and the way back. Option-drag an end on the timeline does the same.
   function speedSec(it, len, lim) {
     return rng('i', 'spd', 'Plays at', Math.round((it.rate || 1) * 100), lim[0] * 100, lim[1] * 100, '%') +
-      '<div class="vs-f"><label>Fit to exactly <s>seconds</s></label><input class="p-in" type="number" data-n="fit" min="0.2" step="0.1" value="' + len.toFixed(2) + '"></div>' +
-      '<span class="vs-note"><span id="rateNote">' + rateNote(it) + '</span> Hold Option and drag an end on the timeline to stretch it there.</span>' +
+      '<span class="vs-note" id="rateNote">' + rateNote(it) + '</span>' +
+      acc('fit', 'Fit to a length', 'seconds', '<div class="vs-f"><label>Fit to exactly <s>seconds</s></label><input class="p-in" type="number" data-n="fit" min="0.2" step="0.1" value="' + len.toFixed(2) + '"></div>') +
       ((it.rate || 1) !== 1 ? '<div class="vs-acts"><button class="p-ghost p-sm" id="rateReset">Back to natural speed</button></div>' : '');
   }
   // one place sets a speed: a sound keeps the same stretch of its file, so its length follows; a clip's length is worked out from its rate
@@ -1502,7 +1510,7 @@
     const r = a.rate || 1, pct = Math.round(r * 100);
     const lim = asked != null && Math.abs(a.dur - asked) > .05 ? ' <b>That is as far as it goes:</b> ' + a.dur.toFixed(1) + ' s. To reach ' + (+asked).toFixed(1) + ' s, ' + (asked < a.dur ? 'shorten' : 'lengthen') + ' the script or trim the audio.' : '';
     const far = !a.out && (r < RATE[0] - .005 || r > RATE[1] + .005) ? ' A voice sounds natural between 75% and 135%.' : '';
-    return (pct === 100 ? 'Playing at natural speed.' : 'Playing at ' + pct + '% speed, pitch kept.') + far + lim;
+    return (pct === 100 ? '' : 'Pitch is kept.') + far + lim;
   }
   function voHint() {
     const w = VO.text.trim().split(/\s+/).filter(Boolean).length, nat = w / PACE, tg = parseFloat(VO.target);
@@ -1648,7 +1656,8 @@
   const LKIND = { media: ['video', 'image'], audio: ['audio'], logos: ['logo', 'image'] };
   const LNAME = { media: 'Your media', audio: 'Your audio', logos: 'Your graphics' };
   const libUses = (key, id) => (key === 'media' ? P.clips : key === 'audio' ? P.audio : P.logos).filter(x => x.mid === id).length;
-  const libAll = (key, M) => M.filter(m => LKIND[key].indexOf(m.kind) >= 0);
+  const libAll = (key, M) => M.filter(m => key === 'logos' ? m.kind === 'logo' || (m.kind === 'image' && P.logos.some(l => l.mid === m.id))   // a photo shows under Graphics only once it is placed as one
+    : LKIND[key].indexOf(m.kind) >= 0);
   function libPick(key, M) {
     const st = LQ[key], q = st.q.trim().toLowerCase();
     return libAll(key, M).filter(m => {
@@ -1694,7 +1703,6 @@
         (inDir ? '<button class="vs-sq" data-dirren="1" title="Rename this folder" aria-label="Rename this folder">' + sico('edit') + '</button><button class="vs-sq" data-dirdel="1" title="Delete this folder. Its files stay in the library." aria-label="Delete this folder">' + ico('delete') + '</button>' : '') +
         '<button class="vs-sq" data-dirnew="1" title="New folder" aria-label="New folder">' + sico('folder_add') + '</button></div>';
     return '<div class="vs-sec">' + '<div class="vs-h"><b>' + LNAME[key] + '</b><s id="libN">' + libCount(n, all.length) + '</s></div>' + tools +
-      (key === 'audio' && all.length ? '<span class="vs-note"><b>Music</b> starts at 0:00 and is trimmed to the video. <b>Sound</b> lands at the playhead.</span>' : '') +
       '<div id="libList">' + libList(key, M) + '</div></div>';
   }
   const libCount = (n, all) => !all ? '' : n === all ? all + (all === 1 ? ' file' : ' files') : n + ' of ' + all;
@@ -1770,7 +1778,7 @@
     const rm = id => '<span class="vs-x" data-rm="' + id + '" title="Remove from the library and the timeline">' + ico('close') + '</span>';
     const none = (t, body) => '<div class="vs-none"><b>' + t + '</b>' + body + '</div>';
     if (tab === 'media' || tab === 'audio') {
-      h += '<div class="vs-sec">' + (tab === 'media' ? drop('media', 'Drop video or photos', 'MP4, MOV, WebM, JPG or PNG') + '<span class="vs-mkl">Or bring one in</span><div class="vs-mk2" style="grid-template-columns:1fr"><button class="p-ghost p-sm" data-hf="1" title="Browse the videos you made on Higgsfield and import them">From Higgsfield</button></div>' : drop('audio', 'Drop music or sound', 'MP3, WAV or M4A') + '<span class="vs-mkl">Or make one</span><div class="vs-mk2"><button class="p-ghost p-sm" data-mk="vo" title="Type the words and choose a voice">Voiceover</button><button class="p-ghost p-sm" data-mk="mu" title="Describe the music you want">Music</button></div>') + '</div>';
+      h += '<div class="vs-sec">' + (tab === 'media' ? drop('media', 'Drop video or photos', 'MP4, MOV, WebM, JPG or PNG') + '<button class="vs-link" data-hf="1" title="Browse the videos you made on Higgsfield and import them">Or import from Higgsfield</button>' : drop('audio', 'Drop music or sound', 'MP3, WAV or M4A') + '<button class="vs-link" data-mk="vo" title="Voiceover and music are made in the Generate tab on the right">Or generate a voiceover or music</button>') + '</div>';
       h += libSec(tab, M) + (tab === 'media' && P.casBg ? '<div class="vs-sec"><button class="vs-mini" data-liball="1">' + (P.casBg.all ? 'Show only this video\'s media' : 'Show everything in the library') + '</button></div>' : '');
     } else if (tab === 'text') {
       // each tile is a specimen of what it adds, in the chrome's ink; the full description is its tooltip
@@ -1788,14 +1796,12 @@
         ['box', 'Outline box', 'Outline box: an outline that draws round a label', '<span class="vs-m" data-a="c"><span class="o"><small>HOME</small></span></span>'],
         ['cta', 'End card', 'End card: a frosted panel at the end with your message, a button and the wordmark', '<span class="vs-m" data-a="c"><span class="k"><u style="width:26px"></u><u class="t" style="width:18px"></u><b></b></span></span>']
       ];
-      h += '<div class="vs-sec">' + H('Add text', 'at the playhead') + '<div class="vs-grid">' + pre.map(o => tile('data-addtext', o)).join('') + '</div>' +
-        '<span class="vs-note">The type follows the Reel thumbnail: one typeface, the headline on the brand scale, a wash under the copy only.</span></div>';
-      h += '<div class="vs-sec">' + H('Add a callout', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div>' +
-        '<span class="vs-note">Callouts draw themselves on. The end card takes the last four seconds.</span></div>';
+      h += '<div class="vs-sec">' + H('Add text', 'at the playhead') + '<div class="vs-grid">' + pre.map(o => tile('data-addtext', o)).join('') + '</div></div>';
+      h += '<div class="vs-sec">' + H('Add a callout', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div></div>';
     } else {
       h += '<div class="vs-sec">' + drop('logo', 'Drop a graphic or logo', 'PNG or SVG, clear background') + '</div>';
       h += libSec('logos', M);
-      h += '<div class="vs-sec"><div class="vs-none"><b>Looking for the wordmark?</b>The Provident wordmark and the collaboration logo are set once for the whole video.<button class="vs-link" data-go="doc">Open Brand</button></div></div>';
+      h += '<div class="vs-sec"><button class="vs-link" data-go="doc" title="The Provident wordmark and the collaboration logo are set once for the whole video">The wordmark and partner logo are in Brand</button></div>';
     }
     $('#lib').innerHTML = h;
   }
@@ -1815,16 +1821,16 @@
         lib.map(l => '<button class="vs-t" data-partner="' + esc(l.id) + '" title="' + esc(l.name) + '"' + (b.partner && b.partner.id === l.id ? ' data-on="1"' : '') + '><i><u style="-webkit-mask-image:url(\'' + l.u + '\');mask-image:url(\'' + l.u + '\')"></u></i><b>' + esc(l.name) + '</b>' + (l.own ? '<span class="vs-x" data-rmdev="' + esc(l.id) + '" title="Remove from this computer">' + ico('close') + '</span>' : '') + '</button>').join('') +
         '<button class="vs-t" data-up="partner" title="Add a developer logo from this computer"><i>' + ico('add') + '</i><b>Add a logo</b></button></div>' +
         (b.partner ? rng('b', 'pScale', 'Size', b.pScale, 60, 160, '%') : '') +
-        '<span class="vs-note">Sits beside the wordmark. A logo you add stays on this computer.</span></div>' +
+        '</div>' +
       '<div class="vs-sec">' + H('QR code', b.qr ? esc(b.qr.name) : 'None') +
         (b.qr ? '<div class="vs-f"><label>Position</label><div class="vs-seg">' + [['bl', 'Bottom left'], ['br', 'Bottom right'], ['tr', 'Top right']].map(o => { const off = o[0] === 'tr' && !qrTopOk(), cur = b.qrPos === 'tr' && !qrTopOk() ? 'bl' : b.qrPos || 'bl';
             return '<button data-bk="qrPos" data-bv="' + o[0] + '"' + (cur === o[0] ? ' data-on="1"' : '') + (off ? ' disabled title="Top right shares the wordmark\'s row: show the wordmark at the top left first"' : '') + '>' + o[1] + '</button>'; }).join('') + '</div></div>' +
             rng('b', 'qrScale', 'Size', b.qrScale || 100, 60, 160, '%') +
             '<div class="vs-acts"><button class="p-ghost p-sm" data-qrrm="1">Remove</button><button class="p-ghost p-sm" data-up="qr">Replace</button></div>'
           : '<div class="vs-acts"><button class="p-btn p-sm" data-up="qr">Upload a QR code</button></div>') +
-        '<span class="vs-note">Shown for the whole video, except over the end card. Keep bottom text on the other side.</span></div>' +
+        '</div>' +
       '<div class="vs-sec">' + H('Logo colour') + seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]) +
-        '<span class="vs-note">Applies to the collaboration logo and every graphic you place.</span></div>';
+        '</div>';
   }
   function rng(scope, k, label, v, min, max, unit, step) {
     return '<div class="vs-f"><label>' + label + ' <s data-out="' + k + '">' + v + (unit || '') + '</s></label><input type="range" class="p-range" data-' + scope + 'r="' + k + '" data-unit="' + (unit || '') + '" min="' + min + '" max="' + max + '" step="' + (step || 1) + '" value="' + v + '"></div>';
@@ -1927,10 +1933,7 @@
     const beat = MK.beat === 'off' ? '' : !mus.length ? 'There is no music on the Music track yet. ' : mus.some(m => m._beating || !m.beats) ? 'Listening to the music… ' : mus.every(m => !m.beats.all.length) ? 'No steady beat was found in the music. ' : 'The music runs at about ' + mus.filter(m => m.beats.bpm).map(m => m.beats.bpm).join(' and ') + ' beats a minute. ';
     pop.innerHTML = '<b>Markers</b>' + row('scene', 'Scene changes', seg('scene', onoff, 's')) + row('cut', 'Clip cuts', seg('cut', onoff, 's')) +
       row('voice', 'Voice pauses', seg('voice', onoff, 's')) + row('beat', 'Music beats', seg('beat', [['off', 'Off'], ['bar', 'Bars'], ['beat', 'Beats']])) +
-      '<p>' + beat + 'The playhead and anything you drag snap to the markers that are on. Voice pauses are read from the Sound track, beats from the Music track.</p>' +
-      '<b>Cut at markers</b><div class="vs-acts">' + cutBtn('clip', P.clips.reduce((q, c) => q + sceneCuts(c).length, 0), 'Clips at scene changes') +
-      cutBtn('audio', P.audio.reduce((q, a) => q + voiceCuts(a).length, 0), 'Voiceover at pauses') + '</div>' +
-      '<p>Cuts every video clip where a scene change was found, and every piece on the Sound track where the voice pauses. Nothing moves; one Undo takes it back.</p>';
+      '<p>' + beat + 'The playhead and anything you drag snap to the markers that are on. Voice pauses are read from the Sound track, beats from the Music track.</p>';
   }
   function paintPane() {
     const p = document.body.dataset.pane || 'add';
@@ -1955,8 +1958,8 @@
   }
   function allHtml(it) {
     const a = allOf(it); if (!a || !a.peers.length) return '';
-    return '<div class="vs-sec"><span class="vs-h">Apply to all</span><span class="vs-note">Copies this one’s settings to the other ' + a.peers.length + ' on the ' + a.track + ' track. Words, files and timing are left alone.</span>' +
-      '<div class="vs-acts" style="flex-wrap:wrap">' + a.g.map((g, i) => '<button class="p-ghost p-sm" data-all="' + i + '" title="' + esc(g[0] + ': copy to every other ' + a.word) + '">' + esc(g[0]) + '</button>').join('') + '</div></div>';
+    return '<div class="vs-sec">' + acc('all', 'Apply to all', 'the other ' + a.peers.length + ' on ' + a.track,
+      '<div class="vs-acts" style="flex-wrap:wrap">' + a.g.map((g, i) => '<button class="p-ghost p-sm" data-all="' + i + '" title="' + esc(g[0] + ': copy to every other ' + a.word + '. Words, files and timing are left alone.') + '">' + esc(g[0]) + '</button>').join('') + '</div>') + '</div>';
   }
   function allApply(it, i) {
     const a = allOf(it), g = a && a.g[+i]; if (!g || !a.peers.length) return;
@@ -1982,12 +1985,12 @@
     { const g = group(); if (g && sel.kind === 'clip') {
       const st = clipStarts(), ix = g.map(c => P.clips.indexOf(c)), a0 = Math.min(...ix.map(k => st[k])), L = g.reduce((a, c) => a + clipLen(c), 0);
       el.innerHTML = '<div class="vs-cap"><b>' + g.length + ' clips selected</b><s>' + fmt(L) + ' in all, from ' + fmt(a0) + '</s></div>' +
-        '<div class="vs-sec"><div class="vs-none"><b>They change as one</b>Drag either end of any of them to make them all longer or shorter by the same share, or drag one to move them together. A video clip cannot grow past its own footage. Click one on its own to edit it.</div></div>';
+        '<div class="vs-sec"><div class="vs-none"><b>They change as one</b>Drag an end to resize them together, or drag one to move them all.</div></div>';
       return;
     } if (g) {
       const a0 = Math.min(...g.map(t => t.at)), e0 = Math.max(...g.map(t => t.at + t.dur));
       el.innerHTML = '<div class="vs-cap"><b>' + g.length + ' texts selected</b><s>' + fmt(a0) + ' to ' + fmt(e0) + '</s></div>' +
-        '<div class="vs-sec"><div class="vs-none"><b>They move as one</b>Drag either end of any of them to stretch or shrink them together, or drag one to move them all. Click one on its own to edit it.</div></div>';
+        '<div class="vs-sec"><div class="vs-none"><b>They move as one</b>Drag an end to resize them together, or drag one to move them all.</div></div>';
       return;
     } }
     const segv = (k, cur, opts, cls) => '<div class="vs-seg' + (cls ? ' ' + cls : '') + '">' + opts.map(o => '<button data-k="' + k + '" data-v="' + o[0] + '"' + (String(cur) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
@@ -2026,11 +2029,11 @@
           row('Words at a time', seg('capN', [['1', 'One'], ['2', 'Two'], ['3', 'Three']])) +
           row('Style', seg('capStyle', [['plain', 'Plain'], ['pill', 'Navy pill']])) +
           row('Size', seg('capSize', [['S', 'Small'], ['M', 'Medium'], ['L', 'Large']])) +
-          row('Letters', seg('capCase', [['caps', 'Capitals'], ['as', 'As typed']])) +
+          acc('capfine', 'Fine-tune', 'Letters, highlight, height, timing', row('Letters', seg('capCase', [['caps', 'Capitals'], ['as', 'As typed']])) +
           row('Spoken word in brass', seg('capHi', [[true, 'On'], [false, 'Off']], 's')) +
           rng('i', 'capY', 'Height', it.capY == null ? 90 : it.capY, 0, 100, '%') +
           rng('i', 'capShift', 'Earlier / later', it.capShift || 0, -1.5, 1.5, 's', .05) +
-          '<span class="vs-note">The words are timed from the loudness of the speech, not from a transcript, so they are an estimate. If they run ahead or behind, nudge them with Earlier / later. Music under the voice makes the timing less accurate.</span>' : '')) + timing();
+          '<span class="vs-note">Timing is estimated from the loudness of the speech. Nudge it with Earlier / later.</span>') : '')) + timing();
     } else if (sel.kind === 'text' && it.call === 'cta') {
       h = cap('End card', esc(it.head || '')) + '<div class="vs-sec">' +
         f('Line above <s>optional</s>', '<textarea class="p-in" data-s="line" rows="2">' + esc(it.line || '') + '</textarea>') +
@@ -2038,11 +2041,10 @@
         f('Button', '<input class="p-in" data-s="btn" value="' + esc(it.btn || '') + '" placeholder="Leave empty for no button">') + '</div>' +
         sec('Look', '', row('Wordmark', seg('mark', [[true, 'Shown'], [false, 'Hidden']], 's')) +
         row('Panel', seg('glass', [['glass', 'Frosted glass'], ['plain', 'Navy']])) +
-        row('Position', segv('y', +(it.y == null ? 50 : it.y), [[32, 'Higher'], [50, 'Middle'], [62, 'Lower']])) +
         rng('i', 'y', 'Up or down', it.y == null ? 50 : it.y, 15, 85, '%') +
         rng('i', 'wash', 'Background wash', it.wash == null ? 45 : it.wash, 0, 80, '%') +
         row('Captions under it', segv('capHide', it.capHide || 'show', [['show', 'Shown'], ['hide', 'Hidden']], 's')) +
-        '<span class="vs-note">Drag the card on the picture to move it up or down. It stays inside the safe area. The corner logo hides while the end card is showing, so the wordmark appears once.</span>') + timing();
+        '') + timing();
     } else if (sel.kind === 'text' && it.call) {
       const nm = { ruler: 'Measure line', count: 'Counting figure', box: 'Outline box' }[it.call];
       h = cap(nm, esc(it.value || it.label || '')) + '<div class="vs-sec">' +
@@ -2070,21 +2072,21 @@
         f('Colour', seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']])) +
         row('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']], 's')) +
         '<div class="vs-acts"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div>' +
-        '<span class="vs-note">Drag it on the picture to move it. Reel and Square each keep their own place and size.</span></div>' + timing();
+        '</div>' + timing();
     }
     if (it) h += allHtml(it);
-    if (it) h += '<div class="vs-sec vs-foot"><div class="vs-acts"><button class="p-ghost p-sm" id="iDup">' + ico('content_copy') + 'Duplicate</button><button class="p-danger p-sm" id="iDel">' + ico('delete') + 'Delete</button></div></div>';
     // the queue poll repaints this panel; the prompt being typed keeps its caret and scroll
     const a = document.activeElement, keep = a && a.id === 'genPrompt' && el.contains(a) && [a.selectionStart, a.selectionEnd, a.scrollTop], top = el.parentNode.scrollTop;
-    el.innerHTML = h;
+    el.innerHTML = h; labelFields(el);
     if (keep) { const b = document.getElementById('genPrompt'); if (b && !b.disabled) { b.focus({ preventScroll: true }); try { b.setSelectionRange(keep[0], keep[1]); } catch (e) {} b.scrollTop = keep[2]; } el.parentNode.scrollTop = top; }
   }
   // THE GENERATE PANEL (2026-11-18, by request): everything that is generated sits in one place,
   // the right rail's third tab, one inner tab each: the animate queue, the voiceover, the music.
   // It is its own container (#gen) beside #insp, so the inspector's handlers never see it.
   let gtab = 'anim';
-  const genN = () => JOBS.filter(jobActive).length;
-  function genTab() { const b = $('#rtabs').querySelector('[data-rtab="gen"]'), n = genN(), t = 'Queue' + (n ? ' · ' + n : ''); if (b && b.textContent !== t) b.textContent = t; }
+  const jobClip = j => P.clips.find(x => (x.job && x.job.id === j.id) || x.descJob === j.id);
+  const genN = () => JOBS.filter(j => jobActive(j) && jobClip(j)).length;        // this video's jobs only
+  function genTab() { const b = $('#rtabs').querySelector('[data-rtab="gen"]'), n = genN(), t = 'Generate' + (n ? ' · ' + n : ''); if (b && b.textContent !== t) b.textContent = t; }
   function genHtml() {
     const n = genN();
     if (VO.busy || VO.quote != null) gtab = 'vo'; else if (MU.busy || MU.quote != null) gtab = 'mu';
@@ -2096,12 +2098,19 @@
   // repainting must not take the caret out of a script somebody is typing
   function paintGen() {
     const el = $('#gen'), a = document.activeElement, id = a && el.contains(a) && a.id, s0 = id && a.selectionStart, s1 = id && a.selectionEnd, top = el.parentNode.scrollTop;
-    el.innerHTML = genHtml();
+    el.innerHTML = genHtml(); labelFields(el);
     if (id) { const b = document.getElementById(id); if (b) { b.focus(); try { if (s0 != null) b.setSelectionRange(s0, s1); } catch (e) {} } }
     el.parentNode.scrollTop = top;
   }
   function renderGen() { genTab(); if (rtab === 'gen') paintGen(); }
   const gen = $('#gen');
+  // a field's visible label names it for assistive tech too (the helpers emit a sibling label with no `for`)
+  function labelFields(root) {
+    root.querySelectorAll('.vs-f').forEach(f => { const lb = f.querySelector(':scope > label'), c = f.querySelector('input,select,textarea'); if (!lb || !c || c.getAttribute('aria-label')) return;
+      const t = [...lb.childNodes].filter(x => x.nodeType === 3 || (x.nodeType === 1 && x.tagName !== 'S' && x.tagName !== 'BUTTON')).map(x => x.textContent).join(' ').replace(/\s+/g, ' ').trim(); if (t) c.setAttribute('aria-label', t); });
+    root.querySelectorAll('.vs-row').forEach(r => { const c = r.querySelector('select,input'), sp = r.querySelector(':scope > span'); if (c && sp && !c.getAttribute('aria-label')) c.setAttribute('aria-label', sp.textContent.trim()); });
+  }
+  gen.addEventListener('toggle', e => { const a = e.target.dataset && e.target.dataset.acc; if (a) ACC[a] = e.target.open; }, true);
   gen.addEventListener('keydown', e => { const el = e.target.closest('[data-qcancel],[data-qsel]'); if (el && e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); el.click(); } });
   gen.addEventListener('input', e => {
     const id = e.target.id;
@@ -2114,6 +2123,8 @@
     if ((el = q('data-gtab'))) { gtab = el.dataset.gtab; renderGen(); }
     else if ((el = q('data-qcancel'))) { e.stopPropagation(); const id = el.dataset.qcancel, c = P.clips.find(x => x.job && x.job.id === id);
       if (c) animCancel(c); else api('/api/animate/cancel', { id }).catch(() => {}).then(() => { JOBS = JOBS.filter(j => j.id !== id); renderGen(); }); }
+    else if (e.target.closest('#qClear')) { const ids = JOBS.filter(j => jobActive(j) && !jobClip(j) && jobStale(j)).map(j => j.id);
+      Promise.all(ids.map(id => api('/api/animate/cancel', { id }).catch(() => {}))).then(() => { JOBS = JOBS.filter(j => ids.indexOf(j.id) < 0); renderGen(); toast(ids.length + (ids.length === 1 ? ' stalled job' : ' stalled jobs') + ' cleared.'); }); }
     else if ((el = q('data-qsel'))) { sel = { kind: 'clip', id: el.dataset.qsel }; rtab = 'sel'; const sp = span('clip', find(sel)); if (sp) seek(sp[0]); renderAll(); }
     else if (e.target.closest('#voHear')) voHear();
     else if (e.target.closest('#muBtn')) muMake(false);
@@ -2125,7 +2136,7 @@
     else if (e.target.closest('#voCancel')) { VO.quote = null; renderGen(); }
   });
   const insp = $('#insp');
-  insp.addEventListener('toggle', e => { const a = e.target.dataset && e.target.dataset.acc; if (a === 'anim') animOpen = e.target.open; else if (a === 'prompt') promptOpen = e.target.open; else if (a === 'more') moreOpen = e.target.open; }, true);
+  insp.addEventListener('toggle', e => { const a = e.target.dataset && e.target.dataset.acc; if (a === 'anim') animOpen = e.target.open; else if (a === 'prompt') promptOpen = e.target.open; else if (a === 'more') moreOpen = e.target.open; else if (a) ACC[a] = e.target.open; }, true);
   insp.addEventListener('pointerdown', e => { if (e.target.matches('input[type=range]')) mark(); });
   insp.addEventListener('focusin', e => { if (e.target.matches('input:not([type=range]),textarea,select')) mark(); });
   insp.addEventListener('input', e => {
@@ -2191,6 +2202,7 @@
     if (b.id === 'descBtn') return descSend(it);
     if (b.id === 'descCancel') { const id = it.descJob; mark(); delete it.descJob; JOBS = JOBS.filter(j => j.id !== id); api('/api/animate/cancel', { id }).catch(() => {}); renderAll(); return; }
     if (b.id === 'promptReset') { mark(); delete it.genPrompt; delete it.genPromptBy; delete it.genPromptFor; delete it.descErr; renderAll(); return; }
+    if (b.dataset.mvall) { mvAll = true; renderInspector(); return; }
     if (b.id === 'detachBtn') return detachAudio(it);
     if (b.id === 'extBtn') return extendPhoto(it);
     if (b.dataset.mkcut) { cutAtMarkers(b.dataset.mkcut, it); return; }
@@ -2499,7 +2511,7 @@
     const j = it.job, st = j && j.status, sj = j && JOBS.find(x => x.id === j.id) || {}, mv = MOVES.find(m => m[0] === it.move);
     const what = genWhat(it);
     const card = (state, title, body, acts) => '<div class="vs-job" data-st="' + state + '"><b>' + title + '</b><s>' + what + '</s>' + body + (acts ? '<div class="vs-acts">' + acts + '</div>' : '') + '</div>';
-    const lands = '<span class="vs-note">When it is ready the clip takes this photo\'s place on the timeline and is added to <b>Your media</b>.</span>';
+    const lands = '';
     if (st === 'confirm') return sec('Animate this photo', 'Higgsfield', card('confirm', 'Ready to generate',
       '<span class="vs-note"><b>This will spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + '</b> from your Higgsfield balance. Nothing has been spent yet.</span>',
       '<button class="p-ghost p-sm" id="animCancel">Cancel</button><button class="p-btn p-sm" id="animGo">Generate' + (j.credits == null ? '' : ' · ' + j.credits + ' credits') + '</button>'));
@@ -2516,27 +2528,22 @@
     const mvM = media[it.mid], mvBg = mvM && mvM.url ? 'background-image:url(\'' + mvM.url + '\');background-position:' + (it.fx == null ? 50 : it.fx) + '% ' + (it.fy == null ? 50 : it.fy) + '%' : '';
     return sec('Animate this photo', 'Higgsfield',
       (st === 'failed' ? '<div class="vs-job" data-st="failed"><b>That did not work</b><span class="vs-note">' + esc(j.error || 'No reason was given.') + ' Change anything below and try again.</span></div>' : '') +
-      '<div class="vs-f"><label>Camera move' + (it.move ? '' : ' <s>choose one</s>') + '</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + dis + '><i class="vs-mvp" aria-hidden="true"><u data-m="' + m[0] + '" style="' + mvBg + '"></u></i><span>' + m[1] + '</span></button>').join('') + '</div></div>' +
+      '<div class="vs-f"><label>Camera move' + (it.move ? '' : ' <s>choose one</s>') + '</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.filter((m, i) => mvAll || i < 6 || it.move === m[0]).map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + dis + '><i class="vs-mvp" aria-hidden="true"><u data-m="' + m[0] + '" style="' + mvBg + '"></u></i><span>' + m[1] + '</span></button>').join('') + '</div>' + (mvAll ? '' : '<button class="vs-link" data-mvall="1">More moves</button>') + '</div>' +
       f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + (genModel(it)[0] === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
       (() => { const l = genLim(it), d = genDurOf(it);
         return '<div class="vs-f vs-dur"><label>Duration <s data-out="genDur">' + d + 's</s></label><input type="range" class="p-range" data-ir="genDur" data-unit="s" min="' + l[0] + '" max="' + l[1] + '" step="1" value="' + d + '" aria-label="Duration, seconds">' +
           '<div class="vs-ticks" aria-hidden="true">' + l[2].map(t => '<i style="left:' + ((t - l[0]) / (l[1] - l[0]) * 100).toFixed(2) + '%">' + t + '</i>').join('') + '</div></div>'; })() +
-      row('Aspect ratio', '<s>' + (P.size === '1x1' ? '1:1' : '9:16') + ' · the video\'s size</s>') +
       (genSeed(it) ? f('Quality', '<div class="vs-seg">' + GEN_RES.map(q => '<button data-gr="' + q[0] + '"' + (genRes(it)[0] === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
           row('Bitrate', '<div class="vs-seg">' + [['standard', 'Standard'], ['high', 'High']].map(q => '<button data-gb="' + q[0] + '"' + (genBit(it) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>')
         : row('Quality', '<div class="vs-seg">' + [['std', 'Standard'], ['pro', 'Pro']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>')) +
-      (wideOf(it) ? row('Extend to ' + (P.size === '1x1' ? '1:1' : '9:16'), '<div class="vs-seg">' + [[1, 'Yes'], [0, 'No']].map(q => '<button data-gx="' + q[0] + '"' + ((extOn(it) ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-        '<span class="vs-note">' + (extOn(it) ? 'The photo is wider than the video, so it is not cropped: Nano Banana 2.1 adds more of the scene above and below it first, then the clip is made. The photo itself stays as it is. ' + EXT_CR + ' credits.'
-          : 'The photo is cropped to the frame as it shows on the canvas.') + '</span>' : '') +
-      promptBox(it) +
       '<div class="vs-go"><div class="vs-jl"><span id="genWhat">' + (!it.move ? 'Choose a camera move to continue' : it.descJob ? 'Waiting for Claude\'s prompt' : what) + '</span></div>' +
-        '<button class="p-btn p-sm" id="animNow"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (!it.move || it.descJob ? 'Generate' : (st === 'failed' ? 'Try again' : 'Generate') + ' · ' + genCredits(it) + ' credits') + '</button>' +
-        '<span class="vs-note">You see the exact cost and confirm before anything is spent.</span></div>' +
-      '<details class="vs-pr" data-acc="more"' + (moreOpen ? ' open' : '') + '><summary><b>More options</b><s>Direction, people, queue</s>' + CHEV + '</summary><div class="vs-pr-b">' +
+        '<button class="p-btn p-sm" id="animNow"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (!it.move || it.descJob ? 'Generate' : (st === 'failed' ? 'Try again' : 'Generate') + ' · ' + genCredits(it) + ' credits') + '</button>' + '</div>' +
+      '<details class="vs-pr" data-acc="more"' + (moreOpen ? ' open' : '') + '><summary><b>More options</b><s>Prompt, direction, queue</s>' + CHEV + '</summary><div class="vs-pr-b">' +
+      (wideOf(it) ? row('<span title="A photo wider than the video is not cropped: Nano Banana 2.1 adds more of the scene above and below first (' + EXT_CR + ' credits). No crops it to the frame.">Extend to ' + (P.size === '1x1' ? '1:1' : '9:16') + '</span>', '<div class="vs-seg">' + [[1, 'Yes'], [0, 'No']].map(q => '<button data-gx="' + q[0] + '"' + ((extOn(it) ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') : '') +
+      promptBox(it) +
       f('Extra direction <s>optional</s>', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Golden hour light">') +
       row('People in it', '<div class="vs-seg">' + [[0, 'No'], [1, 'Yes']].map(q => '<button data-gp="' + q[0] + '"' + ((it.people ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-        '<button class="vs-link" id="animBtn"' + (it.move ? '' : ' disabled') + '>Add it to the queue for Claude instead</button>' +
-        '<span class="vs-note">Costs nothing until you run <b>/animate-photos</b> in Claude.</span></div></details>');
+        '<button class="vs-link" id="animBtn" title="Costs nothing until you run /animate-photos in Claude, which works through the queue"' + (it.move ? '' : ' disabled') + '>Add it to the queue for Claude instead</button>' + '</div></details>');
   }
   // THE PROMPT (2026-11-19, by request: "bake this skill in CASV"). The prompt is the
   // photo-to-video-prompt framework's 14 sections. The studio fills them without seeing the photo
@@ -2544,7 +2551,9 @@
   // /animate-photos answers by reading the start frame and writing all 14 from what it sees.
   // Edits by hand are kept. Either kind is flagged, not dropped, when the move, length, size or
   // People change after it was written.
-  let promptOpen = false, moreOpen = false;
+  let promptOpen = false, moreOpen = false, mvAll = false;
+  const ACC = {};                      // which of the inspector's small accordions are open
+  const acc = (key, title, meta, body) => '<details class="vs-pr" data-acc="' + key + '"' + (ACC[key] ? ' open' : '') + '><summary><b>' + title + '</b><s>' + (meta || '') + '</s>' + CHEV + '</summary><div class="vs-pr-b">' + body + '</div></details>';
   const pCount = p => p.length.toLocaleString() + ' of ' + PMAX.toLocaleString() + ' characters';
   function promptBox(it) {
     if (!it.move) return '';
@@ -2554,9 +2563,9 @@
     const err = it.descErr ? esc(it.descErr).replace(/`([^`]+)`/g, '<b>$1</b>') : '';
     return '<div class="vs-f vs-prw">' +
       (wait ? '<div class="vs-jl"><span>Claude is reading the photo and writing the prompt</span><time>about a minute</time></div><div class="vs-busy"><i></i></div>' +
-          '<span class="vs-note">Free; nothing is generated. You can keep working.</span><button class="vs-link" id="descCancel">Stop</button>'
-        : '<button class="p-ghost p-sm" id="descBtn">' + (by === 'claude' ? 'Have Claude write it again' : 'Have Claude write it from the photo') + '</button>' +
-          '<span class="vs-note">Free. Claude looks at the photo (people, room, light, what can move) and writes the prompt from what it sees.</span>') +
+          '<button class="vs-link" id="descCancel">Stop</button>'
+        : '<button class="p-ghost p-sm" id="descBtn" title="Free. Claude looks at the photo (people, room, light, what can move) and writes the prompt from what it sees.">' + (by === 'claude' ? 'Have Claude write it again' : 'Have Claude write it from the photo') + '</button>' +
+          '') +
       (err ? '<span class="vs-note vs-bad">Claude could not write it: ' + err + '</span>' : '') + '</div>' +
       '<details class="vs-pr" data-acc="prompt"' + (promptOpen ? ' open' : '') + '><summary><b>Prompt</b><s>' + who + '</s>' + CHEV + '</summary><div class="vs-pr-b">' +
       '<textarea class="p-in" id="genPrompt" rows="10" spellcheck="false" aria-label="Prompt"' + (wait ? ' disabled' : '') + '>' + esc(p) + '</textarea>' +
@@ -2600,18 +2609,21 @@
   }
   // the queue, in the Generate panel's Animate tab: every job still waiting or generating, whichever video it is for
   function queueHtml() {
-    const act = JOBS.filter(jobActive).sort((a, b) => (a.status === 'working' ? 0 : 1) - (b.status === 'working' ? 0 : 1) || (a.at || 0) - (b.at || 0));
-    if (!act.length) return '';
+    const all = JOBS.filter(jobActive).sort((a, b) => (a.status === 'working' ? 0 : 1) - (b.status === 'working' ? 0 : 1) || (a.at || 0) - (b.at || 0));
+    const act = all.filter(jobClip), oth = all.filter(j => !jobClip(j)), stale = oth.filter(jobStale).length;
+    if (!all.length) return '';
     const g = act.filter(j => j.status === 'working' && !jobStale(j)).length, w = act.filter(j => j.status === 'queued').length, dn = act.filter(j => j.status === 'describe').length, x = act.length - g - w - dn;
-    return '<div class="vs-sec" id="animQ"><div class="vs-h"><b>Animating</b><s>' + [g ? g + ' generating' : '', w ? w + ' waiting' : '', dn ? dn + (dn === 1 ? ' prompt' : ' prompts') + ' being written' : '', x ? x + ' stalled' : ''].filter(Boolean).join(' · ') + '</s></div>' +
-      act.map(j => { const c = P.clips.find(x => (x.job && x.job.id === j.id) || x.descJob === j.id); return (
+    const rowOf = j => { const c = jobClip(j); return (
         '<div class="vs-qr" data-st="' + j.status + '"' + (c ? ' data-qsel="' + c.id + '" role="button" tabindex="0" title="Show this clip"' : '') + '><i style="background-image:url(\'/_animate/' + esc(j.photo || '') + '\')"></i>' +
-        '<span class="n"><b>' + esc(j.name || 'Photo') + '</b><s>' + esc(j.move || '') + ' · ' + (j.duration || 5) + ' s' + (c ? '' : ' · not in this video') + '</s>' +
+        '<span class="n"><b>' + esc((c && (media[c.mid] || {}).name) || j.name || 'Photo') + '</b><s>' + esc(j.move || '') + ' · ' + (j.duration || 5) + ' s</s>' +
         (j.status === 'working' && !jobStale(j) ? '<div class="vs-busy"><i></i></div>' : '') +
         '<s class="t"' + (jobStale(j) ? ' title="No result came back. It has probably stopped; remove it and generate again."' : '') + '>' + (jobStale(j) ? 'Stalled' : j.status === 'working' ? 'Generating' : j.status === 'describe' ? 'Claude is writing the prompt · free' : j.read ? 'Waiting · Claude writes the prompt first' : 'Waiting') + ' · <time data-since="' + j.id + '">' + jobSince(j) + '</time></s></span>' +
-        '<span class="vs-mo" role="button" tabindex="0" data-qcancel="' + j.id + '" aria-label="Remove from the queue" title="Remove from the queue">' + ico('close') + '</span></div>'); }).join('') +
-      (w ? '<span class="vs-note">Waiting clips start when you run <b>/animate-photos</b> in Claude, or press <b>Generate now</b> on the photo.</span>' : '') +
-      (dn ? '<span class="vs-note">Claude reads each photo and sends its prompt back to the clip. Free; nothing is generated.</span>' : '') + '</div>';
+        '<span class="vs-mo" role="button" tabindex="0" data-qcancel="' + j.id + '" aria-label="Remove from the queue" title="Remove from the queue">' + ico('close') + '</span></div>'); };
+    return '<div class="vs-sec" id="animQ">' + (act.length ? '<div class="vs-h"><b>Animating</b><s>' + [g ? g + ' generating' : '', w ? w + ' waiting' : '', dn ? dn + (dn === 1 ? ' prompt' : ' prompts') + ' being written' : '', x ? x + ' stalled' : ''].filter(Boolean).join(' · ') + '</s></div>' +
+      act.map(rowOf).join('') +
+      (w ? '<span class="vs-note">Waiting clips start when you run <b>/animate-photos</b> in Claude, or press <b>Generate</b> on the photo.</span>' : '') : '') +
+      (oth.length ? acc('qoth', 'Other videos', oth.length + (oth.length === 1 ? ' job' : ' jobs') + (stale ? ' · ' + stale + ' stalled' : ''), oth.map(rowOf).join('') +
+        (stale ? '<div class="vs-acts"><button class="p-ghost p-sm" id="qClear" title="Remove every stalled job that is not in this video. Nothing is refunded or charged.">Clear ' + stale + ' stalled</button></div>' : '')) : '') + '</div>';
   }
   setInterval(() => { document.querySelectorAll('time[data-since]').forEach(t => { const j = JOBS.find(x => x.id === t.dataset.since); if (j) t.textContent = jobSince(j); }); }, 1000);
   // a finished clip nobody on this timeline is waiting for (the photo was deleted, another video
@@ -3278,7 +3290,6 @@
   $('#mkBtn').innerHTML = sico('flag') + 'Markers';
   $('#mkPop').addEventListener('toggle', e => { if (e.newState === 'open') mkPaint(); popAt($('#mkPop'), $('#mkBtn'))(e); });
   $('#mkPop').addEventListener('click', e => {
-    const k = e.target.closest('[data-mkcut]'); if (k) { cutAtMarkers(k.dataset.mkcut); mkPaint(); return; }
     const b = e.target.closest('[data-mk]'); if (!b) return;
     const v = b.dataset.v; MK[b.dataset.mk] = v === 'true' ? true : v === 'false' ? false : v;
     try { localStorage.setItem(MKEY, JSON.stringify(MK)); } catch (x) {}

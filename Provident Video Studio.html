@@ -38,7 +38,6 @@ a.p-wm{text-decoration:none;border-radius:6px}
 .p-top .vs-tq:hover{background:var(--ps-fill)}
 .p-top .p-btn:disabled,.p-top > .p-ghost:disabled{background:var(--ps-fill);color:var(--ps-dim);cursor:default}
 .p-top .vs-tq:disabled{background:transparent}
-.vs-tag{font:500 11px/1 var(--ps-font);color:var(--ps-dim);padding:5px 9px;border-radius:var(--ps-pill);background:var(--ps-fill);white-space:nowrap}
 
 /* ── the three columns ── */
 .vs-body{position:relative;display:grid;grid-template-columns:var(--vs-lw,var(--vs-lwd)) minmax(0,1fr) 332px;min-height:0}
@@ -114,7 +113,7 @@ a.p-wm{text-decoration:none;border-radius:6px}
 .vs-t > b{font:500 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vs-t[data-pic] > i{height:auto;aspect-ratio:1;padding:0}
 .vs-t[data-pic="fit"] > i{background-size:72%}
-.vs-t > i > s{position:absolute;left:4px;bottom:4px;text-decoration:none;font:500 10px/1 var(--ps-font);font-variant-numeric:tabular-nums;
+.vs-t > i > s{position:absolute;left:4px;bottom:4px;text-decoration:none;font:500 11px/1 var(--ps-font);font-variant-numeric:tabular-nums;
   padding:3px 5px;border-radius:var(--ps-pill);background:rgba(10,11,13,.72);color:#fff}
 .vs-t > i > u{position:absolute;inset:9px 8px;background:currentColor;-webkit-mask:center/contain no-repeat;mask:center/contain no-repeat}
 .vs-t[data-on],.vs-t[data-on]:hover{background:var(--ps-accent)}
@@ -123,7 +122,7 @@ a.p-wm{text-decoration:none;border-radius:6px}
 .vs-grid[data-m] .vs-t{text-align:left;gap:6px;padding:3px 3px 7px}
 .vs-grid[data-m] .vs-t > i{aspect-ratio:4 / 3}
 .vs-grid[data-m] .vs-t > b{padding:0 3px;line-height:1.3;white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
-.vs-t > i > q{position:absolute;left:4px;top:4px;quotes:none;font:500 10px/1 var(--ps-font);padding:3px 6px;border-radius:var(--ps-pill);background:rgba(10,11,13,.72);color:#fff}
+.vs-t > i > q{position:absolute;left:4px;top:4px;quotes:none;font:500 11px/1 var(--ps-font);padding:3px 6px;border-radius:var(--ps-pill);background:rgba(10,11,13,.72);color:#fff}
 .vs-t > i > em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,11,13,.38);color:#fff;opacity:0;
   transition:opacity var(--ps-motion) var(--ps-ease)}
 .vs-t > i > em .vs-i{width:22px;height:22px;padding:5px;border-radius:50%;background:rgba(10,11,13,.72)}
@@ -176,7 +175,7 @@ a.p-wm{text-decoration:none;border-radius:6px}
 .vs-fc[aria-pressed=true]{background:var(--ps-accent);color:var(--ps-accent-i)}
 #libList{display:flex;flex-direction:column;gap:2px}
 /* star and menu, on a tile and on a row */
-.vs-st,.vs-mo{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ps-ink-2);flex:none;
+.vs-st,.vs-mo{width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ps-ink-2);flex:none;
   transition:opacity var(--ps-motion) var(--ps-ease),background-color var(--ps-motion) var(--ps-ease),color var(--ps-motion) var(--ps-ease)}
 .vs-st .vs-i,.vs-mo .vs-i{width:15px;height:15px}
 .vs-st:hover,.vs-mo:hover{background:var(--ps-fill-h);color:var(--ps-ink)}
@@ -347,7 +346,7 @@ body[data-drag] #cv{box-shadow:0 0 0 2px var(--ps-focus)}
   scrollbar-width:thin;scrollbar-color:var(--ps-line) transparent}
 .vs-tl-in{position:relative;min-width:100%;min-height:100%}
 .vs-ruler{height:28px;position:relative;border-bottom:1px solid var(--ps-hair);cursor:ew-resize}
-.vs-tick{position:absolute;top:0;bottom:0;border-left:1px solid var(--ps-hair);padding-left:5px;font:400 10.5px/26px var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
+.vs-tick{position:absolute;top:0;bottom:0;border-left:1px solid var(--ps-hair);padding-left:5px;font:400 11px/26px var(--ps-font);color:var(--ps-dim);font-variant-numeric:tabular-nums}
 .vs-trk{position:relative;border-bottom:1px solid var(--ps-hair)}
 .vs-trk-l{position:sticky;left:0;z-index:3;width:92px;height:100%;display:flex;align-items:center;gap:7px;padding:0 10px 0 12px;box-sizing:border-box;
   background:var(--ps-sb);border-right:1px solid var(--ps-hair);font:500 12px/1 var(--ps-font);color:var(--ps-ink-2)}
@@ -521,12 +520,10 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 .vs-qa{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .vs-qa .p-ghost{box-shadow:inset 0 0 0 1px var(--ps-line);background:transparent}
 .vs-qa .p-ghost:hover{background:var(--ps-card)}
-.vs-mkl{display:block;margin-top:12px;font:500 11.5px/1.2 var(--ps-font);color:var(--ps-ink-2)}
-.vs-mk2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.vs-mk2 > button{justify-content:center;min-width:0;padding:0 8px}
 .vs-rail.r .vs-cap{position:sticky;top:52px;z-index:1;background:var(--ps-sb);padding-top:2px;padding-bottom:10px;border-bottom:1px solid var(--ps-hair)}
 .vs-rail.r .vs-cap + .vs-sec{border-top:0}
-.vs-foot{position:sticky;bottom:0;z-index:1;margin-top:auto;background:var(--ps-sb);padding-top:12px;padding-bottom:12px;border-top:1px solid var(--ps-hair)}
+.vs-note:empty{display:none}
+#szName,#szRatio{display:none}
 #insp{display:flex;flex-direction:column;flex:1 0 auto}
 #insp[hidden]{display:none}   /* the flex above beat [hidden], so Generate opened under Whole video (since e32d045) */
 .vs-mvs{gap:6px}
@@ -591,7 +588,6 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 @keyframes vs-up{from{opacity:0;transform:translate(-50%,6px)}}
 
 /* ── narrower windows ── */
-@media (max-width:1360px){.vs-tag{display:none}}
 @media (max-width:1180px){
   :root{--vs-lwd:240px}
   .vs-body{grid-template-columns:var(--vs-lw,var(--vs-lwd)) minmax(0,1fr) 296px}
@@ -620,8 +616,9 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   .vs-bar{order:2;grid-template-columns:auto 1fr auto;padding:0 12px;gap:8px}
   .vs-zm,#keysBtn,.vs-rz,.vs-rzx{display:none}
   .vs-time{min-width:0}
+  .p-top .vs-file{width:auto;padding:0 10px}
   .vs-tl{order:3;flex:none}
-  .vs-mseg{order:4;display:block;padding:12px 16px 4px;background:var(--ps-sb);border-top:1px solid var(--ps-hair)}
+  .vs-mseg{order:4;display:block;padding:10px 16px;background:var(--ps-sb);border-top:1px solid var(--ps-hair);position:sticky;bottom:0;z-index:15}
   .vs-rail{order:5;overflow:visible;border:0!important}
   .vs-rh{position:static}
   .vs-rail.r .vs-cap{position:static}
@@ -633,6 +630,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 @media (max-width:520px){
   .p-top #sendBtn .vs-l2{display:none}
   .p-top #sendBtn{width:40px;padding:0;justify-content:center}
+  .vs-time s{display:none}
 }
 @media (prefers-reduced-motion:reduce){
   .vs-busy i{animation:none;width:100%;opacity:.45}
@@ -671,7 +669,6 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 <path d="M781.64,0h-387.07c-11.45,0-20.77,9.32-20.77,20.77v49.63c0,11.45,9.32,20.77,20.77,20.77h387.07c11.45,0,20.77-9.32,20.77-20.77V20.77c0-11.45-9.32-20.77-20.77-20.77ZM797.3,20.77v49.63c0,8.63-7.02,15.66-15.66,15.66h-387.07c-8.63,0-15.66-7.02-15.66-15.66V20.77c0-8.63,7.02-15.66,15.66-15.66h387.07c8.63,0,15.66,7.02,15.66,15.66Z"/>
 <path class="p-wm-d" d="M357.14,67.05c2.21,0,3.99-1.79,3.99-3.99s-1.79-3.99-3.99-3.99-3.99,1.79-3.99,3.99,1.79,3.99,3.99,3.99Z"/>
 </svg></a>
-  <span class="vs-tag">CASV · prototype</span>
   <button class="p-ghost vs-tq vs-file" id="fileBtn" popovertarget="filePop" aria-expanded="false" title="This video: rename it, start a new one or open another"><span id="fileName"></span></button>
   <div class="p-seg" id="sizeSeg" role="radiogroup" aria-label="Video size">
     <button data-size="9x16" role="radio"><span class="vs-l">Reel </span>9:16</button>
@@ -685,7 +682,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   </div>
   <button class="p-ghost p-ico-t vs-tq" id="previewBtn2" title="See the video inside Facebook and Instagram" aria-label="Preview"></button>
   <button class="p-ghost p-ico-t" id="outBtn" popovertarget="outPop" aria-expanded="false" title="Save the video or a single frame to Downloads"></button>
-  <button class="p-btn p-ico-t" id="sendBtn" title="Record both sizes and hand them to CAS for the ad set"></button>
+  <button class="p-btn p-ico-t" id="sendBtn" aria-label="Send to CAS" title="Record both sizes and hand them to CAS for the ad set"></button>
 </header>
 
 <div class="vs-body">
@@ -719,7 +716,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   <i class="vs-rzx" id="libRz" role="separator" aria-orientation="vertical" aria-label="Library width" tabindex="0" title="Drag to make the library wider or narrower. Double-click to put it back."></i>
   <aside class="vs-rail r" aria-label="Settings">
     <div class="vs-rh"><div class="vs-seg" id="rtabs" role="tablist" aria-label="What to edit">
-      <button data-rtab="sel" role="tab">Selected</button><button data-rtab="doc" role="tab">Brand</button><button data-rtab="gen" role="tab">Queue</button>
+      <button data-rtab="sel" role="tab">Selected</button><button data-rtab="doc" role="tab">Brand</button><button data-rtab="gen" role="tab">Generate</button>
     </div></div>
     <div id="insp"></div>
     <div id="gen" hidden></div>
@@ -783,6 +780,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
     <div><dt>One frame back or on</dt><dd><kbd>←</kbd><kbd>→</kbd></dd></div>
     <div><dt>One second</dt><dd><kbd>⇧</kbd><kbd>←</kbd><kbd>→</kbd></dd></div>
     <div><dt>Zoom the timeline</dt><dd><kbd>⌘</kbd><kbd>scroll</kbd></dd></div>
+    <div><dt>Stretch a clip or sound</dt><dd><kbd>⌥</kbd><kbd>drag an end</kbd></dd></div>
     <div><dt>Select several texts</dt><dd><kbd>⇧</kbd><kbd>click</kbd></dd></div>
     <div><dt>Drop the selection</dt><dd><kbd>Esc</kbd></dd></div>
   </dl>

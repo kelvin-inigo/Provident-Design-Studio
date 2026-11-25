@@ -1018,3 +1018,42 @@ slider, and make sure after generation it comes back to CASV placed in timeline 
   own quote on the confirm card 210, Cancel removed the job; nothing spent. NOT run: a real
   generation at the new lengths or at 480p / 4K.
 
+## Critique, audit and declutter (2026-11-25, /impeccable)
+
+Critique 27/40 and audit 13/20 (snapshot in `.impeccable/critique/`). The user chose: fix everything,
+keep Higgsfield's four settings visible in Animate, keep the library's filters and folders always on.
+
+**Removed**
+- The inspector's sticky Duplicate / Delete footer (toolbar, Cmd-D and Delete remain; `#iDup` / `#iDel`
+  handlers are dead code now).
+- Markers menu › Cut at markers (the per-clip / per-piece buttons in the inspector stay; `cutAtMarkers`
+  with no `one` is still there for a future bot op).
+- Audio tab › "Or make one" buttons: one link, "Or generate a voiceover or music", opens the Generate tab.
+- Animate › Aspect ratio row; End card › Position switch (the slider sets the same `y`).
+- The "CASV · prototype" chip; the stage header's repeated size name (`#szName`, `#szRatio` hidden).
+- About 20 `.vs-note` paragraphs: now `title` tooltips or gone. Kept: cost, failure and "run
+  /animate-photos" notes. `rateNote` is empty at 100% (`.vs-note:empty` hides it).
+
+**Collapsed** (`acc(key, title, meta, body)` → `details.vs-pr`, open state in `ACC`, in `#insp` and `#gen`)
+- Animate: 6 moves then "More moves" (`mvAll`); Extend, the prompt box, direction, people and the queue
+  link are under More options. Visible: Camera move, Model, Duration, Quality, Bitrate, Generate.
+- Captions › Fine-tune (Letters, brass, Height, Earlier / later). Speed › Fit to a length.
+  Apply to all. The Option-drag hint moved to the Shortcuts card.
+
+**Changed**
+- Right rail's third tab is **Generate** (was Queue); its count is this video's jobs only (`jobClip`).
+  Jobs from other videos fold under "Other videos", with **Clear N stalled** (`#qClear`).
+- Graphics tab lists a photo only once it is placed as a graphic (`libAll`).
+- "From Higgsfield" is a link under the drop zone.
+- Keyboard: every timeline piece is a tab stop with a name; Enter or Space selects it.
+- `labelFields(root)` gives every `.vs-f` / `.vs-row` control its visible label as `aria-label`.
+- Phone: the total time hides under 520 px (it ran under Markers), the Add / Edit switch sticks to
+  the foot, the video name gets its width back, Send has a label. Star / more targets 24 px; ticks
+  and tile badges 11 px.
+
+**Not done:** `.p-in` field edge contrast (1.3:1; a kit change that fans out to CAS and OPS),
+`prefers-color-scheme`, a `main` landmark and headings, roving focus in the tab lists.
+
+Verified on :8797: photo inspector 2069 → 1092 px tall, 0 unlabelled fields, a clip selected by Tab +
+Enter with focus kept, Generate tab folds 3 foreign jobs, phone at 375 with no overlap or overflow.
+
