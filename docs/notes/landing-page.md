@@ -961,3 +961,34 @@ request ("run all of them"), in one PHONE block at the end of index.html's style
   input, whose 44px label takes the tap; every field 16px; cards ~190px (were ~485). Desktop
   unchanged (nav in the sticky header, full grid, no phone row).
 
+## The live Tracker critique: one Overdue, one name, attention order (2026-11-25, Revision 1.69)
+
+/impeccable critique of the live Tracker on the office server (real data: 23 rows): 24/40. By
+request the three P1s, in the user's order and with their choice of name.
+
+- **The Due filter reads the lane's test.** `FV.due` was `dueK`, so Filter › Due › Overdue (3 live)
+  listed signed-off ad sets whose rows say "Deadline" while the Overdue lane (`isLate`) held other
+  work. Now `dueF`: a signed-off campaign past its deadline is `'past'`, shown in `DUEK` as
+  **Signed off, past deadline**. A post ready past its date stays Overdue, as in `isLate`.
+- **One name: Signed off** (user's choice over "Ready to run" / "Ready"). `STAGES` ready's `n` is
+  "Signed off" (Kanban column, Filter › Stage, Home's Where everything is). In `build()`, a
+  campaign row with `y.ready` and `shortOf(y)` gets `step` "Signed off" and `sub` "n deliverables
+  missing"; only a complete one keeps the studio's "Ready to run". The guard is `y.ready`, not the
+  stage: `stageOf` also reads the step text, and a renamed step would fall to Design. The ad set
+  page's per-audience "Ready to run" (share-link.js, "this audience is complete") is a different
+  thing and stays.
+- **Progress in attention order** (`viewTracker`, `att`): waits on you 0 · late (`isLate`) 1 · in
+  progress 2 · signed off with something missing 3 · all in 4 · closed 5; then due date, then
+  newest. Live, the only row waiting on the viewer was row 8 and the first three were signed-off
+  October/November deadlines. Mine rows get `data-mine` (the Kanban card's `--ps-link` ring, kept
+  with `data-hot`'s red edge) and `tkYou`: **Waits on you** (`.cd-you.tk-you`) under the name,
+  campaigns and posts.
+- **Verified** on :8790 (seed, admin, 1440): Progress opens on the three rows waiting on the
+  admin, then in progress, then Ellington / Damac "Signed off · n deliverables missing"; Kanban
+  column "Signed off", cards "Signed off" + missing line; Filter › Due: Overdue 1 (the lane's 1),
+  Signed off, past deadline 2. "Waits on you" 14.6:1 light, 5.91:1 dark (ring 5.91:1). The seed's
+  first Progress read showed 15 rows from the previous session's stored inbox; after the refresh,
+  10 on both views (one late post in the folded lane).
+- Left from the critique: Done cells loudest / Missing quietest (P2), the Kanban List has no
+  missing line (P2), organic posts ~2,500px down (P3), the Engine nav badge at 2.86:1.
+

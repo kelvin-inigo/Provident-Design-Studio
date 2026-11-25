@@ -53,7 +53,7 @@
         { t: '**Next up** is the one campaign or post most worth doing now: its picture, its step, who sent it and when it is due, and one button that moves it on.', f: 'home', s: 'next' },
         { t: '**‹ ›** (or the arrow keys) flip through the rest of what waits on you.', f: 'home', s: 'flip' },
         { t: '**Also waiting on you** lists the rest. Filter it by **Campaign ads** or **Organic posts**. **With others** is what you sent on and are waiting for.', f: 'home-list', s: 'also' },
-        { t: '**Where everything is** counts each stage, **New**, **Design**, **Copy check** and **Ready**. Click a stage to open Tracker’s Kanban on it.', f: 'home', s: 'where' },
+        { t: '**Where everything is** counts each stage, **New**, **Design**, **Copy check** and **Signed off**. Click a stage to open Tracker’s Kanban on it.', f: 'home', s: 'where' },
         { t: '**Pick up where you left off** at the foot holds your last saved projects.', f: 'home-desk', s: 'desk' }
       ],
       more: ['Home reads the campaigns and posts from Google Drive itself, about every minute while it is open. **Refresh** reads them now.', 'The first time on a computer it asks you to **Connect Google Drive**.'] },
@@ -62,7 +62,7 @@
       title: 'Find anything on Tracker',
       sum: 'Tracker’s Kanban (once Status): one board for both studios, in four stages, with filters that remember how you like it.',
       steps: [
-        { t: 'Open **Tracker** in the top bar and press **Kanban** at its top right (**Progress**, the default, shows each campaign’s deliverables and each post’s steps as rows; the chips, search and **Filter** above work on both views). Every campaign and post sits in its stage: **New**, **Design**, **Copy check**, **Ready**.', f: 'status', s: 'board' },
+        { t: 'Open **Tracker** in the top bar and press **Kanban** at its top right (**Progress**, the default, shows each campaign’s deliverables and each post’s steps as rows; the chips, search and **Filter** above work on both views). Every campaign and post sits in its stage: **New**, **Design**, **Copy check**, **Signed off**. Progress puts what waits on you first.', f: 'status', s: 'board' },
         { t: '**Only what waits on me** and **Find by name** narrow the board. A card with a blue ring and **Waits on you** is yours.', f: 'status', s: 'tools' },
         { t: '**Filter** opens **Stage**, **Due** and **From**. Each filter in force becomes a chip under the tools; click one to drop it, or **Clear all**.', f: 'status-filter', s: 'menu' },
         { t: '**Board | List** switches to a compact list you can sort by any heading. **View** holds Sort by, Group by and Density.', f: 'status-list', s: 'list' },

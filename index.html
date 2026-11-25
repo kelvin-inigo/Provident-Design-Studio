@@ -242,6 +242,10 @@ button{font-family:inherit}
 .tk-sec + .tk-sec{margin-top:32px}
 .tk-r{display:grid; grid-template-columns:124px minmax(0,1fr) minmax(0,2.1fr) 184px; gap:20px; align-items:start; padding:20px 22px; border-radius:var(--ps-r-lg); background:var(--ps-card); box-shadow:inset 0 0 0 1px var(--ps-line)}
 .tk-r[data-hot]{box-shadow:inset 0 0 0 1px var(--ps-line), inset 3px 0 0 var(--ps-bad)}
+/* what waits on the viewer: the Kanban card's ring (.cd[data-mine]) and its words */
+.tk-r[data-mine]{box-shadow:inset 0 0 0 1px var(--ps-link)}
+.tk-r[data-mine][data-hot]{box-shadow:inset 0 0 0 1px var(--ps-link), inset 3px 0 0 var(--ps-bad)}
+.tk-you{display:block; margin-top:6px}
 .tk-when b{display:block; margin-bottom:8px; font:400 20px/1.15 var(--ps-font); letter-spacing:-.01em}
 .tk-when .tk-nd{color:var(--ps-ink-2)}
 .tk-when .due{white-space:normal; align-items:baseline; line-height:1.35}
@@ -1160,7 +1164,9 @@ body{-webkit-tap-highlight-color:transparent;
     { k: 'new', n: 'New', who: 'Tickets and drafts, waiting for a designer', c: 'var(--ps-dim)' },
     { k: 'design', n: 'Design', who: 'With design', c: 'var(--ps-link)' },
     { k: 'check', n: 'Copy check', who: 'With the content team', c: 'var(--ps-warn)' },
-    { k: 'ready', n: 'Ready', who: 'To run or to publish', c: 'var(--ps-good)' },
+    // ONE NAME (2026-11-25, live Tracker critique, by choice): the stage is "Signed off" on the
+    // column, the filter and Home's board; a row says "Ready to run" only when nothing is missing
+    { k: 'ready', n: 'Signed off', who: 'To run or to publish', c: 'var(--ps-good)' },
     { k: 'closed', n: 'Closed', who: 'Launched or posted', c: 'var(--ps-ink-2)' }
   ];
   var MOVING = STAGES.filter(function(s){ return s.k !== 'closed'; });
@@ -1259,7 +1265,7 @@ body{-webkit-tap-highlight-color:transparent;
   })();
   function sxKeep(){ try { localStorage.setItem('provident-sx-view', JSON.stringify(sxV)); } catch (x) {} }
   var sxFl = { stage: [], due: [], from: [] }, sxMenu = '', sxMenuIn = false;
-  var DUEK = [['late', 'Overdue'], ['week', 'Due this week'], ['later', 'Due later'], ['none', 'No date']];
+  var DUEK = [['late', 'Overdue'], ['week', 'Due this week'], ['later', 'Due later'], ['past', 'Signed off, past deadline'], ['none', 'No date']];
   var KIND = { cas: 'Campaign ads', ops: 'Organic posts', hub: 'Content Hub' };
   // a closed row has no due state: it is never overdue and never matches a due filter
   function dueK(x){ if (x.stage === 'closed') return ''; var d = due(x.due); return !d ? 'none' : d.n < 0 ? 'late' : d.n < 7 ? 'week' : 'later'; }
@@ -1271,7 +1277,10 @@ body{-webkit-tap-highlight-color:transparent;
   function fromK(x){ return String(x.from || '').trim(); }
   function fromN(k){ return !k ? 'No one yet' : /^you$/i.test(k) ? 'You' : k; }
   function kindK(x){ return x.hub ? 'hub' : x.studio; }
-  var FV = { stage: function(x){ return x.stage; }, due: dueK, from: fromK };
+  // THE DUE FILTER READS THE SAME TEST AS THE LANE (2026-11-25, live Tracker critique): a signed-off
+  // ad set past its deadline is not Overdue; it gets its own quiet value so the two counts agree
+  function dueF(x){ var k = dueK(x); return k === 'late' && signedOff(x) ? 'past' : k; }
+  var FV = { stage: function(x){ return x.stage; }, due: dueF, from: fromK };
 
   // access.js's answer first (it carries the admin's Preview as), else what it last left here
   function roleOf(){
@@ -1328,6 +1337,8 @@ body{-webkit-tap-highlight-color:transparent;
         // queue and Home, into Status's Closed column
         if (y.live) { y.stage = 'closed'; y.mine = false; closed.push(y); return; }
         y.stage = stageOf(y);
+        // a signed-off ad set still short of deliverables is "Signed off", with what is missing
+        if (k === 'cas' && y.ready && shortOf(y)) { y.step = 'Signed off'; y.sub = shortOf(y); }
         rows.push(y);
       });
     });
@@ -1631,12 +1642,14 @@ body{-webkit-tap-highlight-color:transparent;
     if (a) a.toggleAttribute('data-open', op);
     b.setAttribute('aria-expanded', String(op)); b.firstChild.textContent = (op ? 'Hide' : 'Show') + ' the deliverables';
   });
+  // what waits on the viewer says so on Progress too, as the Kanban's card does (.cd-you)
+  function tkYou(x){ return x.mine ? '<span class="cd-you tk-you">Waits on you</span>' : ''; }
   function tkCampaign(x){
     var d = x.dlv, k = d ? tkCount(d) : null, p = k && k.of ? Math.round(k.n / k.of * 100) : 0;
-    var h = '<article class="tk-r"' + (isLate(x) && !x.ready ? ' data-hot' : '') + (tkOpen[x.id] ? ' data-open' : '') + '>' + tkWhen(x, 'no deadline on the ticket') +
+    var h = '<article class="tk-r"' + (isLate(x) && !x.ready ? ' data-hot' : '') + (x.mine ? ' data-mine' : '') + (tkOpen[x.id] ? ' data-open' : '') + '>' + tkWhen(x, 'no deadline on the ticket') +
       // SIGNED OFF IS NOT EVERYTHING DELIVERED (2026-11-21, /impeccable critique, by choice: warn,
       // don't block): a ready ad set with deliverables still missing says so, in the warning colour
-      '<div class="tk-who"><h3>' + esc(x.name) + '</h3><div class="tk-m">' + (x.ready && k && k.of && k.n < k.of
+      '<div class="tk-who"><h3>' + esc(x.name) + '</h3>' + tkYou(x) + '<div class="tk-m">' + (x.ready && k && k.of && k.n < k.of
         ? 'Signed off<span class="tk-shw"> · <span class="tk-short"><i></i>' + (k.of - k.n) + (k.of - k.n === 1 ? ' deliverable' : ' deliverables') + ' missing</span></span>'
         : esc(x.step || '') + (x.sub ? ' · ' + esc(x.sub) : '')) + '</div>' +
         (x.brand || x.auds ? '<div class="tk-m">' + [({ provident: 'Branded', unbranded: 'Unbranded', mixed: 'Branded and unbranded' })[x.brand] || '', x.auds ? x.auds + (x.auds > 1 ? ' audiences' : ' audience') : '',
@@ -1666,8 +1679,8 @@ body{-webkit-tap-highlight-color:transparent;
   }
   function tkPost(x){
     var segs = x.segs || [], steps = x.steps || ['Draft', 'Design', 'Copy check', 'Ready'];
-    var h = '<article class="tk-r tk-p"' + (isLate(x) && !x.ready ? ' data-hot' : '') + '>' + tkWhen(x, 'no date set') +
-      '<div class="tk-who">' + (x.thumb ? '<img class="tk-th" src="' + esc(x.thumb) + '" alt="">' : '<span class="tk-th"></span>') + '<div><h3>' + esc(x.name) + '</h3><div class="tk-m">' + (x.hub ? 'Content Hub' : 'Organic post') + '</div></div></div>' +
+    var h = '<article class="tk-r tk-p"' + (isLate(x) && !x.ready ? ' data-hot' : '') + (x.mine ? ' data-mine' : '') + '>' + tkWhen(x, 'no date set') +
+      '<div class="tk-who">' + (x.thumb ? '<img class="tk-th" src="' + esc(x.thumb) + '" alt="">' : '<span class="tk-th"></span>') + '<div><h3>' + esc(x.name) + '</h3>' + tkYou(x) + '<div class="tk-m">' + (x.hub ? 'Content Hub' : 'Organic post') + '</div></div></div>' +
       '<div><ol class="tk-st" aria-label="Steps">' + steps.map(function(s, j){ var v = segs[j] || 'pend'; return '<li data-s="' + (v === 'done' ? 'done' : v === 'pend' || v === 'todo' ? 'todo' : 'cur') + '"><i></i>' + esc(s) + '</li>'; }).join('') + '</ol>' +
       '<div class="tk-now"><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + '</div></div>' +
       '<div class="tk-side"><a class="b b-g" href="' + href(x) + '"' + tgt(x) + ' aria-label="' + esc('Open the post: ' + x.name) + '">Open the post</a></div>';
@@ -1764,7 +1777,11 @@ body{-webkit-tap-highlight-color:transparent;
     h += tkBar(S, pmIn);
     var act = tkActs();
     function dn(x){ return x.stage === 'closed' ? 9999 : (due(x.due) || { n: 999 }).n; }
-    var rows = S.all.filter(function(x){ return S.pass(x); }).sort(function(a, b){ return dn(a) - dn(b) || (b.at || 0) - (a.at || 0); });
+    // IN ORDER OF WHAT NEEDS ATTENTION (2026-11-25, live Tracker critique): what waits on you, what
+    // is late, what is in progress, signed off with something missing, everything in, closed; by
+    // due date inside each, then the newest. Progress opened on last month's finished work.
+    function att(x){ return x.stage === 'closed' ? 5 : x.mine ? 0 : isLate(x) ? 1 : !signedOff(x) && x.stage !== 'ready' ? 2 : shortOf(x) ? 3 : 4; }
+    var rows = S.all.filter(function(x){ return S.pass(x); }).sort(function(a, b){ return att(a) - att(b) || dn(a) - dn(b) || (b.at || 0) - (a.at || 0); });
     h += tkActRow(act, rows.length, S.all.length, 0);
     if (!rows.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico(act.length ? 'filter' : 'tray') + '</span><div><h3>' + (act.length ? 'Nothing matches these filters' : 'Nothing in motion') + '</h3><p>' +
       (act.length ? 'Take a filter off, or clear them all.' : 'Campaigns and posts appear here as they are filed.') + '</p>' + (act.length ? '<div class="qk-a"><button class="b b-g" type="button" data-fx="*">Clear the filters</button></div>' : '') + '</div></div>' + freshLine();

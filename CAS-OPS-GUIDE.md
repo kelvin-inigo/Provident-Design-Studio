@@ -115,7 +115,7 @@ say so and point to the step above.
     its step and one button that opens it in its studio. **‹ ›** (or the arrow keys) flip through
     the rest. Under it, **Also waiting on you** (filter by **Campaign ads** or **Organic posts**)
     and **With others**. On the right, **Where everything is** shows each stage (**New**,
-    **Design**, **Copy check**, **Ready**) with the work in it, and **Your studios**. Your last
+    **Design**, **Copy check**, **Signed off**) with the work in it, and **Your studios**. Your last
     saved projects sit at the bottom under **Pick up where you left off**.
   - **Tracker** has two views, switched at its top right: **Progress** (the default) and
     **Kanban**. Status is no longer its own page: its board, with every control, is Tracker's
@@ -123,8 +123,14 @@ say so and point to the step above.
     **Tracker › Kanban**. The board's controls sit above both views and work on both: the
     **Everything** / **Campaign ads** / **Organic posts** / **Content Hub** chips, **Find by name**,
     **Filter**, **Only what waits on me** and **Show closed**. What you pick stays when you switch
-    views. **Progress** shows the work as rows. It lists every campaign by its
-    due date with what it still needs in English and Arabic: **Static**, **Animated**, **MVP video**
+    views. **Progress** shows the work as rows, in order of what needs attention: what waits on
+    you (ringed, with **Waits on you** under its name), then what is overdue, what is in progress,
+    what is **Signed off** with deliverables still missing, and what is all in; by due date inside
+    each. The last stage is called **Signed off** everywhere (the board's column, **Filter ›
+    Stage**, Home's **Where everything is**); a campaign says **Ready to run** only when nothing is
+    missing. In **Filter › Due**, a signed-off campaign past its deadline is under **Signed off,
+    past deadline**, not **Overdue**, so Overdue counts the same work as the Overdue lane. Each
+    campaign shows what it still needs in English and Arabic: **Static**, **Animated**, **MVP video**
     and **Copy**, each **Done**, **1 of 2** (designs), **Missing** or **Not needed** (**MVP video** and **Copy** are
     English only, one cell across both rows: the Arabic words come from the Google Translate rail), and how many
     are done in all, and every organic post with its picture and its four steps
