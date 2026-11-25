@@ -965,3 +965,27 @@ A landscape photo came out cropped: `frameFor` drew the clip's own framing (Fill
 - Verified on :8797: a clip with two colour jumps → 3 pieces at 1.42 / 2.81 s; a WAV with two gaps →
   pieces of 1.0 / 1.6 / 1.6 s in place; counts drop to 0 after; Undo restores. Not checked: export.
 
+## Extend photo: CAS's Generative fill in CASV (2026-11-25)
+
+By request ("have the image extension generative fill (firefly) built in CASV as options for photos").
+
+- **Where:** a photo clip's inspector, under Lasts: **Extend photo** (`#extBtn` → `extendPhoto(c)`).
+- **What:** it opens CAS's own editor, `genfill.js` (`ProvidentGenfill.open`), unchanged. The file was
+  brought onto this branch from `main` byte for byte, so a later merge is clean; never edit it here.
+  Sizes offered: 9:16 and 1:1, with CASV's margins as the editor's "Copy margins"; it opens on the
+  video's size. Both engines are there. Firefly is the one it opens on in CASV until the user picks
+  another (`provident-genfill-engine` is seeded to `firefly` only when empty).
+- **Transport:** the same helper, `tools/genfill/serve.py` on `127.0.0.1:7315` (a login item on this
+  Mac, see `docs/notes/cas-genfill.md` on main). Firefly runs on the user's Adobe account through the
+  Adobe connector; Nano Banana costs Higgsfield credits and shows its price on the button.
+- **Use on 9:16 / 1:1:** the result becomes a NEW photo in Your media ("<name> extended 9x16"), and
+  the clip is pointed at it with Fill, zoom 100, centred. The original stays in Your media; Undo
+  points the clip back.
+- CASV's key handler returns early while `.gf-ov` is open (Delete would otherwise remove the clip).
+- This is separate from the animate queue's own Nano Banana extend (`EXT_*` in serve.py), which
+  still runs for wide photos sent to be animated. An already-extended photo needs none.
+- Verified on :8797: the editor opens over CASV with Firefly chosen, bands above and below for a wide
+  photo, Delete with it open leaves the clip; with a stand-in result the clip took the new photo, the
+  new tile appeared and Undo restored the original. NOT run: a real Firefly or Nano Banana generation
+  from CASV (the same request CAS sends).
+

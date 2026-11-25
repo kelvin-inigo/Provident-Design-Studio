@@ -481,6 +481,27 @@
     save(); renderAll(); toast('Sound moved to the Music track. The clip itself is now muted.');
     return a;
   }
+  // EXTEND PHOTO (2026-11-25): CAS's Generative fill editor (genfill.js, the helper on :7315), opened on
+  // a photo clip. It fills the frame around the photo with Firefly or Nano Banana; the result is a
+  // NEW photo in the media list and the clip is pointed at it, so Undo and the original both remain.
+  // Firefly is the engine it opens on here until the user picks another (asked for by name).
+  function extendPhoto(c) {
+    const m = c && media[c.mid], G = window.ProvidentGenfill; if (!G || !m || m.kind !== 'image') return;
+    try { if (!localStorage.getItem('provident-genfill-engine')) localStorage.setItem('provident-genfill-engine', 'firefly'); } catch (e) {}
+    const sizes = [{ key: '9x16', label: '9:16', W: 1080, H: 1920, pad: [260, 100, 460, 100] }, { key: '1x1', label: '1:1', W: 1080, H: 1080, pad: [80, 80, 80, 80] }];
+    G.open({ src: m.url, sizes, start: P.size, onApply: (key, url) => {
+      (async () => {
+        const blob = await (await fetch(url)).blob();
+        const rec = { id: uid(), kind: 'image', name: (m.name || 'Photo') + ' extended ' + (key === '1x1' ? '1x1' : '9x16'), blob: new File([blob], 'extended.jpg', { type: blob.type || 'image/jpeg' }) };
+        await probe(rec); media[rec.id] = rec;
+        if (P.casBg) (P.casBg.media = P.casBg.media || []).push(rec.id);
+        DB.put(dbRec(rec));
+        if (P.clips.indexOf(c) < 0) { renderAll(); toast('The extended photo is in Your media.'); return; }
+        mark(); c.mid = rec.id; c.fit = 'fill'; c.z = 100; c.fx = 50; c.fy = 50;
+        save(); renderAll(); toast('Photo extended. The original is still in Your media.');
+      })().catch(() => toast('The extended photo could not be added.'));
+    } });
+  }
   function addText(preset) {
     mark();
     const base = { id: uid(), at: T, dur: 3, eyebrow: '', text: 'Your Headline Here', sub: '', size: 'Medium', pos: 'bottom', align: 'left', anim: 'rise', scrim: 55 };
@@ -1986,7 +2007,8 @@
       if (vid) h += '<div class="vs-sec">' + row('Length', '<s>' + fmt(clipLen(it)) + ' of ' + fmt(m.dur) + '</s>') +
         row('Sound', seg('mute', [[false, 'On'], [true, 'Muted']], 's')) + (it.mute ? '' : rng('i', 'vol', 'Volume', Math.round(it.vol * 100), 0, 150, '%')) +
         '<div class="vs-acts"><button class="p-ghost p-sm" id="detachBtn" title="Put this clip\'s sound on the Music track as its own piece, and mute the clip">Detach audio</button>' + cutBtn('clip', sceneCuts(it).length, 'Cut at scene changes', 1) + '</div></div>' + sec('Speed', '', speedSec(it, clipLen(it), VRATE));
-      else h += '<div class="vs-sec">' + row('Lasts', '<span class="vs-numw"><input class="p-in vs-num" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '" aria-label="Lasts, seconds"><i>s</i></span>') + '</div>';
+      else h += '<div class="vs-sec">' + row('Lasts', '<span class="vs-numw"><input class="p-in vs-num" type="number" data-n="out" min="0.2" step="0.1" value="' + it.out.toFixed(2) + '" aria-label="Lasts, seconds"><i>s</i></span>') +
+        (window.ProvidentGenfill ? '<div class="vs-acts"><button class="p-ghost p-sm" id="extBtn" title="Fill the frame around this photo with Firefly or Nano Banana. The photo itself is kept.">Extend photo</button></div>' : '') + '</div>';
       if (P.clips.indexOf(it) > 0) h += sec('Transition in', 'from the clip before', row('Style', '<select class="p-in" data-s="tr">' + TRANS.map(o => '<option value="' + o[0] + '"' + ((it.tr || 'cut') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select>') + (it.tr && it.tr !== 'cut' ? rng('i', 'trD', 'Lasts', it.trD || .5, .2, 1.5, 's', .1) : ''));
       h += sec('Framing', '', seg('fit', [['fill', 'Fill the frame'], ['fit', 'Fit inside']]) +
         rng('i', 'z', 'Zoom', it.z, 100, 300, '%') + rng('i', 'fx', 'Left to right', it.fx, 0, 100, '') + rng('i', 'fy', 'Top to bottom', it.fy, 0, 100, ''));
@@ -2163,6 +2185,7 @@
     if (b.id === 'descCancel') { const id = it.descJob; mark(); delete it.descJob; JOBS = JOBS.filter(j => j.id !== id); api('/api/animate/cancel', { id }).catch(() => {}); renderAll(); return; }
     if (b.id === 'promptReset') { mark(); delete it.genPrompt; delete it.genPromptBy; delete it.genPromptFor; delete it.descErr; renderAll(); return; }
     if (b.id === 'detachBtn') return detachAudio(it);
+    if (b.id === 'extBtn') return extendPhoto(it);
     if (b.dataset.mkcut) { cutAtMarkers(b.dataset.mkcut, it); return; }
     if (b.id === 'rateReset') { mark(); setRate(it, sel.kind, 1); save(); renderAll(); return; }
     if (b.id === 'animBtn') return animSend(it);
@@ -3298,6 +3321,7 @@
   window.addEventListener('resize', () => { const w = parseFloat(document.documentElement.style.getPropertyValue('--vs-lw')); if (w > 0) setLibW(w); });
   document.addEventListener('keydown', e => {
     if (exporting || $('#ask').open) return;
+    if (document.querySelector('.gf-ov')) return;                 // Extend photo's editor is a modal with its own keys
     if (HFL.open) { if (e.key === 'Escape') hfClose(); return; }   // the library is a modal: no timeline shortcut reaches under it
     const tg = e.target, typing = tg.matches && tg.matches('input:not([type=range]),textarea,select');
     const mod = e.metaKey || e.ctrlKey;
