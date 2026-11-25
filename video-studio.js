@@ -88,7 +88,7 @@
   // the 14 sections, filled without seeing the photo (Claude's version, written from it, replaces this)
   function promptFor(c) {
     const mv = MOVES.find(x => x[0] === c.move); if (!mv) return '';
-    const d = c.genDur || 5, t = beatT(d), ppl = !!c.people, hold = c.move === 'hold', note = String(c.moveNote || '').trim();
+    const d = genDurOf(c), t = beatT(d), ppl = !!c.people, hold = c.move === 'hold', note = String(c.moveNote || '').trim();
     return [
       ['SCENE CONTEXT', 'Photoreal real estate film made from this exact photograph.' + (ppl ? ' The people in it stay calm and natural.' : ' No people in frame.') + (note ? ' Direction: ' + note.replace(/\.?$/, '.') : '')],
       ['ACTIVE REFERENCES', '@Image 1 = start frame: the photograph exactly as framed, every room, building, view, object and material in it' + (ppl ? ', and every person with their face, hair and clothing' : '') + '. 100% matches the reference.'],
@@ -109,7 +109,7 @@
     ].map(s => s[0] + '\n' + s[1]).join('\n\n');
   }
   // what a written prompt was written for; when these change, the prompt is flagged (not dropped)
-  const promptSig = c => [c.move, c.genDur || 5, P.size, c.people ? 1 : 0].concat(c.genExt !== false && wideOf(c) ? ['ext'] : []).join('|');
+  const promptSig = c => [c.move, genDurOf(c), P.size, c.people ? 1 : 0].concat(c.genExt !== false && wideOf(c) ? ['ext'] : []).join('|');
   // EXTEND FIRST (2026-11-20, by request: a landscape photo was cropped to 9:16 before Higgsfield
   // saw it). A photo wider than the video is sent whole, full width and centred, with flat grey
   // bands above and below; the server has Nano Banana 2.1 paint those bands (more sky, more ground),
@@ -2153,6 +2153,10 @@
       }
       else if (sel.kind === 'logo' && (k === 'w' || k === 'x' || k === 'y')) lgeoW(it)[k] = v;
       else it[k] = k === 'vol' ? v / 100 : v;
+      if (k === 'genDur') {                    // the price follows the slider; the prompt's beats are rewritten on release (change)
+        const gb = insp.querySelector('#animNow'), gs = insp.querySelector('#genWhat'); if (gb && !gb.disabled) gb.textContent = 'Generate · ' + genCredits(it) + ' credits'; if (gs) gs.textContent = genWhat(it);
+        dirty = true; save(); return;
+      }
     } else if (d.s) { it[d.s] = e.target.value; if (d.s === 'tr') { dirty = true; save(); renderAll(); return; } }
     else if (d.n) {
       const v = parseFloat(e.target.value); if (!isFinite(v)) return;
@@ -2168,6 +2172,7 @@
     } else return;
     dirty = true; save(); renderTimeline();
   });
+  insp.addEventListener('change', e => { if (e.target.dataset && e.target.dataset.ir === 'genDur') renderInspector(); });   // the prompt's beats follow the new length
   $('#rtabs').addEventListener('click', e => { const b = e.target.closest('[data-rtab]'); if (b) { rtab = b.dataset.rtab; renderInspector(); } });
   insp.addEventListener('click', e => {
     if (scriptClick(e) || brandClick(e)) return;
@@ -2177,8 +2182,10 @@
     if (!it || rtab !== 'sel') return;
     if (b.dataset.mv) { mark(); it.move = b.dataset.mv; renderAll(); return; }
     if (b.dataset.gd) { mark(); it.genDur = +b.dataset.gd; renderAll(); return; }
-    if (b.dataset.gm) { mark(); it.genModel = b.dataset.gm; renderAll(); return; }
-    if (b.dataset.gq) { mark(); it.genMode = b.dataset.gq; renderAll(); return; }
+    if (b.dataset.gm) { mark(); it.genModel = b.dataset.gm; it.genDur = genDurOf(it); renderAll(); return; }
+    if (b.dataset.gq) { mark(); it.genMode = b.dataset.gq; delete it.genRes; delete it.genBit; renderAll(); return; }
+    if (b.dataset.gr) { mark(); it.genRes = b.dataset.gr; it.genMode = /1080p|4k/.test(it.genRes) ? 'pro' : 'std'; renderAll(); return; }
+    if (b.dataset.gb) { mark(); it.genBit = b.dataset.gb; renderAll(); return; }
     if (b.dataset.gp) { mark(); it.people = b.dataset.gp === '1'; renderAll(); return; }
     if (b.dataset.gx) { mark(); it.genExt = b.dataset.gx === '1'; renderAll(); return; }
     if (b.id === 'descBtn') return descSend(it);
@@ -2457,7 +2464,21 @@
   // [key, label, Higgsfield model id, credits per second Draft, Full] — measured 2026-11-13, sound ON (clips are generated with their own sound since the same day)
   const GEN_MODELS = [['seedance', 'Seedance 2.5', 'seedance_2_5', 7, 16], ['kling', 'Kling 3.0', 'kling3_0', 1.75, 2], ['cinema', 'Cinema Studio', 'cinematic_studio_video_v2', 1.5, 2]];
   function genModel(c) { return GEN_MODELS.find(m => m[0] === c.genModel) || GEN_MODELS[0]; }
-  function genCredits(c) { return +((c.genDur || 5) * genModel(c)[c.genMode === 'pro' ? 4 : 3] + (extOn(c) ? EXT_CR : 0)).toFixed(2); }
+  // HIGGSFIELD'S OWN SETTINGS (2026-11-25, by request: "a built in higgs, specially the duration slider").
+  // Limits and prices read from Higgsfield's tool that day with free quotes: Seedance 2.5 takes 4 to 30 s
+  // and costs 3 / 7 / 16 / 28 credits a second at 480p / 720p / 1080p / 4K (bitrate does not change the
+  // price); Kling 3.0 takes 3 to 15 s, Cinema Studio 3 to 12 s. The button's figure is this table; the
+  // exact price is still asked of Higgsfield and confirmed before anything is spent.
+  const GEN_LIM = { seedance: [4, 30, [4, 10, 15, 20, 30]], kling: [3, 15, [3, 5, 10, 15]], cinema: [3, 12, [3, 5, 8, 12]] };
+  const GEN_RES = [['480p', '480p', 3], ['720p', '720p', 7], ['1080p', '1080p', 16], ['4k', '4K', 28]];
+  function genLim(c) { return GEN_LIM[genModel(c)[0]]; }
+  function genDurOf(c) { const l = genLim(c); return clamp(Math.round(c.genDur || 5), l[0], l[1]); }
+  function genRes(c) { return GEN_RES.find(r => r[0] === c.genRes) || GEN_RES[c.genMode === 'pro' ? 2 : 1]; }
+  function genBit(c) { return c.genBit || (c.genMode === 'pro' ? 'high' : 'standard'); }
+  const genSeed = c => genModel(c)[0] === 'seedance';
+  function genQ(c) { return genSeed(c) ? genRes(c)[1] + (genBit(c) === 'high' ? ' · high bitrate' : '') : c.genMode === 'pro' ? 'Pro' : 'Standard'; }
+  function genWhat(c) { const mv = MOVES.find(m => m[0] === c.move); return [mv ? mv[1] : '', genDurOf(c) + ' s', genModel(c)[1], genQ(c)].filter(Boolean).join(' · '); }
+  function genCredits(c) { return +(genDurOf(c) * (genSeed(c) ? genRes(c)[2] : genModel(c)[c.genMode === 'pro' ? 4 : 3]) + (extOn(c) ? EXT_CR : 0)).toFixed(2); }
   // THE ANIMATE PANEL, ONE STATE AT A TIME (2026-11-17, by request: "confusing to use"). With no
   // job the panel is the form, and the one thing still missing is said beside the buttons. Once a
   // job exists the form gives way to a status card: what was asked for, where it stands, how long
@@ -2476,7 +2497,7 @@
   }
   function animHtml(it, sec, f, row) {
     const j = it.job, st = j && j.status, sj = j && JOBS.find(x => x.id === j.id) || {}, mv = MOVES.find(m => m[0] === it.move);
-    const what = [mv ? mv[1] : '', (it.genDur || 5) + ' s', genModel(it)[1], it.genMode === 'pro' ? 'Full 1080p' : 'Draft 720p'].filter(Boolean).join(' · ');
+    const what = genWhat(it);
     const card = (state, title, body, acts) => '<div class="vs-job" data-st="' + state + '"><b>' + title + '</b><s>' + what + '</s>' + body + (acts ? '<div class="vs-acts">' + acts + '</div>' : '') + '</div>';
     const lands = '<span class="vs-note">When it is ready the clip takes this photo\'s place on the timeline and is added to <b>Your media</b>.</span>';
     if (st === 'confirm') return sec('Animate this photo', 'Higgsfield', card('confirm', 'Ready to generate',
@@ -2496,17 +2517,22 @@
     return sec('Animate this photo', 'Higgsfield',
       (st === 'failed' ? '<div class="vs-job" data-st="failed"><b>That did not work</b><span class="vs-note">' + esc(j.error || 'No reason was given.') + ' Change anything below and try again.</span></div>' : '') +
       '<div class="vs-f"><label>Camera move' + (it.move ? '' : ' <s>choose one</s>') + '</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + dis + '><i class="vs-mvp" aria-hidden="true"><u data-m="' + m[0] + '" style="' + mvBg + '"></u></i><span>' + m[1] + '</span></button>').join('') + '</div></div>' +
-      row('Length', '<div class="vs-seg">' + [5, 8, 10].map(d => '<button data-gd="' + d + '"' + ((it.genDur || 5) === d ? ' data-on="1"' : '') + '>' + d + ' s</button>').join('') + '</div>') +
+      f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + (genModel(it)[0] === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+      (() => { const l = genLim(it), d = genDurOf(it);
+        return '<div class="vs-f vs-dur"><label>Duration <s data-out="genDur">' + d + 's</s></label><input type="range" class="p-range" data-ir="genDur" data-unit="s" min="' + l[0] + '" max="' + l[1] + '" step="1" value="' + d + '" aria-label="Duration, seconds">' +
+          '<div class="vs-ticks" aria-hidden="true">' + l[2].map(t => '<i style="left:' + ((t - l[0]) / (l[1] - l[0]) * 100).toFixed(2) + '%">' + t + '</i>').join('') + '</div></div>'; })() +
+      row('Aspect ratio', '<s>' + (P.size === '1x1' ? '1:1' : '9:16') + ' · the video\'s size</s>') +
+      (genSeed(it) ? f('Quality', '<div class="vs-seg">' + GEN_RES.map(q => '<button data-gr="' + q[0] + '"' + (genRes(it)[0] === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+          row('Bitrate', '<div class="vs-seg">' + [['standard', 'Standard'], ['high', 'High']].map(q => '<button data-gb="' + q[0] + '"' + (genBit(it) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>')
+        : row('Quality', '<div class="vs-seg">' + [['std', 'Standard'], ['pro', 'Pro']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>')) +
       (wideOf(it) ? row('Extend to ' + (P.size === '1x1' ? '1:1' : '9:16'), '<div class="vs-seg">' + [[1, 'Yes'], [0, 'No']].map(q => '<button data-gx="' + q[0] + '"' + ((extOn(it) ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
         '<span class="vs-note">' + (extOn(it) ? 'The photo is wider than the video, so it is not cropped: Nano Banana 2.1 adds more of the scene above and below it first, then the clip is made. The photo itself stays as it is. ' + EXT_CR + ' credits.'
           : 'The photo is cropped to the frame as it shows on the canvas.') + '</span>' : '') +
       promptBox(it) +
-      '<div class="vs-go"><div class="vs-jl"><span>' + (!it.move ? 'Choose a camera move to continue' : it.descJob ? 'Waiting for Claude\'s prompt' : what) + '</span><time>' + (it.move ? 'about ' + genCredits(it) + ' credits' : '') + '</time></div>' +
-        '<button class="p-btn p-sm" id="animNow"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (st === 'failed' ? 'Try again' : 'Generate') + '</button>' +
+      '<div class="vs-go"><div class="vs-jl"><span id="genWhat">' + (!it.move ? 'Choose a camera move to continue' : it.descJob ? 'Waiting for Claude\'s prompt' : what) + '</span></div>' +
+        '<button class="p-btn p-sm" id="animNow"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (!it.move || it.descJob ? 'Generate' : (st === 'failed' ? 'Try again' : 'Generate') + ' · ' + genCredits(it) + ' credits') + '</button>' +
         '<span class="vs-note">You see the exact cost and confirm before anything is spent.</span></div>' +
-      '<details class="vs-pr" data-acc="more"' + (moreOpen ? ' open' : '') + '><summary><b>More options</b><s>' + genModel(it)[1] + ' · ' + (it.genMode === 'pro' ? 'Full 1080p' : 'Draft 720p') + '</s>' + CHEV + '</summary><div class="vs-pr-b">' +
-      f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + ((it.genModel || 'seedance') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-      row('Quality', '<div class="vs-seg">' + [['std', 'Draft 720p'], ['pro', 'Full 1080p']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
+      '<details class="vs-pr" data-acc="more"' + (moreOpen ? ' open' : '') + '><summary><b>More options</b><s>Direction, people, queue</s>' + CHEV + '</summary><div class="vs-pr-b">' +
       f('Extra direction <s>optional</s>', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Golden hour light">') +
       row('People in it', '<div class="vs-seg">' + [[0, 'No'], [1, 'Yes']].map(q => '<button data-gp="' + q[0] + '"' + ((it.people ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
         '<button class="vs-link" id="animBtn"' + (it.move ? '' : ' disabled') + '>Add it to the queue for Claude instead</button>' +
@@ -2555,7 +2581,7 @@
     return k.toDataURL('image/jpeg', .92);
   }
   // what every job carries so Claude can write the prompt for exactly these settings
-  const jobBase = (c, mv) => ({ name: media[c.mid].name, move: mv[1], move_phrase: mv[2], duration: c.genDur || 5, aspect: P.size === '1x1' ? '1:1' : '9:16',
+  const jobBase = (c, mv) => ({ name: media[c.mid].name, move: mv[1], move_phrase: mv[2], duration: genDurOf(c), resolution: genRes(c)[0], bitrate: genBit(c), aspect: P.size === '1x1' ? '1:1' : '9:16',
     note: String(c.moveNote || '').trim(), people: !!c.people, sig: promptSig(c), model: genModel(c)[2], mode: c.genMode === 'pro' ? 'pro' : 'std',
     extend: extOn(c) || undefined, ext: extOn(c) ? extBox(c) : undefined });
   async function descSend(c) {
@@ -2568,7 +2594,7 @@
       // a server from before 2026-11-19 drops `kind` and files it as a video to generate: take it back off
       if (r.status !== 'describe') { await api('/api/animate/cancel', { id }).catch(() => {}); toast('The local server is an older copy. Restart it (python3 tools/video-dev/serve.py), then try again.'); return; }
       mark(); c.descJob = id; delete c.descErr;
-      JOBS.push({ id, kind: 'describe', status: 'describe', name: media[c.mid].name, move: mv[1], duration: c.genDur || 5, photo: id + '.jpg', at: Math.floor(Date.now() / 1000) });
+      JOBS.push({ id, kind: 'describe', status: 'describe', name: media[c.mid].name, move: mv[1], duration: genDurOf(c), photo: id + '.jpg', at: Math.floor(Date.now() / 1000) });
       renderAll(); animWatch(); toast('Claude is reading the photo. The prompt comes back here in about a minute.');
     } catch (e) { toast('Could not reach the local server\'s animate queue (' + e.message + ').'); }
   }
@@ -2700,7 +2726,7 @@
       // queued for Claude with the studio's template: Claude reads the photo and writes the prompt first (read)
       const r = await api('/api/animate/job', Object.assign(jobBase(c, mv), { id, prompt, read: !now && !c.genPromptBy, photo }));
       if (r.error) throw new Error(r.error);
-      mark(); c.job = { id, status: 'queued' }; JOBS.push({ id, status: 'queued', name: m.name, move: mv[1], duration: c.genDur || 5, photo: id + '.jpg', at: Math.floor(Date.now() / 1000) }); renderAll();
+      mark(); c.job = { id, status: 'queued' }; JOBS.push({ id, status: 'queued', name: m.name, move: mv[1], duration: genDurOf(c), photo: id + '.jpg', at: Math.floor(Date.now() / 1000) }); renderAll();
       if (!now) { animWatch(); toast('Added to the queue. Run /animate-photos in Claude to generate it.'); return; }
       // Generate now: Higgsfield's command-line tool on this computer, no Claude. Price first, then a yes.
       const q = await api('/api/animate/cost', { id });
@@ -2988,7 +3014,7 @@
         const m = media[pageMid[p]], words = pageWords(s.treat, s.pages, p), aim = aimOf(words || s.treat.split(/\bAlt:/i)[0]);
         const mv = moveOf(words || s.treat.split(/\bAlt:/i)[0]), f = focusFor(m.w, m.h, aim);
         const c = { id: uid(), mid: m.id, in: 0, out: Math.round(each * 1000) / 1000, vol: 1, mute: false, fit: 'fill', z: 100, fx: f.fx, fy: f.fy, sc: s.n };
-        if (mv) { c.move = mv; c.genDur = [5, 8, 10].find(d => d >= each - .05) || 10; }
+        if (mv) { c.move = mv; c.genDur = clamp(Math.ceil(each - .05), 4, 30); }
         P.clips.push(c);
       });
     });

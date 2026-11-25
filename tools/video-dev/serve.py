@@ -207,14 +207,20 @@ def desc_run(jp):
             pass
 
 
+HF_DUR = {'seedance_2_5': (4, 30), 'kling3_0': (3, 15), 'cinematic_studio_video_v2': (3, 12)}
+
+
 def hf_args(job, photo):
     """The tool's params for one job. Same settings table as the animate-photos skill."""
     pro = job.get('mode') == 'pro'
-    a = [job.get('model') or 'seedance_2_5', '--prompt', job.get('prompt') or '', '--duration', str(int(job.get('duration') or 5)),
+    model = job.get('model') or 'seedance_2_5'
+    lo, hi = HF_DUR.get(model, (3, 12))    # Higgsfield's own limits (2026-11-25); it refuses anything outside them
+    a = [model, '--prompt', job.get('prompt') or '', '--duration', str(max(lo, min(hi, int(job.get('duration') or 5)))),
          '--aspect_ratio', job.get('aspect') or '9:16', '--start-image', photo]
     if a[0] == 'seedance_2_5':
-        a += ['--mode', 'omni_reference', '--resolution', '1080p' if pro else '720p',
-              '--bitrate_mode', 'high' if pro else 'standard', '--generate_audio', 'true']
+        res = job.get('resolution') if job.get('resolution') in ('480p', '720p', '1080p', '4k') else ('1080p' if pro else '720p')
+        bit = job.get('bitrate') if job.get('bitrate') in ('standard', 'high') else ('high' if pro else 'standard')
+        a += ['--mode', 'omni_reference', '--resolution', res, '--bitrate_mode', bit, '--generate_audio', 'true']
     else:                                   # kling3_0, cinematic_studio_video_v2
         a += ['--mode', 'pro' if pro else 'std', '--sound', 'on']
     return a
@@ -486,7 +492,7 @@ class H(SimpleHTTPRequestHandler):
             open(os.path.join(QUEUE, jid + '.jpg'), 'wb').write(base64.b64decode(m.group(1)))
             # kind 'describe' (CASV, 2026-11-19): no video, only a prompt Claude writes from the photo
             # (status describe -> described); `read` on a video job asks Claude to write it first
-            job = {k: body.get(k) for k in ('id', 'name', 'move', 'move_phrase', 'prompt', 'duration', 'aspect', 'mode', 'model', 'note', 'people', 'sig', 'read', 'kind', 'extend', 'ext')}
+            job = {k: body.get(k) for k in ('id', 'name', 'move', 'move_phrase', 'prompt', 'duration', 'resolution', 'bitrate', 'aspect', 'mode', 'model', 'note', 'people', 'sig', 'read', 'kind', 'extend', 'ext')}
             if job.get('extend'):                    # the same words /animate-photos sends to Nano Banana
                 job['extend_prompt'] = EXT_PROMPT.format(aspect=job.get('aspect') or '9:16')
             job = {k: v for k, v in job.items() if v is not None}

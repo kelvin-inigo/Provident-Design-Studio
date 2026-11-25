@@ -989,3 +989,32 @@ By request ("have the image extension generative fill (firefly) built in CASV as
   new tile appeared and Undo restored the original. NOT run: a real Firefly or Nano Banana generation
   from CASV (the same request CAS sends).
 
+## Higgsfield's own settings in Animate this photo (2026-11-25)
+
+By request (screenshots of Higgsfield's panel: "can i have a built in higgs, specially the duration
+slider, and make sure after generation it comes back to CASV placed in timeline and loaded in the library").
+
+- **Animate this photo** now reads like Higgsfield's panel, in this order: Camera move, **Model**
+  (Seedance 2.5 / Kling 3.0 / Cinema Studio, moved up from More options), **Duration** slider,
+  Aspect ratio (read only: the video's size), **Quality**, **Bitrate**, Extend, Prompt, then
+  **Generate · N credits**. More options keeps Extra direction, People and the queue link.
+- **Duration** is a slider, one-second steps, with tick labels: Seedance 4 to 30 s (4 / 10 / 15 / 20 /
+  30), Kling 3 to 15, Cinema Studio 3 to 12 (`GEN_LIM`, `genDurOf`). Limits were read from Higgsfield's
+  tool with free quotes that day (it refuses 3 and 31 for Seedance). Switching model clamps the length.
+  The old 5 / 8 / 10 buttons are gone; a script import now sets the scene's own length (4 to 30).
+- **Quality** (Seedance): 480p / 720p / 1080p / 4K = 3 / 7 / 16 / 28 credits a second (`GEN_RES`).
+  **Bitrate** Standard / High does not change the price. Kling and Cinema keep Standard / Pro.
+  Stored as `genRes` / `genBit`; `genMode` is still written (pro for 1080p and 4K) for old jobs and
+  the /animate-photos skill, which reads `mode` and does NOT know 480p or 4K.
+- The button's figure is the table x seconds (+ the extension); pressing it still asks Higgsfield
+  for the exact price and shows the confirm card before anything is spent.
+- **Server:** the job carries `resolution` and `bitrate`; `hf_args` uses them for Seedance and clamps
+  the duration to `HF_DUR`. An older running server ignores them (restart it).
+- **Unlimited mode is not here:** Higgsfield's command-line tool has no such parameter
+  (`use_unlim` is refused as unknown), so CASV always spends credits.
+- **Coming back** was already built and is unchanged: the finished clip takes the photo's place on
+  the timeline and is added to Your media (`animPoll` → `jobToMedia`), also after a reload.
+- Verified on :8797: slider by a real click (13 s), 1080p → "Generate · 210 credits", Higgsfield's
+  own quote on the confirm card 210, Cancel removed the job; nothing spent. NOT run: a real
+  generation at the new lengths or at 480p / 4K.
+
