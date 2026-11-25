@@ -113,3 +113,17 @@ want to retain the original photo, and just extend it".
   per side, like Firefly: about 2.6 credits for +400/+400 on a 1200² and 3.5 for +1500/+1500, per the
   connector's estimate. The CLI's `generate cost` for it is broken: it asks for `input_width` and then
   rejects that parameter.
+
+## The helper is a login item (2026-11-25, by request: "fix this", on ngrok and Vercel)
+CAS's Generate said "Needs the helper on this computer… python3 tools/genfill/serve.py" on every
+address: the helper only ran while someone kept a Terminal open, and :7315 was closed. The page
+always calls this Mac's `127.0.0.1:7315` (no host check), and serve.py already sends
+`Access-Control-Allow-Private-Network`, so an https page (Vercel, ngrok) reaches it once it runs.
+`tools/genfill/install.sh` / `env.sh` / `uninstall.sh` mirror tools/photoshop: serve.py copied to
+`~/Library/Application Support/Provident/genfill` (a login item cannot read ~/Documents),
+`ae.provident.genfill` (RunAtLoad, KeepAlive), log `~/Library/Logs/Provident/genfill.log`. The plist
+sets PATH (`~/.local/node/bin` first): the Higgsfield CLI is `#!/usr/bin/env node`, and launchd starts
+with /usr/bin:/bin. `claude` is found by serve.py's own glob in Application Support. Rerun install.sh
+after any change to serve.py (the login item runs the copy). genfill.js's off message names the
+installer. Installed here: /health `{ok, claude: true, higgsfield: ok}`; fetched from a page on
+provident-design-studio.vercel.app. Chrome may ask once per site to allow local network access.

@@ -161,7 +161,7 @@
     // what an engine needs: ok, or the sentence that says why not
     ready: function (eng) {
       if (helper.state === 'unknown') return { ok: false, why: 'Looking for the generative fill helper…', wait: true };
-      if (helper.state !== 'on') return { ok: false, off: true, why: 'Needs the helper on this computer. In Terminal, from the PDS folder: <code>python3 tools/genfill/serve.py</code>' };
+      if (helper.state !== 'on') return { ok: false, off: true, why: 'Needs the helper on this computer. In Terminal, from the PDS folder, once: <code>sh tools/genfill/install.sh</code> — it then starts with the Mac.' };
       var i = helper.info || {};
       if (eng === 'nano') {
         if (i.higgsfield === 'ok') return { ok: true };

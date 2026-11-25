@@ -83,7 +83,7 @@ moves, because it records where the folder is.
 |---|---|---|
 | Background removal | `sh tools/rembg/install.sh` | cuts agent photos out automatically in OPS. Downloads about 1.1 GB once |
 | Edit in Photoshop | `sh tools/photoshop/install.sh` | the **Photoshop** / **Illustrator** button on a picture |
-| Generative fill (CAS) | none: start it with `python3 tools/genfill/serve.py` when you need it | the **Generate** button on the photo. Nano Banana needs Higgsfield's tool signed in (`higgsfield auth login`); Firefly needs Claude Code signed in, with the Adobe connector on your Claude account |
+| Generative fill (CAS) | `sh tools/genfill/install.sh` | the **Generate** button on the photo. Nano Banana needs Higgsfield's tool signed in (`higgsfield auth login`); Firefly needs Claude Code signed in, with the Adobe connector on your Claude account |
 
 Run these from inside the folder (`cd "$HOME/Documents/Provident Design Studio"` first).
 
