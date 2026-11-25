@@ -418,6 +418,8 @@ button{font-family:inherit}
 /* a long name wraps (at its underscores first) and stops at three lines, never past the card */
 .cd b{display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; margin-top:6px; font:500 14px/1.3 var(--ps-font); color:var(--ps-ink); text-wrap:pretty; overflow-wrap:anywhere}
 .cd-st{display:flex; align-items:center; gap:8px; margin-top:8px; font:400 12.5px/1.2 var(--ps-font); color:var(--ps-ink-2)}
+/* a signed-off ad set still short of deliverables says so, as Progress does (.tk-short) */
+.cd-ms{display:flex; align-items:center; gap:6px; margin-top:6px; font:400 12.5px/1.2 var(--ps-font); color:var(--ps-ink)} .cd-ms i{width:7px; height:7px; border-radius:50%; background:var(--ps-warn); flex:none}
 .cd-ft{display:flex; align-items:center; gap:8px; margin-top:12px; padding-top:10px; box-shadow:0 -1px 0 var(--ps-hair)}
 .cd-ft .due{margin-left:auto; font-size:12.5px}
 .cd[data-mine]{box-shadow:inset 0 0 0 1px var(--ps-link)}
@@ -1202,7 +1204,17 @@ body{-webkit-tap-highlight-color:transparent;
     if (n < 7) return { n: n, k: '', t: 'Due ' + t.toLocaleDateString(undefined, { weekday: 'long' }) };
     return { n: n, k: '', t: 'Due ' + dm };
   }
-  function dueEl(x, q){ var d = due(x.due); return d ? '<span class="due" data-k="' + d.k + '"' + (q ? ' data-q' : '') + '>' + esc(d.t) + '</span>' : ''; }
+  // ONE STATUS ON EVERY SURFACE (2026-11-25, /impeccable critique): a signed-off ad set's deadline
+  // is history, so Home, the Kanban and its list say "Deadline <day>" in the quiet colour, as
+  // Progress does (tkWhen), never "Overdue since"; signedOff is the one test all of them read
+  function signedOff(x){ return x.studio === 'cas' && (x.ready || stageOf(x) === 'ready'); }
+  function dueEl(x, q){
+    var d = due(x.due); if (!d) return '';
+    if (signedOff(x)) return '<span class="due"' + (q ? ' data-q' : '') + '>Deadline ' + esc(tkDay(x.due)) + '</span>';
+    return '<span class="due" data-k="' + d.k + '"' + (q ? ' data-q' : '') + '>' + esc(d.t) + '</span>';
+  }
+  // what a signed-off ad set still lacks, counted the Tracker's way: '' when nothing (or not ready)
+  function shortOf(x){ var k = signedOff(x) && x.dlv ? tkCount(x.dlv) : null, m = k && k.of ? k.of - k.n : 0; return m ? m + (m === 1 ? ' deliverable missing' : ' deliverables missing') : ''; }
   function mk(s){ return '<span class="mk" data-s="' + s + '"><i></i>' + STUDIO[s].n + '</span>'; }
   function rd(x, h, t){
     var a = x.ratio || STUDIO[x.studio].a, st = 'style="--a:' + a + ';--h:' + h + 'px"';
@@ -1254,7 +1266,7 @@ body{-webkit-tap-highlight-color:transparent;
   // A SIGNED-OFF AD SET IS NOT LATE (2026-11-21, /impeccable critique): its deadline was for the
   // package, which is in, so Home's board and the Kanban's Overdue lane agree with Progress. A post
   // ready to publish past its date still is late: publishing is the job left.
-  function isLate(x){ return !(x.studio === 'cas' && (x.ready || stageOf(x) === 'ready')) && dueK(x) === 'late'; }
+  function isLate(x){ return !signedOff(x) && dueK(x) === 'late'; }
   // FROM is the row's own field (who last handed it on; the hub's posts say Content Hub)
   function fromK(x){ return String(x.from || '').trim(); }
   function fromN(k){ return !k ? 'No one yet' : /^you$/i.test(k) ? 'You' : k; }
@@ -1307,8 +1319,9 @@ body{-webkit-tap-highlight-color:transparent;
         if (!y.mine) { var wn = !same ? (first(b.me.name) || String(b.me.email).split('@')[0]) : '';
           y.sub = String(y.sub || '').replace(/\b(With|For) you\b/g, wn ? '$1 ' + wn : 'With the team'); }
         if (y.from && vname && y.from === vname) y.from = 'you';
-        // performance marketing's work is the finished package
-        if (r === 'pm') y.mine = same && k === 'cas' && !!x.ready;
+        // performance marketing's work is what is ready to download: the finished package, or (since
+        // 2026-11-25, by request) any audience whose English is approved — the row's own mine says so
+        if (r === 'pm') y.mine = same && k === 'cas' && (!!x.ready || !!x.mine);
         // THE SOCIAL MEDIA MANAGER'S WORK IS THE FINISHED POST (2026-11-04, by request): ready to download
         if (r === 'smm' && k === 'ops') y.mine = same && !!x.ready && !!x.mine;
         // a launched campaign (performance marketing's Launch) or a posted post is finished: off the
@@ -1865,7 +1878,7 @@ body{-webkit-tap-highlight-color:transparent;
         (c.length ? '<ul class="cds">' + c.map(function(x){
           var cl = x.stage === 'closed', th = compact ? 28 : 44;
           return '<li><a class="cd" href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="cd-g"><span class="th" style="--w:' + th + 'px">' + rd(x, th) + '</span><span class="cd-n">' + mkOf(x) + '<b title="' + esc(x.name) + '">' + esc(x.name).replace(/_/g, '_<wbr>') + '</b></span></span>' +
-            '<span class="cd-st">' + segs(x) + esc(x.step || '') + '</span>' +
+            '<span class="cd-st">' + segs(x) + esc(x.step || '') + '</span>' + (shortOf(x) ? '<span class="cd-ms"><i></i>' + esc(shortOf(x)) + '</span>' : '') +
             '<span class="cd-ft">' + (x.from ? '<span class="uh-av" data-sm data-q title="From ' + esc(x.from) + '">' + avIn(x.from) + '</span>' : '') + (x.mine ? '<span class="cd-you">Waits on you</span>' : '') + (cl ? (x.live > 1 ? '<span class="due">' + esc(ago(x.live)) + '</span>' : '') : dueEl(x, g.lane)) + '</span></a></li>';
         }).join('') + '</ul>' : '<p class="col-empty">Nothing here' + filt + '.</p>') + '</section>';
     }).join('') + '</div>' + freshLine();

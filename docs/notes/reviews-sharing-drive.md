@@ -2944,3 +2944,46 @@ All of it is in share-link.js (section "LIKENESS") plus one static block in CAS'
   design's own tab, Send to › Copy check listed both matches with Fix it first / Send anyway; Fix it
   first sent nothing. Seeded designs with empty states show no row (too little known). **Not on real
   Google Drive.**
+
+## Third flow critique: what is ready, one status, links that name the project (2026-11-25, Revision 1.68)
+
+/impeccable critique of Home › Tracker › ad set page › Roam › Ad set settings: 25/40 again; the
+hand-off had improved, the drag was status and Roam semantics. By request ("run all three") the P0
+and both P1s. **The user's rule** (answering the critique): performance marketing downloads an
+audience's English as soon as it is approved and sets it up on Meta while the rest is made; nothing
+waits on the whole package. So the fix was the wording and scope of the note, not a later trigger.
+
+- **Roam `done`** (share-link.js `roamNote`, api/share.py `roam_note`): the client sends `ready`
+  (English | Arabic | English and Arabic), `left` (what is still to come in that audience,
+  `readyWords`) and `tally` ("k of n audiences complete", or "The whole package is ready"); the
+  label is the audience's (`rsAuds`), not the project's. Server text, one item per line: the head
+  (bold name · italic market · audience), then "[English ready to download](pm link with p) for"
+  the performance marketing tag, then "Still to come: Arabic in translation check · 1 of 4
+  audiences complete". Every reply kind now leads with that head (a mention preview shows only the
+  reply). Send / reopen read "[Translation check](ct link with p) for" the checker (sentence case);
+  back reads "Back to design for" the designer picked, plus "What needs changing:" and the note
+  (sent before, but dropped). An old client (no `ready`) still gets "Ready to download".
+- **Links name the project**: `#share=<token>&p=<sid>`. `SP.shareInit` keeps `m[2]` as `_shP`
+  (goCas passes it on), `RS.start` hands it to `RsView.want`, and `RV.view` sets `sh._asSel` once
+  (`this.picked`). With no `p` the content team opens on `ctQueue()[0]` (before: the nav's first
+  row, the English an Arabic checker has nothing to do with). Home's content-team and PM rows carry it.
+- **PM's Home**: `rsMine` for the pm role = not open, not launched, `pmReady(rsAuds(rs))` not
+  empty (`lgDone`: copy approved, or task Done). `inboxCas` sub "English ready · n of N
+  audiences", verb **Download what is ready**. index.html's pm override was `!!x.ready` only; now
+  `x.ready || x.mine`.
+- **One status** (index.html): `signedOff(x)` (a campaign, ready or at stage ready) is the test
+  `isLate` and `dueEl` read; `dueEl` says "Deadline <tkDay>" with no colour for a signed-off ad set
+  (Kanban card, Kanban list, Home rows). The Kanban card adds `.cd-ms` "n deliverables missing"
+  (`shortOf` over `tkCount`), like Progress's `.tk-short`. A post ready past its date stays late
+  (the seed's Overdue lane of 2 is the two ready posts).
+- `.rv-pill[data-s="ready"]` text is ink: green on its own wash was 4.39 light / 4.04 dark; now
+  15.9 / 11.0.
+- **Verified** on :8790 (seeded stand-in): Kanban Ready cards read "Ready to run · 2 deliverables
+  missing · Deadline Thu, Nov 19", no red; PM Home "4 things are waiting" including Sobha "English
+  ready · 2 of 2 audiences" and Palm Springs "3 of 7", links with `&p=`; the Arabic checker's
+  Check the translation opened on "Family · AR · To check"; approving it (Roam call stubbed in the
+  page) sent `ready` English and Arabic, `tally` 2 of 2 audiences complete, both links with `&p=`.
+  The server text was checked on a copy of the new branch (the privacy hook blocks loading
+  api/share.py). **Not done:** a real Roam post; the CAS editor's Ad set tab path (`SP.rvStep`)
+  calls the same `roamNote` but was not clicked. P2s left: guard copy on Done / Already approved,
+  the phase ×, "No video" vs MVP video Missing, MVP video offered on Arabic projects.

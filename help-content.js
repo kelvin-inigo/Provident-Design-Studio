@@ -246,7 +246,7 @@
       title: 'Download the package and launch',
       sum: 'Your link shows every audience’s images, always the latest.',
       steps: [
-        { t: 'Open the campaign from Home or Status, then **Open the package**. A bar at the top shows the ad set’s progress and one row per audience.', f: 'pm-link', s: 'bar' },
+        { t: 'Home lists each ad set with something ready (**English ready · 2 of 3 audiences**): **Download what is ready** opens it on that audience. Otherwise **Open the package**. A bar at the top shows the ad set’s progress and one row per audience.', f: 'pm-link', s: 'bar' },
         { t: 'Each audience sent for review has **Download**. **Download package** takes every one that is ready; you don’t have to wait for the copy approvals.', f: 'pm-link', s: 'dl' },
         { t: '**Images | Edit text** switches to the words: change them and the images update as you type. Words are all it can change.' },
         { t: 'Once the ads run, press **Launch** on Home. The campaign reads **Launched** and moves to **Closed** on Status.' }

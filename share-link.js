@@ -1559,9 +1559,12 @@
   SP.shareInit = function () {
     injectCss();
     if (this.shApp() !== 'provident-ad-studio' && this.postInit) this.postInit();   // OPS: posts on Drive (post-flow.js)
-    const m = /^#share=([\w.-]{8,140})$/.exec(location.hash || '');
+    // a link may name the project to open on (&p=<sid>, 2026-11-25): the check a Roam note sent,
+    // or the audience whose English is ready — the content team and performance marketing land on it
+    const m = /^#share=([\w.-]{8,140})(?:&p=([\w.-]{8,140}))?$/.exec(location.hash || '');
     if (m && SHARE_ID.test(m[1])) {
       history.replaceState(null, '', location.pathname + location.search);
+      this._shP = m[2] || '';
       if (isRsId(m[1])) { this.shareOpenLink(m[1]); return true; }
       const b = ssGet(this.shKey());
       if (b && b.id === m[1] && b.pid && b.pid === this.state.pid) { this.shareStart(); return true; }
@@ -1774,7 +1777,7 @@
     if (isDs(id) && !(await dsGate(isRsId(id) ? 'Open the ad set' : 'Open a shared project'))) return;
     // an ad set link: the content team, performance marketing or the designer's overview
     if (isRsId(id)) {
-      if (this.shApp() !== 'provident-ad-studio') { goCas(id); return; }
+      if (this.shApp() !== 'provident-ad-studio') { goCas(id, this._shP); return; }
       const dl = nameDialog({ title: 'Open the ad set', lead: 'Loading the ad set…', btn: 'Open', busy: true });
       try {
         const d = await api('rsget', { id, full: '1' });
@@ -3533,8 +3536,18 @@
     const A = window.providentAccess, it = ((rs || {}).items || []).find(x => x.sid === sid), kind = roamKind(act, ho);
     if (!A || !A.call || !it || isPost(rs) || !kind) return;
     const tk = rs.tok || {}, L = links || {};
-    A.call('roamnote', { name: rs.name || '', label: [it.market, it.aud, it.lang === 'ARB' ? 'Arabic' : ''].filter(Boolean).join(' · '), lang: it.lang, to: ho && ho.to,
-                         by: StudioBase.shareName() || '', link: tk.pm ? rsLink(tk.pm) : L.pm || '', ctlink: tk.ct ? rsLink(tk.ct) : L.ct || '',
+    // WHAT IS READY, NOT "THE PACKAGE" (2026-11-25, /impeccable critique, by request: performance
+    // marketing downloads an audience's English as soon as it is approved and sets it up on Meta
+    // while the rest is made). A done note names the audience, what is ready, what is still to come
+    // and how many audiences are complete; each link opens on the project (&p=).
+    const auds = kind === 'done' ? rsAuds(rs) : [], au = auds.find(z => z.items.indexOf(it) >= 0);
+    const rw = au ? readyWords(au) : null;
+    const goTo = (u, sid) => u && sid ? u + '&p=' + sid : u;
+    const pmL = tk.pm ? rsLink(tk.pm) : L.pm || '', ctL = tk.ct ? rsLink(tk.ct) : L.ct || '';
+    const pmAt = au ? (lgDone(au.eng) ? au.eng : au.arb || it).sid : it.sid;
+    A.call('roamnote', { name: rs.name || '', label: au ? au.label : [it.market, it.aud, it.lang === 'ARB' ? 'Arabic' : ''].filter(Boolean).join(' · '), lang: it.lang, to: ho && ho.to,
+                         by: StudioBase.shareName() || '', link: goTo(pmL, kind === 'done' ? pmAt : ''), ctlink: goTo(ctL, it.sid),
+                         ready: rw ? rw.ready : '', left: rw ? rw.left : '', tally: auds.length && auds.every(z => z.done) ? 'The whole package is ready' : auds.length > 1 ? auds.filter(z => z.done).length + ' of ' + auds.length + ' audiences complete' : '',
                          pic: roamPicWorthy(act, ho) ? pic || '' : '', key: L.key || roamKey(rs), kind, note: (ho && ho.note) || '' })
       .then(r => { if (r && r.pic === false && flash) flash('Sent — Roam was told, without the picture: ' + (r.why || '')); })
       .catch(e => flash && flash('Sent — but Roam was not told: ' + (e.message || e)));
@@ -3567,7 +3580,23 @@
       return (rs.items || []).some(it => (!it.design || (taskOf(it) && taskOf(it) !== 'done')) && it.to && it.to.email === em);
     }
     if (r === 'ct') return (rs.items || []).some(it => it.design && !it.copy && ctLangOk(it) && toMine(it));
+    // PERFORMANCE MARKETING TAKES WHAT IS READY (2026-11-25, by request: "PM can download any if ENG
+    // is ready so he can set up on his meta while waiting for the rest"): an audience whose English
+    // is approved waits on them until the ad set is launched
+    if (r === 'pm') return !isOpen(rs) && !rsLive(rs) && pmReady(rsAuds(rs)).length > 0;
     return false;
+  }
+  // the audiences with something approved to download: English signed off (or sent to Done), or
+  // Arabic, for an audience that has one; and how much of each is in
+  const lgDone = it => !!(it && (it.copy || taskOf(it) === 'done'));
+  const pmReady = auds => auds.filter(a => lgDone(a.eng) || lgDone(a.arb));
+  // what an audience has ready and what is still to come, in words (Home, the Roam note)
+  function readyWords(a) {
+    const en = lgDone(a.eng), ar = !a.engOnly && lgDone(a.arb);
+    const ready = en && ar ? 'English and Arabic' : en ? 'English' : ar ? 'Arabic' : '';
+    const left = a.done || (en && a.engOnly) ? '' : !en ? (!a.eng ? 'English not started' : !a.eng.design ? 'English in design' : 'English in copy check')
+      : !a.arb ? 'Arabic not started' : !a.arb.design ? 'Arabic being laid out' : 'Arabic in translation check';
+    return { ready, left, done: !left };
   }
   // the buttons a role has on one project
   function itemActs(it, role, busy) {
@@ -4637,6 +4666,7 @@
       if (this.cur) this.cur.stop(true);
       if (d.role === 'dd' && d.rs && d.rs.tok && !isPost(d.rs)) Arch.add(tok, d.rs.name, d.rs.product);
       const v = this.cur = new RsView(shell, tok, d);
+      v.want = shell._shP || ''; shell._shP = '';
       ssSet(RS_KEY, { id: tok, pid: (shell.eng && shell.eng.state && shell.eng.state.pid) || '' });
       await v.load();
       v.view();
@@ -4779,6 +4809,14 @@
     const sh = this.shell;
     this.dir = this.build(); this.scanned = this.ver;
     sh._asMode = this.role === 'ct' ? 'text' : 'images'; sh._asAll = false; sh._ae = null;
+    // THE FIRST PROJECT ON SCREEN (2026-11-25, /impeccable critique): the one the link names, else
+    // for the content team the first waiting on their check — not the nav's first row, which is the
+    // English an Arabic checker has nothing to do with. Once per open; later redraws keep the choice.
+    if (!this.picked && this.role !== 'dd') {
+      this.picked = true;
+      const its = this.rs.items || [], it = (this.want && its.find(x => x.sid === this.want)) || (this.role === 'ct' ? this.ctQueue()[0] : null);
+      if (it) sh._asSel = this.pathOf(it).join('\u0001');
+    }
     if (!sh.state.adSetsOpen) sh.setState({ adSetsOpen: true });
     sh.asView({ kind: 'review', handle: this.dir, name: this.rs.name || 'Ad set', share: this, lock: this.role !== 'dd' });
   };
@@ -5373,6 +5411,12 @@
       const chk = r === 'ct' && !open && !lv ? (rs.items || []).filter(it => it.design && !it.copy && ctLangOk(it) && toMine(it)) : [];
       const chkAr = chk.length && chk.every(it => it.lang === 'ARB'), chkEn = chk.length && chk.every(it => it.lang !== 'ARB');
       const chkSub = chk.length ? chk.length + (chkAr ? ' Arabic' : chkEn ? ' English' : '') + (chk.length > 1 ? ' designs' : ' design') + ' to check' : '';
+      // PERFORMANCE MARKETING'S ROW SAYS WHAT IS READY (2026-11-25): "English ready · 2 of 5 audiences"
+      const pmR = r === 'pm' && !open && !lv && !(ov && ov.ready) ? pmReady(auds) : [];
+      const pmEn = pmR.filter(z => lgDone(z.eng)).length;
+      const pmSub = pmR.length ? (pmEn ? 'English ready · ' + pmEn + ' of ' + auds.length + (auds.length === 1 ? ' audience' : ' audiences') : 'Arabic ready · ' + pmR.length + ' of ' + auds.length + ' audiences') : '';
+      // the link opens on the project to act on: the first waiting on the check, the first ready audience
+      const goP = chk.length ? [].concat(...auds.map(z => [z.eng].concat(z.items.filter(it => it !== z.eng)))).find(it => chk.indexOf(it) >= 0) : pmR.length ? (lgDone(pmR[0].eng) ? pmR[0].eng : pmR[0].arb) : null;
       // THE TRACKER'S DELIVERABLES (2026-11-20): per kind, how many audiences have it in English
       // and in Arabic ([done, of]), off the same dlRows the ad set's Deliverables card reads; copy
       // is the English copy check and the Arabic translation
@@ -5406,11 +5450,11 @@
         studio: 'cas', id: x.id, name: rs.name || 'Campaign', mine: !!rsMine(rs), ready: !!(ov && ov.ready) && !lv, open,
         live: lv ? lv.at || 1 : 0, launch: ov && ov.ready && !lv && isDs(lid) ? lid : '',
         step: open ? 'Ticket' : lv ? 'Launched' : ov.ready ? 'Ready to run' : chk.length ? (chkAr ? STEP_LABELS[2] : STEP_LABELS[1]) : STEP_LABELS[k] || 'Design',
-        sub: open ? (t.to && t.to.email ? (t.to.email === em ? 'For you' : 'For ' + toName({ to: t.to })) : 'Waiting to be picked up') : lv ? 'Launched by ' + lv.by : ov.ready ? 'Package ready' : chkSub ? chkSub : a ? a.label + ' · ' + (a.now ? a.now.sub : '') : '',
+        sub: open ? (t.to && t.to.email ? (t.to.email === em ? 'For you' : 'For ' + toName({ to: t.to })) : 'Waiting to be picked up') : lv ? 'Launched by ' + lv.by : ov.ready ? 'Package ready' : chkSub ? chkSub : pmSub ? pmSub : a ? a.label + ' · ' + (a.now ? a.now.sub : '') : '',
         segs: open ? [] : ov.steps.map(s => s.s), steps: STEP_LABELS,
-        verb: open ? 'Pick up the ticket' : r === 'ct' ? (chkAr ? 'Check the translation' : 'Check the copy') : r === 'pm' ? 'Open the package' : viewOnly() ? 'View the ad set' : 'Open the design',
+        verb: open ? 'Pick up the ticket' : r === 'ct' ? (chkAr ? 'Check the translation' : 'Check the copy') : r === 'pm' ? (pmSub ? 'Download what is ready' : 'Open the package') : viewOnly() ? 'View the ad set' : 'Open the design',
         due: t.deadline || '', from: last ? last.by : rs.by || '', at: Math.max(x.mod || 0, rs.created || 0, last ? last.at : 0),
-        thumb: x.thumb || '', ratio: 1, href: file + '#share=' + encodeURIComponent(link),
+        thumb: x.thumb || '', ratio: 1, href: file + '#share=' + encodeURIComponent(link) + (goP && link !== x.id ? '&p=' + encodeURIComponent(goP.sid) : ''),
         // the note of the latest hand-off to this person (2026-11-21, by request)
         note: open || !em ? null : (rs.items || []).filter(it => it.note && it.note.t && it.to && it.to.email === em).sort((p, q) => q.note.at - p.note.at).map(it => ({ t: it.note.t, by: it.note.by || '' }))[0] || null
       };
@@ -7021,10 +7065,10 @@
   // files:[{id, path}]}] }; the store's picture map holds 'p<n>-<slot>' (a photo's record) and
   // 'f<n>' (a preview, {u: jpeg data URL}).
   const ADSETS = 'provident-ad-sets', AS_KEY = 'provident-share:adsets', PREV = 1600, PHOTO = 2000;
-  function goCas(id) {
+  function goCas(id, p) {
     const ws = window.providentWorkspace;
     StudioBase.reloading = true;
-    location.href = encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + (ws ? '?ws=' + encodeURIComponent(ws) : '') + '#share=' + id;
+    location.href = encodeURIComponent(StudioBase.SESSIONS['provident-ad-studio'].file) + (ws ? '?ws=' + encodeURIComponent(ws) : '') + '#share=' + id + (p ? '&p=' + p : '');
   }
   const toBlob = d => d instanceof Blob ? d : new Blob([d && d.buffer ? d : new Uint8Array(d || [])]);
   const readUrl = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsDataURL(b); });
@@ -7761,7 +7805,7 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
 .rv-st-c b{font-size:12.5px}.rv-st-c s{font-size:11.5px}
 .rv-pill{flex:none;display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:9999px;background:var(--ps-fill);color:var(--ps-ink-2);font:600 12px/1 var(--ps-font);white-space:nowrap}
 .rv-pill::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--ps-dim)}
-.rv-pill[data-s="ready"]{background:var(--ps-good-q);color:var(--ps-good)}
+.rv-pill[data-s="ready"]{background:var(--ps-good-q);color:var(--ps-ink)}   /* green ink on its own wash is 4.0–4.4:1 (2026-11-25 critique): the dot and wash carry the green, the words stay ink */
 .rv-pill[data-s="ready"]::before{background:var(--ps-good)}
 .rv{display:flex;flex-direction:column;gap:12px;padding:2px 16px 16px;box-shadow:inset 0 -1px 0 var(--ps-hair)}
 .rv[hidden],.rv-dd[hidden]{display:none}

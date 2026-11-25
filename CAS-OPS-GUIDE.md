@@ -724,7 +724,10 @@ steps: **Design › ENG copy check › Translation › Done**.
    The activity log says who marked it. **Reopen copy check** undoes it.
 6. **Done.** An audience is done when its design, English copy and translation are signed off.
    The ad set is **Package ready** when every audience is.
-7. **Performance marketing** opens their link. A bar at the top shows the ad set's progress and
+7. **Performance marketing** opens their link. Their home lists every ad set with an audience
+   whose English (or Arabic) is approved under what is waiting on them, saying **English ready ·
+   n of n audiences**, with **Download what is ready**, which opens the package on that audience.
+   A bar at the top shows the ad set's progress and
    one row per audience. Each audience the designer has sent for review has **Download**, which
    zips its designed images (English and Arabic once both are), named the way an export names
    them, approved or not, with its animated ads as MP4 and the MVP video made for it (or for
@@ -747,19 +750,24 @@ In a campaign project the floating **Changes** button is gone: the Ad set tab ca
 **Roam messages: one thread per ad set.** The Content Engine bot keeps each ad set in one thread
 of the **Paid Ads Hub** channel in Roam. Filing the ticket (**File as ticket**) or pressing **Start
 designing** posts the ad set's name in bold, with who filed it (and for whom) or who started it,
-and an **Ad Set Overview** link. Everything after that is a reply in that message's thread, each
-naming the market and audience:
+and an **Ad Set Overview** link. Everything after that is a reply in that message's thread. Each
+reply starts with the ad set's name in bold and the audience in italics, so a mention makes sense
+on its own, then says what happened and for whom:
 
-- **Translation Check** (Arabic) or **Copy Check** (English), when the design is sent to it: the
-  words are the **Content Review** link, the checker is tagged (Fatema for Arabic, Sana for
-  English), and the master design rides along as a picture. A designer reopening an approved
-  check (**Send to… › Translation check**, **Reopen it**) posts it again, marked **reopened**, with
-  a **Check again:** line holding what was typed. The content team reopening their own check
-  posts nothing.
-- **Done - The Package is ready for download**, when the copy or translation is approved, the
-  designer marks it **Already approved**, or sends it to **Done**: the words are the Ad Set
-  Overview link and Dennis in performance marketing is tagged.
-- **Ad is back to design phase**, when it is sent back to design.
+- **Translation check for @Fatema** (Arabic) or **Copy check for @Sana** (English), when the
+  design is sent to it. The words are the link, and it opens the check on that very project. The
+  master design rides along as a picture. A designer reopening an approved check (**Send to… ›
+  Translation check**, **Reopen it**) posts **Translation check reopened**, with a **Check
+  again:** line holding what was typed. The content team reopening their own check posts nothing.
+- **English ready to download for @Dennis** (or **Arabic**, or **English and Arabic**), when the
+  copy or translation is approved, the designer marks it **Already approved**, or sends it to
+  **Done**. Performance marketing does not wait for the whole package: an audience's English can
+  go on Meta while its Arabic is checked. The link opens that audience in **Open the package**.
+  The next line says what is still to come in the audience (for example **Still to come: Arabic
+  in translation check**) or **This audience is complete**, then how many audiences are complete,
+  or **The whole package is ready**.
+- **Back to design for @designer**, when it is sent back, with a **What needs changing:** line
+  when a note was typed.
 
 An ad set filed before 23 November 2026 gets its name posted the first time one of these happens,
 and its thread starts there. If Roam cannot be reached, the step still goes through and the studio
@@ -1666,7 +1674,9 @@ remembered on this computer, the filters last for the visit.
   at the end of the board, folded until you open it, so the stage columns hold only what is on
   time), **In its stage** (each card stays in its column, marked overdue, as before) or **Hidden**
   (off the board; the count stays on the button and the line under the tools says how many are
-  hidden).
+  hidden). A signed-off ad set is never overdue: its card says **Deadline** and the day in grey,
+  as Progress does, and **n deliverables missing** when something is not in yet. A post ready to
+  publish past its date still counts as overdue.
 - **Filter** opens **Stage**, **Due** (**Overdue**, **Due this week**, **Due later**, **No date**)
   and **From** (who last handed it on). Tick as many as you like: ticks in one group widen it,
   groups narrow each other, and they combine with the kind chips, **Only what waits on me** and
@@ -1846,9 +1856,10 @@ This is the full editor.
     **Use on 9:16** (or the size you chose). That size gets its own photo, like **Edit
     separately**; the main photo and the other sizes stay as they were. Re-link the size to go
     back to the shared photo. **Use on 1:1** replaces the main photo.
-  - It needs the helper running on that computer: in Terminal, from the PDS folder,
-    `python3 tools/genfill/serve.py`. Without it **Generate** in the editor is greyed out and
-    says so. Nano Banana spends Higgsfield credits on the account signed in on that computer;
+  - It needs the helper on that computer, set up once: in Terminal, from the PDS folder,
+    `sh tools/genfill/install.sh`. It then starts with the Mac and works on every PDS address
+    (the Vercel site, the office server's ngrok link, localhost). Without it **Generate** in the
+    editor is greyed out and says so. Nano Banana spends Higgsfield credits on the account signed in on that computer;
     Firefly spends Adobe generative credits on the Adobe account connected to your Claude account.
 - **Quality and privacy:** uploads are kept at up to 3840 px, so exports never upscale, and the
   photo's location data is removed.

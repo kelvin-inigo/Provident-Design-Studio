@@ -87,9 +87,12 @@ exports download as a zip. The studios fit tablets and phones.
    … copy**. Design the ad, then **Send to…** and pick **Copy check** (or **Arabic**, **Animated**, **Video**,
    **Design**, **Done**: any order), then who gets it.
    Filing the ticket (or **Start designing**) posts the ad set's name in Roam's **Paid Ads Hub**;
-   every later step replies in that message's thread: **Translation Check** / **Copy Check** with
-   the checker tagged, **Done - The Package is ready for download** with Dennis tagged once it is
-   approved, and **Ad is back to design phase** when it goes back.
+   every later step replies in that message's thread, each starting with the ad set's name and
+   the audience: **Translation check** / **Copy check** for the checker (the link opens on that
+   project), **English ready to download** (or Arabic, or both) for Dennis as soon as one is
+   approved, with what is still to come in that audience and how many audiences are complete
+   (performance marketing sets up what is ready on Meta without waiting for the rest), and
+   **Back to design** for the designer, with the note.
 4. The content team approves the English. **Create next audience** opens the next one.
 5. **Make the Arabic** (or **Start the Arabic** on Status) copies the English design and
    Claude writes its words in Arabic under the team's Arabic copy rules, right to left (Google

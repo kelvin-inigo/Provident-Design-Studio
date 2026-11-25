@@ -1522,7 +1522,6 @@ def roam_note(d):
     key = re.sub(r'[^A-Za-z0-9_.-]', '', str(d.get('key') or ''))[:56]
     tkey = 'pds-' + key if key else ''
     by = roam_plain(d.get('by'), 60)
-    sub = ['_' + label + '_'] if label else []
 
     def root_text(how=''):
         return '  \n'.join(['**' + title.replace('*', '') + '**'] + ([how] if how else []))
@@ -1534,22 +1533,38 @@ def roam_note(d):
         how = ('New ad set — ticket filed' + (' by ' + by if by else '') + (' for ' + to if to else '')) if d.get('how') == 'ticket' \
             else 'New ad set — ' + (by + ' started designing' if by else 'design started')
         text = root_text(how + (' · [Ad Set Overview](' + pm + ')' if pm else ''))
-    elif kind in ('send', 'reopen'):
-        # the check: Translation Check (Arabic) or Copy Check (English) with the content review
-        # link inside it, that language's checker tagged; a reopened one says so, and what to check
-        again = kind == 'reopen'
-        note = roam_plain(d.get('note'), 300).replace('*', '') if again else ''
-        what = 'Translation Check' if lang == 'ARB' else 'Copy Check'
-        text = '  \n'.join(
-            [('[' + what + '](' + ct + ')' if ct else what) + (' — reopened' if again else '') + ' - '
-             + tags(os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang])] + sub + (['Check again: ' + note] if note else []))
-    elif kind == 'done':
-        # signed off: performance marketing tagged, the package link inside the line
-        text = '  \n'.join(
-            ['Done - The Package is ' + ('[ready for download](' + pm + ')' if pm else 'ready for download') + ' - '
-             + tags(os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL'])] + sub)
     else:
-        text = '  \n'.join(['Ad is back to design phase'] + sub)
+        # EVERY REPLY STANDS ON ITS OWN (2026-11-25, /impeccable critique): a mention's preview shows
+        # only the reply, so each one leads with the ad set's name and the audience, then one line
+        # saying what happened and for whom, the link inside it. Sentence case, one separator (—).
+        head = '**' + title.replace('*', '') + '**' + (' · _' + label + '_' if label else '')
+        note = roam_plain(d.get('note'), 300).replace('*', '')
+        if kind in ('send', 'reopen'):
+            # the check: Translation check (Arabic) or Copy check (English), the content review link
+            # inside it (it opens on this project), that language's checker tagged
+            again = kind == 'reopen'
+            what = ('Translation check' if lang == 'ARB' else 'Copy check') + (' reopened' if again else '')
+            text = '  \n'.join(
+                [head, ('[' + what + '](' + ct + ')' if ct else what) + ' for ' + tags(os.environ.get('ROAM_TAG_' + lang) or ROAM_TAGS[lang])]
+                + (['Check again: ' + note] if again and note else []))
+        elif kind == 'done':
+            # WHAT IS READY, NOT "THE PACKAGE" (2026-11-25, by request): performance marketing takes an
+            # audience's English as soon as it is approved and sets it up on Meta while the rest is made.
+            # The note names what is ready in this audience (the link opens on it), what is still to
+            # come, and how many audiences are complete.
+            ready = d.get('ready') if d.get('ready') in ('English', 'Arabic', 'English and Arabic') else ''
+            left, tally = roam_plain(d.get('left'), 60), roam_plain(d.get('tally'), 60)
+            what = (ready + ' ready to download') if ready else 'Ready to download'
+            state = ' · '.join(['Still to come: ' + left if left else 'This audience is complete'] + ([tally] if tally else []))
+            text = '  \n'.join(
+                [head, ('[' + what + '](' + pm + ')' if pm else what) + ' for '
+                 + tags(os.environ.get('ROAM_TAG_ALL') or ROAM_TAGS['ALL']), state])
+        else:
+            # back to design: the designer picked in the hand-off is tagged, with what needs changing
+            to = d.get('to') if isinstance(d.get('to'), dict) else {}
+            who = tags(to.get('email')) if to.get('email') else ''
+            text = '  \n'.join([head, 'Back to design' + (' for ' + who if who else '')]
+                               + (['What needs changing: ' + note] if note else []))
     if os.environ.get('ROAM_DRY') == '1':
         return ok({'ok': True, 'dry': True, 'text': text, 'key': tkey, 'root': kind != 'start' and bool(tkey) and not roam_rooted(tkey),
                    'pic': kind in ('send', 'reopen') and bool(roam_pic_bytes(d.get('pic')))})
