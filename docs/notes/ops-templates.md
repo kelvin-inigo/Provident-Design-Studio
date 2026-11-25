@@ -6569,3 +6569,15 @@ on Escape or a pointerdown outside the host and the switch. `html.lk-open` turns
 Where the switch and the All variants row do not both fit (a ~630px stage at a 1512 window) the
 switch sits one row up (`.p-body .p-lkdock` at 106 / 159px — the bare `.p-lkdock` base rule is
 declared later and won at equal specificity). Contrast 0 failures over every tab in both themes.
+
+# EVERY OPS QR IS HALF THE SIZE (2026-11-25, by request: "reduce the size of the qr code to 50%")
+The user picked all OPS templates (not CAS). `OrganicStudio.WK.qr` 220 → 110 (Just listed card,
+weekly cover, property page, closing slide), `dldQr` 160 → 80 (reel thumbnail's DLD code), `PXT.ft/st.qr`
+250 → 125 (read by nothing). Ring 6 and corners 4 unchanged. At 110 the property page's
+"LISTING NUMBER:" (~200 wide at 19px tracked) no longer fits under the QR — the export centred it and
+ran it past the right margin, the preview (`width: KW.qr`) would have wrapped it — so **`wkQrBox(f, tk)`**
+is the one source for both: a column as wide as the widest of QR / two lines, flush to the right
+margin, everything centred in it; the preview lines are `nowrap`. Census against `_PRE` (both warm,
+8 templates × feed/story, listno and DLD on): 302 of 328 ops identical; the 26 others are the QR
+rrects and rings, the property page's bottom scrim band (it follows `K.qr`) and the listing number
+(feed: now flush right, +10.7px). Preview `.qrbox` measured equal to the ops (485/1220, 845.6/1180).

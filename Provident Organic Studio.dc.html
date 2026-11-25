@@ -6236,7 +6236,7 @@ class OrganicStudio extends StudioBase {
     chipH: 86, chipPadX: 28,   // the same 86 and 28 the ranking badge uses — corroboration
     badgeR: 20,          // the cover's kicker is hairline-FRAMED
     ctaR: 10,            // the closing slide's is FILLED, and only it may be
-    qr: 220, qrR: 4, qrRing: 6,   // 220 not `tk.qr`'s 250, and a 6px white quiet-zone ring
+    qr: 110, qrR: 4, qrRing: 6,   // HALVED 2026-11-25 by request (was 220); a 6px white quiet-zone ring
     qrDrop: 20,          // cover/CTA: the centred QR clears the bottom margin by this much,
                          // which reproduces the drawn y of 1110 exactly
     titleGap: 3.14,      // wordmark baseline -> property title's first baseline, in ptitle —
@@ -6931,7 +6931,7 @@ class OrganicStudio extends StudioBase {
     // and 4px corners — and the property page's arrangement: the code stacked ABOVE its
     // number, here the ADM / CN chips, on the same axis as them. It stands on the chips' own
     // line, so the block's top is the QR's and every layout already clears it.
-    dldQr: 160, dldRing: 6, dldR: 4, dldGap: 18,
+    dldQr: 80, dldRing: 6, dldR: 4, dldGap: 18,   // halved 2026-11-25 by request (was 160)
     figK: 348 / 140, figBase: 1519,         // Big number: the figure in headline px, its baseline (drawing 2)
     // Centre stage's tags, all in the TAG's own px, which is a sixth of the headline's —
     // so they scale with the text as the drawing's 28px tags do beside its 168px headline
@@ -8936,8 +8936,8 @@ class OrganicStudio extends StudioBase {
   // drawing's own 27 / 35 / 30 now, declared in `REV`, because the card is 891 wide on the
   // feed AND the story so one size serves both. Nothing else ever read those three.
   static PXT = {
-    ft: { W: 1080, H: 1440, pad: [90, 80, 90, 80], logo: 41, eyebrow: 24, hero: 92, hook: 34, ptitle: 46, spec: 34, specLab: 19, priceLab: 22, price: 58, listno: 19, cta: 28, ctaPV: 17, name: 32, role: 24, photo: 150, qr: 250 },
-    st: { W: 1080, H: 1920, pad: [200, 100, 100, 100], logo: 50, eyebrow: 28, hero: 106, hook: 40, ptitle: 52, spec: 38, specLab: 21, priceLab: 25, price: 66, listno: 21, cta: 35, ctaPV: 20, name: 36, role: 27, photo: 170, qr: 250 }
+    ft: { W: 1080, H: 1440, pad: [90, 80, 90, 80], logo: 41, eyebrow: 24, hero: 92, hook: 34, ptitle: 46, spec: 34, specLab: 19, priceLab: 22, price: 58, listno: 19, cta: 28, ctaPV: 17, name: 32, role: 24, photo: 150, qr: 125 },
+    st: { W: 1080, H: 1920, pad: [200, 100, 100, 100], logo: 50, eyebrow: 28, hero: 106, hook: 40, ptitle: 52, spec: 38, specLab: 21, priceLab: 25, price: 66, listno: 21, cta: 35, ctaPV: 20, name: 36, role: 27, photo: 170, qr: 125 }
   };
   heroRuns(text, serifWord, px) {
     const t = text || '', w = serifWord || '';
@@ -9597,6 +9597,21 @@ class OrganicStudio extends StudioBase {
   // 0.6% — with the four column left edges at 209.2 / 331.2 / 467.6 / 706.1 against a drawn
   // 212 / 334 / 470 / 706, so every one lands within 2.8px. That is what says these two
   // constants are the drawing's own rather than merely plausible.
+  // THE PROPERTY PAGE'S QR AND LISTING NUMBER, one box for buildOps and the preview. The QR was
+  // halved (2026-11-25) and "LISTING NUMBER:" is wider than it now, so the stack is a column as
+  // wide as the widest of the three, flush to the right margin, with the QR and both lines
+  // centred in it — the number can no longer run past the margin, and the preview cannot wrap it.
+  wkQrBox(f, tk) {
+    const K = OrganicStudio.WK, qs = K.qr, lead2 = tk.listno * K.listnoLead, ls2 = tk.listno * .16;
+    const W = tk.W, H = tk.H, pR = tk.pad[1], pB = tk.pad[2];
+    const rows = f.listno ? ['LISTING NUMBER:', String(f.listno)] : [];
+    const ws = rows.map(t => this.meas(t, tk.listno, 500, false, ls2) - ls2);
+    const colW = Math.max(qs, ...ws), colX = W - pR - colW;
+    const listnoH = f.listno ? 2 * lead2 + 14 : 0;
+    const qx = colX + (colW - qs) / 2, qy = H - pB - qs - listnoH;
+    const lines = rows.map((t, i) => ({ t, w: ws[i], x: colX + (colW - ws[i]) / 2, y: H - pB - 6 - (1 - i) * lead2 }));
+    return { qs, qx, qy, colX, colW, lead2, ls2, listnoH, lines };
+  }
   wkSpecBox(f, tk) {
     const K = OrganicStudio.WK, [pT, pR, pB, pL] = tk.pad;
     const innerW = tk.W - pL - pR;
@@ -12042,19 +12057,10 @@ class OrganicStudio extends StudioBase {
       // the margin at 1350, and "nothing should drift off the grid" is an explicit organic
       // rule. The block is bottom-anchored to the margin and the QR sits above it, so the
       // stack reads exactly as drawn and simply starts 19px higher.
-      const qs = K.qr, lead2 = tk.listno * K.listnoLead;
-      const listnoH = f.listno ? 2 * lead2 + 14 : 0;
-      const qx = W - pR - qs, qy = H - pB - qs - listnoH;
-      drawQr(qx, qy, qs, assets['qr' + si], K.qrR, K.qrRing);
-      if (f.listno) {
-        const ls2 = tk.listno * .16;
-        [['LISTING NUMBER:', 0], [f.listno, 1]].forEach(row => {
-          const t = row[0], i = row[1];
-          const w2 = this.meas(t, tk.listno, 500, false, ls2) - ls2;
-          ops.push({ op: 'text', x: qx + (qs - w2) / 2, y: H - pB - 6 - (1 - i) * lead2,
-                     px: tk.listno, weight: 500, fill: A.mute, text: t, ls: ls2 });
-        });
-      }
+      const Q = this.wkQrBox(f, tk);
+      drawQr(Q.qx, Q.qy, Q.qs, assets['qr' + si], K.qrR, K.qrRing);
+      Q.lines.forEach(ln => ops.push({ op: 'text', x: ln.x, y: ln.y,
+        px: tk.listno, weight: 500, fill: A.mute, text: ln.t, ls: Q.ls2 }));
     } else if (kind === 'review') {
       // ══ THE GOOGLE REVIEW CARD, from `Instagram Story - 39.svg` ═══════════════════════
       // The ground plate and the navy ramp are already down — both are prelude work — so
@@ -15605,15 +15611,13 @@ class OrganicStudio extends StudioBase {
           valStyle: { position: 'absolute', left: 0, top: cq(B.lpx + 10),
             fontWeight: 300, fontSize: cq(B.px), lineHeight: cq(LH(B.px)), color: A.ink, whiteSpace: 'nowrap' }
         }));
-        const lead2 = tk.listno * KW.listnoLead;
-        const listnoH = f.listno ? 2 * lead2 + 14 : 0;
-        const qx = tk.W - pR - KW.qr, qy = tk.H - pB - KW.qr - listnoH;
-        K.qrStyle = Object.assign(qrBase(KW.qr, KW.qrR, KW.qrRing), { left: cq(qx), top: cq(qy) });
+        const Q = this.wkQrBox(f, tk);
+        K.qrStyle = Object.assign(qrBase(Q.qs, KW.qrR, KW.qrRing), { left: cq(Q.qx), top: cq(Q.qy) });
         // bottom-anchored to the MARGIN, which is where the ops put it — the drawing runs
         // the second line 19px past it and "nothing drifts off the grid" wins.
-        K.wkListnoLines = (f.listno ? ['LISTING NUMBER:', f.listno] : []).map((t, i) => ({
-          t, style: Object.assign(abs(qx, tk.H - pB - 6 - (1 - i) * lead2 - tk.listno), {
-            width: cq(KW.qr), textAlign: 'center', fontWeight: 500, fontSize: cq(tk.listno),
+        K.wkListnoLines = Q.lines.map(ln => ({
+          t: ln.t, style: Object.assign(abs(Q.colX, ln.y - tk.listno), {
+            width: cq(Q.colW), textAlign: 'center', whiteSpace: 'nowrap', fontWeight: 500, fontSize: cq(tk.listno),
             letterSpacing: '.16em', lineHeight: cq(LH(tk.listno)), color: A.mute,
             pointerEvents: 'none' }) }));
       } else if (kind === 'review') {
