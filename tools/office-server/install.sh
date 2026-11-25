@@ -16,7 +16,13 @@ for f in pds-studio pds-sync; do
   cp "$R/tools/office-server/$f" "$D/$f.new" && chmod +x "$D/$f.new" && mv -f "$D/$f.new" "$D/$f"
 done
 echo "installed: $D/pds-studio, $D/pds-sync"
-if [ -f "$R/.env" ]; then set -a; . "$R/.env"; set +a; fi
+for f in "$R/.env" "$R/.env.vercel"; do
+  # KEY=value lines only; an empty value is skipped so it never hides a default
+  [ -f "$f" ] && while IFS='=' read -r k v; do
+    case "$k" in ''|\#*) continue;; esac
+    [ -n "$v" ] && export "$k=$v"
+  done < "$f"
+done
 if [ -n "${KV_REST_API_URL:-$UPSTASH_REDIS_REST_URL}" ]; then
   python3 "$R/tools/office-server/pull-vercel.py" "$PDS_DATA"
 else

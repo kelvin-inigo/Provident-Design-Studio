@@ -39,7 +39,9 @@ store has. Vercel is never changed.
 
 `install.sh` (run ON the server, once) installs `pds-studio` and `pds-sync` from the repo, copies
 the Vercel store when `.env` has `KV_REST_API_URL` and `KV_REST_API_TOKEN`, names the secrets
-still missing, and restarts the server. `.env` needs the same names as Vercel:
+still missing, and restarts the server. The keys copied from Vercel go in `.env.vercel` beside
+`.env` (git-ignored, mode 0600; a template is filled in on the Mac and copied across with `scp`),
+which `serve.py` and `install.sh` read after `.env`. It needs the same names as Vercel:
 
 | name | for |
 |---|---|

@@ -46,6 +46,7 @@ def load_env(path):
 
 
 load_env(os.path.join(ROOT, '.env'))
+load_env(os.path.join(ROOT, '.env.vercel'))   # the keys copied from Vercel (git-ignored)
 # the in-memory store and the dev hub key are for tools/share-dev only, never here
 for k in ('SHARE_DEV', 'SHARE_DEV_QUOTA', 'GAUTH_TOKEN_URL', 'GAUTH_REVOKE_URL', 'ACCESS_GOOGLE_BASE'):
     os.environ.pop(k, None)
