@@ -577,7 +577,15 @@ class StudioBase {
     const m = /^#(recent|view)=([\w-]+)$/.exec(location.hash || '');
     if (!m) return;
     history.replaceState(null, '', location.pathname + location.search);
-    if (m[1] === 'view') { try { this.host.setState({ splashView: m[2] }); } catch (e) {} return; }
+    // A home view lives on the start screen, so the project the studio resumed (the last one
+    // open, e.g. a Content Hub carousel) is closed to it — Home's New landed in that project's
+    // editor and a template picked there seemed to open it (2026-11-25). Nothing is discarded:
+    // the project stays stored, and picking a template still asks about unsaved work.
+    if (m[1] === 'view') {
+      try { this.host.setState({ splashView: m[2] }); } catch (e) {}
+      if (this.state && this.state.screen && this.state.screen !== 'splash' && this.upd) this.upd(x => { x.screen = 'splash'; return x; });
+      return;
+    }
     const i = this.savedRecents().findIndex(r => (r.pid || (r.state && r.state.pid)) === m[2]);
     if (i >= 0) this.openRecent(i);
   }

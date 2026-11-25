@@ -769,3 +769,13 @@ Send / From the hub needs it and caches it in memory (`_epKeyVal`, dropped on a 
 function takes 4.5 MB, so the browser still posts straight to the hub with the key in memory.
 Verified on share-dev with a dummy key: Send's POST and From the hub's GET carry it; signed out,
 Send stops with "Not sent — Sign in with Google first."; the field is gone and the stored key wiped.
+
+## Home's New opened the last project, not Start a post (2026-11-25, reported)
+"When I try to create new with existing template it goes on a carousel sent by CT." Home's **New**
+links to OPS `#view=new`; `StudioBase.homeHash` only set `splashView`, and OPS had resumed its last
+project (`smp-resume`) — a Content Hub carousel opened with `hubDraftOpen` — so the tab stayed in that
+carousel's editor (hub bar and all). Now a `#view=` link also closes a resumed project to the start
+screen (`upd(screen: 'splash')`, both studios): nothing is discarded, `markSaved` is NOT called, so
+picking a template still asks about unsaved work. Verified on share-dev: hub carousel resumed →
+`#view=new` → Start a post → Just listed opened with a new pid and no `hubCardId`; CAS `#view=tpl`
+lands on its start screen. Simulated the hub open by calling `hubDraftOpen` with a carousel doc.
