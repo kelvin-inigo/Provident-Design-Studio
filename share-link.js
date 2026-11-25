@@ -209,6 +209,13 @@
   // the three ad set links, as people say them, and the account roles each one opens for
   const LINK_WHO = { dd: 'designer', ct: 'content team', pm: 'performance marketing' };
   const LINK_FOR = { dd: ['designer'], ct: ['designer', 'ct', 'cten', 'ctar'], pm: ['designer', 'pm', 'dmt'] };
+  // LIKENESS: the photo's fingerprint is only known in the designer's own tab; a summary sent from
+  // the ad set link or the Tracker carries none, so the one already stored is kept
+  function simKeepPh(nw, old) {
+    const o = old && old.sim, n = nw && nw.sim;
+    if (n && !n.ph && o && o.ph) nw.sim = Object.assign({}, n, { ph: o.ph });
+    return nw;
+  }
   function dsFail(code, msg) { const e = new Error(msg); e.code = code; return e; }
   function dsAuth() { const e = new Error('Sign in with Google to open this review — it is stored in the ad set’s Drive folder.'); e.gdAuth = true; return e; }
   async function dsFetch(path, opt) {
@@ -996,7 +1003,7 @@
         if (e.burst && last && last.burst === e.burst) log[log.length - 1] = e; else log.push(e);
         rv.log = log.slice(-500);
       }
-      if (R.rs && body.sum && typeof body.sum === 'object') rv.sum = body.sum;
+      if (R.rs && body.sum && typeof body.sum === 'object') rv.sum = simKeepPh(body.sum, rv.sum);
       await dsWrite(fid, d);
       return { rev: rv.rev };
     }
@@ -1007,7 +1014,7 @@
       // drawn from another revision than the file holds now: not this preview's to write
       if (body.rev != null && (rv.rev || 0) !== Number(body.rev)) return { ok: true, skipped: true };
       rv.thumb = body.thumb; rv.thumbAt = dsNow(); rv.thumbV = Number(body.v) || 0;
-      if (body.sum && typeof body.sum === 'object') rv.sum = body.sum;
+      if (body.sum && typeof body.sum === 'object') rv.sum = simKeepPh(body.sum, rv.sum);
       await dsWrite(fid, d);
       return { ok: true };
     }
@@ -1035,6 +1042,8 @@
             const d = await dsRead(it.sid.slice(1), false, true), rv = d.review || {};
             e.live[it.sid] = true;
             proj[it.sid] = { sum: rv.sum || {}, thumb: rv.thumb || '' };
+            // LIKENESS for a design saved before it: the layout and headline from its own state, no write
+            if (!proj[it.sid].sum.sim && d.state) { const sl = simLite(d.state); if (sl) proj[it.sid].sum = Object.assign({}, proj[it.sid].sum, { sim: sl }); }
             // the design's Animated badge (a video behind it), for the Tracker's Animated column (2026-11-21)
             if (rv.sum && rv.sum.anim) (e.anim = e.anim || {})[it.sid] = true;
             // which project is which (by pid): a project opened elsewhere finds its ad set by it
@@ -3574,16 +3583,178 @@
     return out.map(a => '<button type="button" class="' + a[2] + '" data-act="' + a[0] + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + (busy === a[0] + ':' + it.sid ? 'Saving…' : esc(a[1])) + '</button>').join('');
   }
 
+  // ---- LIKENESS (2026-11-25, branch cas-similarity; spec docs/cas-similarity-check-spec.md) ----
+  // Meta's Creative Insights report (Nov 2026) found 12 identical pairs on our account: the same
+  // design in light and dark, the same tower in two near-identical layouts, scored 79–84% similar.
+  // Above 65% Meta shows both ads to the same people, so the second one buys no reach. LIKENESS is
+  // our own estimate (0–100, never called Meta's number) of how alike two designs that run in ONE
+  // Meta ad set are: the same phase, market and audience root (Design 1, Design 2…, Unbranded),
+  // English only, plus a later phase against the one before it. Four parts:
+  //   picture — the preview Status already shows (rv.thumb): its edges (light vs dark of one layout
+  //             still matches) and, lightly, its colours
+  //   photo   — the background photo's own bytes (fnv of the slot's data), so a recrop is the same photo
+  //   layout  — the visible components of the first variant, each with the cluster it sits in
+  //   message — the angle Ad sets › Details reads (Component.adRead, handed over as StudioBase.adRead) and the headline's words
+  // The three state parts ride the summary (`sum.sim`), written with every save and preview; the
+  // picture is read from the preview where it is compared. Nothing blocks on it: it is a line in
+  // Send to copy check and a Variety row on Status.
+  const SIM_V = 1, SIM_LINE = 65;
+  let simLastU = '', simLastH = '';
+  // the state's own parts, with no studio needed: the layout and the headline from the saved
+  // design, the angle only where CAS is loaded (StudioBase.adRead; undefined elsewhere: not known)
+  function simLite(st) {
+    if (!st || typeof st !== 'object') return null;
+    const v = (st.variants || [])[0] || {}, hid = v.hidden || {}, cl = v.clusters || {};
+    const mods = (st.adMode === 'carousel' && Array.isArray(v.mods) ? v.mods : st.modules || []).filter(m => m && !hid[m.id]);
+    let an;
+    try { if (StudioBase.adRead) { an = StudioBase.adRead(st, 0, '').angle || ''; if (an === 'No clear angle') an = ''; } } catch (e) {}
+    const hero = mods.filter(m => m.type === 'hero').map(m => String(m.text || '')).join(' ');
+    return { v: SIM_V, ly: mods.map(m => m.type + ':' + (cl[m.id] || '')), an, hw: simWords(hero) };
+  }
+  SP.simSum = function (st) {
+    st = st || this.state;
+    const out = simLite(st); if (!out) return undefined;
+    // the photo is only known where it is: this tab's own project (the ad set link and the
+    // Tracker send no photo, and the store keeps the one it had — simKeepPh)
+    try {
+      const own = st === this.state || (st.pid && this.state && st.pid === this.state.pid);
+      const r = own && IS() && IS().getRec ? IS().getRec('adstudio-bg-0') : null;
+      if (r && typeof r.u === 'string' && r.u) { if (r.u !== simLastU) { simLastU = r.u; simLastH = fnv(r.u); } out.ph = simLastH; }
+    } catch (e) {}
+    return out;
+  };
+  function simWords(t) { return [...new Set(String(t || '').replace(/\*\*/g, '').toLowerCase().split(/[^a-z0-9؀-ۿ]+/).filter(w => w.length > 2))].slice(0, 16); }
+  function simJac(a, b) {
+    if (!a || !b || (!a.length && !b.length)) return null;
+    const A = new Set(a), B = new Set(b); let n = 0; A.forEach(x => { if (B.has(x)) n++; });
+    return n / (A.size + B.size - n || 1);
+  }
+  // the layout as a MULTISET: two prices in one design are not one price
+  function simLay(a, b) {
+    if (!a || !b || (!a.length && !b.length)) return null;
+    const ct = l => l.reduce((m, k) => (m[k] = (m[k] || 0) + 1, m), {}), A = ct(a), B = ct(b);
+    let i = 0, u = 0; new Set(Object.keys(A).concat(Object.keys(B))).forEach(k => { i += Math.min(A[k] || 0, B[k] || 0); u += Math.max(A[k] || 0, B[k] || 0); });
+    return u ? i / u : null;
+  }
+  // THE PICTURE'S FINGERPRINT: the preview at 32 x 32. Edges are the gradient's size (not its sign,
+  // so a navy and a white version of one layout keep the same edges), kept as the 256 strongest of
+  // 1024; colours a 4 x 4 x 4 histogram. One per preview, kept for this page's life.
+  const SIMPIC = new Map();
+  function simPic(src) {
+    if (!src || typeof src !== 'string') return Promise.resolve(null);
+    const k = fnv(src); if (SIMPIC.has(k)) return SIMPIC.get(k);
+    const p = new Promise(res => {
+      const im = new Image();
+      im.onload = () => {
+        try {
+          const N = 32, cv = document.createElement('canvas'); cv.width = N; cv.height = N;
+          const x = cv.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0, N, N);
+          const d = x.getImageData(0, 0, N, N).data, L = new Float32Array(N * N), hist = new Float32Array(64);
+          for (let i = 0; i < N * N; i++) {
+            const r = d[i * 4], g = d[i * 4 + 1], b = d[i * 4 + 2];
+            L[i] = .299 * r + .587 * g + .114 * b;
+            hist[(r >> 6) * 16 + (g >> 6) * 4 + (b >> 6)] += 1 / (N * N);
+          }
+          const E = new Float32Array(N * N);
+          for (let y = 0; y < N; y++) for (let xx = 0; xx < N; xx++) {
+            const i = y * N + xx, gx = (xx < N - 1 ? L[i + 1] : L[i]) - (xx ? L[i - 1] : L[i]), gy = (y < N - 1 ? L[i + N] : L[i]) - (y ? L[i - N] : L[i]);
+            E[i] = Math.abs(gx) + Math.abs(gy);
+          }
+          const cut = Array.from(E).sort((a, b) => b - a)[255];
+          const ed = new Uint8Array(N * N); for (let i = 0; i < N * N; i++) ed[i] = E[i] >= cut && E[i] > 0 ? 1 : 0;
+          res({ ed, hist });
+        } catch (e) { res(null); }
+      };
+      im.onerror = () => res(null);
+      im.src = src;
+    });
+    SIMPIC.set(k, p);
+    return p;
+  }
+  // edges: the share of strong-edge cells the two have in common, a 3 x 3 neighbourhood counting
+  // (a component nudged a few pixels is the same layout), as overlap over union
+  function simPicScore(a, b) {
+    if (!a || !b) return null;
+    const N = 32, near = (ed, i) => { const y = (i / N) | 0, x = i % N; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const yy = y + dy, xx = x + dx; if (yy >= 0 && yy < N && xx >= 0 && xx < N && ed[yy * N + xx]) return true; } return false; };
+    let hit = 0, tot = 0;
+    for (let i = 0; i < N * N; i++) { if (a.ed[i]) { tot++; if (near(b.ed, i)) hit++; } if (b.ed[i]) { tot++; if (near(a.ed, i)) hit++; } }
+    const edge = tot ? hit / tot : 0;
+    let col = 0; for (let i = 0; i < 64; i++) col += Math.min(a.hist[i], b.hist[i]);
+    return { edge, col, s: .75 * edge + .25 * col };
+  }
+  // two designs, 0–100, with the reasons that carried it (strongest first)
+  // CALIBRATED (2026-11-25) on the eight pairs in Meta's report (slides 27–30): the picture alone
+  // could not tell them apart (its 79–84% pairs scored .46–.61 on it, its 47–48% pairs .49–.61), so
+  // it only nudges; what Meta's near-duplicates share is the photo, the layout and the message.
+  // With these, the light/dark Open House pair scores ~66 and the recropped beach ~90 (flagged), the
+  // Investor Day against a bare house photo ~6. Not caught: the Rockefeller pairs (Meta 79%), two
+  // different photos of the same tower under different headlines; that needs to see what a photo
+  // shows, which this does not try to do.
+  const SIM_W = { pic: .1, ph: .3, ly: .35, msg: .25 };
+  function simScore(A, B) {
+    const a = A.sim || {}, b = B.sim || {}, parts = [], why = [];
+    const add = (w, s, r) => { if (s == null || isNaN(s)) return; parts.push([w, s]); if (r && s >= .75) why.push([w * s, r]); };
+    const pp = simPicScore(A.pic, B.pic);
+    add(SIM_W.pic, pp && pp.s, 'looks the same');
+    if (a.ph && b.ph) add(SIM_W.ph, a.ph === b.ph ? 1 : 0, 'same photo');
+    add(SIM_W.ly, simLay(a.ly, b.ly), 'same layout');
+    const hw = simJac(a.hw, b.hw), sameA = !!(a.an && a.an === b.an);
+    // the message: the angle and the headline's words, half each (the words alone when neither has an angle)
+    const anK = a.an !== undefined && b.an !== undefined;
+    add(SIM_W.msg, anK && (a.an || b.an) ? .5 * (sameA ? 1 : 0) + .5 * (hw || 0) : hw);
+    if (sameA) why.push([SIM_W.msg * .6, 'same angle (' + a.an + ')']);
+    if (hw != null && hw >= .6) why.push([SIM_W.msg * hw, 'same headline']);
+    const W = parts.reduce((t, p) => t + p[0], 0);
+    if (W < .35) return null;   // too little known to say (the photo and the picture are enough)
+    return { n: Math.round(100 * parts.reduce((t, p) => t + p[0] * p[1], 0) / W), why: why.sort((x, y) => y[0] - x[0]).map(x => x[1]), pic: pp };
+  }
+  // the name of a design inside its market · audience card: "Design 2 · Unbranded"
+  const simName = (rs, it, other) => (other && phOf(rs, it) !== phOf(rs, other) ? phN(phOf(rs, it)) + ' · ' : '') + 'Design ' + dsgOf(it.aud) + (isUb(it.aud) ? ' · Unbranded' : '');
+  // EVERY PAIR THAT RUNS TOGETHER, for one ad set: `proj` is {sid: {sum, thumb}} (dsInfo's).
+  // Returns { groups: {'phase|market|root': {items, pairs}}, pairs } — pairs sorted most alike first.
+  async function simPairs(rs, proj) {
+    const items = ((rs && rs.items) || []).filter(it => it && it.market && it.aud && it.lang !== 'ARB' && proj[it.sid] && proj[it.sid].sum && proj[it.sid].sum.sim);
+    const phs = phList(rs), G = {};
+    items.forEach(it => { const k = phOf(rs, it) + '|' + it.market + '|' + audRoot(it.aud); (G[k] = G[k] || { items: [], pairs: [], prev: [] }).items.push(it); });
+    const pics = {}; await Promise.all(items.map(async it => { pics[it.sid] = await simPic(proj[it.sid].thumb); }));
+    const rec = it => ({ sim: proj[it.sid].sum.sim, pic: pics[it.sid] });
+    const all = [];
+    const pair = (g, x, y, cross) => { const s = simScore(rec(x), rec(y)); if (!s) return; const p = Object.assign({ a: x, b: y, cross }, s); g.pairs.push(p); all.push(p); };
+    Object.keys(G).forEach(k => {
+      const g = G[k], [ph, market, root] = k.split('|');
+      for (let i = 0; i < g.items.length; i++) for (let j = i + 1; j < g.items.length; j++) pair(g, g.items[i], g.items[j], false);
+      // a later phase against the one before it: a refresh that looks like Launch is no refresh
+      const pi = phs.indexOf(ph), prev = pi > 0 && G[phs[pi - 1] + '|' + market + '|' + root];
+      if (prev) g.items.forEach(x => prev.items.forEach(y => pair(g, x, y, true)));
+      g.pairs.sort((p, q) => q.n - p.n);
+    });
+    all.sort((p, q) => q.n - p.n);
+    return { groups: G, pairs: all };
+  }
+  // how many genuinely different designs a group holds: designs joined by a pair over the line count once
+  function simDistinct(g) {
+    const up = {}, f = s => up[s] && up[s] !== s ? (up[s] = f(up[s])) : s;
+    g.items.forEach(it => { up[it.sid] = it.sid; });
+    g.pairs.forEach(p => { if (!p.cross && p.n >= SIM_LINE) up[f(p.a.sid)] = f(p.b.sid); });
+    return new Set(g.items.map(it => f(it.sid))).size;
+  }
+  const simLine = (rs, p) => simName(rs, p.a, p.b) + ' and ' + simName(rs, p.b, p.a) + ' look ' + p.n + '% alike' + (p.why.length ? ': ' + p.why.join(', ') : '');
+  // for the fixtures and the console: StudioBase.sim.pic(dataUrl), .score({sim, pic}, {sim, pic})
+  StudioBase.sim = { pic: simPic, picScore: simPicScore, score: simScore, pairs: simPairs, LINE: SIM_LINE, W: SIM_W };
+
   SP.rvSum = function (st) {
     if (this.shApp() !== 'provident-ad-studio') return this.postSum ? this.postSum(st) : undefined;
     const C = this.constructor; st = st || this.state;
     try {
       const sz = []; (st.variants || []).forEach(v => C.sizesFor(st, v).forEach(k => { if (sz.indexOf(k) < 0) sz.push(k); }));
+      let sim; try { sim = this.simSum(st); } catch (e) {}
       return { campaign: String(st.campaign || ''), mode: C.isCarousel(st) ? 'carousel' : 'single', variants: (st.variants || []).length,
         sizes: sz.map(k => SIZE_LAB[k] || k), comps: C.allMods(st).length, updated: Date.now(), pid: st.pid || '',
         brand: st.look && st.look.on ? 'unbranded' : 'provident',
         // variants with a video background on Drive: Status marks the design Animated
-        anim: (st.variants || []).filter(v => v && v.bgVid && v.bgClip && v.bgClip.f).length || undefined };
+        anim: (st.variants || []).filter(v => v && v.bgVid && v.bgClip && v.bgClip.f).length || undefined,
+        // what Likeness compares (above)
+        sim };
     } catch (e) { return undefined; }
   };
   // a small picture of a project's first design, for the archive
@@ -3779,6 +3950,28 @@
     } catch (e) {}
     return out;
   };
+  // LIKENESS AT THE HAND-OFF: this design, as it is now, against every design it runs with (the
+  // ad set as Drive holds it). A line per pair over the line; nothing when the read is slow (8 s),
+  // fails, or the design is an Arabic one (it runs in its own ad set). It never blocks.
+  SP.simCheck = async function () {
+    const S = this._sh, rs = S && S.rs;
+    if (!rs || isPost(rs) || this.shApp() !== 'provident-ad-studio' || !(rs.tok || {}).dd) return [];
+    const me = (rs.items || []).find(x => x.sid === S.id);
+    if (!me || me.lang === 'ARB') return [];
+    try {
+      const r = await Promise.race([api('rsinfo', { ids: rs.tok.dd }), new Promise(res => setTimeout(() => res(null), 8000))]);
+      const x = r && (r.items || [])[0]; if (!x || !x.proj) return [];
+      const was = x.proj[S.id] || {};
+      const now = this.rvSum(this.shPub());
+      x.proj[S.id] = { sum: now ? simKeepPh(now, was.sum) : was.sum, thumb: (await this.rvThumb()) || was.thumb };
+      const R = x.rs && x.rs.items ? x.rs : rs, res = await simPairs(R, x.proj);
+      const out = res.pairs.filter(p => p.n >= SIM_LINE && (p.a.sid === S.id || p.b.sid === S.id))
+        .map(p => { const o = p.a.sid === S.id ? p : Object.assign({}, p, { a: p.b, b: p.a });
+          return 'it looks ' + o.n + '% like ' + simName(R, o.b, o.a) + (o.why.length ? ': ' + o.why.join(', ') : ''); });
+      // the reason once, after the pairs
+      return out.length ? out.concat('Meta shows ads over ' + SIM_LINE + '% alike to the same people, so one of them buys no new reach') : out;
+    } catch (e) { return []; }
+  };
   // what the flash says once a step has saved: the step, and the person it is with now
   function stepFlash(a, tkk, ho, post) {
     const who = ho && ho.to ? ' · with ' + String(ho.to.name || ho.to.email || '').split(/[ @]/)[0] : '';
@@ -3793,7 +3986,7 @@
     // A HAND-OFF CHECKS FIRST: what would make the content team send it straight back. It never
     // blocks — the designer can send anyway — it only says what is missing before it goes.
     if (!pre && a === 'design-done' && (!sid || sid === S.id) && this.rsPrecheck) {
-      const miss = this.rsPrecheck();
+      const miss = this.rsPrecheck().concat(await this.simCheck());
       if (miss.length && !window.confirm('Before it goes to the content team:\n\n' + miss.map(m => '•  ' + m).join('\n') + '\n\nSend anyway?')) return;
     }
     // WHO PICKS IT UP (access.js): the person on the next team, chosen here
@@ -3870,7 +4063,7 @@
           '<div><button type="button" class="p-ghost" data-ask="no">Cancel</button><button type="button" class="p-btn" data-ask="go">' + (k === 'design' ? 'Send back' : 'Reopen it') + '</button></div></div>'
         : k === 'done'
         ? '<div class="sto-ask" role="group" aria-label="Mark it done?"><p>Mark it done? Nothing will be left to do on ' + esc(itemLabel(it)) + '.</p><div><button type="button" class="p-ghost" data-ask="no">Not yet</button><button type="button" class="p-btn" data-ask="go">Mark done</button></div></div>'
-        : '<div class="sto-ask" data-warn="1" role="group" aria-label="Before it goes to the content team"><p>Before it goes to the content team, this is missing:</p><ul>' + miss.map(m => '<li>' + esc(m) + '</li>').join('') +
+        : '<div class="sto-ask" data-warn="1" role="group" aria-label="Before it goes to the content team"><p>' + (miss.every(m => /^it looks \d+% like /.test(m) || /^Meta shows ads/.test(m)) ? 'Before it goes to the content team:' : 'Before it goes to the content team, this is missing:') + '</p><ul>' + miss.map(m => '<li>' + esc(m) + '</li>').join('') +
           '</ul><div><button type="button" class="p-ghost" data-ask="no">Fix it first</button><button type="button" class="p-btn" data-ask="go">Send anyway</button></div></div>';
       const draw = () => {
         el.innerHTML = '<div class="shl-dlg-c sto" role="dialog" aria-modal="true" aria-labelledby="sto-t"><h2 id="sto-t">Send to…</h2>' +
@@ -3940,7 +4133,7 @@
     const S = this._sh, rs = S && S.rs, it = rs && (rs.items || []).find(x => x.sid === (sid || S.id));
     if (!it || this._rvBusy) return;
     // what would make the content team send it straight back: only this editor's own project can say
-    const miss = it.sid === S.id && this.rsPrecheck ? this.rsPrecheck() : [];
+    const miss = it.sid === S.id && this.rsPrecheck ? this.rsPrecheck().concat(await this.simCheck()) : [];
     const r = await sendToDlg(rs, it, miss);
     if (r) this.rvStep(r.act + ':' + it.sid, r.ho);
   };
@@ -6462,6 +6655,42 @@
     draw(); load(); push();
     setTimeout(() => { const x = $('.vdo-x'); if (x) x.focus(); }, 0);
   }
+  // LIKENESS ON STATUS (2026-11-25): the pairs are worked out off the page's own read (d.proj: each
+  // design's summary and preview) once per change, then the page is drawn again
+  AV.simOf = function (d) {
+    if (!d || !d.rs || !d.proj || d.part) return this._sim && d && this._sim.id === d.id ? this._sim.res : null;
+    const key = d.id + ':' + Object.keys(d.proj).sort().map(k => { const p = d.proj[k] || {}, t = p.thumb || ''; return k + JSON.stringify((p.sum || {}).sim || '') + t.length + t.slice(-24); }).join('|') + JSON.stringify((d.rs.items || []).map(x => [x.sid, x.aud, x.market, x.lang, x.phase]));
+    if (this._sim && this._sim.key === key) return this._sim.res;
+    const was = this._sim && this._sim.id === d.id ? this._sim.res : null;
+    this._sim = { key, id: d.id, res: was };
+    simPairs(d.rs, d.proj).then(res => {
+      if (!this._sim || this._sim.key !== key) return;
+      this._sim.res = res;
+      if (this.det && this.det.id === d.id && this.el && document.body.contains(this.el)) this.draw();
+    }).catch(() => {});
+    return was;
+  };
+  // A card's Variety row: how many genuinely different designs it holds, then each pair over the
+  // line, opening to both previews and what to change. Nothing until there are two designs to compare.
+  AV.simRow = function (sim, rs, proj, tab, g) {
+    const vr = sim && g.market && sim.groups[tab + '|' + g.market + '|' + g.root];
+    if (!vr || !vr.pairs.length) return '';
+    const own = vr.items.length, k = simDistinct(vr), bad = vr.pairs.filter(p => p.n >= SIM_LINE);
+    const head = own > 1 ? (k === own ? own + ' distinct designs' : k + ' distinct of ' + own + ' designs') : '1 design';
+    const fix = p => { const w = p.why.join(' '), ch = [];
+      if (/photo/.test(w)) ch.push('the photo'); if (/layout|looks/.test(w)) ch.push('the layout'); if (/angle|headline/.test(w)) ch.push('the angle');
+      return ch.length ? ' Change ' + ch.join(', ').replace(/, ([^,]*)$/, ' or $1') + ' of one of them.' : ''; };
+    const th = it => '<span class="rvd-vpi">' + ((proj[it.sid] || {}).thumb ? '<img src="' + esc(proj[it.sid].thumb) + '" alt="">' : '') + '<s>' + esc(simName(rs, it)) + (phOf(rs, it) !== tab ? ' · ' + esc(phN(phOf(rs, it))) : '') + '</s></span>';
+    const rows = bad.map(p => '<details class="rvd-vp"><summary><b>' + p.n + '%</b>' + esc(simName(rs, p.a, p.b) + ' and ' + simName(rs, p.b, p.a)) + ' look alike</summary>' +
+      '<div class="rvd-vpb"><span class="rvd-vpt">' + th(p.a) + th(p.b) + '</span><p>' + esc((p.why.length ? p.why.join(', ').replace(/^./, c => c.toUpperCase()) + '. ' : '') +
+        'Meta shows ads over ' + SIM_LINE + '% alike to the same people, so one of them buys no new reach.' + fix(p)) + '</p></div></details>').join('');
+    // within the card, then against the phase before (a refresh that looks like what it refreshes)
+    const bIn = bad.filter(p => !p.cross).length, bX = bad.length - bIn, prevPh = bX ? phN(phOf(rs, bad.find(p => p.cross).b)) : '';
+    const tail = !bad.length ? ' · none over ' + SIM_LINE + '% alike'
+      : (bIn ? ' · ' + bIn + (bIn === 1 ? ' pair' : ' pairs') + ' over ' + SIM_LINE + '% alike' : '') + (bX ? ' · ' + bX + (bX === 1 ? ' match' : ' matches') + ' with ' + prevPh : '');
+    return '<div class="rvd-vr"' + (bad.length ? ' data-bad="1"' : '') + '><p class="rvd-vrh" title="Likeness: our estimate of how alike the designs that run together are, from their preview, photo, layout and message. Meta treats ads over ' + SIM_LINE + '% alike as one.">' +
+      '<i></i><b>Variety</b><s>' + esc(head + tail) + '</s></p>' + rows + '</div>';
+  };
   AV.detHtml = function () {
     const d = this.det, back = '<button type="button" class="p-ghost rva-back" data-a="back">' + ico('back') + 'All campaigns</button>';
     if (!d) return back + '<p class="rva-wait">Reading the ad set…</p>';
@@ -6604,6 +6833,7 @@
     cells.forEach(c => { look(grp(c.market, c.aud), c.aud).c = c; });
     auds.forEach(a => { const g = grp(a.market, a.aud, a.key); if (a.market) look(g, a.aud).a = a; else g.solo = a; });
     const canDz = isDs(d.id) && !ro;
+    const sim = this.simOf(d);
     const partsOf = g => g.solo ? [g.solo] : g.ds.flatMap(x => [x.b, x.u]).filter(x => x && x.a).map(x => x.a);
     const audRows = groups.map(g => {
       const parts = partsOf(g), dn = parts.filter(a => a.done).length;
@@ -6622,7 +6852,7 @@
       const dsrc = canDz ? dupFrom(rs, tab, [g.market], g.root) : '', dleft = dsrc ? dupJobs(rs, tab, dsrc, [g.market], g.root).length : 0;
       const dup = dleft ? '<button type="button" class="p-ghost rvd-dup" data-a="dupmkt" data-from="' + esc(dsrc) + '" data-to="' + esc(g.market) + '" data-root="' + esc(g.root) + '" data-ph="' + esc(tab) + '" title="' + esc((parts.length ? dleft + ' ' + dsrc + ' · ' + g.root + ' project' + (dleft === 1 ? ' is' : 's are') + ' not in ' + g.market + ' yet. Copies ' + (dleft === 1 ? 'it' : 'them') : 'Copies every ' + dsrc + ' · ' + g.root + ' design') + ', with pictures and video background, as its own projects') + '">' + ico('copy') + (parts.length ? 'Copy the rest from ' : 'Copy from ') + esc(dsrc) + '</button>' : '';
       return li + '<div class="rvd-auh"><h4 class="rvd-aun"><s>' + esc(g.market) + '</s><b>' + esc(g.root) + '</b></h4>' +
-        '<span class="rvd-aur">' + dup + '<span class="rvd-ausm">' + (g.ds.length > 1 ? g.ds.length + ' designs' + (sum ? ' · ' : '') : '') + sum + '</span></span></div>' + body + add + '</li>';
+        '<span class="rvd-aur">' + dup + '<span class="rvd-ausm">' + (g.ds.length > 1 ? g.ds.length + ' designs' + (sum ? ' · ' : '') : '') + sum + '</span></span></div>' + this.simRow(sim, rs, proj, tab, g) + body + add + '</li>';
     }).join('');
     const nNew = groups.filter(g => !partsOf(g).length).length;
     const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + groups.length + (nNew ? ' · ' + nNew + ' not started' : '') + '</s>' + (ro ? '' : '<button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button>') + '</h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">' + (ro ? 'No projects yet.' : 'No projects yet. Add the first one.') + '</li>') + '</ul></section>';
@@ -8669,6 +8899,25 @@ button.rvd-wc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
 .rvd-ausm{flex:none;padding-bottom:2px;font:400 13px/1.3 var(--ps-font);color:var(--ps-ink-2);font-variant-numeric:tabular-nums}
 .rvd-aun s{text-decoration:none;font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
 .rvd-aun b{font:500 18px/1.25 var(--ps-font);color:var(--ps-ink);overflow-wrap:anywhere}
+.rvd-vr{display:flex;flex-direction:column;gap:6px;margin:0 20px 12px;padding:10px 14px;border-radius:12px;background:var(--ps-fill)}
+.rvd-vr[data-bad="1"]{background:var(--ps-warn-q)}
+.rvd-vrh{display:flex;align-items:center;gap:8px;margin:0;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-vrh i{flex:none;width:8px;height:8px;border-radius:50%;background:var(--ps-good)}
+.rvd-vr[data-bad="1"] .rvd-vrh i{background:var(--ps-warn)}
+.rvd-vrh b{font-weight:500;color:var(--ps-ink)}
+.rvd-vrh s{text-decoration:none}
+.rvd-vp summary{display:flex;align-items:baseline;gap:8px;cursor:pointer;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink);list-style:none;border-radius:6px}
+.rvd-vp summary::-webkit-details-marker{display:none}
+.rvd-vp summary::before{content:'';flex:none;align-self:center;width:6px;height:6px;border-right:1.5px solid var(--ps-ink-2);border-bottom:1.5px solid var(--ps-ink-2);transform:rotate(-45deg);margin:0 2px 0 3px;transition:transform .15s var(--ps-ease)}
+.rvd-vp[open] summary::before{transform:rotate(45deg)}
+.rvd-vp summary:focus-visible{outline:2px solid var(--ps-link);outline-offset:2px}
+.rvd-vp summary b{font-weight:500;font-variant-numeric:tabular-nums}
+.rvd-vpb{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;padding:10px 0 4px 17px}
+.rvd-vpt{display:flex;gap:8px;flex:none}
+.rvd-vpi{display:flex;flex-direction:column;gap:4px;width:96px}
+.rvd-vpi img{width:96px;height:96px;object-fit:cover;border-radius:8px;box-shadow:0 0 0 1px var(--ps-line)}
+.rvd-vpi s{text-decoration:none;font:400 11px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-vpb p{flex:1 1 220px;margin:0;font:400 13px/1.5 var(--ps-font);color:var(--ps-ink)}
 
 
 

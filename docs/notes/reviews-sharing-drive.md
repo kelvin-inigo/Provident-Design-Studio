@@ -2884,3 +2884,63 @@ and the MVP video. CAS's own `.as-dl` buttons stay hidden on the PM link (`html.
 Family Download = 8 images + both `_animated.mp4` recorded + Family and All-audiences videos, not
 the Investor one; Download package = 14 images + 2 animated + 5 videos, note named the Investor
 1:1 (bad id); clip deleted from the stand-in → 17 files, note named both animated ads.
+
+---
+# LIKENESS: A VARIETY ROW ON STATUS AND A LINE AT SEND TO COPY CHECK (2026-11-25, branch cas-similarity)
+
+By request, after performance marketing forwarded Meta's Creative Insights report (Nov 2026): 12
+identical pairs on our account, flagged pairs at 79–84% similar, 45.8% of spend in medium or high
+fatigue; above 65% Meta shows both ads to the same people. Spec: `docs/cas-similarity-check-spec.md`.
+All of it is in share-link.js (section "LIKENESS") plus one static block in CAS's `Component`.
+
+- **What is compared** (`simPairs(rs, proj)`): English items grouped by phase | market | `audRoot`
+  (Design 1, Design 2…, Unbranded run in ONE Meta ad set), every pair inside a group, plus every item
+  of a phase against the previous phase's same group (`cross`). Never sizes of one design, never
+  ARB, never Family vs Investor.
+- **The score** (`simScore`, 0–100) blends four parts, each 0–1, renormalised over the parts known
+  (below 0.35 of weight known: no score):
+  picture .10 — the preview Status already has (`rv.thumb`, the 1:1 at .2), 32 px: strong-edge cells
+  by gradient SIZE (a navy and a white version of one layout keep their edges), 3x3 tolerant overlap,
+  .75 edges + .25 a 4x4x4 colour histogram (`simPic`, cached per preview);
+  photo .30 — `fnv(rec.u)` of `adstudio-bg-0`, exact bytes, so a recrop is the same photo;
+  layout .35 — multiset Jaccard of `type:cluster` over variant 0's visible modules;
+  message .25 — half same angle (`adRead`), half Jaccard of the hero's words.
+  `SIM_LINE` 65 = Meta's line.
+- **Calibrated on the report's eight pairs** (slides 27–30, phone screens cropped from the PDF; the
+  crops are NOT in the repo — the report is Meta's to us). The picture part could not separate them
+  (79–84% pairs .46–.61, 47–48% pairs .49–.61), hence its small weight. With states rebuilt by hand:
+  Open House light/dark 66 (flagged), the recropped beach ~90, Investor Day vs a bare house photo 6.
+  **Not caught:** the Rockefeller pairs (Meta 79%), two different photos of one tower under
+  different headlines (29) — that needs to see what a photo shows.
+- **Where the parts come from:** `SP.simSum(st)` rides `rvSum` as `sum.sim` = {v, ly, an, hw, ph}
+  on every save and preview. `ph` is known only in the designer's own tab (`IS().getRec`), so the
+  Drive store keeps the stored one when a summary arrives without it (`simKeepPh` in dsApi save and
+  thumb; also in `simCheck`). A design saved before this has its layout and headline worked out from
+  its state in `dsInfo1` (`simLite`, memory only, no write). The Upstash store's `clean_sum` drops
+  `sim` (as it drops `brand` and `anim`): Drive ad sets only.
+- **`adRead` is not reachable from share-link.js** — `Component` is not a global (a page's
+  `typeof Component` is "undefined"). A `static {}` block right above `Component.adRead` hands it over
+  as `StudioBase.adRead`. On the home page (no CAS) the angle is `undefined` = not known, and the
+  message part falls back to the headline's words.
+- **Status:** `AV.simOf(d)` works the pairs out once per change of the page's read (key: each
+  project's sim, preview tail and the items' labels), then redraws; `AV.simRow` puts a **Variety**
+  row under each market · audience card's header once there is a pair: "N distinct of M designs"
+  (`simDistinct`: designs joined by an in-phase pair over the line count once), pairs over the line,
+  matches with the previous phase. A flagged pair is a `<details>`: both previews, the reasons, what
+  to change. CSS `.rvd-vr`/`.rvd-vp*` in the Status sheet; amber = `--ps-warn-q` ground,
+  `--ps-warn` dot. Contrast measured: light 8.45+ text, 4.66 dot; dark 7.02+ text, 6.15 dot.
+- **Send to copy check:** `SP.simCheck()` reads the ad set (`rsinfo` by the designer link, 8 s cap),
+  puts THIS design as it is now in place of its saved summary and preview, and returns a line per
+  pair over the line that includes it, then Meta's reason once. Concatenated onto `rsPrecheck()` in
+  `rvStep` and `sendTo`; the Send to dialog's heading drops "this is missing" when only likeness
+  lines are listed. Never blocks.
+- **Not built (spec items):** the Variety row in CAS's own Ad set tab; designer tags for subject
+  (people / property) and finish (polished / raw).
+- **Verified** on the Drive stand-in (port 8796, the worktree's own server): Palm Springs › Launch ›
+  Local · Family given a branded design, its Unbranded copy on the same photo and a different
+  Design 2 (Payment plan template, another photo); Showcase's Family a copy of Launch's. Status:
+  Launch "2 distinct of 3 designs · 1 pair over 65% alike" (Design 1 and Design 1 · Unbranded, 100%,
+  same layout/photo/headline/angle), Showcase "1 design · 2 matches with Launch". In the Showcase
+  design's own tab, Send to › Copy check listed both matches with Fix it first / Send anyway; Fix it
+  first sent nothing. Seeded designs with empty states show no row (too little known). **Not on real
+  Google Drive.**

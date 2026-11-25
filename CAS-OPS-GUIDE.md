@@ -628,6 +628,21 @@ audience that already has an English design makes it that audience's next design
 for the **Phase**. It starts on the Status tab you added the project from, otherwise on the
 newest phase.
 
+**Variety: are the designs different enough?** Meta shows ads that look over about 65% alike to
+the same people, so a near-copy buys no new reach (its Creative Insights report, November 2026,
+found 12 identical pairs on our account). Each audience card on Status shows a **Variety** row
+once it holds two designs, for example **2 distinct of 3 designs · 1 pair over 65% alike**. It
+compares the English designs that run together: Design 1, Design 2… and the Unbranded version of
+each, in the same phase and market. A later phase (Ad Fatigue 01, say) is also compared with the
+phase before it, since a refresh that looks like what it replaces changes nothing. It does not
+compare a design's sizes with each other (they are one ad) or the English with the Arabic.
+Open a flagged pair to see both previews and what they share: **same photo**, **same layout**,
+**same headline**, **same angle** (the angle is the one Ad sets › Details reads), **looks the
+same**. To fix one, change the photo, the layout or the angle of one of the two designs. The
+score is an estimate made in PDS, not Meta's own number. It cannot tell two different photos of
+the same building apart, and nothing is ever blocked by it. It works on ad sets stored on Google
+Drive.
+
 - On Status, each design in an audience's card has an **Unbranded** row under its **Branded** one,
   with a **Start the unbranded** slot. Press it once that design's English exists: the English project opens in a new window and a copy of its design is saved
   on the unbranded look as its own audience, for example **Local · Family · Unbranded**.
@@ -687,7 +702,8 @@ steps: **Design › ENG copy check › Translation › Done**.
    Sending to **Copy check** from the studio first lists, in the dialog, anything missing: empty
    words, a page or variant with no background photo, a QR code switched on with none added (or
    an empty ADM number when ADM & CN is chosen), or copy covering more than 40% of a canvas.
-   Press **Fix it first**, or **Send anyway**. The person you pick gets a Chrome alert only if
+   It also lists any design this one **looks over 65% alike** (see **Variety** below), with what
+   they share: the same photo, layout, headline or angle. Press **Fix it first**, or **Send anyway**. The person you pick gets a Chrome alert only if
    they have that ad set open; either way it waits in their queue on Home. While the content team has
    it, the current bar turns amber and the step reads **Copy check**; the button moves on to
    **Create next audience** or **Make the Arabic**. **Back to design** is in the **Ad set** tab.

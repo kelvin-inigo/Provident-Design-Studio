@@ -104,6 +104,14 @@ exports download as a zip. The studios fit tablets and phones.
   ad and in every export. The copy itself keeps "AED" (fields, Copy view, ad text), so write AED.
 - **Audiences:** Residential: Family, Investor. Commercial: Investor, Hybrid (an end user who rents
   but may buy).
+- **Variety (Status):** each audience card with two or more designs has a Variety row saying how
+  many are genuinely different, e.g. "2 distinct of 3 designs · 1 pair over 65% alike". It compares
+  the English designs that run together (Design 1, Design 2…, Unbranded) in one phase and market,
+  plus a later phase against the one before. A flagged pair shows what it shares (same photo,
+  layout, headline, angle); the fix is to change the photo, the layout or the angle of one. Send to
+  copy check lists the same pairs and never blocks. It is PDS's estimate, not Meta's number. If
+  someone asks why their ads fatigue or why Meta calls them similar, point them here: Meta wants at
+  least five meaningfully different assets per ad set.
 - **Each audience's steps:** Design › ENG copy check › Translation › Done. The designer is not held
   to that order: **Send to…** sends a project to any task.
 - **Reach:** a campaign starts **Broad reach** (one **Broad** audience per market, English and

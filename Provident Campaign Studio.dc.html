@@ -19366,6 +19366,9 @@ class Component extends DCLogic {
     ['Lifestyle and luxury', /\b(living|lifestyle|luxur(y|ious)|beach(front)?|views?|amenities|wellness|resort|family|families|home|homes|villas?|penthouses?|spa|serene|green)\b/gi],
     ['Workspace and business', /\b(offices?|business(es)?|commercial|retail|workspaces?|grade a|headquarters|hq|enterprise|companies)\b/gi],
   ];
+  // LIKENESS (share-link.js, 2026-11-25) reads a design's angle with this same reader; Component
+  // is not a global, so it is handed over once, when the class is defined
+  static { if (typeof StudioBase !== 'undefined') StudioBase.adRead = (st, vi, ctx) => Component.adRead(st, vi, ctx); }
   static adRead(st, vi, ctx) {
     const C = CampaignStudio;
     vi = Math.max(0, Math.min(vi, ((st.variants || []).length || 1) - 1));
