@@ -13671,8 +13671,13 @@ class CampaignStudio extends StudioBase {
     return ['video/mp4;codecs=avc1.640028', 'video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'].find(m => { try { return MediaRecorder.isTypeSupported(m); } catch (e) { return false; } }) || '';
   }
   // one size of one variant, recorded as the clip plays through once; null when cancelled
-  async anRecord(state, vi, sizeKey, assets, clip, mime, ui) {
-    const T = CampaignStudio.PXT[sizeKey], v = state.variants[vi];
+  async anRecord(state, vi, sizeKey, assets, clip, mime, ui) { const r = await this.anRecordSet(state, vi, [sizeKey], assets, clip, mime, ui); return r ? r[sizeKey] : null; }
+  // SEVERAL SIZES IN ONE PASS (2026-11-26, by request: "speeding up the time to save the animated"):
+  // the recording is real time, so the 1:1 and the 9:16 recorded one after the other cost the clip
+  // twice. Both read the same clip, so it plays ONCE and every tick paints each size's design over
+  // that frame into its own canvas and recorder. Returns { sizeKey: bytes }, or null when cancelled.
+  async anRecordSet(state, vi, sizeKeys, assets, clip, mime, ui) {
+    const v = state.variants[vi];
     const vid = document.createElement('video'); vid.muted = true; vid.playsInline = true; vid.preload = 'auto'; vid.src = clip.url;
     await new Promise((res, rej) => { vid.onloadeddata = res; vid.onerror = () => rej(new Error('The clip could not be read.')); });
     // wait until the browser says it can play straight through, so the first seconds do not stall
@@ -13681,23 +13686,28 @@ class CampaignStudio extends StudioBase {
     const fc = document.createElement('canvas'); fc.width = vid.videoWidth; fc.height = vid.videoHeight;
     fc.naturalWidth = fc.width; fc.naturalHeight = fc.height;
     const fx = fc.getContext('2d');
-    // the size's own photo slot keeps its zoom and position, so the video is framed as the photo is
-    const psz = CampaignStudio.photoSize(sizeKey);
-    const slot = (psz !== 'sq' && v.bgSep && v.bgSep[psz] && assets['bg' + vi + '_' + psz]) ? 'bg' + vi + '_' + psz : 'bg' + vi;
-    const own = v.bgVidV && v.bgVidV[psz];   // the 1:1's or 9:16's own video framing, when it has one
-    const A = Object.assign({}, assets); A[slot] = Object.assign({ s: 1, x: 0, y: 0 }, assets[slot] || {}, own || {}, { img: fc, u: 'clip' });
-    const built = this.buildOps(state, vi, sizeKey, A);
-    const rc = ui.canvas; rc.width = T.W; rc.height = T.H;
-    const rx = rc.getContext('2d');
     let frames = 0, lost = 0;
     // every painted frame is pushed to the recorder by hand (captureStream(0) + requestFrame), so
-    // the file holds exactly what was drawn
-    const stream = rc.captureStream(0), track = stream.getVideoTracks()[0];
-    const paint = () => { fx.drawImage(vid, 0, 0, fc.width, fc.height); rx.drawImage(this.renderOpsToCanvas(built, 1), 0, 0); frames++; if (track && track.requestFrame) track.requestFrame(); };
-    const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12e6 }), chunks = [];
-    rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
-    const stopped = new Promise(res => { rec.onstop = res; });
-    rec.start();
+    // the file holds exactly what was drawn. The first size is drawn in the dialog's own canvas.
+    const jobs = sizeKeys.map((sizeKey, i) => {
+      const T = CampaignStudio.PXT[sizeKey], psz = CampaignStudio.photoSize(sizeKey);
+      // the size's own photo slot keeps its zoom and position, so the video is framed as the photo is
+      const slot = (psz !== 'sq' && v.bgSep && v.bgSep[psz] && assets['bg' + vi + '_' + psz]) ? 'bg' + vi + '_' + psz : 'bg' + vi;
+      const own = v.bgVidV && v.bgVidV[psz];   // the 1:1's or 9:16's own video framing, when it has one
+      const A = Object.assign({}, assets); A[slot] = Object.assign({ s: 1, x: 0, y: 0 }, assets[slot] || {}, own || {}, { img: fc, u: 'clip' });
+      const built = this.buildOps(state, vi, sizeKey, A);
+      const rc = i ? document.createElement('canvas') : ui.canvas; rc.width = T.W; rc.height = T.H;
+      const stream = rc.captureStream(0), track = stream.getVideoTracks()[0];
+      const rec = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: 12e6 }), chunks = [];
+      rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      return { sizeKey, built, rx: rc.getContext('2d'), stream, track, rec, chunks, stopped: new Promise(res => { rec.onstop = res; }) };
+    });
+    const paint = () => {
+      fx.drawImage(vid, 0, 0, fc.width, fc.height);
+      jobs.forEach(j => { j.rx.drawImage(this.renderOpsToCanvas(j.built, 1), 0, 0); if (j.track && j.track.requestFrame) j.track.requestFrame(); });
+      frames++;
+    };
+    jobs.forEach(j => j.rec.start());
     paint();
     const t0 = performance.now();
     await vid.play();
@@ -13723,10 +13733,12 @@ class CampaignStudio extends StudioBase {
       vid.onended = end; vid.onerror = end;
       setTimeout(tick, 33);
     });
-    vid.pause(); rec.stop(); await stopped; stream.getTracks().forEach(t => t.stop());
-    this._anLast = { size: sizeKey, frames, secs: (performance.now() - t0) / 1000, mime, lost };
+    vid.pause(); jobs.forEach(j => j.rec.stop()); await Promise.all(jobs.map(j => j.stopped)); jobs.forEach(j => j.stream.getTracks().forEach(t => t.stop()));
+    this._anLast = { size: sizeKeys.join('+'), frames, secs: (performance.now() - t0) / 1000, mime, lost };
     if (ui.cancelled) return null;
-    return new Uint8Array(await new Blob(chunks, { type: mime }).arrayBuffer());
+    const out = {};
+    for (const j of jobs) out[j.sizeKey] = new Uint8Array(await new Blob(j.chunks, { type: mime }).arrayBuffer());
+    return out;
   }
   async anExport() {
     if (this._anBusy) return;
@@ -13744,21 +13756,22 @@ class CampaignStudio extends StudioBase {
       await Promise.all(['100 103px "Google Sans Flex"', '300 41px "Google Sans Flex"', '500 28px "Google Sans Flex"'].map(safeLoad));
       const assets = await this.loadAssets(state);
       const jobs = [];
-      vis.forEach(vi => ['sq', 'st'].forEach(k => { if (CampaignStudio.sizesFor(state, state.variants[vi]).includes(k)) jobs.push([vi, k]); }));
+      // one job per variant: its 1:1 and 9:16 are recorded together, in one play of the clip (anRecordSet)
+      vis.forEach(vi => { const ks = ['sq', 'st'].filter(k => CampaignStudio.sizesFor(state, state.variants[vi]).includes(k)); if (ks.length) jobs.push([vi, ks]); });
       const files = [];
       for (let i = 0; i < jobs.length; i++) {
-        const [vi, k] = jobs[i];
-        ui.progress(0); ui.say('Recording ' + (i + 1) + ' of ' + jobs.length + ' \u00b7 ' + (k === 'sq' ? '1:1' : '9:16') + '. It takes as long as the clip; keep this tab in front.');
-        let data = await this.anRecord(state, vi, k, assets, this._clips[vi], mime, ui);
+        const [vi, ks] = jobs[i], what = ks.map(k => k === 'sq' ? '1:1' : '9:16').join(' and ') + (ks.length > 1 ? ' together' : '');
+        ui.progress(0); ui.say('Recording ' + (i + 1) + ' of ' + jobs.length + ' \u00b7 ' + what + '. It takes as long as the clip; keep this tab in front.');
+        let data = await this.anRecordSet(state, vi, ks, assets, this._clips[vi], mime, ui);
         // one that stuttered is recorded once more and the smoother of the two is kept
         if (data && this._anLast && this._anLast.lost > .25) {
           const first = this._anLast.lost;
-          ui.progress(0); ui.say('Recording ' + (i + 1) + ' of ' + jobs.length + ' \u00b7 ' + (k === 'sq' ? '1:1' : '9:16') + ' again: the first pass stuttered. Keep this tab in front.');
-          const again = await this.anRecord(state, vi, k, assets, this._clips[vi], mime, ui);
+          ui.progress(0); ui.say('Recording ' + (i + 1) + ' of ' + jobs.length + ' \u00b7 ' + what + ' again: the first pass stuttered. Keep this tab in front.');
+          const again = await this.anRecordSet(state, vi, ks, assets, this._clips[vi], mime, ui);
           if (!again) data = null; else if (this._anLast.lost < first) data = again; else this._anLast.lost = first;
         }
         if (!data) { this.setState({ exportStatus: 'Animated export cancelled — nothing was saved.' }); return; }
-        files.push({ name: this.exportPath(name, vi, k, ext).replace(/\.(mp4|webm)$/, '_animated.$1'), data });
+        ks.forEach(k => files.push({ name: this.exportPath(name, vi, k, ext).replace(/\.(mp4|webm)$/, '_animated.$1'), data: data[k] }));
       }
       ui.say('Saving…');
       await this.deliver(files, name, { overwrite: true });

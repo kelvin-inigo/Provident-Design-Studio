@@ -24,6 +24,12 @@
   // Per-tab keys: never sent, never overwritten by someone else's save.
   const LOCAL = ['sel', 'focusSz', 'screen', 'exportStatus', 'activeVi', 'activeSi', 'exportMenuOpen', 'exportKind',
     'storyOn', 'rcvGuide', 'gdStep', 'gdAsk', 'hubPost', 'mockMode'];
+  // A HIDDEN CANVAS IS NOT EXPORTED, ON A LINK EITHER (2026-11-26, by request: "there were hidden
+  // design that was included in the package download"). In the Campaign studio `storyOn` is not a
+  // view setting: it is the carousel's Story 9:16 eye, and the export leaves a hidden Story out
+  // (sizesFor). Kept per tab, it never reached a link, so performance marketing's window drew every
+  // page's hidden 9:16 and zipped it. There it travels with the project; Organic's stays per tab.
+  const localKeys = eng => eng && eng.constructor && typeof eng.constructor.storyShown === 'function' ? LOCAL.filter(k => k !== 'storyOn') : LOCAL;
   const SP = StudioBase.prototype;
 
   // ---------- small helpers ----------
@@ -1437,7 +1443,7 @@
   // ---------- what is shared ----------
   SP.shPub = function (st) {
     const o = Object.assign({}, st || this.state);
-    LOCAL.forEach(k => { delete o[k]; });
+    localKeys(this).forEach(k => { delete o[k]; });
     delete o.share;
     return JSON.parse(JSON.stringify(o));
   };
@@ -1455,7 +1461,7 @@
   };
   SP.shLocal = function () {
     const st = this.state, out = {};
-    LOCAL.forEach(k => { if (k in st) out[k] = st[k]; });
+    localKeys(this).forEach(k => { if (k in st) out[k] = st[k]; });
     return out;
   };
   SP.shSlots = function () {
@@ -4807,6 +4813,7 @@
   };
   RV.view = function () {
     const sh = this.shell;
+    if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) window.__rv = this;   // a test handle, local only (as __casAn)
     this.dir = this.build(); this.scanned = this.ver;
     sh._asMode = this.role === 'ct' ? 'text' : 'images'; sh._asAll = false; sh._ae = null;
     // THE FIRST PROJECT ON SCREEN (2026-11-25, /impeccable critique): the one the link names, else
@@ -5231,8 +5238,8 @@
       '<footer class="rvh-df">' + dlBtn + '</footer>';
     if (det !== this._dlgH) { this._dlgH = det; dlg.innerHTML = det; }
   };
-  // one flat zip of an audience, or of every audience: the projects sent for review (all of a
-  // finished audience), whatever their copy check says
+  // one zip of an audience, or of every audience: the projects sent for review (all of a
+  // finished audience), whatever their copy check says — Static/, Animated/, the MVP video at the root
   RV.download = async function (key) {
     if (this.dl) return;
     const auds = rsAuds(this.rs).filter(a => canDl(a) && (key === '*' || a.key === key));
@@ -5249,6 +5256,13 @@
     // closing note names every file that is missing.
     const missing = [];
     auds.forEach(a => dlIts(a).forEach(it => { const p = this.proj[it.sid]; if (!p || !p.st) missing.push(itemLabel(it, this.rs) + ' (its project could not be read)'); }));
+    // NOTHING WAITS ITS TURN (2026-11-26, by request: "speeding up the time to save the MVP and
+    // animated"): the MVP videos and the animated ads' clips are asked of Drive now, all at once,
+    // while the images render and the animated ads record — they used to be fetched one after the
+    // other at the very end. A video Drive will not give resolves to null and is named as missing.
+    const vids = vidFor(this.rs, key === '*' ? null : auds[0]), vidGet = {};
+    vids.forEach(v => ['9x16', '1x1'].forEach(z => { const f = v.f && v.f[z]; if (f && !vidGet[f]) vidGet[f] = vidBlob(f).then(b => b.arrayBuffer()).then(x => new Uint8Array(x)).catch(() => null); }));
+    items.forEach(it => { if (it.t.anim) Promise.resolve().then(() => it.t.anim()).catch(() => {}); });
     try {
       // the window renders tiles in the background, the audience on screen first: wait for the rest
       await Promise.all(items.map(async it => { try { it.file = it.t.load ? await it.t.load() : it.t.file; } catch (e) { it.file = null; } }));
@@ -5263,45 +5277,63 @@
         const anNm = it => String(it.name).replace(/\.jpg$/i, '') + '_animated';
         if (!mime) { this.ui.flash('This browser cannot record video, so the animated ads are not in the zip. Use Chrome.', 8000); anims.forEach(it => missing.push(anNm(it))); }
         else {
-          const ui = this.eng.anDlg(), cache = this.anMp4 || (this.anMp4 = new WeakMap());
+          const ui = this.eng.anDlg(), cache = this.anMp4 || (this.anMp4 = new WeakMap()), ext = /mp4/.test(mime) ? 'mp4' : 'webm';
           ui.el.querySelector('h2').textContent = 'Recording the animated ads';
           try {
-            for (let i = 0; i < anims.length && !ui.cancelled; i++) {
-              const it = anims[i];
-              ui.say((i + 1) + ' of ' + anims.length + ' · ' + String(it.name).replace(/\.jpg$/i, '') + '. Each takes as long as its clip; keep this tab in front.');
+            // ONE PLAY OF THE CLIP PER DESIGN (2026-11-26): a design's 1:1 and 9:16 read the same
+            // clip, so they are recorded together (anRecordSet) — half the wait of one after the other
+            ui.say('Reading the clips…'); ui.progress(0);
+            await Promise.all(anims.map(async it => { try { it.info = await it.t.anim(); } catch (e) { it.info = null; } }));
+            const groups = [];
+            for (const it of anims) {
+              const info = it.info;
+              if (!info) { missing.push(anNm(it)); continue; }
+              const had = (cache.get(info.st) || {})[info.vi + ':' + info.sk];
+              if (had) { it.mp4 = { name: anNm(it) + '.' + ext, data: had }; continue; }
+              let g = groups.find(x => x.info.st === info.st && x.info.vi === info.vi);
+              if (!g) groups.push(g = { info, its: [] });
+              g.its.push(it);
+            }
+            for (let i = 0; i < groups.length && !ui.cancelled; i++) {
+              const g = groups[i], info = g.info, sks = g.its.map(it => it.info.sk);
+              ui.say((i + 1) + ' of ' + groups.length + ' · ' + g.its[0].pre + ' · ' + String(g.its[0].name).replace(/\.jpg$/i, '').replace(/_(feed|story)$/i, '') + (sks.length > 1 ? '. Its 1:1 and 9:16 record together, in' : '. It takes') + ' as long as the clip plays; keep this tab in front.');
               ui.progress(0);
-              let data = null;
+              let out = null;
               try {
-                const info = await it.t.anim();
-                if (info) {
-                  const got = cache.get(info.st) || {}, ck = info.vi + ':' + info.sk;
-                  data = got[ck] || await info.eng.anRecord(info.st, info.vi, info.sk, info.assets, { url: info.url }, mime, ui);
-                  if (data) { got[ck] = data; cache.set(info.st, got); }
-                }
-              } catch (e) { data = null; }
+                if (info.eng.anRecordSet) out = await info.eng.anRecordSet(info.st, info.vi, sks, info.assets, { url: info.url }, mime, ui);
+                else { out = {}; for (const sk of sks) { if (ui.cancelled) break; out[sk] = await info.eng.anRecord(info.st, info.vi, sk, info.assets, { url: info.url }, mime, ui); } }
+              } catch (e) { out = null; }
               if (ui.cancelled) break;
-              if (!data) { missing.push(anNm(it)); continue; }
-              it.mp4 = { name: anNm(it) + '.' + (/mp4/.test(mime) ? 'mp4' : 'webm'), data };
+              const got = cache.get(info.st) || {};
+              g.its.forEach(it => {
+                const data = out && out[it.info.sk];
+                if (!data) { missing.push(anNm(it)); return; }
+                got[info.vi + ':' + it.info.sk] = data; it.mp4 = { name: anNm(it) + '.' + ext, data };
+              });
+              cache.set(info.st, got);
             }
           } finally { ui.close(); }
           if (ui.cancelled) { this.ui.flash('Download stopped.'); this.dl = null; this.barRender(); return; }
         }
       }
       const clean = v => String(v || '').replace(/[\\/:*?"<>|]+/g, '-').trim(), used = new Set(), files = [];
-      const put = (nm, pre, data) => { let n = clean(nm); if (used.has(n)) n = clean(pre) + ' ' + n; used.add(n); files.push({ name: n, data }); };
+      // TWO FOLDERS IN THE ZIP (2026-11-26, by request; it was flat): the images in Static/, the
+      // animated ads' MP4s in Animated/, the MVP video at the root. A name two audiences share
+      // gets its market and audience added, per folder.
+      const put = (dir, nm, pre, data) => { let n = clean(nm); if (used.has(dir + n)) n = clean(pre) + ' ' + n; used.add(dir + n); files.push({ name: dir + n, data }); };
       for (const it of items) {
-        put(it.name, it.pre, new Uint8Array(await it.file.arrayBuffer()));
-        if (it.mp4) put(it.mp4.name, it.pre, it.mp4.data);
+        put('Static/', it.name, it.pre, new Uint8Array(await it.file.arrayBuffer()));
+        if (it.mp4) put('Animated/', it.mp4.name, it.pre, it.mp4.data);
       }
       // THE MVP VIDEO GOES IN THE PACKAGE (2026-11-23, by request): the whole-package zip carries
       // every video of the ad set's Video section, both sizes, beside the images; an audience's own
       // zip carries the videos added for it or for All audiences (2026-11-24; vidFor)
-      const vids = vidFor(this.rs, key === '*' ? null : auds[0]), vidsIn = new Set();
+      const vidsIn = new Set();
       for (const v of vids) for (const z of ['9x16', '1x1']) {
         const fn = dsSafe(v.title) + '_' + z + '.mp4';
         if (!(v.f && v.f[z])) { missing.push(fn + ' (not uploaded)'); continue; }
-        try { put(fn, 'MVP video', new Uint8Array(await (await vidBlob(v.f[z])).arrayBuffer())); vidsIn.add(v.id); }
-        catch (e) { missing.push(fn); }
+        const data = await vidGet[v.f[z]];
+        if (data) { put('', fn, 'MVP video', data); vidsIn.add(v.id); } else missing.push(fn);
       }
       if (!files.length) throw new Error('nothing could be read');
       const nm = clean(this.rs.name) + (key === '*' ? '' : ' - ' + clean(auds[0].label)) + (en ? ' - English' : '');

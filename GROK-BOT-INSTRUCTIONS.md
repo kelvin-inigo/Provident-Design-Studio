@@ -183,9 +183,9 @@ exports download as a zip. The studios fit tablets and phones.
   on the design, like Edit in Photoshop). On a project in an ad set the clip is saved in the
   project's Drive **Assets** folder, so it reaches other computers. Status marks such a design
   **Animated**; performance marketing sees **Animated** on the Feed and Story tiles (they play on
-  their own while on screen, like a GIF, as does the enlarged image) and the **Preview** plays the video; their **Download** zip includes the animated MP4s
-  (`…_feed_animated.mp4`, `…_Story_animated.mp4`), recorded while they wait (as long as each clip;
-  keep the tab in front, Chrome). The content team's Edit text previews are badged and play on their own too. If none of this shows for an older design, its video was added before clips were saved to Drive: the designer opens the project once on the computer it was added on, and it goes up by itself.
+  their own while on screen, like a GIF, as does the enlarged image) and the **Preview** plays the video; their **Download** zip has the images in a **Static** folder, the animated MP4s in an **Animated** folder
+  (`…_feed_animated.mp4`, `…_Story_animated.mp4`) and the MVP video beside them; the MP4s are recorded while they wait (a design's 1:1 and 9:16 together, as long as its clip plays once;
+  keep the tab in front, Chrome). A canvas or component the designer has hidden is not in the zip. The content team's Edit text previews are badged and play on their own too. If none of this shows for an older design, its video was added before clips were saved to Drive: the designer opens the project once on the computer it was added on, and it goes up by itself.
 - **Phases** are rounds of the whole campaign (Teaser, Launch, Price Drop, Ad Fatigue 01… any name):
   **Add phase** on Status, or in **Ad set settings**, where phases are also renamed.
 - **One QR for the whole ad set:** **Ad set settings** › **QR code** › **Upload a QR code**, then

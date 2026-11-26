@@ -739,6 +739,10 @@ steps: **Design › ENG copy check › Translation › Done**.
    them, approved or not, with its animated ads as MP4 and the MVP video made for it (or for
    All audiences). **Download package** (or **Download 1 of 2** before then) takes every
    audience that has been sent for review, every animated ad, and every MVP video (both sizes).
+   Inside the zip the images are in a **Static** folder, the animated ads in an **Animated**
+   folder, and the MVP video sits beside the two folders. A canvas the designer has hidden
+   (Portrait 3:4, Horizontal 1.91:1, a carousel's Story 9:16) is not in the zip, and neither is
+   a hidden component.
    If a file cannot be read (a clip gone from Drive, a video not fully uploaded), the zip still
    comes and a note names what is missing: try again, then tell the designer. Images are rendered from the projects as
    they are now. **Images | Edit text** at the top switches to the words: change them as the
@@ -1159,8 +1163,8 @@ What's on the screen, from left to right:
     the project's **Assets** folder (`video-background-variant-a.mp4`), so another computer, Status
     and performance marketing get it too.
   - **Share** › **Animated** › **Export animated** records the 1:1 and 9:16 as MP4 video
-    (`…_feed_animated.mp4`, `…_Story_animated.mp4`), beside the stills. It takes as long as the
-    clip; keep the tab in front.
+    (`…_feed_animated.mp4`, `…_Story_animated.mp4`), beside the stills. Both sizes record together, so it
+    takes as long as the clip plays once; keep the tab in front.
   - **Where it shows:** on Status the design's tile says **Animated**; in the performance
     marketing view the Feed and Story tiles say **Animated** and play on their own while they are
     on screen, like a GIF, and so does the enlarged image; the **Preview** (placement preview)
@@ -1171,9 +1175,10 @@ What's on the screen, from left to right:
   - **A video added before clips were saved to Drive** (before 17 Nov 2026) is only on the computer
     it was added on. Open the project there once: it goes up to Drive by itself, and then it shows
     and plays for everyone.
-  - **Performance marketing's download** puts the animated ads in the zip beside the stills
-    (`…_feed_animated.mp4`, `…_Story_animated.mp4`). They are recorded in the browser at download
-    time, so a dialog shows each one as it records; it takes as long as each clip (a second
+  - **Performance marketing's download** puts the animated ads in the zip's **Animated** folder
+    (`…_feed_animated.mp4`, `…_Story_animated.mp4`); the stills are in **Static**. They are recorded
+    in the browser at download time, so a dialog shows each design as it records; a design's 1:1
+    and 9:16 record together, so it takes as long as its clip plays once (a second
     download of an unchanged design in the same tab is instant). Keep the tab in front; Cancel
     stops the download. Use Chrome.
   - **Photo** turns the video off without forgetting it.

@@ -2997,3 +2997,37 @@ waits on the whole package. So the fix was the wording and scope of the note, no
 - Callers: Add video › **Make a new one in CASV** (before reading CASV's outbox), CAS's **Edit in CASV** (`anToCasv`, before its blank window), the home's **Video Studio** row (`a[data-casv]`, index.html).
 - The installer itself (Apple's tools, `~/Provident Video Studio`, login item `ae.provident.casv`, Higgsfield CLI, the app) is on the `video-studio` branch: docs/notes/video-studio.md. CASV's code is not on main.
 - Tested: the dialog on a local copy of the home page with a test install feeding the bar (steps, 46 %, error + Try again, installed + Open CASV → true); CASV answering → true in 8 ms with no dialog. Not tested: CAS's Edit in CASV and Add video clicks end to end, and Chrome's local-network permission prompt on the live site (the save window already reads localhost from the site).
+
+---
+# THE PM DOWNLOAD: NOTHING HIDDEN, TWO FOLDERS, HALF THE WAIT (2026-11-26, by request, Revision 1.80)
+
+"Anything hidden on the design is not part of the export; there were hidden design that was
+included in the package download. Also create subfolders in the zip: Static, Animated; MVP stays
+in the root. Any way of speeding up the time to save the MVP and animated?"
+
+- **The leak was `storyOn`.** It sat in share-link.js's `LOCAL` (per-tab keys, never sent). In
+  OPS that is a view switch; in CAS it is the carousel's **Story 9:16** eye and `sizesFor` leaves
+  a hidden Story out of the export. Dropped by `shPub`, it never reached a link, `normState`
+  filled it back in as `true`, and `RV.build` listed every page's 9:16 — up to ten hidden designs
+  per carousel in PM's window and zip. `localKeys(eng)` now keeps `storyOn` out of the local list
+  for an engine with `storyShown` (CAS), in both `shPub` and `shLocal` (both, or a co-editor's
+  tab would overlay its own value and push it back). OPS is unchanged.
+  **An ad set saved before this still shows the hidden Story until its designer opens the project
+  and saves** (their tab holds the value; the next sync sends it).
+- Checked and already right, on the stand-in: a hidden Portrait 3:4 / Horizontal (`ptOn`, `wide`)
+  leaves the tiles and the zip; a hidden component (`v.hidden`) is in no size's ops, linked or
+  detached.
+- **Folders.** `RV.download`'s `put(dir, name, pre, data)`: `Static/` for the images,
+  `Animated/` for the `_animated.mp4`s, the MVP videos at the root. The duplicate-name prefix
+  (market + audience) is per folder. CAS's own `asDownload` (the designer's Ad sets window) stays flat.
+- **Speed.** (1) `CampaignStudio.anRecordSet(state, vi, sizeKeys, …)`: one play of the clip, each
+  tick paints every size into its own canvas + `MediaRecorder` (the first is the dialog's canvas);
+  `anRecord` is a wrapper. `anExport` and `RV.download` record a design's 1:1 and 9:16 together
+  (the download groups tiles by `info.st` + `vi`; an engine without `anRecordSet` falls back).
+  (2) The MVP videos (`vidGet`) and the clips (`t.anim()`) are asked of Drive when the download
+  starts, in parallel, instead of one by one at the end. The zip was already store-only.
+- Measured on :8791 (Damac Lagoons, PM link, a 6 s clip): both MP4s in 5.2 s (153 frames, 0 lost;
+  1080×1080 and 1080×1920, 5.1 s each) against about 10.5 s before; second download 0.13 s.
+- `window.__rv` is the open review on localhost only (a test handle, as `__casAn`).
+- Not done: faster-than-real-time encoding (WebCodecs + an MP4 muxer) — the recording is still
+  as long as the clip.
