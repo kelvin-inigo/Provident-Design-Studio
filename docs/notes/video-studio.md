@@ -1302,3 +1302,10 @@ deltas onto the previous frame, as FFmpeg's qtrle). Any other codec it cannot re
 the error (ProRes RAW, HAP, CineForm, DNxHD …) with "Export it as ProRes 4444 with RGB + Alpha,
 or a WebM". Checked with generated Animation and PNG movies that avconvert refuses: both converted,
 box colour right, corners fully transparent.
+
+**Navy wash behind a motion graphic (2026-11-26, by request).** The graphic's settings carry
+**Navy wash behind it** (On / Off, `washOn`) and, when on, **Wash intensity** 10–90 % (`wash`,
+40 by default). `drawWash(l)` lays the brand navy (`ART.wash`, an artwork literal, never a chrome
+token) over the whole frame just before the graphic itself, at the graphic's own fade and
+opacity, so it comes and goes with it. Checked by pixels: a corner of the photo went
+61,103,147 → 47,78,114 at 40 % → 32,53,82 at 80 %, the graphic staying bright above it.

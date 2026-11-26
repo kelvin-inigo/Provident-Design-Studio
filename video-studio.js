@@ -981,8 +981,16 @@
   const SQW = 1080 / 1920;
   function lgeo(l) { return P.size === '1x1' ? (l.sq || { x: l.x, y: l.y, w: l.w * SQW }) : l; }                    // to read
   function lgeoW(l) { if (P.size !== '1x1') return l; if (!l.sq) l.sq = { x: l.x, y: l.y, w: Math.round(l.w * SQW * 10) / 10 }; return l.sq; }   // to write
+  // the navy wash behind a graphic: the whole frame, the brand navy (ART.wash), at the graphic's
+  // own fade and opacity
+  function drawWash(l) {
+    if (!l.washOn) return;
+    const g = G(), rel = T - l.at, k = (l.fade && !(!playing && sel && sel.id === l.id) ? Math.min(ease(rel / .35), ease((l.dur - rel) / .3)) : 1);
+    cx.save(); cx.globalAlpha = 1; cx.fillStyle = 'rgba(' + ART.wash + ',' + ((l.wash == null ? 40 : l.wash) / 100 * k * (l.op / 100)).toFixed(3) + ')'; cx.fillRect(0, 0, g.w, g.h); cx.restore();
+  }
   function drawLogo(l) {
     const m = media[l.mid]; if (!m) return;
+    drawWash(l);
     if (m.kind === 'video') {                 // a motion graphic: its own frame, its own colours
       const el = gvel[l.id]; if (!el || !el.videoWidth || (el.readyState < 2 && !el._shown)) return; el._shown = 1;
       const g = G(), q = lgeo(l), rel = T - l.at, vw = el.videoWidth, vh = el.videoHeight;
@@ -2309,6 +2317,10 @@
         rng('i', 'w', 'Size', Math.round(lgeo(it).w), 3, 100, '%') + rng('i', 'op', 'Opacity', it.op, 10, 100, '%') +
         ((media[it.mid] || {}).kind === 'video' ? '' : f('Colour', seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]))) +   // a motion graphic keeps its own colours
         row('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']], 's')) +
+        // NAVY WASH BEHIND IT (2026-11-26, by request): the brand navy over the whole picture while
+        // the graphic is on screen, so a light graphic reads on a busy photo; intensity 10-90%
+        row('Navy wash behind it', seg('washOn', [[true, 'On'], [false, 'Off']], 's')) +
+        (it.washOn ? rng('i', 'wash', 'Wash intensity', it.wash == null ? 40 : it.wash, 10, 90, '%') : '') +
         '<div class="vs-acts"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div>' +
         '</div>' + timing();
     }
