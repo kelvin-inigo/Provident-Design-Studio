@@ -175,7 +175,8 @@ exports download as a zip. The studios fit tablets and phones.
   **Share** › **Export animated** records them as MP4. Under **Video** there are three ways to
   get the clip: **Generate from the photo** (camera move, 5 or 10 s, Draft or Full, Kling / Cinema /
   Seedance; **See the price** first, then **Generate · N credits**; it lands by itself in a few
-  minutes; needs CASV running on that computer, signed in to Higgsfield; a landscape photo shows
+  minutes; needs CASV running on that computer, signed in to Higgsfield — a Mac without CASV is
+  offered **Install CASV** (one Terminal line, a progress bar on the page); a landscape photo shows
   **Extend to 9:16**, where Yes, the default, has Nano Banana 2.1 add sky and ground above and below it
   first instead of cropping, for 2 credits more), **Upload a clip** (an
   MP4), or **Edit in CASV** (a fresh CASV video with the photo; **Send back to CAS** there places it

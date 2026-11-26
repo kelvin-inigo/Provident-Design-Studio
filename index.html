@@ -1292,6 +1292,13 @@ body{-webkit-tap-highlight-color:transparent;
   // home shows everything, as before
   function cap(c){ return !rawRole() || !acc || !acc.can || acc.can(c); }
   // PERFORMANCE MARKETING SEES CAMPAIGNS ONLY (2026-11-04, by request): no posts on Home or Status
+  // the Video Studio row: CASV on demand (2026-11-26) — not on this Mac yet → share-link.js offers to install it
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[data-casv]');
+    if (!a || !window.CasvGet || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    e.preventDefault();
+    CasvGet.ensure({}).then(function(ok){ if (ok) window.open(a.href, '_blank', 'noopener'); });
+  });
   function casvAt(){ var v = ''; try { v = localStorage.getItem('provident-casv-local') || ''; } catch (x) {} return (/^https?:\/\//.test(v) ? v.replace(/\/+$/, '') : 'http://localhost:8794') + '/'; }
   // VIEW AD SETS (2026-11-18, by request): which of the two a signed-in role has on Home and Status
   // is access.js's answer (sees): a role outside the campaign process gets campaigns only with
@@ -1488,7 +1495,7 @@ body{-webkit-tap-highlight-color:transparent;
     }).join('') +
       // CASV, the Video Studio: it runs on the designer's own computer (photos are animated there), so
       // this row opens that local page; its finished videos reach an ad set through Add video on Status
-      (cap('design-cas') ? '<a class="st" href="' + esc(casvAt()) + '" target="_blank" rel="noopener" title="Opens the Video Studio running on this computer. Start it first if the page does not load."><span class="mk" data-s="cas"><i></i></span><span><b>Video Studio</b><small>Reels and squares for an ad set · runs on this computer</small></span>' + ico('chev') + '</a>' : '') +
+      (cap('design-cas') ? '<a class="st" data-casv="1" href="' + esc(casvAt()) + '" target="_blank" rel="noopener" title="Opens the Video Studio on this computer, or offers to install it."><span class="mk" data-s="cas"><i></i></span><span><b>Video Studio</b><small>Reels and squares for an ad set · runs on this computer</small></span>' + ico('chev') + '</a>' : '') +
       '</section>';
     h += '</aside></div>';
     return h;

@@ -6466,6 +6466,81 @@
   // a new one: that opens the Video Studio on this computer and waits here, and the video it sends
   // (Send to CAS) comes back picked. The MVP video is CASV's alone; the animated ads are CAS's.
   const CASV_PAGE = () => CASV_AT() + '/Provident%20Video%20Studio.html';
+  // CASV ON DEMAND (2026-11-26, by request): CASV is not on a Mac until someone asks for it.
+  // Everything that calls CASV (Add video › Make a new one here, CAS's Edit in CASV, the home's
+  // Video Studio row) first awaits CasvGet.ensure(). CASV answering → true at once. Not answering →
+  // "Install CASV on this Mac?". A page cannot run an installer, so Install copies the one Terminal
+  // line; the progress bar then follows the installer's own feed on 127.0.0.1:8793
+  // (tools/video-dev/casv-local.sh on the video-studio branch: Apple's tools if missing, CASV into
+  // ~/Provident Video Studio, a login item for localhost:8794, the Higgsfield tools, an app).
+  // Done → "Open CASV", which resolves true on that click so the caller's new tab is not a
+  // blocked pop-up. Not now, Esc, or not a Mac → false. A custom CASV address skips all this.
+  const CASV_LINE = 'curl -fsSL https://raw.githubusercontent.com/kelvin-inigo/Provident-Design-Studio/video-studio/tools/video-dev/casv-local.sh | bash';
+  const CASV_FEED = 'http://127.0.0.1:8793/';
+  const casvUp = () => {
+    const c = new AbortController(), t = setTimeout(() => c.abort(), 2500);
+    // no-cors: any answer at all means CASV's helper is there; a refused connection rejects
+    return fetch(CASV_PAGE(), { mode: 'no-cors', cache: 'no-store', signal: c.signal }).then(() => true, () => false).finally(() => clearTimeout(t));
+  };
+  function casvEnsure(o) {
+    o = o || {};
+    const own = lsGet('provident-casv-local');
+    return casvUp().then(up => {
+      if (up || (own && !/\/\/(localhost|127\.0\.0\.1)(:|\/|$)/.test(own))) return true;
+      injectCss();
+      const mac = /Mac/.test(navigator.platform || navigator.userAgent || '') && !(navigator.maxTouchPoints > 1);
+      return new Promise(done => {
+        const el = document.createElement('div'); el.className = 'shl-dlg';
+        el.innerHTML = '<div class="shl-dlg-c cvg" role="dialog" aria-modal="true" aria-labelledby="cvg-t">' +
+          '<h2 id="cvg-t">' + (mac ? 'Install CASV on this Mac?' : 'CASV needs a Mac') + '</h2>' +
+          '<p class="shl-lead">' + (o.why ? esc(o.why) + ' ' : '') + (mac
+            ? 'The Video Studio runs on your own computer and is not on this one yet. It takes a few minutes, then starts by itself and keeps itself up to date.'
+            : 'The Video Studio runs on the designer’s own Mac. Open this page on a Mac to install it there.') + '</p>' +
+          '<div class="cvg-run" hidden><ol class="cvg-steps"><li>Open <b>Terminal</b>: press ⌘ Space, type Terminal, press Return.</li>' +
+          '<li>Paste the line with ⌘V and press Return. If Apple asks to install its Command Line Tools, click Install.</li></ol>' +
+          '<div class="cvg-line"><code>' + esc(CASV_LINE) + '</code><button type="button" class="p-ghost" data-copy="1">Copy</button></div></div>' +
+          '<p class="shl-st" aria-live="polite"></p>' +
+          '<div class="shl-acts"><button type="button" class="p-ghost" data-x="1">' + (mac ? 'Not now' : 'Close') + '</button>' +
+          (mac ? '<button type="button" class="p-btn" data-go="1">Install CASV</button>' : '') + '</div></div>';
+        document.body.appendChild(el);
+        const $ = q => el.querySelector(q), go = $('[data-go]');
+        const st = (t, bad) => { const p = $('.shl-st'); p.textContent = t || ''; p.classList.toggle('bad', !!bad); };
+        let poll = 0, ready = false, seen = false, n = 0;
+        const end = v => { clearInterval(poll); el.remove(); done(v); };
+        const copy = () => { try { navigator.clipboard.writeText(CASV_LINE).catch(() => {}); } catch (e) {} };
+        const finish = () => {
+          clearInterval(poll); ready = true; stBar(el, 1);
+          $('h2').textContent = 'CASV is installed';
+          $('.shl-lead').textContent = 'From now on it starts with this Mac and keeps itself up to date. You can also open it from Applications › Provident Video Studio.';
+          $('.cvg-run').hidden = true; st('');
+          go.hidden = false; go.textContent = 'Open CASV'; $('[data-x]').textContent = 'Close'; go.focus();
+        };
+        const tick = async () => {
+          let f = null;
+          try { const c = new AbortController(), t = setTimeout(() => c.abort(), 1500); f = await (await fetch(CASV_FEED, { cache: 'no-store', signal: c.signal })).json(); clearTimeout(t); } catch (e) {}
+          if (f && f.pct != null) {
+            seen = true;
+            if (f.state === 'error') { clearInterval(poll); stBar(el, null); st(f.text || 'The installer stopped.', true); go.hidden = false; go.textContent = 'Try again'; return; }
+            stBar(el, Math.max(.03, f.pct / 100)); st(f.text || 'Installing…');
+            if (f.state === 'done' && await casvUp()) finish();
+          } else if ((seen || ++n % 3 === 0) && await casvUp()) finish();   // installed some other way
+        };
+        el.addEventListener('keydown', e => { if (e.key === 'Escape') end(false); });
+        el.addEventListener('click', e => {
+          const b = e.target.closest('button'); if (!b) return;
+          if (b.dataset.x) return end(false);
+          if (b.dataset.copy) { copy(); st('Copied. Paste it in Terminal.'); return; }
+          if (!b.dataset.go) return;
+          if (ready) return end(true);
+          copy(); go.hidden = true; $('.cvg-run').hidden = false; $('[data-x]').textContent = 'Cancel';
+          st('The line is copied. Paste it in Terminal; the progress shows here.'); stBar(el);
+          clearInterval(poll); poll = setInterval(tick, 1000);
+        });
+        setTimeout(() => (go || $('[data-x]')).focus(), 0);
+      });
+    });
+  }
+  window.CasvGet = { ensure: casvEnsure, up: casvUp, at: CASV_AT };
   function vidAdd(id, rs, by, after, rep) {
     if (rep) return vidAddFrom(id, rs, by, after, rep);
     vidCss();
@@ -6488,6 +6563,8 @@
       if (b.dataset.c === 'have') { close(); return vidAddFrom(id, rs, by, after); }
       if (b.dataset.c !== 'new') return;
       let seen;
+      // not on this Mac yet: offer to install it (CASV on demand)
+      if (!(await casvEnsure({ why: 'The MVP video is made in CASV.' }))) return;
       try { seen = new Set(await ids()); }
       catch (er) { return st('The Video Studio is not running on this computer. Start it, then press Make a new one again.'); }
       // #new: CASV starts a new video (asking first, keeping the one open as its last video), named after the ad set
@@ -7780,6 +7857,13 @@ html.shl-as .shl-pill{z-index:210}html.shl-as .shl-panel{z-index:211;top:0}html.
 .shl-link .p-ghost{flex:none;height:42px}
 .shl-acts{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 .shl-acts button[hidden]{display:none}
+.cvg-run[hidden]{display:none}
+.cvg-steps{margin:0 0 12px;padding-left:20px;font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2)}
+.cvg-steps li + li{margin-top:4px}
+.cvg-steps b{color:var(--ps-ink);font-weight:600}
+.cvg-line{display:flex;align-items:center;gap:8px;padding:8px 8px 8px 12px;border-radius:10px;background:var(--ps-hair);box-shadow:inset 0 0 0 1px var(--ps-line)}
+.cvg-line code{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 12px/1.4 var(--ps-font);color:var(--ps-ink)}
+.cvg-line .p-ghost{flex:0 0 auto;height:30px;padding:0 12px}
 @media (max-width:760px){.shl-panel{width:100vw;top:92px}.shl.open .shl-toast{right:16px}}
 @media (prefers-reduced-motion:reduce){.shl-toast{transition:none}}
 /* ---- REVIEWS: the stepper, the review panel section, the roles' locks, performance

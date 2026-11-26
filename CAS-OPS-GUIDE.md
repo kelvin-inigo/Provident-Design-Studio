@@ -939,6 +939,14 @@ send their files to Drive's trash. The record
 An ad set can also deliver a **video**. The video is made in the **Video Studio (CASV)**, which runs
 on the designer's own computer, and reaches the ad set through CAS.
 
+**CASV not on this Mac yet?** Anything that opens CASV (**Make a new one in CASV**, **Edit in CASV**,
+the home's **Video Studio** row) asks **Install CASV on this Mac?**. Press **Install CASV**: it copies
+one line. Open Terminal (⌘ Space, type Terminal, Return), paste it with ⌘V and press Return; the
+progress bar shows on the page. If Apple asks to install its Command Line Tools, click Install. When
+it is done press **Open CASV**. From then on CASV starts with the Mac, updates itself, and is also in
+Applications › **Provident Video Studio**. To generate video, sign in once with the line the
+installer prints at the end.
+
 **Turn it on.** Status › the ad set › **Ad set settings** › **Video** › **Includes a video**. The ad
 set page then shows a **Video** section with an **Add video** placeholder. Only the designer and the
 admin see Add video.

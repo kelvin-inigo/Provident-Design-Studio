@@ -2987,3 +2987,13 @@ waits on the whole package. So the fix was the wording and scope of the note, no
   api/share.py). **Not done:** a real Roam post; the CAS editor's Ad set tab path (`SP.rvStep`)
   calls the same `roamNote` but was not clicked. P2s left: guard copy on Done / Already approved,
   the phase ×, "No video" vs MVP video Missing, MVP video offered on Arabic projects.
+
+## CASV on demand: the site offers to install it (2026-11-26, by request, Revision 1.78)
+
+"By default it doesn't load it, but if a user wants to add an MVP video … it will prompt if they want to install CASV, then a progress bar."
+
+- `share-link.js` › `CasvGet.ensure({why})` (also `CasvGet.up()`, `CasvGet.at()`). CASV answering on its address (a `no-cors` fetch of the page: any answer means it is there) → true at once. Otherwise the dialog **Install CASV on this Mac?** (not a Mac → **CASV needs a Mac**, Close only). A custom non-localhost `provident-casv-local` skips it.
+- **Install CASV** copies the one line (`curl -fsSL …/video-studio/tools/video-dev/casv-local.sh | bash`) — a web page cannot start an installer, so pasting it in Terminal is the one manual step — and shows the two Terminal steps, the line with **Copy**, and a bar (`stBar`) that runs until the installer's feed answers on `127.0.0.1:8793`, then follows its `pct`/`text`. `state:error` → red text and **Try again**. Done (or CASV answering anyway) → **CASV is installed** with **Open CASV**, which resolves true on that click so the caller's new tab is not a blocked pop-up.
+- Callers: Add video › **Make a new one in CASV** (before reading CASV's outbox), CAS's **Edit in CASV** (`anToCasv`, before its blank window), the home's **Video Studio** row (`a[data-casv]`, index.html).
+- The installer itself (Apple's tools, `~/Provident Video Studio`, login item `ae.provident.casv`, Higgsfield CLI, the app) is on the `video-studio` branch: docs/notes/video-studio.md. CASV's code is not on main.
+- Tested: the dialog on a local copy of the home page with a test install feeding the bar (steps, 46 %, error + Try again, installed + Open CASV → true); CASV answering → true in 8 ms with no dialog. Not tested: CAS's Edit in CASV and Add video clicks end to end, and Chrome's local-network permission prompt on the live site (the save window already reads localhost from the site).

@@ -343,6 +343,12 @@
   },
   {
    "from": "casv",
+   "to": "github",
+   "check": "casv",
+   "carries": "Installed on demand and kept up to date from the video-studio branch (casv-local.sh)"
+  },
+  {
+   "from": "casv",
    "to": "drive",
    "check": "casv",
    "carries": "Save to the ad set's Video folder, Open from an ad set (the site's save window)"

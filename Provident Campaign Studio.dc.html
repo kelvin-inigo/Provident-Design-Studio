@@ -13587,6 +13587,8 @@ class CampaignStudio extends StudioBase {
   // this photo, no wordmark — and its "Send back to CAS" records the 9:16 and parks it with the local
   // server; this page watches for it and places it as this variant's video (and on Drive).
   async anToCasv() {
+    // CASV on demand (2026-11-26): not on this Mac yet → offer to install it first (share-link.js)
+    if (window.CasvGet && !(await CasvGet.ensure({ why: 'Edit in CASV opens this photo in the Video Studio.' }))) return;
     // the window opens on the click itself (after the upload below the browser calls it a pop-up)
     const w = window.open('', '_blank');
     if (!w) { this.setState({ exportStatus: 'The browser blocked the CASV window. Allow pop-ups for this site.' }); return; }
