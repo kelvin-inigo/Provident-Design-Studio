@@ -2543,7 +2543,7 @@
   // and uploads them into the ad set's Drive folder. `P.cas` remembers the outbox id, so sending
   // again replaces the same video and the reviewers' comments find their way back (casNotes).
   let casStop = false, casBusy = false;
-  const CAS_SITE = () => { try { return localStorage.getItem('provident-casv-site') || 'https://provident-design-studio.vercel.app/'; } catch (e) { return 'https://provident-design-studio.vercel.app/'; } };
+  const CAS_SITE = () => { try { return localStorage.getItem('provident-casv-site') || 'https://design-studio.ngrok-free.dev/'; } catch (e) { return 'https://design-studio.ngrok-free.dev/'; } };
   // ── SAVE TO THE AD SET'S DRIVE FOLDER (2026-11-26, by request) ─────────────────────────
   // Google refuses a sign-in from this page's address (localhost), so Save opens a small window of
   // the Design Studio site (casv-save.html), which is signed in. That window reads the project and
