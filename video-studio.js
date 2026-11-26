@@ -970,8 +970,13 @@
     const m = media[l.mid]; if (!m) return;
     if (m.kind === 'video') {                 // a motion graphic: its own frame, its own colours
       const el = gvel[l.id]; if (!el || !el.videoWidth || (el.readyState < 2 && !el._shown)) return; el._shown = 1;
-      const g = G(), q = lgeo(l), rel = T - l.at, w = g.w * q.w / 100, h = w * el.videoHeight / el.videoWidth;
-      const x = g.w * q.x / 100 - w / 2, y = g.h * q.y / 100 - h / 2;
+      const g = G(), q = lgeo(l), rel = T - l.at, vw = el.videoWidth, vh = el.videoHeight;
+      // A FULL-FRAME MOTION GRAPHIC COVERS EVERY SIZE (2026-11-26, by request: "overlay mograph should
+      // crop on 1:1"): one made for the Reel (9:16, at full width there) fills the Square too,
+      // centred and cropped top and bottom, instead of standing in it as a narrow column
+      const full = Math.abs(vw / vh - 1080 / 1920) < .03 && l.w >= 99;
+      let w = g.w * q.w / 100, h = w * vh / vw, x = g.w * q.x / 100 - w / 2, y = g.h * q.y / 100 - h / 2;
+      if (full) { const sc = Math.max(g.w / vw, g.h / vh); w = vw * sc; h = vh * sc; x = (g.w - w) / 2; y = (g.h - h) / 2; }
       cx.save(); cx.globalAlpha = (l.op / 100) * (l.fade && !(!playing && sel && sel.id === l.id) ? Math.min(ease(rel / .35), ease((l.dur - rel) / .3)) : 1);
       cx.drawImage(el, x, y, w, h); cx.restore();
       hits[l.id] = { kind: 'logo', x, y, w, h }; return;

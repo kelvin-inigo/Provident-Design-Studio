@@ -1267,3 +1267,9 @@ with a real pointer drag.
 Testing trap: the Browser pane is the user's own view of CASV. A test copy opened in the pane's
 current tab, then its server stopped, left the user on a dead page ("not working"). Test in a new
 tab and close it; put the user's tab back on 8794.
+
+**A full-frame motion graphic covers the Square (2026-11-26, by request).** `drawLogo`: a video
+graphic shaped 9:16 (within 3%) and at full width on the Reel (`l.w >= 99`) is drawn to cover
+whichever size is open, centred, so on 1:1 it fills the square and is cropped top and bottom
+instead of standing as a narrow column. Checked by pixels on a 1:1 frame: the graphic's centre
+band landed at 300–780 px (cover), not 405–675 (the old fit).
