@@ -63,7 +63,7 @@
   };
   const TRACKS = [
     { id: 'text', name: 'Text', icon: 'title' },
-    { id: 'logo', name: 'Graphics', icon: 'image' },
+    { id: 'logo', name: 'Motion graphics', icon: 'image' },
     { id: 'clip', name: 'Video', icon: 'movie' },
     { id: 'music', name: 'Music', icon: 'music_note' },
     { id: 'sfx', name: 'Sound', icon: 'graphic_eq' }
@@ -178,7 +178,7 @@
   let T = 0, playing = false, exporting = false, dirty = true;
   let pps = 60, tab = 'media';
   const undo = [], redo = [];
-  const vel = {}, ael = {}, imgs = {};
+  const vel = {}, ael = {}, imgs = {}, gvel = {};   // gvel: the motion graphics' own videos
   let actx = null, master = null;
   const stats = { seeked: 0 };       // for measuring scrub rate from the console
   const hits = {};                  // id -> { kind, x, y, w, h } of what was last painted
@@ -513,18 +513,19 @@
       if (!kind && /\.(mp3|wav|m4a|aac|ogg)$/i.test(f.name)) kind = 'audio';
       if (!kind) { toast(f.name + ' is not a video, audio or image file.'); continue; }
       const rec = { id: uid(), at: Date.now(), kind, name: f.name.replace(/\.[^.]+$/, ''), blob: f };
+      if (kind === 'video' && (want === 'logo' || (want === 'place' && pl && pl.trk === 'logo'))) rec.gfx = 1;
       try { await probe(rec); } catch (e) {
         toast(kind === 'video' ? 'This browser cannot play ' + f.name + '. Try an MP4 (H.264).' : 'Could not read ' + f.name + '.'); continue;
       }
       media[rec.id] = rec; added++; delete rec._newPoster;
       if (P.casBg) (P.casBg.media = P.casBg.media || []).push(rec.id);
-      DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster, peaks: rec.peaks });
+      DB.put(dbRec(rec));
       if (want === 'place') {                 // dropped on the timeline: where the marker showed
         if (!marked) { mark(); marked = true; }
         if (kind === 'audio') {
           const tk = pl.trk === 'sfx' ? 'sfx' : 'music', keep = T; T = at; addAudio(rec.id, tk, true); T = keep;
           const a = P.audio[P.audio.length - 1]; if (a && a.mid === rec.id) { a.at = at; at += a.dur; }
-        } else if (kind === 'image' && pl.trk === 'logo' && P.clips.length) {
+        } else if ((kind === 'image' || kind === 'video') && pl.trk === 'logo' && P.clips.length) {
           const keep = T; T = at; addLogo(rec.id, true); T = keep;
           const l = P.logos[P.logos.length - 1]; if (l && l.mid === rec.id) { l.at = at; at += l.dur; }
         } else if (kind === 'video' || kind === 'image') {
@@ -533,13 +534,14 @@
         continue;
       }
       // the first video dropped goes straight onto the timeline; so does anything dropped on the stage
-      if (kind === 'image' && want === 'stage' && P.clips.length) addLogo(rec.id, true);
+      if (rec.gfx) { if (P.clips.length) addLogo(rec.id, true); }
+      else if (kind === 'image' && want === 'stage' && P.clips.length) addLogo(rec.id, true);
       else if ((kind === 'video' || kind === 'image') && (firstVideo || want === 'stage')) { addClip(rec.id, true); firstVideo = false; }
       if (kind === 'audio' && want === 'stage') addAudio(rec.id, 'music', true);
     }
     if (added) {
       const k = Object.values(media).pop().kind;
-      if (want !== 'stage' && want !== 'place') tab = k === 'audio' ? 'audio' : k === 'logo' ? 'logos' : 'media';
+      if (want !== 'stage' && want !== 'place') tab = k === 'audio' ? 'audio' : k === 'logo' || want === 'logo' ? 'logos' : 'media';
       renderAll();
     }
   }
@@ -634,9 +636,12 @@
     if (!media[mid]) return;
     if (!quiet) mark();
     // never past the end of the video: at the very end it steps back so it is on screen
-    const end = total(); let at = T, dur = 5;
-    if (end > 0) { if (end - at < 1) at = Math.max(0, end - 3); dur = Math.min(5, end - at); }
-    const l = { id: uid(), mid, at, dur, x: 50, y: 50, w: 30, op: 100, fade: true, tint: P.brand.tint === 'match' ? 'match' : 'orig' };
+    const mm = media[mid], vid = mm.kind === 'video', want0 = vid ? Math.max(.2, mm.dur || 5) : 5;
+    const end = total(); let at = T, dur = want0;
+    if (end > 0) { if (end - at < 1) at = Math.max(0, end - 3); dur = Math.min(want0, end - at); }
+    const frameLike = vid && mm.w && mm.h && Math.abs(mm.w / mm.h - G().w / G().h) < .04;
+    const l = { id: uid(), mid, at, dur, x: 50, y: 50, w: vid ? (frameLike ? 100 : 60) : 30, op: 100, fade: !vid, tint: vid ? 'orig' : P.brand.tint === 'match' ? 'match' : 'orig' };
+    if (vid) l.in = 0;
     P.logos.push(l); sel = { kind: 'logo', id: l.id };
     if (at !== T) T = at;
     if (!quiet) renderAll();
@@ -763,6 +768,17 @@
       if (!on && T >= st[i] + len && T - (st[i] + len) < 1.6 && !el.seeking && Math.abs(el.currentTime - (c.out - .04)) > .15) el.currentTime = Math.max(c.in, c.out - .04);
     });
     Object.keys(vel).forEach(id => { if (!live[id]) { vel[id].pause(); vel[id].removeAttribute('src'); delete vel[id]; } });
+    const liveG = {};
+    P.logos.forEach(l => {
+      const m = media[l.mid]; if (!m || m.kind !== 'video') return;
+      liveG[l.id] = 1;
+      const el = elFor(gvel, l.id, 'video', m.url); el.muted = true;
+      const rel = T - l.at, on = rel >= 0 && rel < l.dur;
+      drive(el, (l.in || 0) + rel, on, 0);
+      if (on && playing && (el.seeking || el.readyState < 2)) hold = true;
+      if (!on && l.at > T && l.at - T < 1.2 && !el.seeking && Math.abs(el.currentTime - (l.in || 0)) > .02) el.currentTime = l.in || 0;   // pre-roll
+    });
+    Object.keys(gvel).forEach(id => { if (!liveG[id]) { gvel[id].pause(); gvel[id].removeAttribute('src'); delete gvel[id]; } });
     const liveA = {};
     P.audio.forEach(a => {
       const m = media[a.mid]; if (!m) return;
@@ -952,6 +968,14 @@
   function lgeoW(l) { if (P.size !== '1x1') return l; if (!l.sq) l.sq = { x: l.x, y: l.y, w: Math.round(l.w * SQW * 10) / 10 }; return l.sq; }   // to write
   function drawLogo(l) {
     const m = media[l.mid]; if (!m) return;
+    if (m.kind === 'video') {                 // a motion graphic: its own frame, its own colours
+      const el = gvel[l.id]; if (!el || !el.videoWidth || (el.readyState < 2 && !el._shown)) return; el._shown = 1;
+      const g = G(), q = lgeo(l), rel = T - l.at, w = g.w * q.w / 100, h = w * el.videoHeight / el.videoWidth;
+      const x = g.w * q.x / 100 - w / 2, y = g.h * q.y / 100 - h / 2;
+      cx.save(); cx.globalAlpha = (l.op / 100) * (l.fade && !(!playing && sel && sel.id === l.id) ? Math.min(ease(rel / .35), ease((l.dur - rel) / .3)) : 1);
+      cx.drawImage(el, x, y, w, h); cx.restore();
+      hits[l.id] = { kind: 'logo', x, y, w, h }; return;
+    }
     const im = imgFor(m); if (!im.complete || !im.naturalWidth) return;
     const g = G(), q = lgeo(l), rel = T - l.at, w = g.w * q.w / 100, h = w * im.naturalHeight / im.naturalWidth;
     const x = g.w * q.x / 100 - w / 2, y = g.h * q.y / 100 - h / 2;
@@ -1507,7 +1531,7 @@
         g.forEach(x => put(x, e0 - (e0 - x.at) * f, x.dur * f));
       }
     } else {
-      const isA = drag.kind === 'audio', lim = isA && m ? m.dur : 600;
+      const isA = drag.kind === 'audio' || (drag.kind === 'logo' && m && m.kind === 'video'), lim = isA && m ? m.dur : 600;
       if (drag.mode === 'move') {
         let at = Math.max(0, o.at + d); const s1 = snapT(at, it.id), s2 = snapT(at + o.dur, it.id);
         if (s1 !== at) at = s1; else if (s2 !== at + o.dur) at = Math.max(0, s2 - o.dur);
@@ -1804,10 +1828,13 @@
   const lset = (id, k, v) => { const o = LIB.meta[id] = LIB.meta[id] || {}; if (v) o[k] = v; else delete o[k]; if (!Object.keys(o).length) delete LIB.meta[id]; libSave(); };
   const LQ = { media: { q: '', f: 'all', dir: '' }, audio: { q: '', f: 'all', dir: '' }, logos: { q: '', f: 'all', dir: '' } };
   const LKIND = { media: ['video', 'image'], audio: ['audio'], logos: ['logo', 'image'] };
-  const LNAME = { media: 'Your media', audio: 'Your audio', logos: 'Your graphics' };
+  const LNAME = { media: 'Your media', audio: 'Your audio', logos: 'Your motion graphics' };
   const libUses = (key, id) => (key === 'media' ? P.clips : key === 'audio' ? P.audio : P.logos).filter(x => x.mid === id).length;
-  const libAll = (key, M) => M.filter(m => key === 'logos' ? m.kind === 'logo' || (m.kind === 'image' && P.logos.some(l => l.mid === m.id))   // a photo shows under Graphics only once it is placed as one
-    : LKIND[key].indexOf(m.kind) >= 0);
+  // MOTION GRAPHICS (2026-11-26, by request): the Graphics track takes videos too. A video added
+  // from this tab (or dropped on the track) is marked `gfx` and lists here, not under Media; any
+  // video placed on the track lists here as well.
+  const libAll = (key, M) => M.filter(m => key === 'logos' ? m.kind === 'logo' || ((m.kind === 'image' || m.kind === 'video') && (m.gfx || P.logos.some(l => l.mid === m.id)))   // a photo shows here only once it is placed as one
+    : key === 'media' && m.gfx ? false : LKIND[key].indexOf(m.kind) >= 0);
   // SORT (2026-11-26, by request): newest, oldest, name, length; kept per computer with the library's view
   const SORTS = [['new', 'Newest first'], ['old', 'Oldest first'], ['az', 'Name A–Z'], ['za', 'Name Z–A'], ['long', 'Longest first'], ['short', 'Shortest first']];
   const byName = (a, b) => String(a.name).localeCompare(String(b.name), undefined, { numeric: true, sensitivity: 'base' });
@@ -1872,7 +1899,7 @@
     if (!box) return renderLib();
     box.innerHTML = libList(key, M); if (n) n.textContent = libCount(libPick(key, M).length, libAll(key, M).length);
   }
-  const dbRec = r => ({ id: r.id, at: r.at || Date.now(), pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV, stripU: r.stripU, stripM: r.stripM });
+  const dbRec = r => ({ id: r.id, at: r.at || Date.now(), pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV, stripU: r.stripU, stripM: r.stripM, gfx: r.gfx });
   async function libRename(id) {
     const m = media[id]; if (!m) return;
     const v = await ask('Rename', 'A name you will recognise. It shows here and on the timeline.', 'Rename', m.name);
@@ -1959,7 +1986,7 @@
       h += '<div class="vs-sec">' + H('Add text', 'at the playhead') + '<div class="vs-grid">' + pre.map(o => tile('data-addtext', o)).join('') + '</div></div>';
       h += '<div class="vs-sec">' + H('Add a callout', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div></div>';
     } else {
-      h += '<div class="vs-sec">' + drop('logo', 'Drop a graphic or logo', 'PNG or SVG, clear background') + '</div>';
+      h += '<div class="vs-sec">' + drop('logo', 'Drop a motion graphic or logo', 'Video, PNG or SVG · WebM keeps transparency') + '</div>';
       h += libSec('logos', M);
       h += '<div class="vs-sec"><button class="vs-link" data-go="doc" title="The Provident wordmark and the collaboration logo are set once for the whole video">The wordmark and partner logo are in Brand</button></div>';
     }
@@ -1998,7 +2025,7 @@
   let upWant = 'media';
   function pickFiles(want) {
     upWant = want; const fi = $('#fileIn');
-    fi.accept = want === 'media' ? 'video/*,image/*,.mov' : want === 'audio' ? 'audio/*' : want === 'script' ? '.md,.markdown,text/markdown,.pdf,application/pdf' : 'image/*';
+    fi.accept = want === 'media' ? 'video/*,image/*,.mov' : want === 'audio' ? 'audio/*' : want === 'script' ? '.md,.markdown,text/markdown,.pdf,application/pdf' : want === 'logo' ? 'image/*,video/*,.mov,.webm' : 'image/*';
     fi.multiple = want !== 'partner' && want !== 'qr'; fi.value = ''; fi.click();
   }
   // the wordmark, collaboration logo and logo colour controls, wherever they are drawn
@@ -2114,7 +2141,7 @@
     if (k === 'text') return it.call === 'cta' ? null : it.call ? { g: ALLG.call, peers: P.texts.filter(t => t !== it && t.call === it.call), word: 'callout of this kind', track: 'Text' }
       : { g: ALLG.text, peers: P.texts.filter(t => t !== it && !t.call), word: 'text', track: 'Text' };
     if (k === 'clip') return { g: ALLG.clip, peers: P.clips.filter(c => c !== it), word: 'clip', track: 'Video' };
-    return { g: ALLG.logo, peers: P.logos.filter(l => l !== it), word: 'graphic', track: 'Graphics' };
+    return { g: ALLG.logo, peers: P.logos.filter(l => l !== it), word: 'graphic', track: 'Motion graphics' };
   }
   function allHtml(it) {
     const a = allOf(it); if (!a || !a.peers.length) return '';
@@ -2229,7 +2256,7 @@
       const m = media[it.mid] || {};
       h = cap('Graphic', esc(m.name)) + '<div class="vs-sec">' +
         rng('i', 'w', 'Size', Math.round(lgeo(it).w), 3, 100, '%') + rng('i', 'op', 'Opacity', it.op, 10, 100, '%') +
-        f('Colour', seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']])) +
+        ((media[it.mid] || {}).kind === 'video' ? '' : f('Colour', seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]))) +   // a motion graphic keeps its own colours
         row('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']], 's')) +
         '<div class="vs-acts"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div>' +
         '</div>' + timing();
@@ -3742,7 +3769,7 @@
     const kind = dropKind(e.dataTransfer); if (!kind) return null;
     const row = e.target.closest && e.target.closest('.vs-trk'), over = row && row.dataset.trk;
     const t = Math.max(0, xToT(e));
-    if (kind === 'image' && over === 'logo' && P.clips.length) return { trk: 'logo', t: snapT(t) };
+    if ((kind === 'image' || kind === 'video') && over === 'logo' && P.clips.length) return { trk: 'logo', t: snapT(t) };
     if (kind === 'audio') return { trk: over === 'sfx' ? 'sfx' : 'music', t: over === 'sfx' || over === 'music' ? snapT(t) : 0 };
     const st = clipStarts().concat([videoEnd()]); let i = 0, bd = 1e9;   // the gap nearest the pointer
     st.forEach((v, k) => { const d = Math.abs(v - t); if (d < bd) { bd = d; i = k; } });

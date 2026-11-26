@@ -1233,3 +1233,17 @@ layout. The Selected panel's **Animate this photo** keeps only what the deck doe
 (extend, prompt, extra direction, people, queue it for Claude) and hides while a job is in hand;
 the Generate tab is **Voiceover | Music** (its Animate queue went to the deck; other videos'
 jobs are no longer listed anywhere, and still come home when they finish).
+
+# MOTION GRAPHICS (2026-11-26, by request)
+
+The Graphics track and library tab are **Motion graphics**, and they take videos. A video added
+from that tab, or dropped from Finder on the track, is marked `gfx` (kept in `dbRec`) and lists
+under Motion graphics only, not Media; any video placed on the track lists there too.
+`addLogo` gives a video its own length (to the end of the video at most), full width when it is
+the frame's shape (else 60%), no fade, and `tint: 'orig'`; the inspector hides Colour for it (a
+motion graphic keeps its own colours). `sync()` drives each one with the clock in its own
+element pool `gvel` (muted, pre-rolled, holding playback while it seeks, like the clips);
+`drawLogo` draws its current frame. It trims like a sound: the left end moves its `in`, the right
+end stops at the file's end. A WebM with an alpha channel keeps its transparency (checked with a
+VP9 WebM: the dot drew over the picture with nothing around it); MP4 has no transparency.
+Not checked: an export with a motion graphic in it.
