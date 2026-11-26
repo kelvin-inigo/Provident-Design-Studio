@@ -1187,3 +1187,26 @@ or the spot (a block). `addFiles(files, 'place', plan)` puts it there, one undo 
 **Playhead snap**: `snapT` lands any end within 14 px of the playhead on it before any other edge
 or marker (8 px); every resize and move already goes through it. Alt frees a drag from snapping
 (Alt on a video or sound end is still Stretch).
+
+# LIBRARY SORT, GENERATION STRIP (2026-11-26, by request)
+
+- **Sort** (`#libSort`, under the folder picker): Newest, Oldest, Name A–Z / Z–A, Longest,
+  Shortest; `LIB.sort`, per computer. A file's `at` is stamped when it is added (`DB.putStrict`
+  stamps one if missing); older files take the working folder's file time (`/api/work/list` now
+  returns `mtime`). Files moved out of the browser on 26 Nov all carry that move's time.
+- **The generation strip** (`#genBar`, a third row of `.vs-stage`, under the picture): the
+  selected PHOTO clip's move, model, length slider and quality as compact controls with
+  **Generate · N credits**; then, by the job's state, the price confirmation (Cancel / Generate),
+  the progress (bar, step, "2:34 of about 2:45", Stop waiting) or "Waiting in the queue"; and this
+  video's queue as chips (elapsed time and a thin bar while generating; click selects and seeks
+  to the clip; Clear N stalled). Same job functions as the Generate tab (animSend, animRun,
+  animCancel), so nothing spends without the quote and a yes. Hidden when there is nothing to show
+  (`fitCanvas` runs when it appears or goes).
+- **The bar's percentage is an estimate**: Higgsfield reports none. `jobEst(j)` is the median
+  run time of that model's finished jobs on this computer (3 or more), else 200 / 160 / 150 s for
+  Seedance / Kling / Cinema Studio. Past 90% it slows and stops at 99; past the estimate the text
+  reads "taking longer than usual".
+- **A video takes its id back**: if `P.id` is missing, or no library file carries it, boot adopts
+  the pid most of its own timeline's files carry, so the library cannot empty itself.
+- Verified on a separate test copy (own `_animate`) with stand-in generating / waiting jobs, and
+  the Generate path up to Higgsfield's free quote (70 credits for Seedance 10 s 720p), cancelled.

@@ -294,7 +294,42 @@ a.p-wm{text-decoration:none;border-radius:6px}
 .vs-mv[data-on]:disabled{color:var(--ps-accent-i)}
 
 /* ── stage ── */
-.vs-stage{position:relative;background:var(--ps-stage);min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.vs-stage{position:relative;background:var(--ps-stage);min-width:0;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+/* the generation strip under the picture (2026-11-26) */
+.vs-gbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:10px 16px;border-top:1px solid var(--ps-hair);background:var(--ps-card);min-width:0}
+.vs-gbar[hidden]{display:none}
+.vs-gb-s{display:flex;align-items:flex-end;gap:10px;flex:1 1 560px;min-width:0;flex-wrap:wrap}
+.vs-gb-th{flex:none;width:30px;height:40px;border-radius:6px;background:var(--ps-fill) center/cover no-repeat;align-self:center}
+.vs-gb-n{align-self:center;max-width:150px;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs-gb-f{display:flex;flex-direction:column;gap:3px;min-width:0}
+.vs-gb-f>span{font:500 11px/1.2 var(--ps-font);color:var(--ps-ink-2);letter-spacing:.02em;display:flex;justify-content:space-between;gap:8px}
+.vs-gb-f>span b{font-weight:500;color:var(--ps-ink);font-variant-numeric:tabular-nums}
+.vs-gb-f select.p-in{height:32px;font-size:13px;padding-top:0;padding-bottom:0;min-width:0;max-width:150px}
+.vs-gb-d{width:140px}
+.vs-gb-d input{width:100%;margin:7px 0 6px}
+.vs-gb-go{margin-left:auto;flex:none}
+.vs-gb-msg{align-self:center;font:400 13px/1.4 var(--ps-font);color:var(--ps-ink-2);margin-right:auto}
+.vs-gb-msg b{font-weight:500;color:var(--ps-ink)}
+.vs-gb-err{align-self:center;font:500 12px/1.3 var(--ps-font);color:var(--ps-bad)}
+.vs-gb-p{flex:1 1 220px;align-self:center;display:flex;flex-direction:column;gap:5px;min-width:0}
+.vs-gb-bar{height:6px;border-radius:9999px;background:var(--ps-fill);overflow:hidden}
+.vs-gb-bar i{display:block;height:100%;border-radius:inherit;background:var(--ps-link);transition:width 1s linear}
+.vs-gb-t{display:flex;justify-content:space-between;gap:10px;font:400 12px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.vs-gb-t time{color:var(--ps-ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vs-gb-t>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vs-gb-q{display:flex;align-items:center;gap:6px;flex:0 1 auto;min-width:0;overflow-x:auto;padding-bottom:1px}
+.vs-gb-qh{flex:none;font:500 11px/1.2 var(--ps-font);color:var(--ps-ink-2);letter-spacing:.02em}
+.vs-gb-qh s{text-decoration:none;color:var(--ps-ink)}
+.vs-gb-c{position:relative;flex:none;display:flex;align-items:center;gap:6px;height:34px;padding:3px 10px 3px 3px;border:0;border-radius:8px;background:var(--ps-fill);color:var(--ps-ink);font:500 12px/1 var(--ps-font);font-variant-numeric:tabular-nums;cursor:pointer;overflow:hidden}
+.vs-gb-c:hover{background:var(--ps-fill-h)}
+.vs-gb-c[aria-current]{box-shadow:inset 0 0 0 1.5px var(--ps-ink)}
+.vs-gb-c i{width:21px;height:28px;border-radius:5px;background:var(--ps-card) center/cover no-repeat}
+.vs-gb-c[data-st=failed] span,.vs-gb-c[data-st=stale] span{color:var(--ps-bad)}
+.vs-gb-c[data-st=queued] span,.vs-gb-c[data-st=describe] span{color:var(--ps-ink-2)}
+.vs-gb-c u{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--ps-hair)}
+.vs-gb-c u em{display:block;height:100%;background:var(--ps-link);transition:width 1s linear}
+.vs-gb-c:focus-visible{outline:2px solid var(--ps-focus);outline-offset:1px}
+@media (prefers-reduced-motion:reduce){.vs-gb-bar i,.vs-gb-c u em{transition:none}}
 .vs-szh{display:flex;align-items:center;gap:8px;min-height:32px;padding:12px 20px 0}
 .vs-szh > b{font:600 13px/1.3 var(--ps-font);color:var(--ps-ink)}
 .vs-szh > i{font:500 11.5px/1 var(--ps-font);font-style:normal;color:var(--ps-ink-2);padding:3px 9px;border-radius:var(--ps-pill);background:var(--ps-fill)}
@@ -728,6 +763,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
         <button class="vs-link" id="emptyScript">Or start from a video script</button>
       </div></div>
     </div>
+    <div class="vs-gbar" id="genBar" role="region" aria-label="Generate with Higgsfield" hidden></div>
   </section>
 
   <i class="vs-rzx" id="libRz" role="separator" aria-orientation="vertical" aria-label="Library width" tabindex="0" title="Drag to make the library wider or narrower. Double-click to put it back."></i>

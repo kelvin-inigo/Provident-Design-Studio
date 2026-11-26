@@ -2262,7 +2262,7 @@
     if (id) { const b = document.getElementById(id); if (b) { b.focus(); try { if (s0 != null) b.setSelectionRange(s0, s1); } catch (e) {} } }
     el.parentNode.scrollTop = top;
   }
-  function renderGen() { genTab(); if (rtab === 'gen') paintGen(); }
+  function renderGen() { genTab(); if (rtab === 'gen') paintGen(); renderBar(); }
   const gen = $('#gen');
   // a field's visible label names it for assistive tech too (the helpers emit a sibling label with no `for`)
   function labelFields(root) {
@@ -2855,7 +2855,109 @@
       (oth.length ? acc('qoth', 'Other videos', oth.length + (oth.length === 1 ? ' job' : ' jobs') + (stale ? ' · ' + stale + ' stalled' : ''), oth.map(rowOf).join('') +
         (stale ? '<div class="vs-acts"><button class="p-ghost p-sm" id="qClear" title="Remove every stalled job that is not in this video. Nothing is refunded or charged.">Clear ' + stale + ' stalled</button></div>' : '')) : '') + '</div>';
   }
-  setInterval(() => { document.querySelectorAll('time[data-since]').forEach(t => { const j = JOBS.find(x => x.id === t.dataset.since); if (j) t.textContent = jobSince(j); }); }, 1000);
+  setInterval(() => { document.querySelectorAll('time[data-since]').forEach(t => { const j = JOBS.find(x => x.id === t.dataset.since); if (j) t.textContent = jobSince(j); }); barTick(); }, 1000);
+  // ── THE GENERATION STRIP (2026-11-26, by request): under the picture, the selected photo's
+  // Higgsfield settings in one row with its Generate button, the running job's progress and time,
+  // and this video's queue. It drives the same job as the Generate tab (animSend, animRun,
+  // animCancel), so the price is still asked for and confirmed before anything is spent.
+  // Higgsfield reports no percentage: the bar is the time so far against how long that model has
+  // taken on this computer (the median of its finished jobs), and it never claims to be done.
+  const EST0 = { seedance_2_5: 200, kling3_0: 160, cinematic_studio_video_v2: 150 };
+  function jobEst(j) {
+    const ds = JOBS.filter(x => x.model === j.model && x.started && x.done_at && x.done_at > x.started).map(x => x.done_at - x.started).sort((a, b) => a - b);
+    return Math.max(30, ds.length >= 3 ? ds[ds.length >> 1] : EST0[j.model] || 180);
+  }
+  const mmss = d => Math.floor(d / 60) + ':' + String(Math.floor(d % 60)).padStart(2, '0');
+  function jobProg(j) {                // { pct, txt } for a job that is generating
+    const t = Math.max(0, Date.now() / 1000 - (j.started || j.at || Date.now() / 1000)), e = jobEst(j);
+    const pct = t <= e * .9 ? t / e * 100 : Math.min(99, 90 + 9 * (1 - Math.exp(-(t - e * .9) / e)));
+    return { pct, txt: mmss(t) + (t <= e ? ' of about ' + mmss(e) : ' · taking longer than usual') };
+  }
+  const barSel = () => { const it = sel && sel.kind === 'clip' && find(sel), m = it && media[it.mid]; return m && m.kind === 'image' ? it : null; };
+  const barSj = it => it && it.job && (JOBS.find(x => x.id === it.job.id) || it.job);
+  function barHtml() {
+    const it = barSel(), q = JOBS.filter(j => jobClip(j) && (jobActive(j) || j.status === 'failed')).sort((a, b) => (a.at || 0) - (b.at || 0));
+    if (!it && !q.length) return '';
+    let h = '';
+    if (it) {
+      const m = media[it.mid], j = it.job, st = j && j.status, sj = barSj(it);
+      h += '<div class="vs-gb-s"><i class="vs-gb-th" style="background-image:url(\'' + (m.poster || m.url) + '\')"></i><b class="vs-gb-n" title="' + esc(m.name) + '">' + esc(m.name) + '</b>';
+      if (st === 'working') {
+        const pr = jobProg(sj);
+        h += '<div class="vs-gb-p"><div class="vs-gb-bar" role="progressbar" aria-label="Generating" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pr.pct) + '"><i data-gbp="' + j.id + '" style="width:' + pr.pct.toFixed(1) + '%"></i></div>' +
+          '<span class="vs-gb-t"><span>' + esc(jobStep(sj)) + '</span><time data-gbt="' + j.id + '">' + pr.txt + '</time></span></div>' +
+          '<button class="p-ghost p-sm" data-gba="cancel" title="Stops waiting for this clip here. Higgsfield may already have charged for it.">Stop waiting</button>';
+      } else if (st === 'confirm') {
+        h += '<span class="vs-gb-msg"><b>This will spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + '</b> from your Higgsfield balance.</span>' +
+          '<button class="p-ghost p-sm" data-gba="cancel">Cancel</button><button class="p-btn p-sm" data-gba="go">Generate' + (j.credits == null ? '' : ' · ' + j.credits + ' credits') + '</button>';
+      } else if (st === 'queued' || st === 'describe') {
+        h += '<span class="vs-gb-msg">' + (st === 'describe' ? 'Claude is writing the prompt' : 'Waiting in the queue · run /animate-photos in Claude') + ' · <time data-since="' + j.id + '">' + jobSince(sj) + '</time></span>' +
+          '<button class="p-ghost p-sm" data-gba="cancel">Take it off</button>';
+      } else {
+        const opt = (v, l, on) => '<option value="' + v + '"' + (on ? ' selected' : '') + '>' + l + '</option>', l = genLim(it), d = genDurOf(it);
+        h += (st === 'failed' ? '<span class="vs-gb-err" title="' + esc(j.error || 'No reason was given.') + '">Failed · try again</span>' : '') +
+          '<label class="vs-gb-f"><span>Move</span><select class="p-in" data-gbs="move"><option value=""' + (it.move ? '' : ' selected') + ' disabled>Choose…</option>' + MOVES.map(x => opt(x[0], x[1], it.move === x[0])).join('') + '</select></label>' +
+          '<label class="vs-gb-f"><span>Model</span><select class="p-in" data-gbs="model">' + GEN_MODELS.map(x => opt(x[0], x[1], genModel(it)[0] === x[0])).join('') + '</select></label>' +
+          '<label class="vs-gb-f vs-gb-d"><span>Length <b data-gbo="1">' + d + ' s</b></span><input type="range" class="p-range" data-gbs="dur" min="' + l[0] + '" max="' + l[1] + '" step="1" value="' + d + '" aria-label="Length, seconds"></label>' +
+          '<label class="vs-gb-f"><span>Quality</span><select class="p-in" data-gbs="q">' + (genSeed(it) ? GEN_RES.map(x => opt(x[0], x[1], genRes(it)[0] === x[0])).join('') : opt('std', 'Standard', (it.genMode || 'std') === 'std') + opt('pro', 'Pro', it.genMode === 'pro')) + '</select></label>' +
+          '<button class="p-btn p-sm vs-gb-go" data-gba="now"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (it.move ? 'Generate · ' + genCredits(it) + ' credits' : 'Generate') + '</button>';
+      }
+      h += '</div>';
+    }
+    if (q.length) {
+      const stale = q.filter(jobStale).length;
+      h += '<div class="vs-gb-q" role="list" aria-label="This video\'s queue"><span class="vs-gb-qh">Queue <s>' + q.length + '</s></span>' + q.map(j => {
+        const c = jobClip(j), w = j.status === 'working' && !jobStale(j), pr = w ? jobProg(j) : null;
+        const lab = jobStale(j) ? 'Stalled' : w ? pr.txt.split(' ')[0] : j.status === 'failed' ? 'Failed' : j.status === 'describe' ? 'Prompt' : 'Waiting';
+        return '<button class="vs-gb-c" role="listitem" data-st="' + (jobStale(j) ? 'stale' : j.status) + '"' + (c ? ' data-gbc="' + c.id + '"' : '') + (sel && c && sel.id === c.id ? ' aria-current="true"' : '') + ' title="' + esc(((c && (media[c.mid] || {}).name) || j.name || 'Photo') + ' · ' + (j.move || '') + ' · ' + (j.duration || 5) + ' s') + '">' +
+          '<i style="background-image:url(\'/_animate/' + esc(j.photo || '') + '\')"></i><span>' + lab + '</span>' + (w ? '<u><em data-gbp="' + j.id + '" style="width:' + pr.pct.toFixed(1) + '%"></em></u>' : '') + '</button>';
+      }).join('') + (stale ? '<button class="p-ghost p-sm" data-gba="clear">Clear ' + stale + ' stalled</button>' : '') + '</div>';
+    }
+    return h;
+  }
+  let barShown = null;
+  function renderBar() {
+    const b = $('#genBar'); if (!b) return;
+    if (b.contains(document.activeElement) && document.activeElement.matches('input[type=range]')) return;   // not while its slider is held
+    const h = barHtml();
+    if (b._h !== h) { b._h = h; b.innerHTML = h; }
+    const on = !!h; b.hidden = !on;
+    if (barShown !== on) { barShown = on; fitCanvas(); }
+  }
+  function barTick() {
+    document.querySelectorAll('#genBar [data-gbp]').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.gbp); if (j) el.style.width = jobProg(j).pct.toFixed(1) + '%'; });
+    document.querySelectorAll('#genBar time[data-gbt]').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.gbt); if (j) el.textContent = jobProg(j).txt; });
+    document.querySelectorAll('#genBar .vs-gb-c[data-st=working] span').forEach(el => { const c = el.closest('[data-gbc]'), it = c && P.clips.find(x => x.id === c.dataset.gbc), j = it && it.job && JOBS.find(x => x.id === it.job.id); if (j) el.textContent = jobProg(j).txt.split(' ')[0]; });
+  }
+  { const b = $('#genBar');
+    b.addEventListener('change', e => {
+      const it = barSel(), k = e.target.dataset.gbs; if (!it || !k || k === 'dur') return;
+      mark(); const v = e.target.value;
+      if (k === 'move') it.move = v;
+      else if (k === 'model') { it.genModel = v; it.genDur = genDurOf(it); }
+      else if (k === 'q') { if (genSeed(it)) { it.genRes = v; it.genMode = /1080p|4k/.test(v) ? 'pro' : 'std'; } else { it.genMode = v; delete it.genRes; delete it.genBit; } }
+      renderAll();
+    });
+    b.addEventListener('pointerdown', e => { if (e.target.matches('input[type=range]')) mark(); });
+    b.addEventListener('input', e => {
+      const it = barSel(); if (!it || e.target.dataset.gbs !== 'dur') return;
+      it.genDur = +e.target.value; const o = b.querySelector('[data-gbo]'), g = b.querySelector('.vs-gb-go');
+      if (o) o.textContent = it.genDur + ' s'; if (g && !g.disabled) g.textContent = 'Generate · ' + genCredits(it) + ' credits';
+      dirty = true; save();
+    });
+    b.addEventListener('change', e => { if (e.target.dataset.gbs === 'dur') { e.target.blur(); renderAll(); } });
+    b.addEventListener('click', e => {
+      const c = e.target.closest('[data-gbc]');
+      if (c) { const it = P.clips.find(x => x.id === c.dataset.gbc); if (!it) return; multi.clear(); sel = { kind: 'clip', id: it.id }; rtab = 'sel'; if (playing) pause(); seek(clipStarts()[P.clips.indexOf(it)] || 0); renderAll(); return; }
+      const a = e.target.closest('[data-gba]'); if (!a) return;
+      const it = barSel(), k = a.dataset.gba;
+      if (k === 'clear') { const ids = JOBS.filter(j => jobClip(j) && jobStale(j)).map(j => j.id); Promise.all(ids.map(id => api('/api/animate/cancel', { id }).catch(() => {}))).then(() => { JOBS = JOBS.filter(j => ids.indexOf(j.id) < 0); P.clips.forEach(x => { if (x.job && ids.indexOf(x.job.id) >= 0) delete x.job; }); renderAll(); }); return; }
+      if (!it) return;
+      if (k === 'now') return animSend(it, true);
+      if (k === 'go') return animRun(it);
+      if (k === 'cancel') return animCancel(it);
+    });
+  }
   // a finished clip nobody on this timeline is waiting for (the photo was deleted, another video
   // asked for it, the page was closed) still comes home: into Your media, once per browser
   const GOTKEY = 'provident-video-anim-got';
@@ -3413,7 +3515,7 @@
     $('#empty').style.display = has ? 'none' : '';
     $('#exportBtn').disabled = $('#sendBtn').disabled = $('#frameBtn').disabled = $('#previewBtn2').disabled = $('#outBtn').disabled = !has;
     { const fn = $('#fileName'), nmv = P.name || (P.cas && P.cas.title) || '', fb = $('#fileBtn'); if (fn.firstChild == null || fn.dataset.v !== nmv) { fn.dataset.v = nmv; fn.textContent = nmv || 'Untitled video'; } if (nmv) delete fb.dataset.none; else fb.dataset.none = '1'; }
-    drivePaint();
+    drivePaint(); renderBar();
     { const l = $('#sendBtn').querySelector('.vs-l2'), want = P.casBg ? 'Send back to CAS' : 'Send to CAS'; if (l && l.textContent !== want) l.textContent = want;
       $('#sendBtn').title = P.casBg ? 'Records this video at 9:16 and places it behind the design in CAS' + (P.casBg.name ? ' (' + P.casBg.name + ')' : '') : ''; }
     $('#undoBtn').disabled = !undo.length; $('#redoBtn').disabled = !redo.length;
@@ -3685,7 +3787,12 @@
     for (const r of recs || []) { try { await probe(r); media[r.id] = r; } catch (e) {} }
     const ok = i => !!media[i.mid];
     P.clips = P.clips.filter(ok); P.audio = P.audio.filter(ok); P.logos = P.logos.filter(ok);
-    if (!P.id) { P.id = uid() + uid(); save(); }
+    // the video's id is what ties its files to it: one that went missing or changed is taken back from
+    // the files its own timeline uses, so the library never empties itself
+    { const own = Object.values(media).some(m => m.pid && m.pid === P.id), cnt = {};
+      [P.clips, P.audio, P.logos].forEach(l => (l || []).forEach(x => { const m = media[x.mid]; if (m && m.pid) cnt[m.pid] = (cnt[m.pid] || 0) + 1; }));
+      const top = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
+      if ((!P.id || !own) && top) { P.id = top; save(); } else if (!P.id) { P.id = uid() + uid(); save(); } }
     Object.values(media).forEach(m => { if (!m.pid || m._newPoster) { if (!m.pid) m.pid = P.id; delete m._newPoster; DB.put(dbRec(m)); } });
     if (P.drive && P.drive.sig === 'open') { P.drive.sig = driveSig(); save(); }
     driveAsk();   // just opened from its ad set: it is as Drive has it
