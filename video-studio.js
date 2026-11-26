@@ -3765,9 +3765,11 @@
     if (t.some(x => x.startsWith('audio'))) return 'audio';
     return it.length ? 'video' : '';          // a .mov often reports no type
   }
-  function dropPlan(e) {
-    const kind = dropKind(e.dataTransfer); if (!kind) return null;
-    const row = e.target.closest && e.target.closest('.vs-trk'), over = row && row.dataset.trk;
+  function dropPlan(e) { return planFor(dropKind(e.dataTransfer), e.target, e); }
+  function planFor(kind, target, e) {
+    if (!kind) return null;
+    if (kind === 'logo') kind = 'image';
+    const row = target && target.closest && target.closest('.vs-trk'), over = row && row.dataset.trk;
     const t = Math.max(0, xToT(e));
     if ((kind === 'image' || kind === 'video') && over === 'logo' && P.clips.length) return { trk: 'logo', t: snapT(t) };
     if (kind === 'audio') return { trk: over === 'sfx' ? 'sfx' : 'music', t: over === 'sfx' || over === 'music' ? snapT(t) : 0 };
@@ -3787,6 +3789,53 @@
     dropMk.style.left = (LBL + pl.t * pps) + 'px';
     dropMk.style.width = pl.trk === 'clip' ? '' : Math.max(24, (pl.trk === 'logo' ? 3 : 4) * pps) + 'px';
   }
+  // FROM THE LIBRARY ONTO THE TIMELINE (2026-11-26, by request: "let me drag the video on the
+  // motion graphics section"). Any tile can be dragged (pointer events, never native DnD) onto a
+  // track; the same light and marker as a Finder drop show where it lands: a photo or video over
+  // Motion graphics becomes a motion graphic there, over anything else a clip in the nearest gap
+  // on Video; a sound goes to Music, or Sound. A tile clicked without moving still adds as before.
+  let lDrag = null, lGhost = null, lSwallow = false;
+  function placeMid(mid, pl) {
+    const m = media[mid]; if (!m || !pl) return;
+    mark(); const keep = T;
+    if (m.kind === 'audio') { T = pl.t; addAudio(mid, pl.trk === 'sfx' ? 'sfx' : 'music', true); T = keep; const a = P.audio[P.audio.length - 1]; if (a && a.mid === mid) a.at = pl.t; }
+    else if (pl.trk === 'logo') { T = pl.t; addLogo(mid, true); T = keep; const l = P.logos[P.logos.length - 1]; if (l && l.mid === mid) l.at = pl.t; }
+    else { addClip(mid, true); const c = P.clips.pop(); P.clips.splice(Math.min(pl.i, P.clips.length), 0, c); }
+    renderAll();
+  }
+  $('#lib').addEventListener('pointerdown', e => {
+    if (e.button || e.target.closest('[data-star],[data-more],input,select')) return;
+    const t = e.target.closest('[data-addclip],[data-addlogo],[data-addaudio]'); if (!t) return;
+    const mid = t.dataset.addclip || t.dataset.addlogo || t.dataset.addaudio; if (!media[mid]) return;
+    lDrag = { mid, x0: e.clientX, y0: e.clientY, on: false, pl: null };
+  });
+  window.addEventListener('pointermove', e => {
+    if (!lDrag) return;
+    if (!lDrag.on) {
+      if (Math.hypot(e.clientX - lDrag.x0, e.clientY - lDrag.y0) < 6) return;
+      lDrag.on = true; const m = media[lDrag.mid];
+      lGhost = document.createElement('i'); lGhost.className = 'vs-lghost'; lGhost.style.backgroundImage = "url('" + (m.poster || m.url) + "')"; document.body.appendChild(lGhost);
+      document.body.dataset.ldrag = '1'; if (playing) pause();
+    }
+    lGhost.style.transform = 'translate(' + (e.clientX + 10) + 'px,' + (e.clientY + 10) + 'px)';
+    const over = document.elementFromPoint(e.clientX, e.clientY), m = media[lDrag.mid];
+    lDrag.pl = over && tl.contains(over) ? planFor(m.kind, over, e) : null;
+    if (lDrag.pl && m.kind === 'audio' && lDrag.pl.trk === 'music' && !(over.closest('.vs-trk') || {}).dataset) lDrag.pl = null;
+    dropPaint(lDrag.pl);
+    if (over && tl.contains(over)) { const r = tl.getBoundingClientRect(); if (e.clientX > r.right - 30) tl.scrollLeft += 12; else if (e.clientX < r.left + LBL + 20) tl.scrollLeft -= 12; }
+  });
+  const lEnd = place => {
+    if (!lDrag) return;
+    const d = lDrag; lDrag = null;
+    if (!d.on) return;
+    lSwallow = true; setTimeout(() => { lSwallow = false; }, 0);
+    if (lGhost) { lGhost.remove(); lGhost = null; } delete document.body.dataset.ldrag; dropPaint(null);
+    if (place && d.pl) placeMid(d.mid, d.pl);
+  };
+  window.addEventListener('pointerup', () => lEnd(true));
+  window.addEventListener('pointercancel', () => lEnd(false));
+  window.addEventListener('keydown', e => { if (e.key === 'Escape' && lDrag && lDrag.on) lEnd(false); });
+  $('#lib').addEventListener('click', e => { if (lSwallow) { e.stopPropagation(); e.preventDefault(); } }, true);
   tl.addEventListener('dragover', e => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; dropPaint(dropPlan(e)); });
   tl.addEventListener('dragleave', e => { if (!tl.contains(e.relatedTarget)) dropPaint(null); });
   document.addEventListener('drop', e => {

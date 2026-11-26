@@ -1247,3 +1247,12 @@ element pool `gvel` (muted, pre-rolled, holding playback while it seeks, like th
 end stops at the file's end. A WebM with an alpha channel keeps its transparency (checked with a
 VP9 WebM: the dot drew over the picture with nothing around it); MP4 has no transparency.
 Not checked: an export with a motion graphic in it.
+
+**Library tiles drag onto the timeline (2026-11-26, by request).** Pointer events on `#lib`
+(never native DnD): past 6px a ghost of the tile's poster follows the pointer, `planFor(kind,
+elementFromPoint…)` (the Finder drop's own planner) lights the track and the marker, and on
+release `placeMid(mid, plan)` puts it there as one undo step: a photo or video over Motion
+graphics becomes a motion graphic at that moment, over the rest of the timeline a clip in the
+nearest gap; a sound goes to Music, or Sound. The click that follows a drag is swallowed, so a
+plain click still adds the old way. Escape cancels. Checked with a real pointer drag: a Media
+video landed on Motion graphics at 5.50 s, no extra clip.
