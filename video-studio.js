@@ -258,9 +258,15 @@
   // one before by far more than the video's usual motion is a cut. Kept on the media record
   // (`cuts`, in the file's own seconds) so it is found once. Other layers and the playhead snap
   // to these (edges()), which is the point: text and sound can be lined up with the edit.
+  // SPEED (2026-11-26): one scan at a time (each renderTimeline used to start one per uncut
+  // video, all playing at once), never beside a filmstrip being built, and paused while the
+  // pointer is down on the timeline or the video plays: the decoder is the scrubber's.
+  const bgBusy = () => playing || exporting || !!drag;
+  let cutBusy = false;
+  const nextCut = () => { const m = P.clips.map(k => media[k.mid]).find(x => x && x.kind === 'video' && !(x.cuts && x.cutsV === 2)); if (m) setTimeout(() => findCuts(m), 300); };
   async function findCuts(rec) {
-    if (!rec || rec.kind !== 'video' || (rec.cuts && rec.cutsV === 2) || rec._cutting || exporting) return;   // never scan during an export: it plays the file
-    rec._cutting = true;
+    if (!rec || rec.kind !== 'video' || (rec.cuts && rec.cutsV === 2) || rec._cutting || exporting || cutBusy || stripBusy) return;   // never scan during an export: it plays the file
+    rec._cutting = true; cutBusy = true; let hold = 0;
     try {
       const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.src = rec.url;
       v.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none'; document.body.appendChild(v);
@@ -274,15 +280,21 @@
         prev = px.slice(); if (!v.ended) v.requestVideoFrameCallback(cb);
       };
       v.requestVideoFrameCallback(cb); v.playbackRate = 2;   // at 3x one real cut of ten was missed
-      const done = new Promise(r => { v.onended = r; setTimeout(r, Math.max(8000, (rec.dur || 30) / 2 * 1000 * 2.5)); });
-      await v.play(); await done; v.pause(); v.remove();
+      let left = Math.max(8000, (rec.dur || 30) / 2 * 1000 * 2.5);
+      const done = new Promise(r => { v.onended = r; hold = setInterval(() => {
+        if (bgBusy()) { if (!v.paused) v.pause(); return; }
+        if (v.paused && !v.ended) v.play().catch(() => {});
+        if ((left -= 250) <= 0) r();
+      }, 250); });
+      await v.play(); await done; clearInterval(hold); v.pause(); v.remove();
       const vals = d.map(e => e[1]).sort((p1, p2) => p1 - p2), med = vals[vals.length >> 1] || 0, thr = Math.max(40, med * 5), cuts = [];
       d.forEach(e => { if (e[1] < thr) return; const last = cuts[cuts.length - 1]; if (last && e[0] - last.t < .5) { if (e[1] > last.v) { last.t = e[0]; last.v = e[1]; } } else cuts.push({ t: e[0], v: e[1] }); });
       rec.cutsV = 2; rec.cuts = cuts.map(k => Math.round(k.t * 100) / 100).filter(t => t > .2 && t < (rec.dur || 1e9) - .2);
-      DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster, peaks: rec.peaks, cuts: rec.cuts, cutsV: 2 });
-      renderTimeline();
+      DB.put(dbRec(rec));
+      if (!drag) renderTimeline();
       if (sel && sel.kind === 'clip' && (find(sel) || {}).mid === rec.id) renderInspector();   // its Cut at scene changes count
-    } catch (e) {} finally { rec._cutting = false; }
+    } catch (e) {} finally { clearInterval(hold); rec._cutting = false; cutBusy = false; }
+    nextCut();
   }
   // ── filmstrips: a video clip on the timeline shows ITS OWN stretch of the file ─────────────
   // 2026-11-13, by request: every piece of a split clip showed the file's first frame, so the
@@ -293,8 +305,16 @@
   let stripBusy = false;
   async function buildStrip(rec) {
     if (!rec || rec.kind !== 'video' || rec.strip || !rec.dur || stripBusy) return;
+    // a strip built before is kept on the file (stripU, a JPEG) and only drawn back in
+    if (rec.stripU && rec.stripM) {
+      const S = rec.stripM, c = document.createElement('canvas'); c.width = S.fw * S.n; c.height = S.fh;
+      const st = rec.strip = { c, step: S.step, n: S.n, fw: S.fw, fh: S.fh, got: new Uint8Array(S.n) };
+      const im = new Image(); im.onload = () => { c.getContext('2d').drawImage(im, 0, 0); st.got.fill(1); paintStrips(); }; im.src = rec.stripU;
+      return;
+    }
+    if (cutBusy) { setTimeout(() => buildStrip(rec), 1500); return; }
     stripBusy = true;
-    const fh = 92, fw = Math.max(8, Math.round(fh * (rec.w || 9) / (rec.h || 16))), step = Math.max(.5, rec.dur / 200), n = Math.max(1, Math.ceil(rec.dur / step));
+    const fh = 92, fw = Math.max(8, Math.round(fh * (rec.w || 9) / (rec.h || 16))), step = Math.max(.5, rec.dur / 120), n = Math.max(1, Math.ceil(rec.dur / step));
     const c = document.createElement('canvas'); c.width = fw * n; c.height = fh;
     const st = rec.strip = { c, step, n, fw, fh, got: new Uint8Array(n) }, x = c.getContext('2d');
     const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = rec.url;
@@ -302,14 +322,15 @@
     try {
       await once(v, 'loadeddata');
       for (let i = 0; i < n; i++) {
-        while (playing || exporting) await new Promise(r => setTimeout(r, 400));
+        while (bgBusy()) await new Promise(r => setTimeout(r, 300));
         if (!media[rec.id]) break;            // removed from the library meanwhile
         v.currentTime = Math.min(rec.dur - .05, i * step + step / 2); await once(v, 'seeked');
         x.drawImage(v, i * fw, 0, fw, fh); st.got[i] = 1;
         if (i % 8 === 7 || i === n - 1) paintStrips();
       }
+      if (st.got.every(Boolean)) { try { rec.stripU = c.toDataURL('image/jpeg', .7); rec.stripM = { step, n, fw, fh }; DB.put(dbRec(rec)); } catch (e) {} }
     } catch (e) {} finally { v.removeAttribute('src'); v.load(); v.remove(); stripBusy = false; }
-    const next = P.clips.map(k => media[k.mid]).find(m => m && m.kind === 'video' && !m.strip); if (next) buildStrip(next);
+    const next = P.clips.map(k => media[k.mid]).find(m => m && m.kind === 'video' && !m.strip); if (next) buildStrip(next); else nextCut();
   }
   function paintStrips() {
     tlin.querySelectorAll('canvas[data-strip]').forEach(k => {
@@ -429,7 +450,12 @@
   function landOn() {
     if (playing || exporting || (sel && sel.kind !== 'clip')) return;
     const a = clipAt(T), id = a && a.c.id;
-    if (id && (!sel || sel.id !== id)) { sel = { kind: 'clip', id }; renderAll(); }
+    if (id && (!sel || sel.id !== id)) { sel = { kind: 'clip', id }; selPaint(); renderInspector(); }
+  }
+  // SPEED (2026-11-26): the selection ring alone, without rebuilding the timeline (renderAll cost
+  // ~37 ms on a 17-clip video, and the scrubber ran it at every clip it crossed)
+  function selPaint() {
+    tlin.querySelectorAll('.vs-it').forEach(el => { const on = !!sel && sel.kind === el.dataset.kind && sel.id === el.dataset.id; if (on) el.dataset.on = '1'; else delete el.dataset.on; });
   }
   const fmt = t => { t = Math.max(0, t); const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
   function toast(msg) { const el = $('#toast'); el.textContent = msg; el.dataset.on = '1'; clearTimeout(toast._t); toast._t = setTimeout(() => delete el.dataset.on, 3800); }
@@ -465,13 +491,21 @@
         rec.peaks = pk;
       } catch (e) {}
     } else {
-      const im = new Image(); im.src = rec.url; await once(im, 'load');
+      // SPEED (2026-11-26): a photo is read for its size and a 92px poster once; the library and the
+      // timeline show the poster, never the full file (renders run to 5504px, ten of them in view
+      // were decoded at full size on every library paint)
+      if (rec.w && rec.h && rec.poster) { rec.dur = 0; return rec; }
+      const im = new Image(); im.decoding = 'async'; im.src = rec.url; await once(im, 'load');
       rec.w = im.naturalWidth; rec.h = im.naturalHeight; rec.dur = 0;
+      if (!/svg/.test(rec.blob.type || '')) try {
+        const c = document.createElement('canvas'); c.height = 92; c.width = Math.max(8, Math.round(92 * rec.w / rec.h));
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); rec.poster = c.toDataURL('image/jpeg', .72); rec._newPoster = true;
+      } catch (e) {}
     }
     return rec;
   }
-  async function addFiles(files, want) {
-    let added = 0, firstVideo = !P.clips.length;
+  async function addFiles(files, want, pl) {
+    let added = 0, firstVideo = !P.clips.length, marked = false, at = pl ? pl.t : 0, ci = pl ? pl.i : 0;
     for (const f of Array.from(files)) {
       const ty = f.type || '';
       let kind = ty.startsWith('video') ? 'video' : ty.startsWith('audio') ? 'audio' : ty.startsWith('image') ? (want === 'logo' ? 'logo' : 'image') : null;
@@ -482,9 +516,22 @@
       try { await probe(rec); } catch (e) {
         toast(kind === 'video' ? 'This browser cannot play ' + f.name + '. Try an MP4 (H.264).' : 'Could not read ' + f.name + '.'); continue;
       }
-      media[rec.id] = rec; added++;
+      media[rec.id] = rec; added++; delete rec._newPoster;
       if (P.casBg) (P.casBg.media = P.casBg.media || []).push(rec.id);
       DB.put({ id: rec.id, kind: rec.kind, name: rec.name, blob: rec.blob, dur: rec.dur, w: rec.w, h: rec.h, poster: rec.poster, peaks: rec.peaks });
+      if (want === 'place') {                 // dropped on the timeline: where the marker showed
+        if (!marked) { mark(); marked = true; }
+        if (kind === 'audio') {
+          const tk = pl.trk === 'sfx' ? 'sfx' : 'music', keep = T; T = at; addAudio(rec.id, tk, true); T = keep;
+          const a = P.audio[P.audio.length - 1]; if (a && a.mid === rec.id) { a.at = at; at += a.dur; }
+        } else if (kind === 'image' && pl.trk === 'logo' && P.clips.length) {
+          const keep = T; T = at; addLogo(rec.id, true); T = keep;
+          const l = P.logos[P.logos.length - 1]; if (l && l.mid === rec.id) { l.at = at; at += l.dur; }
+        } else if (kind === 'video' || kind === 'image') {
+          addClip(rec.id, true); const c = P.clips.pop(); P.clips.splice(Math.min(ci, P.clips.length), 0, c); ci++;
+        }
+        continue;
+      }
       // the first video dropped goes straight onto the timeline; so does anything dropped on the stage
       if (kind === 'image' && want === 'stage' && P.clips.length) addLogo(rec.id, true);
       else if ((kind === 'video' || kind === 'image') && (firstVideo || want === 'stage')) { addClip(rec.id, true); firstVideo = false; }
@@ -492,7 +539,7 @@
     }
     if (added) {
       const k = Object.values(media).pop().kind;
-      if (want !== 'stage') tab = k === 'audio' ? 'audio' : k === 'logo' ? 'logos' : 'media';
+      if (want !== 'stage' && want !== 'place') tab = k === 'audio' ? 'audio' : k === 'logo' ? 'logos' : 'media';
       renderAll();
     }
   }
@@ -1326,8 +1373,7 @@
     CASN.forEach((n, i) => { if (!n.done) h += '<i class="vs-nt" style="left:' + (LBL + clamp(+n.t || 0, 0, total()) * pps) + 'px" title="' + esc((n.by || 'Comment') + ' at ' + fmt(+n.t || 0) + ': ' + n.text) + '"><b>' + (i + 1) + '</b></i>'; });
     markersAll().forEach(x => { h += '<i class="vs-mk" data-k="' + x.k + '" style="left:' + (LBL + x.t * pps) + 'px" title="' + MKT[x.k] + ' at ' + fmt(x.t) + '. Layers and the playhead snap here."></i>'; });
     if (MK.beat !== 'off') P.audio.forEach(a => { if (a.track === 'music') findBeats(media[a.mid]); });
-    P.clips.forEach(c => findCuts(media[c.mid]));
-    P.clips.forEach(c => buildStrip(media[c.mid]));
+    if (!drag) { P.clips.forEach(c => buildStrip(media[c.mid])); nextCut(); }
     h += '<div class="vs-ph" id="ph" title="Drag to scrub"></div>';
     tlin.style.width = W + 'px'; tlin.innerHTML = h;
     tlin.querySelectorAll('canvas[data-wave]').forEach(c => {
@@ -1352,8 +1398,13 @@
     $('#playBtn').setAttribute('aria-label', playing ? 'Pause' : 'Play');
   }
   const xToT = e => (e.clientX - tlin.getBoundingClientRect().left - LBL) / pps;
+  // The playhead wins (2026-11-26, by request): an end within 14px of it lands on it, before any
+  // other edge or marker (8px) is looked at. Alt frees the drag from every snap.
+  let snapFree = false;
   function snapT(t, skipId) {
-    const c = edges(skipId).concat([T]), tol = 8 / pps;
+    if (snapFree) return t;
+    if (Math.abs(T - t) * pps <= 14) return T;
+    const c = edges(skipId), tol = 8 / pps;
     let best = t, bd = tol; c.forEach(v => { const d = Math.abs(v - t); if (d < bd) { bd = d; best = v; } });
     return best;
   }
@@ -1401,6 +1452,7 @@
       if (e.clientX > r.right - 30) tl.scrollLeft += 14; else if (e.clientX < r.left + LBL + 20) tl.scrollLeft -= 14;
       return;
     }
+    snapFree = e.altKey && !drag.st;
     const dx = e.clientX - drag.x0;
     if (!drag.moved) { if (Math.abs(dx) < 3) return; drag.moved = true; undo.push(drag.snap); redo.length = 0; }
     const it = find(drag), o = drag.o, d = dx / pps, m = media[it.mid];
@@ -1466,12 +1518,30 @@
         it.at = nat; it.dur = o.dur - (nat - o.at); if (isA) it.in = o.in + (nat - o.at) * rt;
       } else it.dur = clamp(snapT(o.at + o.dur + d, it.id) - o.at, .2, isA ? (lim - o.in) / (o.rate || 1) : lim);
     }
-    dirty = true; renderTimeline();
+    dirty = true; tlGeomSoon();
     const sp = drag.mode !== 'move' && !drag.g && span(drag.kind, it);   // the playhead lights while an end sits on it
     tl.toggleAttribute('data-snapped', !!sp && (Math.abs(sp[0] - T) < 1e-4 || Math.abs(sp[1] - T) < 1e-4));
   });
+  // SPEED (2026-11-26): a drag used to rebuild the whole timeline (waveforms, filmstrips, every
+  // marker) on each pointer move. Now the boxes are moved in place, once a frame; the full
+  // render runs on release. A piece that changes lane while moving lands in it on release.
+  let geomQ = 0;
+  function tlGeomSoon() { if (!geomQ) geomQ = requestAnimationFrame(() => { geomQ = 0; tlGeom(); }); }
+  function tlGeom() {
+    const st = clipStarts(), W = LBL + Math.max(tl.clientWidth - LBL, (total() + 4) * pps + 80);
+    if (parseFloat(tlin.style.width) < W) tlin.style.width = W + 'px';
+    tlin.querySelectorAll('.vs-it').forEach(el => {
+      const k = el.dataset.kind, it = find({ kind: k, id: el.dataset.id }); if (!it) return;
+      const at = k === 'clip' ? st[P.clips.indexOf(it)] : it.at, len = k === 'clip' ? clipLen(it) : it.dur;
+      el.style.left = (LBL + at * pps) + 'px'; el.style.width = Math.max(6, len * pps - 1) + 'px';
+      const tag = lenTag(it.id, len); let em = el.querySelector('.vs-len');
+      if (tag && !em) { el.insertAdjacentHTML('beforeend', tag); em = el.querySelector('.vs-len'); }
+      if (em) { if (tag) em.textContent = lenFmt(len); else em.remove(); }
+    });
+    paintPlayhead();
+  }
   const endDrag = () => {
-    tl.removeAttribute('data-snapped');
+    snapFree = false; tl.removeAttribute('data-snapped');
     if (drag) drag.done = true;            // the length tag of a resize goes with the release
     if (drag && drag.moved) renderAll();
     else if (drag && drag.kind) {
@@ -1762,7 +1832,7 @@
       '<div class="a"><s' + (u ? ' title="On the timeline' + (u > 1 ? ' ' + u + ' times' : '') + '"' : '') + '>' + fmt(m.dur).slice(0, -3) + (u ? ' · used' + (u > 1 ? ' ×' + u : '') : '') + '</s><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="music" title="Add as the music bed, from the start">Music</button><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="sfx" title="Add as a sound at the playhead">Sound</button></div>' +
       '<span class="vs-rt">' + sBtn(m.id) + mBtn(m.id) + '</span></div>'); }).join('');
     const add = key === 'media' ? 'data-addclip' : 'data-addlogo', tip = key === 'media' ? 'Click to add it to the end of the video track.' : 'Click to place it at the playhead.';
-    const bg = m => "background-image:url('" + (key === 'media' ? (m.poster || m.url) : m.url) + "')", kindTxt = m => m.kind === 'video' ? fmt(m.dur) : key === 'media' ? 'Photo' : '';
+    const bg = m => "background-image:url('" + (m.poster || m.url) + "')", kindTxt = m => m.kind === 'video' ? fmt(m.dur) : key === 'media' ? 'Photo' : '';
     if (key === 'media' && LIB.view === 'list') return '<div class="vs-ml">' + v.map(m => { const u = libUses(key, m.id); return (
       '<button class="vs-mr" ' + add + '="' + m.id + '" title="' + esc(m.name) + '. ' + tip + '"><i style="' + bg(m) + '"></i><span class="n"><b>' + esc(m.name) + '</b><s>' + [m.kind === 'video' ? 'Video · ' + fmt(m.dur).slice(0, -3) : 'Photo', usedTxt(u), lm(m.id).dir && !st.dir ? esc(lm(m.id).dir) : ''].filter(Boolean).join(' · ') + '</s></span>' +
       '<span class="vs-rt">' + sBtn(m.id) + mBtn(m.id) + '</span></button>'); }).join('') + '</div>';
@@ -1792,7 +1862,7 @@
     if (!box) return renderLib();
     box.innerHTML = libList(key, M); if (n) n.textContent = libCount(libPick(key, M).length, libAll(key, M).length);
   }
-  const dbRec = r => ({ id: r.id, pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV });
+  const dbRec = r => ({ id: r.id, pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV, stripU: r.stripU, stripM: r.stripM });
   async function libRename(id) {
     const m = media[id]; if (!m) return;
     const v = await ask('Rename', 'A name you will recognise. It shows here and on the timeline.', 'Rename', m.name);
@@ -3540,12 +3610,51 @@
   const hasFiles = e => e.dataTransfer && Array.from(e.dataTransfer.types).indexOf('Files') >= 0;
   document.addEventListener('dragenter', e => { if (hasFiles(e)) { dragN++; document.body.dataset.drag = '1'; } });
   document.addEventListener('dragleave', e => { if (hasFiles(e) && --dragN <= 0) { dragN = 0; delete document.body.dataset.drag; } });
+  // FROM FINDER ONTO THE TIMELINE (2026-11-26, by request). While files are dragged over the
+  // timeline, the track they will land on lights and a marker shows where: a photo over the
+  // Graphics track becomes a graphic at that moment, anywhere else on the timeline a clip on the
+  // Video track, between the two clips nearest the pointer; a video always goes to Video; a sound
+  // to Music, or to Sound when it is over the Sound track. The file type is known while dragging
+  // (DataTransfer.items), the files themselves only on drop.
+  function dropKind(dt) {
+    const it = Array.from(dt.items || []).filter(i => i.kind === 'file'), t = it.map(i => i.type || '');
+    if (t.some(x => x.startsWith('video'))) return 'video';
+    if (t.some(x => x.startsWith('image'))) return 'image';
+    if (t.some(x => x.startsWith('audio'))) return 'audio';
+    return it.length ? 'video' : '';          // a .mov often reports no type
+  }
+  function dropPlan(e) {
+    const kind = dropKind(e.dataTransfer); if (!kind) return null;
+    const row = e.target.closest && e.target.closest('.vs-trk'), over = row && row.dataset.trk;
+    const t = Math.max(0, xToT(e));
+    if (kind === 'image' && over === 'logo' && P.clips.length) return { trk: 'logo', t: snapT(t) };
+    if (kind === 'audio') return { trk: over === 'sfx' ? 'sfx' : 'music', t: over === 'sfx' || over === 'music' ? snapT(t) : 0 };
+    const st = clipStarts().concat([videoEnd()]); let i = 0, bd = 1e9;   // the gap nearest the pointer
+    st.forEach((v, k) => { const d = Math.abs(v - t); if (d < bd) { bd = d; i = k; } });
+    return { trk: 'clip', i, t: st[i] || 0 };
+  }
+  let dropMk = null;
+  function dropPaint(pl) {
+    tlin.querySelectorAll('.vs-trk[data-drop]').forEach(r => delete r.dataset.drop);
+    if (!pl) { if (dropMk) { dropMk.remove(); dropMk = null; } return; }
+    const row = tlin.querySelector('.vs-trk[data-trk="' + pl.trk + '"]'); if (!row) return;
+    row.dataset.drop = '1';
+    if (!dropMk) { dropMk = document.createElement('i'); dropMk.className = 'vs-dropmk'; }
+    if (dropMk.parentNode !== row) row.appendChild(dropMk);
+    dropMk.dataset.k = pl.trk === 'clip' ? 'gap' : 'at';
+    dropMk.style.left = (LBL + pl.t * pps) + 'px';
+    dropMk.style.width = pl.trk === 'clip' ? '' : Math.max(24, (pl.trk === 'logo' ? 3 : 4) * pps) + 'px';
+  }
+  tl.addEventListener('dragover', e => { if (!hasFiles(e)) return; e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; dropPaint(dropPlan(e)); });
+  tl.addEventListener('dragleave', e => { if (!tl.contains(e.relatedTarget)) dropPaint(null); });
   document.addEventListener('drop', e => {
     dragN = 0; delete document.body.dataset.drag;
+    const pl = tl.contains(e.target) && e.dataTransfer ? dropPlan(e) : null; dropPaint(null);
     if (!e.dataTransfer || !e.dataTransfer.files.length) return;
     e.preventDefault();
     { const pf = Array.from(e.dataTransfer.files).find(isCasv); if (pf) { openProject(pf); return; } }
-    addFiles(e.dataTransfer.files, stage.contains(e.target) || tl.contains(e.target) ? 'stage' : (tab === 'logos' ? 'logo' : tab));
+    if (pl) { addFiles(e.dataTransfer.files, 'place', pl); return; }
+    addFiles(e.dataTransfer.files, stage.contains(e.target) ? 'stage' : (tab === 'logos' ? 'logo' : tab));
   });
 
   // ── boot ─────────────────────────────────────────────────────────────────────────────
@@ -3567,7 +3676,7 @@
     const ok = i => !!media[i.mid];
     P.clips = P.clips.filter(ok); P.audio = P.audio.filter(ok); P.logos = P.logos.filter(ok);
     if (!P.id) { P.id = uid() + uid(); save(); }
-    Object.values(media).forEach(m => { if (!m.pid) { m.pid = P.id; DB.put(dbRec(m)); } });
+    Object.values(media).forEach(m => { if (!m.pid || m._newPoster) { if (!m.pid) m.pid = P.id; delete m._newPoster; DB.put(dbRec(m)); } });
     if (P.drive && P.drive.sig === 'open') { P.drive.sig = driveSig(); save(); }
     driveAsk();   // just opened from its ad set: it is as Drive has it
     if (document.fonts && document.fonts.load) { try { await Promise.all([300, 400, 500].map(w => document.fonts.load(w + " 40px 'Google Sans Flex'"))); } catch (e) {} }

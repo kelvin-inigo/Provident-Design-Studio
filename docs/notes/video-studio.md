@@ -1158,3 +1158,32 @@ writes every used file again, replacing the one there. NOTE: two videos saved in
 share that folder and their `photo-01.jpg`… overwrite each other; Open falls back to the older
 `<name> Assets/` folder. Verified on 8797 + the Drive stand-in: two videos' libraries kept apart
 across New, Reopen and a reload; save, save again ("replaced").
+
+# SPEED, FINDER DROP ON THE TIMELINE, PLAYHEAD SNAP (2026-11-26, by request)
+
+Measured on a clone of the St. Regis project (17 clips, 62 files) before and after:
+- **renderAll 37 ms → 16 ms.** The library drew every photo from its full file (renders up to
+  5504 px) as a CSS background; photos now get a 92 px `poster` at import (once, at boot, for older
+  ones) and the library and timeline use it.
+- **Scrubbing onto a clip** ran renderAll (library and all) at every clip crossed; `landOn` now
+  calls `selPaint()` (the ring only) and `renderInspector()`.
+- **Dragging or resizing** rebuilt the whole timeline (waveforms, filmstrips, markers) on every
+  pointer move; `tlGeomSoon()` moves the boxes in place once a frame and the length tag follows;
+  the full render runs on release.
+- **Background scans**: `renderTimeline` started `findCuts` for every uncut video at once, each
+  playing its file at 2×. Now one at a time (`cutBusy`, `nextCut`), never beside a filmstrip
+  build, and both pause while `bgBusy()` (playing, exporting, or the pointer down on the timeline).
+  Filmstrips (max 120 frames) are saved on the file as `stripU` / `stripM` and drawn back on load
+  instead of being rebuilt by seeking every session.
+- Not changed: drawing a photo on the canvas costs ~0.1 ms once decoded; boot reads the working
+  folder in ~1.3 s.
+
+**Finder → timeline**: `tl` dragover reads the file type (DataTransfer.items) and `dropPlan(e)`
+picks the target: a photo over Graphics → a graphic at the pointer (snapped); a photo or video
+anywhere else → a clip on Video in the gap nearest the pointer; a sound → Music, or Sound when over
+the Sound track. The track lights (`.vs-trk[data-drop]`) and `.vs-dropmk` shows the gap (a line)
+or the spot (a block). `addFiles(files, 'place', plan)` puts it there, one undo step.
+
+**Playhead snap**: `snapT` lands any end within 14 px of the playhead on it before any other edge
+or marker (8 px); every resize and move already goes through it. Alt frees a drag from snapping
+(Alt on a video or sound end is still Stretch).
