@@ -39,6 +39,30 @@ PARTS = {'9x16': ('_9x16.mp4', 'video/mp4'), '1x1': ('_1x1.mp4', 'video/mp4'), '
 # its "Open in Video Studio" hands it back here: PUT /api/outbox/back writes `_inbox/<id>.casv`
 # (git-ignored), which the studio page offers to open (/api/inbox/list, /file, /done).
 INBOX = os.path.join(ROOT, '_inbox')
+# THE WORKING FOLDER (2026-11-26, by request: "avoid saving in the browser, all files need to be on
+# Google Drive"). The page keeps nothing in the browser any more: the project and every media file
+# it is working with live here, `_work/<port>/` (git-ignored), until Save sends them to the ad
+# set's Drive folder. state.json holds the small things (the project, the last video, the library's
+# folders); each media file is <id>.bin with its facts in <id>.json. The save window on the
+# Design Studio site reads the same routes (/api/work/…).
+WORK = os.path.join(ROOT, '_work', str(PORT))
+WORK_KEYS = ('project', 'prev', 'logos', 'lib', 'drive')
+WORK_LOCK = threading.Lock()
+
+
+def work_state():
+    try:
+        return json.load(open(os.path.join(WORK, 'state.json')))
+    except Exception:
+        return {}
+
+
+def work_write(name, obj):
+    os.makedirs(WORK, exist_ok=True)
+    fp = os.path.join(WORK, name)
+    with open(fp + '.part', 'w') as f:
+        json.dump(obj, f)
+    os.replace(fp + '.part', fp)
 
 
 def site_ok(origin):
@@ -367,7 +391,7 @@ class H(SimpleHTTPRequestHandler):
         o = self.headers.get('Origin')
         # CAS (the website or a local copy) reads the outbox, and since 2026-11-17 also generates its
         # video backgrounds through the animate queue and hands CASV a photo (/api/inbox/photo)
-        if self.path.startswith(('/api/outbox/', '/api/animate/', '/api/inbox/photo')) and site_ok(o):
+        if self.path.startswith(('/api/outbox/', '/api/animate/', '/api/inbox/photo', '/api/work/')) and site_ok(o):
             self.send_header('Access-Control-Allow-Origin', o)
             self.send_header('Vary', 'Origin')
         super().end_headers()
@@ -400,6 +424,24 @@ class H(SimpleHTTPRequestHandler):
         path, back = self.path.split('?')[0], False
         if not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')):
             return self._json(400, {'error': 'bad request'})
+        if path == '/api/work/media':             # one media file into the working folder
+            if n <= 0 or n > 2048 * 1024 * 1024:
+                return self._json(400, {'error': 'bad size'})
+            os.makedirs(WORK, exist_ok=True)
+            dest = os.path.join(WORK, q['id'] + '.bin')
+            with open(dest + '.part', 'wb') as f:
+                left = n
+                while left > 0:
+                    chunk = self.rfile.read(min(left, 1 << 20))
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    left -= len(chunk)
+            if left:
+                os.remove(dest + '.part')
+                return self._json(400, {'error': 'incomplete'})
+            os.replace(dest + '.part', dest)
+            return self._json(200, {'ok': True, 'bytes': n})
         if path == '/api/outbox/back':            # CAS hands a saved project back to this computer
             back = True
         elif path != '/api/outbox/file' or q.get('part') not in PARTS:
@@ -456,6 +498,33 @@ class H(SimpleHTTPRequestHandler):
             body = json.loads(self.rfile.read(n) or b'{}')
         except Exception:
             return self._json(400, {'error': 'bad json'})
+        if path == '/api/work/state':             # one small thing the page used to keep in the browser
+            key = body.get('key')
+            if key not in WORK_KEYS or not isinstance(body.get('value'), (str, type(None))):
+                return self._json(400, {'error': 'bad request'})
+            with WORK_LOCK:
+                st = work_state()
+                if body.get('value') is None:
+                    st.pop(key, None)
+                else:
+                    st[key] = body['value']
+                work_write('state.json', st)
+            return self._json(200, {'ok': True})
+        if path in ('/api/work/meta', '/api/work/del'):
+            wid = str(body.get('id') or '')
+            if not re.match(r'^[a-z0-9]{4,16}$', wid):
+                return self._json(400, {'error': 'bad id'})
+            if path.endswith('del'):
+                for ext in ('.bin', '.json'):
+                    try:
+                        os.remove(os.path.join(WORK, wid + ext))
+                    except OSError:
+                        pass
+                return self._json(200, {'ok': True})
+            if not isinstance(body.get('meta'), dict):
+                return self._json(400, {'error': 'bad request'})
+            work_write(wid + '.json', dict(body['meta'], id=wid))
+            return self._json(200, {'ok': True})
         jid = str(body.get('id') or '')
         if not re.match(r'^[a-z0-9]{4,16}$', jid):
             return self._json(400, {'error': 'bad id'})
@@ -626,6 +695,36 @@ class H(SimpleHTTPRequestHandler):
                 return self._json(404, {'error': 'not found'})
             self.send_response(200)
             self.send_header('Content-Type', 'video/mp4' if path.endswith('file') else 'image/jpeg')
+            self.send_header('Content-Length', str(os.path.getsize(fp)))
+            self.end_headers()
+            with open(fp, 'rb') as f:
+                shutil.copyfileobj(f, self.wfile)
+            return
+        if path == '/api/work/state':
+            return self._json(200, {'state': work_state()})
+        if path == '/api/work/list':              # every media file in the working folder, with its facts
+            rows = []
+            for f in sorted(os.listdir(WORK)) if os.path.isdir(WORK) else []:
+                if f.endswith('.json') and f != 'state.json' and os.path.exists(os.path.join(WORK, f[:-5] + '.bin')):
+                    try:
+                        m = json.load(open(os.path.join(WORK, f)))
+                        m['size'] = os.path.getsize(os.path.join(WORK, f[:-5] + '.bin'))
+                        rows.append(m)
+                    except Exception:
+                        pass
+            return self._json(200, {'media': rows})
+        if path == '/api/work/media':
+            q = self._q()
+            fp = os.path.join(WORK, q.get('id', '') + '.bin')
+            if not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')) or not os.path.exists(fp):
+                return self._json(404, {'error': 'not found'})
+            ctype = 'application/octet-stream'
+            try:
+                ctype = json.load(open(fp[:-4] + '.json')).get('type') or ctype
+            except Exception:
+                pass
+            self.send_response(200)
+            self.send_header('Content-Type', ctype if re.match(r'^[\w.+-]+/[\w.+-]+$', ctype) else 'application/octet-stream')
             self.send_header('Content-Length', str(os.path.getsize(fp)))
             self.end_headers()
             with open(fp, 'rb') as f:

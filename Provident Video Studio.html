@@ -509,6 +509,8 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 .p-top .vs-tq{flex:none;gap:8px}
 .p-top #histGrp{margin-right:6px}
 .p-top #outBtn{gap:8px}
+.p-top #saveBtn{gap:8px}
+.p-top #saveBtn[data-saved]{color:var(--ps-ink-2)}
 .p-top #outBtn .vs-chev,.vs-file .vs-chev{width:14px;height:14px;flex:none;opacity:.7}
 .p-top .vs-file{max-width:280px;min-width:0;padding:0 10px 0 12px;gap:6px;font-weight:600}
 .vs-file > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -636,8 +638,8 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   #lenBtn span,#mkBtn span{display:none}
   #lenBtn,#mkBtn{padding:0 8px}
   .vs-bar .vs-time{min-width:max-content;flex:none}
-  .p-top #sendBtn .vs-l2{display:none}
-  .p-top #sendBtn{width:40px;padding:0;justify-content:center}
+  .p-top #sendBtn .vs-l2,.p-top #saveBtn .vs-l2{display:none}
+  .p-top #sendBtn,.p-top #saveBtn{width:40px;padding:0;justify-content:center}
   .vs-time s{display:none}
 }
 @media (prefers-reduced-motion:reduce){
@@ -690,6 +692,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   </div>
   <button class="p-ghost p-ico-t vs-tq" id="previewBtn2" title="See the video inside Facebook and Instagram" aria-label="Preview"></button>
   <button class="p-ghost p-ico-t" id="outBtn" popovertarget="outPop" aria-expanded="false" title="Save the video or a single frame to Downloads"></button>
+  <button class="p-ghost p-ico-t" id="saveBtn" aria-label="Save to Google Drive"></button>
   <button class="p-btn p-ico-t" id="sendBtn" aria-label="Send to CAS" title="Record both sizes and hand them to CAS for the ad set"></button>
 </header>
 
@@ -768,6 +771,8 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   <hr>
   <button class="vs-mi" id="newBtn"></button>
   <button class="vs-mi" id="openBtn"></button>
+  <button class="vs-mi" id="openDriveBtn" title="Brings a video saved in an ad set’s Google Drive folder back to this computer"></button>
+  <button class="vs-mi" id="setBtn" title="Saves this video into a different ad set’s Google Drive folder" hidden></button>
   <button class="vs-mi" id="scriptBtn" title="Choose the script (.md) and its brochure PDF"></button>
   <button class="vs-mi" id="prevBtn2" hidden></button>
   <hr>

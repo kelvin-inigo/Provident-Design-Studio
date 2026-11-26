@@ -1103,3 +1103,41 @@ of how much time a clip currently is, maybe switched on with a toggle").
   was remembered; no overlap at 375 px. Not checked: Option-drag snapping (the pane sends no modifier
   keys), light theme.
 
+
+# NOTHING IN THE BROWSER; SAVE TO THE AD SET'S DRIVE FOLDER (2026-11-26, by request)
+
+"have the CASV creation saved on the ad set Google Drive folder, have a save button … avoid saving
+in the browser, specially the media assets, all files need to be on Google Drive."
+
+- **The working folder**: `_work/<port>/` beside the helper (git-ignored). `state.json` holds what
+  localStorage held (`project`, `prev`, `logos`, `lib`, and `drive`, the save window's answer);
+  each media file is `<id>.bin` + `<id>.json`. Routes in `tools/video-dev/serve.py`:
+  `/api/work/state` (GET, POST {key, value}), `/list`, `/media` (GET, PUT), `/meta`, `/del`.
+- **`WS`** (video-studio.js, before the project is read) replaces localStorage for those four keys.
+  It reads the state with ONE synchronous request, because the project is needed before the first
+  paint. **`DB`** keeps its put / del / all shape but writes to the working folder; writes for one
+  item run in order. `await WS.flush()` before any `location.reload()`.
+- **A helper started before this change has no `/api/work` routes**: `WS.ok` is false and the page
+  uses the browser as before (`IDB`). Restart the helper to switch.
+- **The move is once and automatic**: with `WS.ok`, what the browser still holds (the four keys,
+  the `provident-video` IndexedDB) is copied to the working folder and removed only after every
+  write answered. Small settings (theme, panel sizes, markers, the site address) stay in
+  localStorage on purpose.
+- **Save** (`#saveBtn`, between Export and Send to CAS; File › Open from an ad set, Save to another
+  ad set). Google refuses a sign-in from localhost (`redirect_uri_mismatch`, checked with the
+  client's own id), so `driveGo(mode)` opens `casv-save.html#<save|pick|open>.<port>` on the site
+  (`CAS_SITE()`, on `main`). That page signs in, reads `/api/work/…` and writes
+  `<ad set folder>/Video/<name>.casv` (project only) and `<name> Assets/<role>-NN.<ext>`
+  (video, photo, music, voiceover, sound, graphic; numbered in timeline order; a name once given is
+  kept in `P.drive.names`). Unchanged files (same name and size) are skipped. Files no longer used
+  are left in the folder.
+- **The answer comes back twice**: `postMessage` (`ready` → `go` → `saved`), and the `drive` key in
+  the working folder, read on focus and at boot. `P.drive = { set, names, at, sig }`; the button
+  reads **Saved** while `sig === driveSig()` (the project without `drive`).
+- **Open from an ad set** rebuilds the one-file .casv in the save window and PUTs it to
+  `/api/outbox/back`, so `casInbox` opens it (it asks first, and replaces the library).
+- **Send to CAS still packs its own full .casv** with the same file name in `Video/`; whichever was
+  written last is what is there. Both open.
+- Verified on 8797 + the Drive stand-in (share-dev 8798): the move out of the browser, save, save
+  again (nothing re-uploaded), open on a changed project. NOT exercised: real Google Drive, the
+  postMessage path (the test pane opens the window in the same tab), files over a few MB.

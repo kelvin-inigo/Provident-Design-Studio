@@ -135,7 +135,26 @@
     };
   }
   let P = fresh();
-  try { const s = JSON.parse(localStorage.getItem(PKEY) || 'null'); if (s && s.v === 1) { P = Object.assign(fresh(), s); P.brand = Object.assign(fresh().brand, s.brand); } } catch (e) {}
+  // ── NOTHING IS KEPT IN THE BROWSER (2026-11-26, by request). The project, the last video, the
+  // developer logos and the library's folders live in the working folder on this Mac, written by
+  // the local helper (/api/work/state); media files go there too (DB below). Save then sends them
+  // to the ad set's Drive folder. Read once, synchronously, because the project is needed before
+  // the first paint. What an older version left in the browser is moved over once and removed.
+  // A helper started before this change has no such routes: the browser is used as before.
+  const WS = (() => {
+    const KEYS = { [PKEY]: 'project', 'provident-video-project-prev': 'prev', [LKEY]: 'logos', 'provident-video-lib': 'lib' };
+    let st = {}, ok = false, q = Promise.resolve();
+    try { const x = new XMLHttpRequest(); x.open('GET', '/api/work/state', false); x.send(); if (x.status === 200) { st = JSON.parse(x.responseText).state || {}; ok = true; } } catch (e) {}
+    const post = (key, value) => (q = q.then(() => fetch('/api/work/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key, value }) }).then(r => r.ok, () => false)));
+    if (ok) Object.keys(KEYS).forEach(k => { try { const v = localStorage.getItem(k); if (v == null) return;
+      if (st[KEYS[k]] == null) { st[KEYS[k]] = v; post(KEYS[k], v).then(done => { if (done) localStorage.removeItem(k); }); } else localStorage.removeItem(k); } catch (e) {} });
+    return { ok,
+      getItem: k => ok ? (st[KEYS[k]] == null ? null : st[KEYS[k]]) : localStorage.getItem(k),
+      setItem(k, v) { if (!ok) return localStorage.setItem(k, v); st[KEYS[k]] = String(v); post(KEYS[k], String(v)); },
+      removeItem(k) { if (!ok) return localStorage.removeItem(k); delete st[KEYS[k]]; post(KEYS[k], null); },
+      flush: () => q };
+  })();
+  try { const s = JSON.parse(WS.getItem(PKEY) || 'null'); if (s && s.v === 1) { P = Object.assign(fresh(), s); P.brand = Object.assign(fresh().brand, s.brand); } } catch (e) {}
   if (!SIZES[P.size]) P.size = '9x16';
   const media = {};                 // id -> { id, kind, name, url, dur, w, h, poster, peaks }
   let sel = null;                   // { kind: 'clip'|'audio'|'text'|'logo', id }
@@ -161,8 +180,9 @@
   let cv = $('#cv'), cx = cv.getContext('2d');   // let: the preview paints the Square into its own canvas through the same draw() (pvSquare)
   const tl = $('#tl'), tlin = $('#tlin');
 
-  // ── storage: project JSON in localStorage, media files in IndexedDB ──────────────────
-  const DB = {
+  // ── storage: the working folder on this Mac (WS above, DB below). IDB is the browser store an
+  // older version used: read once at boot to move its files over, then deleted.
+  const IDB = {
     _p: null,
     open() {
       return this._p || (this._p = new Promise((res, rej) => {
@@ -176,12 +196,45 @@
       return new Promise((res, rej) => { const t = db.transaction('media', mode); const q = fn(t.objectStore('media')); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error('aborted')); });
     },
     put(rec) { return this.tx('readwrite', s => s.put(rec)).catch(() => {}); },
+    putStrict(rec) { return this.tx('readwrite', s => s.put(rec)); },
     del(id) { return this.tx('readwrite', s => s.delete(id)).catch(() => {}); },
-    all() { return this.tx('readonly', s => s.getAll()).catch(() => []); }
+    all() { return this.tx('readonly', s => s.getAll()).catch(() => []); },
+    idle() { return Promise.resolve(); }
+  };
+  // One file per media item in the working folder: its bytes once, its facts on every change.
+  // Writes for one item run in order, so an older set of facts never lands on a newer one.
+  const DB = !WS.ok ? IDB : {
+    _up: {}, _q: {},
+    putStrict(rec) {
+      const run = async () => {
+        if (this._up[rec.id] !== rec.blob) {
+          const r = await fetch('/api/work/media?id=' + rec.id, { method: 'PUT', body: rec.blob });
+          if (!r.ok) throw new Error('work');
+          this._up[rec.id] = rec.blob;
+        }
+        const meta = {}; Object.keys(rec).forEach(k => { if (k !== 'blob' && k !== 'url' && typeof rec[k] !== 'function' && !(rec[k] instanceof Element)) meta[k] = rec[k]; });
+        meta.type = rec.blob.type || '';
+        const r = await fetch('/api/work/meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: rec.id, meta }) });
+        if (!r.ok) throw new Error('work');
+      };
+      const p = (this._q[rec.id] || Promise.resolve()).catch(() => {}).then(run);
+      this._q[rec.id] = p; return p;
+    },
+    put(rec) { return this.putStrict(rec).catch(() => {}); },
+    del(id) { delete this._up[id]; const p = (this._q[id] || Promise.resolve()).catch(() => {}).then(() => fetch('/api/work/del', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) })).catch(() => {}); this._q[id] = p; return p; },
+    async all() {
+      let list = []; try { list = (await (await fetch('/api/work/list')).json()).media || []; } catch (e) { return []; }
+      const out = []; let i = 0;
+      const one = async () => { while (i < list.length) { const m = list[i++];
+        try { const b = await (await fetch('/api/work/media?id=' + m.id)).blob(), rec = Object.assign({}, m, { blob: new Blob([b], { type: m.type || b.type }) }); delete rec.type; delete rec.size; this._up[m.id] = rec.blob; out.push(rec); } catch (e) {} } };
+      await Promise.all([one(), one(), one(), one()]);
+      const at = {}; list.forEach((m, n) => { at[m.id] = n; }); return out.sort((a, b) => at[a.id] - at[b.id]);
+    },
+    idle() { return Promise.all(Object.keys(this._q).map(k => this._q[k].catch(() => {}))); }
   };
   let saveT = 0;
   let loading = false;               // a project from CAS is being put in place: nothing may save over it
-  function save() { if (loading) return; clearTimeout(saveT); saveT = setTimeout(() => { if (loading) return; try { localStorage.setItem(PKEY, JSON.stringify(P)); } catch (e) {} }, 250); }
+  function save() { if (loading) return; clearTimeout(saveT); saveT = setTimeout(() => { if (loading) return; try { WS.setItem(PKEY, JSON.stringify(P)); } catch (e) {} drivePaint(); }, 250); }
   function mark() { const s = JSON.stringify(P); if (undo[undo.length - 1] !== s) { undo.push(s); if (undo.length > 80) undo.shift(); redo.length = 0; } }
   function restore(from, to) {
     if (!from.length) return;
@@ -1505,7 +1558,7 @@
 
   // ── left rail ────────────────────────────────────────────────────────────────────────
   function devLib() {
-    let own = []; try { own = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (e) {}
+    let own = []; try { own = JSON.parse(WS.getItem(LKEY) || '[]'); } catch (e) {}
     return (window.providentDevLogos || []).concat(own.map(o => Object.assign({ own: 1 }, o)));
   }
   // ── make a voiceover: a script, a voice, and it lands on the Sound track with captions on ──
@@ -1668,8 +1721,8 @@
   // id; a new name is written to the file's own record, so the timeline shows it too. Folders are
   // one list shared by Media, Audio and Graphics. The search and filter are per tab, per session.
   const LIBKEY = 'provident-video-lib';
-  const LIB = Object.assign({ meta: {}, folders: [], view: 'grid' }, (() => { try { return JSON.parse(localStorage.getItem(LIBKEY)) || {}; } catch (e) { return {}; } })());
-  const libSave = () => { try { localStorage.setItem(LIBKEY, JSON.stringify(LIB)); } catch (e) {} };
+  const LIB = Object.assign({ meta: {}, folders: [], view: 'grid' }, (() => { try { return JSON.parse(WS.getItem(LIBKEY)) || {}; } catch (e) { return {}; } })());
+  const libSave = () => { try { WS.setItem(LIBKEY, JSON.stringify(LIB)); } catch (e) {} };
   const lm = id => LIB.meta[id] || {};
   const lset = (id, k, v) => { const o = LIB.meta[id] = LIB.meta[id] || {}; if (v) o[k] = v; else delete o[k]; if (!Object.keys(o).length) delete LIB.meta[id]; libSave(); };
   const LQ = { media: { q: '', f: 'all', dir: '' }, audio: { q: '', f: 'all', dir: '' }, logos: { q: '', f: 'all', dir: '' } };
@@ -1866,8 +1919,8 @@
     const q = a => e.target.closest('[' + a + ']'); let el;
     if ((el = q('data-rmdev'))) {
       e.stopPropagation();
-      let own = []; try { own = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (x) {}
-      localStorage.setItem(LKEY, JSON.stringify(own.filter(o => o.id !== el.dataset.rmdev))); renderInspector(); return true;
+      let own = []; try { own = JSON.parse(WS.getItem(LKEY) || '[]'); } catch (x) {}
+      WS.setItem(LKEY, JSON.stringify(own.filter(o => o.id !== el.dataset.rmdev))); renderInspector(); return true;
     }
     if ((el = q('data-up')) && (el.dataset.up === 'partner' || el.dataset.up === 'qr')) { pickFiles(el.dataset.up); return true; }
     if (q('data-qrrm')) { mark(); P.brand.qr = null; renderAll(); return true; }
@@ -1928,8 +1981,8 @@
       const f = files[0], rd = new FileReader();
       rd.onload = () => {
         const l = { id: 'own-' + uid(), name: f.name.replace(/\.[^.]+$/, ''), u: rd.result };
-        let own = []; try { own = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (x) {}
-        own.push(l); try { localStorage.setItem(LKEY, JSON.stringify(own)); } catch (x) { toast('That logo is too large to keep in the list; it is used for this video only.'); }
+        let own = []; try { own = JSON.parse(WS.getItem(LKEY) || '[]'); } catch (x) {}
+        own.push(l); try { WS.setItem(LKEY, JSON.stringify(own)); } catch (x) { toast('That logo is too large to keep in the list; it is used for this video only.'); }
         mark(); P.brand.partner = l; P.brand.on = true; partnerLoad(); renderAll();
       };
       rd.readAsDataURL(f);
@@ -2314,6 +2367,70 @@
   // again replaces the same video and the reviewers' comments find their way back (casNotes).
   let casStop = false, casBusy = false;
   const CAS_SITE = () => { try { return localStorage.getItem('provident-casv-site') || 'https://provident-design-studio.vercel.app/'; } catch (e) { return 'https://provident-design-studio.vercel.app/'; } };
+  // ── SAVE TO THE AD SET'S DRIVE FOLDER (2026-11-26, by request) ─────────────────────────
+  // Google refuses a sign-in from this page's address (localhost), so Save opens a small window of
+  // the Design Studio site (casv-save.html), which is signed in. That window reads the project and
+  // its media from the working folder on this Mac (/api/work/…) and writes them to
+  // <ad set folder>/Video: <name>.casv (the project) and <name> Assets/ (one file per media item,
+  // named by its role: video-01.mp4, photo-01.jpg, music-01.mp3 …). The two talk by postMessage:
+  // the window says `ready`, this page answers `go` once everything is written to the working
+  // folder, the window answers `saved` with the ad set and the file names it gave.
+  // P.drive = { set: { name, folder }, names: { mediaId: file }, at, sig }. `sig` is the project as
+  // it was saved, so the button reads Saved until something changes.
+  const hashOf = t => { let h = 5381; for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36) + '.' + t.length.toString(36); };
+  const driveSig = () => { const o = Object.assign({}, P); delete o.drive; return hashOf(JSON.stringify(o)); };
+  const siteOrigin = () => { try { return new URL(CAS_SITE()).origin; } catch (e) { return ''; } };
+  let drivePend = '';
+  function drivePaint() {
+    const b = $('#saveBtn'); if (!b || !b.firstChild) return;
+    const d = P.drive, saved = !!(d && d.sig && d.sig === driveSig()), l = b.querySelector('.vs-l2'), want = saved ? 'Saved' : 'Save';
+    if (l.textContent !== want) l.textContent = want;
+    if (saved) b.dataset.saved = '1'; else delete b.dataset.saved;
+    b.disabled = !total();
+    b.title = d && d.set ? (saved ? 'Saved in ' : 'Save to ') + d.set.name + ' › Video on Google Drive' + (d.at ? ' · last saved ' + new Date(d.at).toLocaleString([], { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '')
+      : 'Save this video and every file it uses to an ad set’s Google Drive folder';
+    b.setAttribute('aria-label', want + (d && d.set ? ' to ' + d.set.name : ' to Google Drive'));
+    const sb = $('#setBtn'); if (sb) sb.hidden = !(d && d.set);
+  }
+  async function driveGo(mode) {
+    if (!WS.ok) { toast('Restart the Video Studio on this computer, then try again: it is running an older helper.'); return; }
+    if (mode !== 'open') {
+      if (!total()) { toast('Add a video first.'); return; }
+      if (!P.name) {
+        const n = await ask('Name this video', 'The name is used for its files in the ad set’s Google Drive folder.', 'Continue', (P.cas && P.cas.title) || '');
+        if (n == null) return;
+        if (!n.trim()) { toast('Name the video first.'); return; }
+        P.name = n.trim().slice(0, 60); renderAll();
+      }
+      clearTimeout(saveT); WS.setItem(PKEY, JSON.stringify(P)); drivePend = driveSig();
+    }
+    const w = window.open(CAS_SITE().replace(/\/?$/, '/') + 'casv-save.html#' + mode + '.' + (location.port || '80'), 'casv-save', 'width=520,height=680');
+    if (!w) toast('Allow pop-ups for this page, then press ' + (mode === 'open' ? 'Open' : 'Save') + ' again.');
+  }
+  window.addEventListener('message', async e => {
+    const d = e.data, site = siteOrigin();
+    if (!site || e.origin !== site || !d || d.casv !== 1) return;
+    if (d.what === 'ready') { await WS.flush(); await DB.idle(); try { e.source.postMessage({ casv: 1, what: 'go' }, site); } catch (x) {} }
+    else if (d.what === 'saved') driveSaved(d);
+    else if (d.what === 'opened') casInbox();
+  });
+  function driveSaved(d) {
+    if (!d || !d.set || !/^[\w-]{10,}$/.test(d.set.folder || '') || (P.drive && d.at && P.drive.at === d.at)) return;
+    const names = {}; Object.keys(d.names || {}).slice(0, 500).forEach(k => { if (/^[a-z0-9]{4,16}$/.test(k) && /^[a-z]+-\d{2,3}\.[a-z0-9]{2,5}$/.test(d.names[k])) names[k] = d.names[k]; });
+    P.drive = { set: { name: String(d.set.name || 'Ad set').slice(0, 120), folder: d.set.folder }, names, at: +d.at || Date.now(), sig: drivePend || driveSig() };
+    save(); drivePaint(); toast('Saved to ' + P.drive.set.name + ' › Video on Google Drive');
+  }
+  // the save window also leaves its answer in the working folder, for a browser that cut the two
+  // windows apart: read when this page is looked at again
+  const driveAsk = async () => {
+    if (!WS.ok) return;
+    try {
+      const v = ((await (await fetch('/api/work/state')).json()).state || {}).drive; if (!v) return;
+      await fetch('/api/work/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'drive', value: null }) });
+      driveSaved(JSON.parse(v));
+    } catch (e) {}
+  };
+  window.addEventListener('focus', driveAsk);
   const recordOnce = () => new Promise(res => exportVideo(res));
   const wait = ms => new Promise(r => setTimeout(r, ms));
   async function sendToCas() {
@@ -2403,7 +2520,7 @@
   // reads it back on any computer.
   async function casPack(proj) {
     const used = JSON.stringify(proj), recs = ((await DB.all()) || []).filter(r => r.blob && used.indexOf('"' + r.id + '"') >= 0);
-    let logos = []; try { logos = JSON.parse(localStorage.getItem(LKEY) || '[]'); } catch (e) {}
+    let logos = []; try { logos = JSON.parse(WS.getItem(LKEY) || '[]'); } catch (e) {}
     const head = new TextEncoder().encode(JSON.stringify({ casv: 1, at: Date.now(), project: proj, logos,
       media: recs.map(r => ({ id: r.id, kind: r.kind, name: r.name, type: r.blob.type, size: r.blob.size, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV })) }));
     const pre = new DataView(new ArrayBuffer(8)); pre.setUint32(0, 0x43415356); pre.setUint32(4, head.length);
@@ -2441,12 +2558,12 @@
     try {
       const u = await casUnpack(await (await fetch('/api/inbox/file?id=' + row.id)).blob());
       const old = ((await DB.all()) || []).map(r => r.id), keep = {};
-      for (const r of u.recs) { keep[r.id] = 1; await DB.tx('readwrite', s => s.put(r)); }
+      for (const r of u.recs) { keep[r.id] = 1; await DB.putStrict(r); }
       loading = true; clearTimeout(saveT);
-      localStorage.setItem(PKEY, JSON.stringify(u.head.project));
-      try { const own = JSON.parse(localStorage.getItem(LKEY) || '[]'), have = {}; own.forEach(o => { have[o.id] = 1; }); (u.head.logos || []).forEach(o => { if (o && o.id && !have[o.id]) own.push(o); }); localStorage.setItem(LKEY, JSON.stringify(own)); } catch (e) {}
+      WS.setItem(PKEY, JSON.stringify(u.head.project));
+      try { const own = JSON.parse(WS.getItem(LKEY) || '[]'), have = {}; own.forEach(o => { have[o.id] = 1; }); (u.head.logos || []).forEach(o => { if (o && o.id && !have[o.id]) own.push(o); }); WS.setItem(LKEY, JSON.stringify(own)); } catch (e) {}
       for (const id of old) if (!keep[id]) await DB.del(id);
-      await done();
+      await done(); await WS.flush();
       location.reload();
     } catch (e) { loading = false; toast(e && e.name === 'QuotaExceededError' ? 'This browser has no room for that project’s media. Nothing was changed.' : 'That project could not be opened. Nothing was changed.'); }
   }
@@ -2466,13 +2583,13 @@
   }
   async function putProject(u, after) {
     try {
-      for (const r of u.recs) await DB.tx('readwrite', s => s.put(r));
+      for (const r of u.recs) await DB.putStrict(r);
       loading = true; clearTimeout(saveT);
-      if (total()) localStorage.setItem(PREV, JSON.stringify(P));
-      localStorage.setItem(PKEY, JSON.stringify(u.head.project));
-      try { const own = JSON.parse(localStorage.getItem(LKEY) || '[]'), have = {}; own.forEach(o => { have[o.id] = 1; }); (u.head.logos || []).forEach(o => { if (o && o.id && !have[o.id]) own.push(o); }); localStorage.setItem(LKEY, JSON.stringify(own)); } catch (e) {}
+      if (total()) WS.setItem(PREV, JSON.stringify(P));
+      WS.setItem(PKEY, JSON.stringify(u.head.project));
+      try { const own = JSON.parse(WS.getItem(LKEY) || '[]'), have = {}; own.forEach(o => { have[o.id] = 1; }); (u.head.logos || []).forEach(o => { if (o && o.id && !have[o.id]) own.push(o); }); WS.setItem(LKEY, JSON.stringify(own)); } catch (e) {}
       if (after) await after();
-      location.reload();
+      await WS.flush(); location.reload();
     } catch (e) { loading = false; toast(e && e.name === 'QuotaExceededError' ? 'This browser has no room for that project’s media. Nothing was changed.' : 'That project could not be opened. Nothing was changed.'); }
   }
   const projIn = document.createElement('input'); projIn.type = 'file'; projIn.accept = '.casv'; projIn.hidden = true; document.body.appendChild(projIn);
@@ -3202,6 +3319,7 @@
     $('#empty').style.display = has ? 'none' : '';
     $('#exportBtn').disabled = $('#sendBtn').disabled = $('#frameBtn').disabled = $('#previewBtn2').disabled = $('#outBtn').disabled = !has;
     { const fn = $('#fileName'), nmv = P.name || (P.cas && P.cas.title) || '', fb = $('#fileBtn'); if (fn.firstChild == null || fn.dataset.v !== nmv) { fn.dataset.v = nmv; fn.textContent = nmv || 'Untitled video'; } if (nmv) delete fb.dataset.none; else fb.dataset.none = '1'; }
+    drivePaint();
     { const l = $('#sendBtn').querySelector('.vs-l2'), want = P.casBg ? 'Send back to CAS' : 'Send to CAS'; if (l && l.textContent !== want) l.textContent = want;
       $('#sendBtn').title = P.casBg ? 'Records this video at 9:16 and places it behind the design in CAS' + (P.casBg.name ? ' (' + P.casBg.name + ')' : '') : ''; }
     $('#undoBtn').disabled = !undo.length; $('#redoBtn').disabled = !redo.length;
@@ -3233,23 +3351,26 @@
   // CASV opens this page with #new=<ad set name>: the same question, and the name is what Send to
   // CAS suggests (P.name). A new video has no P.cas, so its Send to CAS is a new outbox video.
   const PREV = 'provident-video-project-prev';
-  const prevOn = () => { let ok = false; try { ok = !!localStorage.getItem(PREV); } catch (e) {} $('#prevBtn').hidden = $('#prevBtn2').hidden = !ok; };
+  const prevOn = () => { let ok = false; try { ok = !!WS.getItem(PREV); } catch (e) {} $('#prevBtn').hidden = $('#prevBtn2').hidden = !ok; };
   async function startNew(name, from, quiet) {
     if (total() && !quiet && !(await ask(from ? 'Start a new video for ' + from + '?' : 'Start a new video?',
       'The timeline is cleared for a new video. This one is kept: Reopen the last video brings it back' + (P.cas ? '' : ' — it has not been sent to CAS') + '. Everything you uploaded stays in the library.', 'Start new'))) return false;
-    if (total()) { try { localStorage.setItem(PREV, JSON.stringify(P)); } catch (e) {} }
+    if (total()) { try { WS.setItem(PREV, JSON.stringify(P)); } catch (e) {} }
     mark(); const keep = P.size; P = fresh(); P.size = keep; if (name) P.name = String(name).slice(0, 60); sel = null; T = 0; partnerLoad(); renderAll(); prevOn(); save();
     return true;
   }
   $('#newBtn').addEventListener('click', () => startNew());
+  $('#saveBtn').innerHTML = ico('upload') + '<span class="vs-l2">Save</span>'; $('#saveBtn').addEventListener('click', () => driveGo('save'));
+  $('#openDriveBtn').innerHTML = sico('folder') + 'Open from an ad set<s>Google Drive</s>'; $('#openDriveBtn').addEventListener('click', () => { $('#filePop').hidePopover(); driveGo('open'); });
+  $('#setBtn').innerHTML = ico('upload') + 'Save to another ad set'; $('#setBtn').addEventListener('click', () => { $('#filePop').hidePopover(); driveGo('pick'); });
   $('#openBtn').innerHTML = sico('folder') + 'Open a project file<s>.casv</s>'; $('#prevBtn2').innerHTML = ico('undo') + 'Reopen the last video'; $('#prevBtn2').addEventListener('click', () => $('#prevBtn').click()); $('#openBtn').addEventListener('click', () => projIn.click()); $('#emptyOpen').addEventListener('click', () => projIn.click());
   $('#scriptBtn').addEventListener('click', () => pickFiles('script')); $('#emptyScript').addEventListener('click', () => pickFiles('script'));
   scriptFill(false);
   $('#prevBtn').addEventListener('click', async () => {
-    let old = null; try { old = JSON.parse(localStorage.getItem(PREV) || 'null'); } catch (e) {}
+    let old = null; try { old = JSON.parse(WS.getItem(PREV) || 'null'); } catch (e) {}
     if (!old || old.v !== 1) { prevOn(); return; }
     if (total() && !(await ask('Reopen the last video?', 'It swaps places with the video open now, which becomes the last video.', 'Reopen'))) return;
-    try { if (total()) localStorage.setItem(PREV, JSON.stringify(P)); else localStorage.removeItem(PREV); } catch (e) {}
+    try { if (total()) WS.setItem(PREV, JSON.stringify(P)); else WS.removeItem(PREV); } catch (e) {}
     mark(); P = Object.assign(fresh(), old); P.brand = Object.assign(fresh().brand, old.brand); if (!SIZES[P.size]) P.size = '9x16';
     sel = null; T = 0; partnerLoad(); renderAll(); prevOn(); save();
   });
@@ -3415,10 +3536,23 @@
   // ── boot ─────────────────────────────────────────────────────────────────────────────
   (async function boot() {
     paintTheme(); paintTransport(); fitCanvas(); partnerLoad(); renderAll();
-    const recs = await DB.all();
+    const recs = (await DB.all()) || [];
+    if (WS.ok) {
+      try {
+        const dbs = indexedDB.databases ? await indexedDB.databases() : [];
+        if (dbs.some(d => d.name === 'provident-video')) {
+          const have = {}; recs.forEach(r => { have[r.id] = 1; });
+          let fail = false;
+          for (const r of await IDB.all()) if (r && r.blob && !have[r.id]) { try { await DB.putStrict(r); recs.push(r); } catch (e) { fail = true; } }
+          if (!fail) { try { (await IDB.open()).close(); } catch (e) {} indexedDB.deleteDatabase('provident-video'); }
+        }
+      } catch (e) {}
+    }
     for (const r of recs || []) { try { await probe(r); media[r.id] = r; } catch (e) {} }
     const ok = i => !!media[i.mid];
     P.clips = P.clips.filter(ok); P.audio = P.audio.filter(ok); P.logos = P.logos.filter(ok);
+    if (P.drive && P.drive.sig === 'open') { P.drive.sig = driveSig(); save(); }
+    driveAsk();   // just opened from its ad set: it is as Drive has it
     if (document.fonts && document.fonts.load) { try { await Promise.all([300, 400, 500].map(w => document.fonts.load(w + " 40px 'Google Sans Flex'"))); } catch (e) {} }
     fitCanvas(); renderAll(); animPoll();
     requestAnimationFrame(tick);
