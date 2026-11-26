@@ -1,0 +1,16 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "marquee",
+        "value": "*",
+        "files": [
+          "Provident Video Studio.html"
+        ],
+        "createdAt": "2026-11-26T07:23:23.603Z"
+      }
+    ]
+  }
+}
