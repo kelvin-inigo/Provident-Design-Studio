@@ -1322,3 +1322,4 @@ By request: CASV is not on a Mac by default; anything on the site that calls CAS
 - A changed `casv-convert.swift` deletes `_work/bin/casv-convert` so it is rebuilt on next use.
 - Test overrides: `CASV_DIR CASV_PORT CASV_FEEDPORT CASV_LABEL CASV_APPS CASV_TARBALL CASV_NO_OPEN`. Tested on a scratch folder with ports 8797/8789 and label `ae.provident.casv-test` (installed, served, uninstalled); not yet run on a Mac without the Command Line Tools.
 - Site side (main, `share-link.js`): `CasvGet.ensure({why})` — see docs/notes/reviews-sharing-drive.md.
+- 2026-11-26, fix: an install on a designer Mac stopped at "Downloading CASV": GitHub's API (60 asks an hour per network, shared by the office) was used up. The newest commit now comes from `git ls-remote` (no such limit; git is there once Apple's tools are), the API only as fallback, and the error names which step failed.

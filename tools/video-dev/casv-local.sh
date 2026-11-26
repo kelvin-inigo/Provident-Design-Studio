@@ -88,19 +88,22 @@ fetch_code() {
   local sha src
   if [ -n "${CASV_TARBALL:-}" ]; then sha="local-$(date -r "$CASV_TARBALL" +%s)"; cp "$CASV_TARBALL" "$TMPD/casv.tgz" || return 2
   else
-    sha="$(curl -fsSL -m 20 -H 'Accept: application/vnd.github.sha' "https://api.github.com/repos/$REPO/commits/$BRANCH" 2>/dev/null)" || return 2
-    [ -n "$sha" ] || return 2
+    # the newest commit: git's own protocol first (GitHub's API allows only 60 asks an hour per
+    # network, and an office shares one: that limit stopped an install on 2026-11-26)
+    sha="$(git ls-remote "https://github.com/$REPO.git" "refs/heads/$BRANCH" 2>/dev/null | cut -f1)"
+    [ -n "$sha" ] || sha="$(curl -fsSL -m 20 -H 'Accept: application/vnd.github.sha' "https://api.github.com/repos/$REPO/commits/$BRANCH" 2>/dev/null)"
+    [ -n "$sha" ] || { WHY="GitHub did not say which version is newest."; return 2; }
     [ -f "$STAMP" ] && [ "$(cat "$STAMP")" = "$sha" ] && [ -f "$DIR/tools/video-dev/serve.py" ] && return 1
-    curl -fsSL -m 600 "https://codeload.github.com/$REPO/tar.gz/$sha" -o "$TMPD/casv.tgz" || return 2
+    curl -fsSL -m 600 "https://codeload.github.com/$REPO/tar.gz/$sha" -o "$TMPD/casv.tgz" || { WHY="The download from GitHub broke off."; return 2; }
   fi
-  mkdir -p "$TMPD/src" && tar -xzf "$TMPD/casv.tgz" -C "$TMPD/src" || return 2
+  mkdir -p "$TMPD/src" && tar -xzf "$TMPD/casv.tgz" -C "$TMPD/src" || { WHY="The download could not be unpacked."; return 2; }
   src="$(find "$TMPD/src" -mindepth 1 -maxdepth 1 -type d | head -1)"
-  [ -f "$src/Provident Video Studio.html" ] && [ -f "$src/tools/video-dev/serve.py" ] || return 2
+  [ -f "$src/Provident Video Studio.html" ] && [ -f "$src/tools/video-dev/serve.py" ] || { WHY="The download is missing CASV's files."; return 2; }
   mkdir -p "$DIR"
   # a changed converter is rebuilt on its next use
   cmp -s "$src/tools/video-dev/casv-convert.swift" "$DIR/tools/video-dev/casv-convert.swift" 2>/dev/null || rm -f "$DIR/_work/bin/casv-convert"
   # the designer's own work (_work, _animate, _outbox, _inbox) is never touched
-  rsync -a --delete --exclude '/_work/' --exclude '/_animate/' --exclude '/_outbox/' --exclude '/_inbox/' --exclude '/.casv-version' "$src/" "$DIR/" || return 2
+  rsync -a --delete --exclude '/_work/' --exclude '/_animate/' --exclude '/_outbox/' --exclude '/_inbox/' --exclude '/.casv-version' "$src/" "$DIR/" || { WHY="CASV's files could not be copied into $DIR."; return 2; }
   printf '%s' "$sha" > "$STAMP"
   return 0
 }
@@ -176,7 +179,7 @@ do_install() {
   fi
   apple_tools
   progress 42 "Downloading CASV"
-  fetch_code; case $? in 2) fail "CASV could not be downloaded. Check the internet connection and paste the line again." 42 ;; esac
+  WHY=''; fetch_code; case $? in 2) fail "CASV could not be downloaded: ${WHY:-no answer from GitHub.} Check the internet connection and paste the line again." 42 ;; esac
   progress 62 "Starting CASV's helper (it starts by itself at login from now on)"
   write_agent
   wait_helper 40 || fail "CASV's helper did not start. Its log is in ~/Library/Logs/Provident/casv.log." 62
@@ -194,10 +197,10 @@ do_install() {
 }
 
 do_update() {
-  fetch_code; local r=$?
+  WHY=''; fetch_code; local r=$?
   [ $r = 0 ] && say "CASV updated to $(cut -c1-7 < "$STAMP")."
   [ $r = 1 ] && say "CASV is up to date."
-  [ $r = 2 ] && say "Could not check for an update (offline?)."
+  [ $r = 2 ] && say "Could not check for an update: ${WHY:-offline?}"
   return $r
 }
 
