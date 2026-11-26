@@ -515,7 +515,20 @@
       const rec = { id: uid(), at: Date.now(), kind, name: f.name.replace(/\.[^.]+$/, ''), blob: f };
       if (kind === 'video' && (want === 'logo' || (want === 'place' && pl && pl.trk === 'logo'))) rec.gfx = 1;
       try { await probe(rec); } catch (e) {
-        toast(kind === 'video' ? 'This browser cannot play ' + f.name + '. Try an MP4 (H.264).' : 'Could not read ' + f.name + '.'); continue;
+        if (kind !== 'video') { toast('Could not read ' + f.name + '.'); continue; }
+        // a video Chrome cannot play (a ProRes .mov, often with a transparent background): this Mac
+        // converts it to HEVC with alpha, which keeps the transparency (2026-11-26)
+        try {
+          if (rec.url) URL.revokeObjectURL(rec.url);
+          toast('Converting ' + f.name + ' so the browser can play it. Transparency is kept…');
+          const r = await fetch('/api/convert?id=' + rec.id, { method: 'PUT', body: f });
+          if (!r.ok) { let m = ''; try { m = (await r.json()).error || ''; } catch (x) {} throw new Error(m || 'convert'); }
+          rec.blob = new File([await r.blob()], f.name.replace(/\.[^.]+$/, '') + '.mov', { type: 'video/quicktime' });
+          await probe(rec);
+          toast(f.name + ' is converted and in the library.');
+        } catch (e2) {
+          toast(e2 && e2.message && e2.message !== 'convert' && e2.message !== 'load' ? e2.message : 'This browser cannot play ' + f.name + ', and this Mac could not convert it. Try an MP4 (H.264), or a WebM for transparency.'); continue;
+        }
       }
       media[rec.id] = rec; added++; delete rec._newPoster;
       if (P.casBg) (P.casBg.media = P.casBg.media || []).push(rec.id);

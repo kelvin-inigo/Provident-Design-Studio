@@ -424,6 +424,43 @@ class H(SimpleHTTPRequestHandler):
         path, back = self.path.split('?')[0], False
         if not re.match(r'^[a-z0-9]{4,16}$', q.get('id', '')):
             return self._json(400, {'error': 'bad request'})
+        if path == '/api/convert':                # a video Chrome cannot play (ProRes, often with alpha)
+            # CONVERT ON IMPORT (2026-11-26, by request: "i wanted to upload an alpha bg … this browser
+            # cannot play 10.mov"). macOS's own avconvert re-encodes it as HEVC with alpha, which Chrome
+            # on a Mac plays and draws with its transparency. No ffmpeg needed. Returns the new file.
+            if n <= 0 or n > 4096 * 1024 * 1024:
+                return self._json(400, {'error': 'bad size'})
+            tmp = os.path.join(WORK, 'convert'); os.makedirs(tmp, exist_ok=True)
+            src, out = os.path.join(tmp, q['id'] + '.in.mov'), os.path.join(tmp, q['id'] + '.out.mov')
+            with open(src, 'wb') as f:
+                left = n
+                while left > 0:
+                    chunk = self.rfile.read(min(left, 1 << 20))
+                    if not chunk:
+                        break
+                    f.write(chunk); left -= len(chunk)
+            try:
+                if left:
+                    return self._json(400, {'error': 'incomplete'})
+                r = subprocess.run(['/usr/bin/avconvert', '--preset', 'PresetHEVCHighestQualityWithAlpha', '--source', src, '--output', out, '--replace'],
+                                   capture_output=True, text=True, timeout=1800)
+                if r.returncode != 0 or not os.path.exists(out) or os.path.getsize(out) == 0:
+                    return self._json(422, {'error': 'macOS could not convert this file' + ((': ' + (r.stderr or r.stdout).strip().splitlines()[-1][:200]) if (r.stderr or r.stdout).strip() else '.')})
+                self.send_response(200)
+                self.send_header('Content-Type', 'video/quicktime')
+                self.send_header('Content-Length', str(os.path.getsize(out)))
+                self.end_headers()
+                with open(out, 'rb') as f:
+                    shutil.copyfileobj(f, self.wfile)
+                return
+            except subprocess.TimeoutExpired:
+                return self._json(504, {'error': 'The conversion took longer than 30 minutes.'})
+            finally:
+                for fp in (src, out):
+                    try:
+                        os.remove(fp)
+                    except OSError:
+                        pass
         if path == '/api/work/media':             # one media file into the working folder
             if n <= 0 or n > 2048 * 1024 * 1024:
                 return self._json(400, {'error': 'bad size'})

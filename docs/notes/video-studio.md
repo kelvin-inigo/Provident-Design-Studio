@@ -1273,3 +1273,12 @@ graphic shaped 9:16 (within 3%) and at full width on the Reel (`l.w >= 99`) is d
 whichever size is open, centred, so on 1:1 it fills the square and is cropped top and bottom
 instead of standing as a narrow column. Checked by pixels on a 1:1 frame: the graphic's centre
 band landed at 300–780 px (cover), not 405–675 (the old fit).
+
+**Videos Chrome cannot play are converted on import (2026-11-26, by request).** A ProRes `.mov`
+(After Effects' usual export, often with alpha) fails `probe`; `addFiles` then PUTs it to the
+helper's `/api/convert`, which runs macOS's own `/usr/bin/avconvert --preset
+PresetHEVCHighestQualityWithAlpha` and returns an HEVC-with-alpha `.mov`. Chrome on a Mac plays
+it and draws its transparency onto the canvas (checked: corner pixel alpha 0 in the clip itself;
+on the canvas the photo showed through around the shape). No ffmpeg (none on this Mac, no
+Homebrew). A 1 s 540×960 ProRes 4444 converted in about 2 s, 1.19 MB → 30 KB. Not checked: a long
+or 4K ProRes file, Safari, and an export with one in it.
