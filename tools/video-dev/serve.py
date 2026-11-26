@@ -706,6 +706,41 @@ class H(SimpleHTTPRequestHandler):
         return self._json(404, {'error': 'not found'})
 
     def do_GET(self):
+        # CLAUDE MOTION (2026-11-26, by request): a CM film's link holds no file; its Export saves one
+        # into Downloads. The page asks for video files that landed there since it opened the film
+        # (/api/cm/wait?since=<epoch s>) and then fetches the one it picked (/api/cm/file?name=).
+        # Only video files directly in ~/Downloads, by plain name. macOS asks once to allow Downloads.
+        if self.path.split('?')[0] in ('/api/cm/wait', '/api/cm/file'):
+            dl = os.path.expanduser('~/Downloads'); q = self._q()
+            try:
+                names = os.listdir(dl)
+            except PermissionError:
+                return self._json(403, {'error': 'CASV may not look in Downloads yet. Allow it in System Settings › Privacy & Security › Files and Folders (Python › Downloads Folder), or drop the exported file here.'})
+            vid = lambda n: re.search(r'\.(mov|mp4|m4v|webm)$', n, re.I) and not n.startswith('.')
+            if self.path.split('?')[0] == '/api/cm/wait':
+                try:
+                    since = float(q.get('since') or 0)
+                except ValueError:
+                    since = 0
+                busy = any(re.search(r'\.(crdownload|download|part)$', n) for n in names)
+                rows = []
+                for n in names:
+                    fp = os.path.join(dl, n)
+                    if vid(n) and os.path.isfile(fp) and os.path.getmtime(fp) >= since - 2:
+                        rows.append({'name': n, 'size': os.path.getsize(fp), 'mtime': os.path.getmtime(fp)})
+                rows.sort(key=lambda r: -r['mtime'])
+                return self._json(200, {'files': rows, 'busy': busy})
+            n = q.get('name', '')
+            fp = os.path.join(dl, n)
+            if not n or os.path.basename(n) != n or not vid(n) or not os.path.isfile(fp):
+                return self._json(404, {'error': 'not found'})
+            self.send_response(200)
+            self.send_header('Content-Type', 'video/webm' if n.lower().endswith('.webm') else 'video/mp4' if re.search(r'\.(mp4|m4v)$', n, re.I) else 'video/quicktime')
+            self.send_header('Content-Length', str(os.path.getsize(fp)))
+            self.end_headers()
+            with open(fp, 'rb') as f:
+                shutil.copyfileobj(f, self.wfile)
+            return
         if self.path.split('?')[0] == '/api/voice/list':
             return self._json(200, voice_list())
         if self.path.split('?')[0] == '/api/hf/list':            # the Higgsfield library pop-up

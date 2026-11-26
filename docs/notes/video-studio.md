@@ -1323,3 +1323,13 @@ By request: CASV is not on a Mac by default; anything on the site that calls CAS
 - Test overrides: `CASV_DIR CASV_PORT CASV_FEEDPORT CASV_LABEL CASV_APPS CASV_TARBALL CASV_NO_OPEN`. Tested on a scratch folder with ports 8797/8789 and label `ae.provident.casv-test` (installed, served, uninstalled); not yet run on a Mac without the Command Line Tools.
 - Site side (main, `share-link.js`): `CasvGet.ensure({why})` — see docs/notes/reviews-sharing-drive.md.
 - 2026-11-26, fix: an install on a designer Mac stopped at "Downloading CASV": GitHub's API (60 asks an hour per network, shared by the office) was used up. The newest commit now comes from `git ls-remote` (no such limit; git is there once Apple's tools are), the API only as fallback, and the error names which step failed.
+
+## Claude Motion mographs (2026-11-26, by request: "build the claude motion to CASV, CM give links to every mograph")
+
+- A CM link (`https://claude.ai/artifact/<id>`) is a Motion film: HTML/JS scenes in the artifact's private store, played live by the type's page. It holds no video file and the helper cannot sign in to claude.ai, so the file always comes from the film's own Export (MP4, GIF, or MOV overlay with alpha).
+- Motion graphics tab › **Or bring one from Claude Motion**: paste the link (checked against `claude.ai/(code/)artifact/…`), the film opens in a new tab, and a "Waiting for Claude Motion" box (timer, Open the film again, Stop waiting) polls the helper every 2 s.
+- Helper: `GET /api/cm/wait?since=<epoch s>` lists video files (mov/mp4/m4v/webm) directly in `~/Downloads` modified since then, newest first, plus `busy` while a `.crdownload/.download/.part` exists; `GET /api/cm/file?name=` streams one (plain basename only). No permission for Downloads → 403 with where to allow it.
+- The page takes the newest file once its size is the same on two polls, and runs it through `addFiles` as a motion graphic (so a ProRes MOV overlay is converted with its alpha, as before). The media record keeps `cm` (its link); `dbRec` saves it.
+- The graphic's inspector gets **Claude Motion › Open in Claude Motion / Update from Claude Motion**. Update waits the same way; the new export takes the old one's name, star and folder, replaces it at every place on the timeline, and the old copy is removed from the library.
+- A file dropped on the Motion graphics tab while waiting counts as that export (it gets the link).
+- Stops after 20 minutes. Tested on a copy (8797) with test files in Downloads: import with link, placed at the playhead, inspector buttons, Update swap saved. Not tested: a real CM Export (the test pane blocks the film's tab) and macOS's Downloads permission prompt on a new Mac.

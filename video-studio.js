@@ -513,7 +513,10 @@
       if (!kind && /\.(mp3|wav|m4a|aac|ogg)$/i.test(f.name)) kind = 'audio';
       if (!kind) { toast(f.name + ' is not a video, audio or image file.'); continue; }
       const rec = { id: uid(), at: Date.now(), kind, name: f.name.replace(/\.[^.]+$/, ''), blob: f };
-      if (kind === 'video' && (want === 'logo' || (want === 'place' && pl && pl.trk === 'logo'))) rec.gfx = 1;
+      if (kind === 'video' && (want === 'logo' || want === 'cmrep' || (want === 'place' && pl && pl.trk === 'logo'))) rec.gfx = 1;
+      // a Claude Motion export (picked up from Downloads, or dropped here while CASV waits for one)
+      const cmx = kind === 'video' && rec.gfx && CMW ? CMW : null;
+      if (cmx) { rec.cm = cmx.url; if (cmx.rep && media[cmx.rep]) rec.name = media[cmx.rep].name; cmStop(); }
       try { await probe(rec); } catch (e) {
         if (kind !== 'video') { toast('Could not read ' + f.name + '.'); continue; }
         // a video Chrome cannot play (a ProRes .mov, often with a transparent background): this Mac
@@ -535,6 +538,14 @@
       media[rec.id] = rec; added++; delete rec._newPoster;
       if (P.casBg) (P.casBg.media = P.casBg.media || []).push(rec.id);
       DB.put(dbRec(rec));
+      if (cmx && cmx.rep) {                   // Update from Claude Motion: the new export takes the old one's places
+        mark(); let n = 0; P.logos.forEach(l => { if (l.mid === cmx.rep) { l.mid = rec.id; n++; } });
+        // the old export goes: its star and folder pass to the new one, which takes its name
+        if (LIB.meta[cmx.rep]) { LIB.meta[rec.id] = LIB.meta[cmx.rep]; libSave(); }
+        removeMedia(cmx.rep); save();
+        toast(rec.name + ' is updated from Claude Motion' + (n ? ' on the timeline (' + n + (n === 1 ? ' place).' : ' places).') : '.'));
+        continue;
+      }
       if (want === 'place') {                 // dropped on the timeline: where the marker showed
         if (!marked) { mark(); marked = true; }
         if (kind === 'audio') {
@@ -556,7 +567,7 @@
     }
     if (added) {
       const k = Object.values(media).pop().kind;
-      if (want !== 'stage' && want !== 'place') tab = k === 'audio' ? 'audio' : k === 'logo' || want === 'logo' ? 'logos' : 'media';
+      if (want !== 'stage' && want !== 'place') tab = k === 'audio' ? 'audio' : k === 'logo' || want === 'logo' || want === 'cmrep' ? 'logos' : 'media';
       renderAll();
     }
   }
@@ -1959,7 +1970,7 @@
     if (!box) return renderLib();
     box.innerHTML = libList(key, M); if (n) n.textContent = libCount(libPick(key, M).length, libAll(key, M).length);
   }
-  const dbRec = r => ({ id: r.id, at: r.at || Date.now(), pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV, stripU: r.stripU, stripM: r.stripM, gfx: r.gfx });
+  const dbRec = r => ({ id: r.id, at: r.at || Date.now(), pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV, stripU: r.stripU, stripM: r.stripM, gfx: r.gfx, cm: r.cm });
   async function libRename(id) {
     const m = media[id]; if (!m) return;
     const v = await ask('Rename', 'A name you will recognise. It shows here and on the timeline.', 'Rename', m.name);
@@ -2046,7 +2057,8 @@
       h += '<div class="vs-sec">' + H('Add text', 'at the playhead') + '<div class="vs-grid">' + pre.map(o => tile('data-addtext', o)).join('') + '</div></div>';
       h += '<div class="vs-sec">' + H('Add a callout', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div></div>';
     } else {
-      h += '<div class="vs-sec">' + drop('logo', 'Drop a motion graphic or logo', 'Video, PNG or SVG · WebM keeps transparency') + '</div>';
+      h += '<div class="vs-sec">' + drop('logo', 'Drop a motion graphic or logo', 'Video, PNG or SVG · WebM keeps transparency') +
+        (CMW ? cmWaitHtml() : '<button class="vs-link" data-cm="1" title="Paste a Claude Motion link; CASV adds its export by itself">Or bring one from Claude Motion</button>') + '</div>';
       h += libSec('logos', M);
       h += '<div class="vs-sec"><button class="vs-link" data-go="doc" title="The Provident wordmark and the collaboration logo are set once for the whole video">The wordmark and partner logo are in Brand</button></div>';
     }
@@ -2323,7 +2335,8 @@
         row('Navy wash behind it', seg('washOn', [[true, 'On'], [false, 'Off']], 's')) +
         (it.washOn ? rng('i', 'wash', 'Wash intensity', it.wash == null ? 40 : it.wash, 10, 90, '%') : '') +
         '<div class="vs-acts"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div>' +
-        '</div>' + timing();
+        '</div>' + (m.cm ? sec('Claude Motion', 'where it was made',
+          '<div class="vs-acts"><button class="p-ghost p-sm" data-cmopen="' + it.mid + '" title="' + esc(m.cm) + '">Open in Claude Motion</button><button class="p-ghost p-sm" data-cmup="' + it.mid + '" title="Open the film, Export it again, and the new file replaces this one wherever it is on the timeline">Update from Claude Motion</button></div>') : '') + timing();
     }
     if (it) h += allHtml(it);
     // the queue poll repaints this panel; the prompt being typed keeps its caret and scroll
@@ -3065,6 +3078,50 @@
   const hfWhen = x => { const d = new Date(x.at); return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
   const hfHas = x => ownV(media[HFGOT[x.id]]);
   const hfShown = () => (HFL.items || []).filter(x => HFL.f === 'all' || hfAsp(x) === HFL.f);
+  // CLAUDE MOTION (2026-11-26, by request): a CM film's link has no video in it; the file comes from
+  // the film's own Export. "Or bring one from Claude Motion" takes the link, opens the film in a new
+  // tab and waits: the helper reports video files landing in ~/Downloads (/api/cm/wait), and the
+  // first one there after the film opened, its size steady, comes in as a motion graphic carrying
+  // its link (`cm`). Its inspector then has Open in Claude Motion and Update from Claude Motion (the
+  // new export replaces it wherever it sits). A file dropped on the tab while waiting counts too.
+  let CMW = null;                              // { url, rep, since (s), t0, last: {name: size} }
+  const CM_RE = /^https:\/\/claude\.ai\/(code\/)?artifact\/[A-Za-z0-9_-]{8,}/;
+  function cmWaitHtml() {
+    const s = Math.round((Date.now() - CMW.t0) / 1000);
+    return '<div class="vs-cmw" role="status"><b>' + (CMW.rep ? 'Waiting for the new export' : 'Waiting for Claude Motion') + ' <s>' + Math.floor(s / 60) + ':' + ('0' + s % 60).slice(-2) + '</s></b>' +
+      (CMW.msg ? '<span data-bad="1">' + esc(CMW.msg) + '</span>' : '<span>In the film’s tab press the download arrow (Export) and choose <b>MOV (overlay)</b> for a transparent background, or MP4. CASV adds the file when it lands in Downloads.</span>') +
+      '<span class="vs-cmw-a"><a class="vs-link" href="' + esc(CMW.url) + '" target="_blank" rel="noopener">Open the film again</a><button class="vs-link" data-cmx="1">Stop waiting</button></span></div>';
+  }
+  async function cmStart(url, rep) {
+    if (!url) {
+      const v = await ask('From Claude Motion', 'Paste the film’s link (claude.ai/artifact/…). It opens in a new tab; Export it there and CASV brings the file in by itself.', 'Open the film', '');
+      url = v && String(v).trim(); if (!url) return;
+      if (!CM_RE.test(url)) { toast('That is not a Claude Motion link. It starts with https://claude.ai/artifact/'); return; }
+    }
+    window.open(url, '_blank', 'noopener');
+    CMW = { url, rep: rep || '', since: Date.now() / 1000, t0: Date.now(), last: {}, msg: '' };
+    tab = 'logos'; renderAll(); cmTick();
+  }
+  function cmStop() { if (CMW) clearTimeout(CMW.tm); CMW = null; }
+  async function cmTick() {
+    const w = CMW; if (!w) return;
+    if (Date.now() - w.t0 > 20 * 60e3) { cmStop(); toast('Stopped waiting for Claude Motion after 20 minutes. Drop the exported file here instead.'); renderLib(); return; }
+    try {
+      const r = await fetch('/api/cm/wait?since=' + w.since, { cache: 'no-store' }), j = await r.json();
+      w.msg = r.ok ? '' : (j.error || 'CASV could not look in Downloads.');
+      const f = r.ok && !j.busy && (j.files || [])[0];
+      if (f && w.last[f.name] === f.size && f.size > 0) {          // the same size twice: the download is done
+        const b = await (await fetch('/api/cm/file?name=' + encodeURIComponent(f.name), { cache: 'no-store' })).blob();
+        if (CMW !== w) return;
+        await addFiles([new File([b], f.name, { type: b.type })], w.rep ? 'cmrep' : 'logo');
+        return;
+      }
+      if (f) w.last[f.name] = f.size;
+    } catch (e) { w.msg = 'CASV’s helper did not answer. Is it still running?'; }
+    if (CMW !== w) return;
+    const box = document.querySelector('.vs-cmw'); if (box && tab === 'logos') box.outerHTML = cmWaitHtml();
+    w.tm = setTimeout(cmTick, 2000);
+  }
   function hfOpen() { HFL.open = true; HFL.pick.clear(); HFL.imp = ''; $('#hfOv').dataset.on = '1'; if (playing) pause(); hfRender(); hfLoad(); $('#hfX').focus(); }
   function hfClose() { if (HFL.imp) return; HFL.open = false; delete $('#hfOv').dataset.on; $('#hfP').innerHTML = ''; }
   async function hfLoad() {
@@ -3716,6 +3773,10 @@
     let el;
     if ((el = e.target.closest('[data-ltab]'))) { const b = document.querySelector('[data-tab="' + el.dataset.ltab + '"]'); if (b) b.click(); }
     else if (e.target.closest('[data-hf]')) hfOpen();
+    else if (e.target.closest('[data-cm]')) cmStart();
+    else if (e.target.closest('[data-cmx]')) { cmStop(); renderLib(); }
+    else if (e.target.closest('[data-cmopen]')) { const m = media[e.target.closest('[data-cmopen]').dataset.cmopen]; if (m && m.cm) window.open(m.cm, '_blank', 'noopener'); }
+    else if (e.target.closest('[data-cmup]')) { const id = e.target.closest('[data-cmup]').dataset.cmup; if (media[id] && media[id].cm) cmStart(media[id].cm, id); }
     else if ((el = e.target.closest('[data-go2]'))) { rtab = el.dataset.go2; renderInspector(); }
     else if ((el = e.target.closest('[data-mk]'))) { gtab = el.dataset.mk; rtab = 'gen'; document.body.dataset.pane = 'edit'; paintPane(); renderInspector(); }
   });
