@@ -2875,45 +2875,69 @@
   }
   const barSel = () => { const it = sel && sel.kind === 'clip' && find(sel), m = it && media[it.mid]; return m && m.kind === 'image' ? it : null; };
   const barSj = it => it && it.job && (JOBS.find(x => x.id === it.job.id) || it.job);
+  // THE TAKE DECK (2026-11-26, /impeccable redesign). A console card floating on the stage under
+  // the picture. Its thumbnail PLAYS the chosen camera move on this photo (the move tiles' own
+  // keyframes), so the take is seen before credits are spent. One row: the take (preview, name,
+  // what it will be), the settings as labelled pills, one navy action. The same card becomes the
+  // confirmation, then the progress band, without moving. The queue sits at the deck's end as
+  // 9:16 tiles that fill from below while they render. Folds to one line (per computer).
+  let deckFold = false; try { deckFold = localStorage.getItem('provident-video-deck') === 'fold'; } catch (e) {}
+  const FOLD = '<button class="vs-dk-fold" data-gba="fold" aria-expanded="' + '{X}' + '" aria-label="{L}" title="{L}">' + CHEV + '</button>';
   function barHtml() {
     const it = barSel(), q = JOBS.filter(j => jobClip(j) && (jobActive(j) || j.status === 'failed')).sort((a, b) => (a.at || 0) - (b.at || 0));
     if (!it && !q.length) return '';
+    const fold = FOLD.replace('{X}', deckFold ? 'false' : 'true').replace(/\{L\}/g, deckFold ? 'Show the generation deck' : 'Fold the generation deck to one line');
+    const m = it && media[it.mid], j = it && it.job, st = j && j.status, sj = it && barSj(it);
+    const mv = it && MOVES.find(x => x[0] === it.move), photo = m ? (m.url || m.poster) : '';
+    const what = it ? [mv ? mv[1] : '', genDurOf(it) + ' s', genModel(it)[1], genQ(it)].filter(Boolean).join(' · ') : '';
+    const wk = q.filter(x => x.status === 'working' && !jobStale(x)), stale = q.filter(jobStale).length;
+    if (deckFold) {                     // one line: what is happening, and how far along
+      const lead = it && st === 'working' ? jobProg(sj) : wk[0] ? jobProg(wk[0]) : null, who = it && st === 'working' ? m.name : wk[0] ? ((jobClip(wk[0]) && (media[jobClip(wk[0]).mid] || {}).name) || wk[0].name) : '';
+      return '<div class="vs-dk-line">' + (lead ? '<span class="vs-dk-dot" data-s="run"></span><b>Generating</b><span class="vs-dk-who">' + esc(who) + '</span><span class="vs-dk-mini"><i data-gbp="' + (it && st === 'working' ? j.id : wk[0].id) + '" style="transform:scaleX(' + (lead.pct / 100).toFixed(3) + ')"></i></span><time data-gbt="' + (it && st === 'working' ? j.id : wk[0].id) + '">' + lead.txt + '</time>'
+        : it ? '<b>' + esc(m.name) + '</b><span class="vs-dk-who">' + esc(mv ? what : 'Choose a camera move to animate it') + '</span>' : '<b>Queue</b>') +
+        (q.length ? '<span class="vs-dk-n">' + q.length + (q.length === 1 ? ' in the queue' : ' in the queue') + '</span>' : '') + fold + '</div>';
+    }
     let h = '';
     if (it) {
-      const m = media[it.mid], j = it.job, st = j && j.status, sj = barSj(it);
-      h += '<div class="vs-gb-s"><i class="vs-gb-th" style="background-image:url(\'' + (m.poster || m.url) + '\')"></i><b class="vs-gb-n" title="' + esc(m.name) + '">' + esc(m.name) + '</b>';
+      const pv = '<span class="vs-dk-pv' + (mv ? '' : ' is-still') + '" aria-hidden="true"><u' + (mv ? ' data-m="' + mv[0] + '"' : '') + ' style="background-image:url(\'' + photo + '\');background-position:' + (it.fx == null ? 50 : it.fx) + '% ' + (it.fy == null ? 50 : it.fy) + '%"></u></span>';
+      const head = (sub, cls) => '<div class="vs-dk-id"><b title="' + esc(m.name) + '">' + esc(m.name) + '</b><span' + (cls ? ' class="' + cls + '"' : '') + '>' + sub + '</span></div>';
+      h += '<div class="vs-dk-take" data-st="' + (st === 'working' ? 'run' : st === 'confirm' ? 'ask' : st === 'queued' || st === 'describe' ? 'wait' : 'set') + '">' + pv;
       if (st === 'working') {
-        const pr = jobProg(sj);
-        h += '<div class="vs-gb-p"><div class="vs-gb-bar" role="progressbar" aria-label="Generating" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pr.pct) + '"><i data-gbp="' + j.id + '" style="transform:scaleX(' + (pr.pct / 100).toFixed(3) + ')"></i></div>' +
-          '<span class="vs-gb-t"><span>' + esc(jobStep(sj)) + '</span><time data-gbt="' + j.id + '">' + pr.txt + '</time></span></div>' +
-          '<button class="p-ghost p-sm" data-gba="cancel" title="Stops waiting for this clip here. Higgsfield may already have charged for it.">Stop waiting</button>';
+        const pr = jobProg(sj), tx = pr.txt.split(' '), t0 = tx[0], rest = pr.txt.slice(t0.length).replace(/^ of /, 'of ').replace(/^ · /, '');
+        h += '<div class="vs-dk-run">' + head(esc(jobStep(sj)) + ' · ' + esc(what)) +
+          '<div class="vs-dk-track" role="progressbar" aria-label="Generating ' + esc(m.name) + '" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pr.pct) + '"><i data-gbp="' + j.id + '" style="transform:scaleX(' + (pr.pct / 100).toFixed(3) + ')"></i></div>' +
+          '<div class="vs-dk-clock"><time data-gbt="' + j.id + '" data-part="t">' + t0 + '</time><span data-gbt="' + j.id + '" data-part="r">' + esc(rest) + '</span></div></div>' +
+          '<div class="vs-dk-acts"><button class="vs-dk-q" data-gba="cancel" title="Stops waiting for this clip here. Higgsfield may already have charged for it.">Stop waiting</button></div>';
       } else if (st === 'confirm') {
-        h += '<span class="vs-gb-msg"><b>This will spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + '</b> from your Higgsfield balance.</span>' +
-          '<button class="p-ghost p-sm" data-gba="cancel">Cancel</button><button class="p-btn p-sm" data-gba="go">Generate' + (j.credits == null ? '' : ' · ' + j.credits + ' credits') + '</button>';
+        h += head('This comes out of your Higgsfield balance. Nothing has been spent yet.') .replace('<b ', '<b data-ask="1" ').replace('>' + esc(m.name) + '</b>', '>Spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + ' on this take?</b>') +
+          '<div class="vs-dk-acts"><button class="p-ghost" data-gba="cancel">Cancel</button><button class="p-btn" data-gba="go">Generate' + (j.credits == null ? '' : ' · ' + j.credits + ' credits') + '</button></div>';
       } else if (st === 'queued' || st === 'describe') {
-        h += '<span class="vs-gb-msg">' + (st === 'describe' ? 'Claude is writing the prompt' : 'Waiting in the queue · run /animate-photos in Claude') + ' · <time data-since="' + j.id + '">' + jobSince(sj) + '</time></span>' +
-          '<button class="p-ghost p-sm" data-gba="cancel">Take it off</button>';
+        h += head((st === 'describe' ? 'Claude is writing the prompt' : 'Waiting in the queue for /animate-photos in Claude') + ' · <time data-since="' + j.id + '">' + jobSince(sj) + '</time>') +
+          '<div class="vs-dk-acts"><button class="vs-dk-q" data-gba="cancel">Take it off the queue</button></div>';
       } else {
-        const opt = (v, l, on) => '<option value="' + v + '"' + (on ? ' selected' : '') + '>' + l + '</option>', l = genLim(it), d = genDurOf(it);
-        h += (st === 'failed' ? '<span class="vs-gb-err" title="' + esc(j.error || 'No reason was given.') + '">Failed · try again</span>' : '') +
-          '<label class="vs-gb-f"><span>Move</span><select class="p-in" data-gbs="move"><option value=""' + (it.move ? '' : ' selected') + ' disabled>Choose…</option>' + MOVES.map(x => opt(x[0], x[1], it.move === x[0])).join('') + '</select></label>' +
-          '<label class="vs-gb-f"><span>Model</span><select class="p-in" data-gbs="model">' + GEN_MODELS.map(x => opt(x[0], x[1], genModel(it)[0] === x[0])).join('') + '</select></label>' +
-          '<label class="vs-gb-f vs-gb-d"><span>Length <b data-gbo="1">' + d + ' s</b></span><input type="range" class="p-range" data-gbs="dur" min="' + l[0] + '" max="' + l[1] + '" step="1" value="' + d + '" aria-label="Length, seconds"></label>' +
-          '<label class="vs-gb-f"><span>Quality</span><select class="p-in" data-gbs="q">' + (genSeed(it) ? GEN_RES.map(x => opt(x[0], x[1], genRes(it)[0] === x[0])).join('') : opt('std', 'Standard', (it.genMode || 'std') === 'std') + opt('pro', 'Pro', it.genMode === 'pro')) + '</select></label>' +
-          '<button class="p-btn p-sm vs-gb-go" data-gba="now"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (it.move ? 'Generate · ' + genCredits(it) + ' credits' : 'Generate') + '</button>';
+        const opt = (v, l, on) => '<option value="' + v + '"' + (on ? ' selected' : '') + '>' + l + '</option>', lim = genLim(it), d = genDurOf(it);
+        const pill = (k, lab, inner) => '<label class="vs-dk-pill" data-k="' + k + '"><span>' + lab + '</span>' + inner + '</label>';
+        const sel2 = (k, lab, opts) => pill(k, lab, '<select data-gbs="' + k + '" aria-label="' + lab + '">' + opts + '</select>' + CHEV);
+        h += head(st === 'failed' ? 'That take did not work: ' + esc(j.error || 'no reason was given') + '. Change anything and try again.' : mv ? esc(what) : 'Choose a camera move to see it play here', st === 'failed' ? 'is-bad' : '') +
+          '<div class="vs-dk-set">' +
+          sel2('move', 'Move', (it.move ? '' : '<option value="" selected disabled>Choose</option>') + MOVES.map(x => opt(x[0], x[1], it.move === x[0])).join('')) +
+          sel2('model', 'Model', GEN_MODELS.map(x => opt(x[0], x[1], genModel(it)[0] === x[0])).join('')) +
+          pill('dur', 'Length', '<input type="range" data-gbs="dur" min="' + lim[0] + '" max="' + lim[1] + '" step="1" value="' + d + '" aria-label="Length in seconds"><b data-gbo="1">' + d + ' s</b>') +
+          sel2('q', 'Quality', genSeed(it) ? GEN_RES.map(x => opt(x[0], x[1], genRes(it)[0] === x[0])).join('') : opt('std', 'Standard', (it.genMode || 'std') === 'std') + opt('pro', 'Pro', it.genMode === 'pro')) +
+          '</div><div class="vs-dk-acts"><button class="p-btn vs-gb-go" data-gba="now"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (st === 'failed' ? 'Try again' : 'Generate') + (it.move ? ' · ' + genCredits(it) + ' credits' : '') + '</button></div>';
       }
       h += '</div>';
-    }
+    } else h += '<div class="vs-dk-take" data-st="none"><div class="vs-dk-id"><b>Generating for this video</b><span>Select a photo clip to set up its take.</span></div></div>';
     if (q.length) {
-      const stale = q.filter(jobStale).length;
-      h += '<div class="vs-gb-q" role="list" aria-label="This video\'s queue"><span class="vs-gb-qh">Queue <s>' + q.length + '</s></span>' + q.map(j => {
-        const c = jobClip(j), w = j.status === 'working' && !jobStale(j), pr = w ? jobProg(j) : null;
-        const lab = jobStale(j) ? 'Stalled' : w ? pr.txt.split(' ')[0] : j.status === 'failed' ? 'Failed' : j.status === 'describe' ? 'Prompt' : 'Waiting';
-        return '<button class="vs-gb-c" role="listitem" data-st="' + (jobStale(j) ? 'stale' : j.status) + '"' + (c ? ' data-gbc="' + c.id + '"' : '') + (sel && c && sel.id === c.id ? ' aria-current="true"' : '') + ' title="' + esc(((c && (media[c.mid] || {}).name) || j.name || 'Photo') + ' · ' + (j.move || '') + ' · ' + (j.duration || 5) + ' s') + '">' +
-          '<i style="background-image:url(\'/_animate/' + esc(j.photo || '') + '\')"></i><span>' + lab + '</span>' + (w ? '<u><em data-gbp="' + j.id + '" style="transform:scaleX(' + (pr.pct / 100).toFixed(3) + ')"></em></u>' : '') + '</button>';
-      }).join('') + (stale ? '<button class="p-ghost p-sm" data-gba="clear">Clear ' + stale + ' stalled</button>' : '') + '</div>';
+      h += '<div class="vs-dk-queue" role="list" aria-label="This video\'s queue"><span class="vs-dk-qh">Queue <s>' + q.length + '</s></span><div class="vs-dk-tiles">' + q.map(x => {
+        const c = jobClip(x), w = x.status === 'working' && !jobStale(x), pr = w ? jobProg(x) : null, s2 = jobStale(x) ? 'stale' : x.status;
+        const lab = s2 === 'stale' ? 'Stalled' : w ? pr.txt.split(' ')[0] : s2 === 'failed' ? 'Failed' : s2 === 'describe' ? 'Prompt' : 'Waiting';
+        const cm = c && media[c.mid], img = (cm && (cm.poster || cm.url)) || (x.photo ? '/_animate/' + x.photo : '');
+        return '<button class="vs-dk-tile" role="listitem" data-st="' + s2 + '"' + (c ? ' data-gbc="' + c.id + '"' : '') + (sel && c && sel.id === c.id ? ' aria-current="true"' : '') + ' title="' + esc(((cm && cm.name) || x.name || 'Photo') + ' · ' + (x.move || '') + ' · ' + (x.duration || 5) + ' s · ' + lab) + '">' +
+          '<i style="background-image:url(\'' + esc(img) + '\')">' + (w ? '<em data-gbp="' + x.id + '" style="transform:scaleY(' + (pr.pct / 100).toFixed(3) + ')"></em>' : '') + '</i><span>' + lab + '</span></button>';
+      }).join('') + '</div>' + (stale ? '<button class="vs-dk-q" data-gba="clear">Clear ' + stale + ' stalled</button>' : '') + '</div>';
     }
-    return h;
+    return '<div class="vs-dk-body">' + h + '</div>' + fold;
   }
   let barShown = null;
   function renderBar() {
@@ -2921,13 +2945,14 @@
     if (b.contains(document.activeElement) && document.activeElement.matches('input[type=range]')) return;   // not while its slider is held
     const h = barHtml();
     if (b._h !== h) { b._h = h; b.innerHTML = h; }
-    const on = !!h; b.hidden = !on;
-    if (barShown !== on) { barShown = on; fitCanvas(); }
+    const on = !!h; b.hidden = !on; b.toggleAttribute('data-fold', deckFold);
+    if (barShown !== on + '' + deckFold) { barShown = on + '' + deckFold; fitCanvas(); }
   }
   function barTick() {
-    document.querySelectorAll('#genBar [data-gbp]').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.gbp); if (j) el.style.transform = 'scaleX(' + (jobProg(j).pct / 100).toFixed(3) + ')'; });
-    document.querySelectorAll('#genBar time[data-gbt]').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.gbt); if (j) el.textContent = jobProg(j).txt; });
-    document.querySelectorAll('#genBar .vs-gb-c[data-st=working] span').forEach(el => { const c = el.closest('[data-gbc]'), it = c && P.clips.find(x => x.id === c.dataset.gbc), j = it && it.job && JOBS.find(x => x.id === it.job.id); if (j) el.textContent = jobProg(j).txt.split(' ')[0]; });
+    document.querySelectorAll('#genBar [data-gbp]').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.gbp); if (j) el.style.transform = (el.tagName === 'EM' ? 'scaleY(' : 'scaleX(') + (jobProg(j).pct / 100).toFixed(3) + ')'; });
+    document.querySelectorAll('#genBar [data-gbt]').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.gbt); if (!j) return; const t = jobProg(j).txt, t0 = t.split(' ')[0];
+      el.textContent = el.dataset.part === 't' ? t0 : el.dataset.part === 'r' ? t.slice(t0.length).replace(/^ of /, 'of ').replace(/^ · /, '') : t; });
+    document.querySelectorAll('#genBar .vs-dk-tile[data-st=working] span').forEach(el => { const c = el.closest('[data-gbc]'), it = c && P.clips.find(x => x.id === c.dataset.gbc), j = it && it.job && JOBS.find(x => x.id === it.job.id); if (j) el.textContent = jobProg(j).txt.split(' ')[0]; });
   }
   { const b = $('#genBar');
     b.addEventListener('change', e => {
@@ -2942,7 +2967,8 @@
     b.addEventListener('input', e => {
       const it = barSel(); if (!it || e.target.dataset.gbs !== 'dur') return;
       it.genDur = +e.target.value; const o = b.querySelector('[data-gbo]'), g = b.querySelector('.vs-gb-go');
-      if (o) o.textContent = it.genDur + ' s'; if (g && !g.disabled) g.textContent = 'Generate · ' + genCredits(it) + ' credits';
+      if (o) o.textContent = it.genDur + ' s'; if (g && !g.disabled) g.textContent = g.textContent.split(' · ')[0] + ' · ' + genCredits(it) + ' credits';
+      const sub = b.querySelector('.vs-dk-id span'); if (sub && it.move) sub.textContent = genWhat(it);
       dirty = true; save();
     });
     b.addEventListener('change', e => { if (e.target.dataset.gbs === 'dur') { e.target.blur(); renderAll(); } });
@@ -2951,6 +2977,7 @@
       if (c) { const it = P.clips.find(x => x.id === c.dataset.gbc); if (!it) return; multi.clear(); sel = { kind: 'clip', id: it.id }; rtab = 'sel'; if (playing) pause(); seek(clipStarts()[P.clips.indexOf(it)] || 0); renderAll(); return; }
       const a = e.target.closest('[data-gba]'); if (!a) return;
       const it = barSel(), k = a.dataset.gba;
+      if (k === 'fold') { deckFold = !deckFold; try { localStorage.setItem('provident-video-deck', deckFold ? 'fold' : 'open'); } catch (x) {} b._h = ''; renderBar(); fitCanvas(); const f = b.querySelector('[data-gba=fold]'); if (f) f.focus(); return; }
       if (k === 'clear') { const ids = JOBS.filter(j => jobClip(j) && jobStale(j)).map(j => j.id); Promise.all(ids.map(id => api('/api/animate/cancel', { id }).catch(() => {}))).then(() => { JOBS = JOBS.filter(j => ids.indexOf(j.id) < 0); P.clips.forEach(x => { if (x.job && ids.indexOf(x.job.id) >= 0) delete x.job; }); renderAll(); }); return; }
       if (!it) return;
       if (k === 'now') return animSend(it, true);

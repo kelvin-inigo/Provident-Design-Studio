@@ -1210,3 +1210,16 @@ or marker (8 px); every resize and move already goes through it. Alt frees a dra
   the pid most of its own timeline's files carry, so the library cannot empty itself.
 - Verified on a separate test copy (own `_animate`) with stand-in generating / waiting jobs, and
   the Generate path up to Higgsfield's free quote (70 credits for Seedance 10 s 720p), cancelled.
+
+**Redesigned the same day (/impeccable): the take deck.** The strip became a console card floating
+on the stage (`.vs-gbar`, 12px from the stage's edges, card fill + hairline ring, no shadow). Its
+thumbnail (`.vs-dk-pv`, 9:16) plays the chosen camera move on the photo with the move tiles' own
+keyframes; the settings are labelled pills (Move, Model, Length with its slider, Quality) on one
+line from about 1180px of deck width; one navy Generate. The same card turns into the confirmation
+("Spend N credits on this take?") and into a progress band: the step and the take on the left, the
+elapsed time large in tabular figures with "of about 2:45" beside it, a 6px track under both. The
+queue is a column of 9:16 tiles at the deck's end that fill from below while they render (a row
+under 760px). The chevron folds the deck to one 40px line (name, a thin bar, the time, the queue
+count), kept per computer in localStorage (`provident-video-deck`). The deck reflows on its own
+width (container queries at 1180 / 760 / 480). Measured: one row 116px at 1252px wide, 160 / 234px
+in a 598px column, 40px folded.
