@@ -1333,3 +1333,9 @@ By request: CASV is not on a Mac by default; anything on the site that calls CAS
 - The graphic's inspector gets **Claude Motion › Open in Claude Motion / Update from Claude Motion**. Update waits the same way; the new export takes the old one's name, star and folder, replaces it at every place on the timeline, and the old copy is removed from the library.
 - A file dropped on the Motion graphics tab while waiting counts as that export (it gets the link).
 - Stops after 20 minutes. Tested on a copy (8797) with test files in Downloads: import with link, placed at the playhead, inspector buttons, Update swap saved. Not tested: a real CM Export (the test pane blocks the film's tab) and macOS's Downloads permission prompt on a new Mac.
+
+## Mograph, and the wash takes CAS's scrim colours (2026-11-26, by request)
+
+- "Motion graphics" is now **Mograph** wherever it shows: the left tab, the timeline track, "Your mographs", "Drop a mograph or logo", the inspector title and the Apply-to-all wording. Code names (`logo`, `logos`, `gfx`) are unchanged.
+- "Navy wash behind it" is now **Wash behind it**, and its colour is picked from CAS's scrim swatches (`CampaignStudio.SCRIMS`, copied as `WASHES`: six dark, six light) or typed as a hex; stored per mograph as `washHex` (default Brand navy #1A2942), drawn by `drawWash` through `washRgb` (an invalid hex falls back to the brand navy). The swatches are the canvas's literals shown in the chrome, as CAS does.
+- Checked on a copy: 12 swatches, the picked one ringed, the canvas under the wash shifts with each colour (White lighter, Black darker, Off unchanged).

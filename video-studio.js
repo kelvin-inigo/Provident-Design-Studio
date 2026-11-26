@@ -63,7 +63,7 @@
   };
   const TRACKS = [
     { id: 'text', name: 'Text', icon: 'title' },
-    { id: 'logo', name: 'Motion graphics', icon: 'image' },
+    { id: 'logo', name: 'Mograph', icon: 'image' },
     { id: 'clip', name: 'Video', icon: 'movie' },
     { id: 'music', name: 'Music', icon: 'music_note' },
     { id: 'sfx', name: 'Sound', icon: 'graphic_eq' }
@@ -994,10 +994,18 @@
   function lgeoW(l) { if (P.size !== '1x1') return l; if (!l.sq) l.sq = { x: l.x, y: l.y, w: Math.round(l.w * SQW * 10) / 10 }; return l.sq; }   // to write
   // the navy wash behind a graphic: the whole frame, the brand navy (ART.wash), at the graphic's
   // own fade and opacity
+  // the wash colours are CAS's scrim swatches (CampaignStudio.SCRIMS), dark grounds and light ones
+  const WASHES = {
+    dark: [['Brand navy', '#1A2942'], ['Deep navy', '#0F1B2D'], ['Slate', '#2F4960'], ['Charcoal', '#2B2B2B'], ['Warm black', '#1A1614'], ['Black', '#000000']],
+    light: [['Cream', '#ECE7DF'], ['Paper', '#FAF8F4'], ['White', '#FFFFFF'], ['Mist', '#E9E4DB'], ['Stone', '#D4CFC4'], ['Sand', '#DCD5C7']]
+  };
+  const washName = h => { h = String(h || WASHES.dark[0][1]).toLowerCase(); const w = WASHES.dark.concat(WASHES.light).find(x => x[1].toLowerCase() === h); return w ? w[0] : h.toUpperCase(); };
+  const washRgb = h => { const m = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(String(h || '').trim()); if (!m) return ART.wash;
+    const x = m[1].length === 3 ? m[1].replace(/./g, c => c + c) : m[1]; return [0, 2, 4].map(i => parseInt(x.substr(i, 2), 16)).join(','); };
   function drawWash(l) {
     if (!l.washOn) return;
     const g = G(), rel = T - l.at, k = (l.fade && !(!playing && sel && sel.id === l.id) ? Math.min(ease(rel / .35), ease((l.dur - rel) / .3)) : 1);
-    cx.save(); cx.globalAlpha = 1; cx.fillStyle = 'rgba(' + ART.wash + ',' + ((l.wash == null ? 40 : l.wash) / 100 * k * (l.op / 100)).toFixed(3) + ')'; cx.fillRect(0, 0, g.w, g.h); cx.restore();
+    cx.save(); cx.globalAlpha = 1; cx.fillStyle = 'rgba(' + washRgb(l.washHex) + ',' + ((l.wash == null ? 40 : l.wash) / 100 * k * (l.op / 100)).toFixed(3) + ')'; cx.fillRect(0, 0, g.w, g.h); cx.restore();
   }
   function drawLogo(l) {
     const m = media[l.mid]; if (!m) return;
@@ -1899,7 +1907,7 @@
   const lset = (id, k, v) => { const o = LIB.meta[id] = LIB.meta[id] || {}; if (v) o[k] = v; else delete o[k]; if (!Object.keys(o).length) delete LIB.meta[id]; libSave(); };
   const LQ = { media: { q: '', f: 'all', dir: '' }, audio: { q: '', f: 'all', dir: '' }, logos: { q: '', f: 'all', dir: '' } };
   const LKIND = { media: ['video', 'image'], audio: ['audio'], logos: ['logo', 'image'] };
-  const LNAME = { media: 'Your media', audio: 'Your audio', logos: 'Your motion graphics' };
+  const LNAME = { media: 'Your media', audio: 'Your audio', logos: 'Your mographs' };
   const libUses = (key, id) => (key === 'media' ? P.clips : key === 'audio' ? P.audio : P.logos).filter(x => x.mid === id).length;
   // MOTION GRAPHICS (2026-11-26, by request): the Graphics track takes videos too. A video added
   // from this tab (or dropped on the track) is marked `gfx` and lists here, not under Media; any
@@ -2057,7 +2065,7 @@
       h += '<div class="vs-sec">' + H('Add text', 'at the playhead') + '<div class="vs-grid">' + pre.map(o => tile('data-addtext', o)).join('') + '</div></div>';
       h += '<div class="vs-sec">' + H('Add a callout', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div></div>';
     } else {
-      h += '<div class="vs-sec">' + drop('logo', 'Drop a motion graphic or logo', 'Video, PNG or SVG · WebM keeps transparency') +
+      h += '<div class="vs-sec">' + drop('logo', 'Drop a mograph or logo', 'Video, PNG or SVG · WebM keeps transparency') +
         (CMW ? cmWaitHtml() : '<button class="vs-link" data-cm="1" title="Paste a Claude Motion link; CASV adds its export by itself">Or bring one from Claude Motion</button>') + '</div>';
       h += libSec('logos', M);
       h += '<div class="vs-sec"><button class="vs-link" data-go="doc" title="The Provident wordmark and the collaboration logo are set once for the whole video">The wordmark and partner logo are in Brand</button></div>';
@@ -2213,7 +2221,7 @@
     if (k === 'text') return it.call === 'cta' ? null : it.call ? { g: ALLG.call, peers: P.texts.filter(t => t !== it && t.call === it.call), word: 'callout of this kind', track: 'Text' }
       : { g: ALLG.text, peers: P.texts.filter(t => t !== it && !t.call), word: 'text', track: 'Text' };
     if (k === 'clip') return { g: ALLG.clip, peers: P.clips.filter(c => c !== it), word: 'clip', track: 'Video' };
-    return { g: ALLG.logo, peers: P.logos.filter(l => l !== it), word: 'graphic', track: 'Motion graphics' };
+    return { g: ALLG.logo, peers: P.logos.filter(l => l !== it), word: 'mograph', track: 'Mograph' };
   }
   function allHtml(it) {
     const a = allOf(it); if (!a || !a.peers.length) return '';
@@ -2326,14 +2334,19 @@
         '<div class="vs-acts"><button class="p-ghost p-sm" id="previewBtn">' + ico('play_arrow') + 'Play this text</button></div>') + timing();
     } else {
       const m = media[it.mid] || {};
-      h = cap('Graphic', esc(m.name)) + '<div class="vs-sec">' +
+      h = cap('Mograph', esc(m.name)) + '<div class="vs-sec">' +
         rng('i', 'w', 'Size', Math.round(lgeo(it).w), 3, 100, '%') + rng('i', 'op', 'Opacity', it.op, 10, 100, '%') +
         ((media[it.mid] || {}).kind === 'video' ? '' : f('Colour', seg('tint', [['match', 'Match wordmark'], ['orig', 'Original']]))) +   // a motion graphic keeps its own colours
         row('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']], 's')) +
         // NAVY WASH BEHIND IT (2026-11-26, by request): the brand navy over the whole picture while
         // the graphic is on screen, so a light graphic reads on a busy photo; intensity 10-90%
-        row('Navy wash behind it', seg('washOn', [[true, 'On'], [false, 'Off']], 's')) +
-        (it.washOn ? rng('i', 'wash', 'Wash intensity', it.wash == null ? 40 : it.wash, 10, 90, '%') : '') +
+        row('Wash behind it', seg('washOn', [[true, 'On'], [false, 'Off']], 's')) +
+        // ITS COLOUR (2026-11-26, by request): CAS's scrim swatches, dark and light, and a hex
+        (it.washOn ? '<div class="vs-f"><label>Wash colour <s>' + esc(washName(it.washHex)) + '</s></label>' +
+          ['dark', 'light'].map(k => '<div class="vs-sws">' + WASHES[k].map(w => '<button data-k="washHex" data-v="' + w[1] + '" title="' + w[0] + ' ' + w[1] + '" aria-label="' + w[0] + '"' +
+            ((it.washHex || WASHES.dark[0][1]).toLowerCase() === w[1].toLowerCase() ? ' data-on="1"' : '') + ' style="background:' + w[1] + '"></button>').join('') + '</div>').join('') +
+          '<input class="p-in vs-hex" data-s="washHex" value="' + esc(it.washHex || WASHES.dark[0][1]) + '" maxlength="7" spellcheck="false" aria-label="Wash colour, hex"></div>' +
+          rng('i', 'wash', 'Wash intensity', it.wash == null ? 40 : it.wash, 10, 90, '%') : '') +
         '<div class="vs-acts"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div>' +
         '</div>' + (m.cm ? sec('Claude Motion', 'where it was made',
           '<div class="vs-acts"><button class="p-ghost p-sm" data-cmopen="' + it.mid + '" title="' + esc(m.cm) + '">Open in Claude Motion</button><button class="p-ghost p-sm" data-cmup="' + it.mid + '" title="Open the film, Export it again, and the new file replaces this one wherever it is on the timeline">Update from Claude Motion</button></div>') : '') + timing();
