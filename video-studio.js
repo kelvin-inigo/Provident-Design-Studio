@@ -990,7 +990,6 @@
   }
   function drawLogo(l) {
     const m = media[l.mid]; if (!m) return;
-    drawWash(l);
     if (m.kind === 'video') {                 // a motion graphic: its own frame, its own colours
       const el = gvel[l.id]; if (!el || !el.videoWidth || (el.readyState < 2 && !el._shown)) return; el._shown = 1;
       const g = G(), q = lgeo(l), rel = T - l.at, vw = el.videoWidth, vh = el.videoHeight;
@@ -1363,6 +1362,8 @@
       }
     }
     draw._had = !!a;
+    // a motion graphic's navy wash sits on the picture only: under every text and graphic (2026-11-26, by request)
+    P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawWash(l); });
     P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur && t.call !== 'cta') (t.call ? drawCallout : drawText)(t); });
     P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawLogo(l); });
     // the end card goes over everything and carries the wordmark itself, so the corner lockup rests
