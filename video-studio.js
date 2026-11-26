@@ -520,12 +520,14 @@
         // converts it to HEVC with alpha, which keeps the transparency (2026-11-26)
         try {
           if (rec.url) URL.revokeObjectURL(rec.url);
-          toast('Converting ' + f.name + ' so the browser can play it. Transparency is kept…');
+          toast('Converting ' + f.name + ' so the browser can play it…');
           const r = await fetch('/api/convert?id=' + rec.id, { method: 'PUT', body: f });
           if (!r.ok) { let m = ''; try { m = (await r.json()).error || ''; } catch (x) {} throw new Error(m || 'convert'); }
           rec.blob = new File([await r.blob()], f.name.replace(/\.[^.]+$/, '') + '.mov', { type: 'video/quicktime' });
           await probe(rec);
-          toast(f.name + ' is converted and in the library.');
+          toast(r.headers.get('X-CASV-Alpha') === 'opaque'
+            ? f.name + ' is converted, but the file has no transparent background (ProRes 422, or exported as RGB only). For transparency, export ProRes 4444 with RGB + Alpha, or a WebM.'
+            : f.name + ' is converted and in the library. Its transparency is kept.');
         } catch (e2) {
           toast(e2 && e2.message && e2.message !== 'convert' && e2.message !== 'load' ? e2.message : 'This browser cannot play ' + f.name + ', and this Mac could not convert it. Try an MP4 (H.264), or a WebM for transparency.'); continue;
         }

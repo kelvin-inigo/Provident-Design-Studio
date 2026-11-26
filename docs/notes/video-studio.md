@@ -1282,3 +1282,14 @@ it and draws its transparency onto the canvas (checked: corner pixel alpha 0 in 
 on the canvas the photo showed through around the shape). No ffmpeg (none on this Mac, no
 Homebrew). A 1 s 540×960 ProRes 4444 converted in about 2 s, 1.19 MB → 30 KB. Not checked: a long
 or 4K ProRes file, Safari, and an export with one in it.
+
+**Fix, same day: our own converter.** The user's 10.mov failed with avconvert's preset list
+("…PresetMediumQuality"): `PresetHEVCHighestQualityWithAlpha` is refused for any file WITHOUT an
+alpha channel (reproduced with a ProRes 422 clip), so their file has no transparency in it.
+`/api/convert` now runs `tools/video-dev/casv-convert.swift` (AVFoundation: AVAssetReader → BGRA
+→ CIContext scale/orient → AVAssetWriter `.hevcWithAlpha`, sound to AAC, longest side 2160, even
+sizes), compiled once by `swiftc` into `_work/bin/casv-convert` (rebuilt when the .swift is
+newer). It reports `alpha` or `opaque` from the first frame (`X-CASV-Alpha`), and the studio says
+so: an opaque file is converted and placed, with "the file has no transparent background … export
+ProRes 4444 with RGB + Alpha, or a WebM". Checked: ProRes 4444 with alpha → kept; ProRes 422 →
+converted, told opaque; 1081×1921 and 4096×2304 sources → 1082×1922 and 2160×1216.

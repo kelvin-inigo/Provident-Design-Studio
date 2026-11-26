@@ -442,12 +442,21 @@ class H(SimpleHTTPRequestHandler):
             try:
                 if left:
                     return self._json(400, {'error': 'incomplete'})
-                r = subprocess.run(['/usr/bin/avconvert', '--preset', 'PresetHEVCHighestQualityWithAlpha', '--source', src, '--output', out, '--replace'],
-                                   capture_output=True, text=True, timeout=1800)
+                # our own converter (casv-convert.swift, AVFoundation only), compiled once into _work/bin.
+                # avconvert's alpha preset refuses any file without transparency, so it is not used.
+                tool, code = os.path.join(ROOT, '_work', 'bin', 'casv-convert'), os.path.join(ROOT, 'tools', 'video-dev', 'casv-convert.swift')
+                if not os.path.exists(tool) or os.path.getmtime(tool) < os.path.getmtime(code):
+                    os.makedirs(os.path.dirname(tool), exist_ok=True)
+                    c = subprocess.run(['/usr/bin/swiftc', '-O', code, '-o', tool], capture_output=True, text=True, timeout=600)
+                    if c.returncode != 0:
+                        return self._json(500, {'error': 'The converter could not be built on this Mac (Xcode command line tools needed).'})
+                r = subprocess.run([tool, src, out, '2160'], capture_output=True, text=True, timeout=1800)
                 if r.returncode != 0 or not os.path.exists(out) or os.path.getsize(out) == 0:
-                    return self._json(422, {'error': 'macOS could not convert this file' + ((': ' + (r.stderr or r.stdout).strip().splitlines()[-1][:200]) if (r.stderr or r.stdout).strip() else '.')})
+                    return self._json(422, {'error': 'macOS could not convert this file: ' + ((r.stderr or '').strip().splitlines() or ['no reason given'])[-1][:200]})
+                alpha = 'alpha' if r.stdout.strip().endswith('alpha') else 'opaque'
                 self.send_response(200)
                 self.send_header('Content-Type', 'video/quicktime')
+                self.send_header('X-CASV-Alpha', alpha)
                 self.send_header('Content-Length', str(os.path.getsize(out)))
                 self.end_headers()
                 with open(out, 'rb') as f:
