@@ -2884,7 +2884,7 @@
       h += '<div class="vs-gb-s"><i class="vs-gb-th" style="background-image:url(\'' + (m.poster || m.url) + '\')"></i><b class="vs-gb-n" title="' + esc(m.name) + '">' + esc(m.name) + '</b>';
       if (st === 'working') {
         const pr = jobProg(sj);
-        h += '<div class="vs-gb-p"><div class="vs-gb-bar" role="progressbar" aria-label="Generating" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pr.pct) + '"><i data-gbp="' + j.id + '" style="width:' + pr.pct.toFixed(1) + '%"></i></div>' +
+        h += '<div class="vs-gb-p"><div class="vs-gb-bar" role="progressbar" aria-label="Generating" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pr.pct) + '"><i data-gbp="' + j.id + '" style="transform:scaleX(' + (pr.pct / 100).toFixed(3) + ')"></i></div>' +
           '<span class="vs-gb-t"><span>' + esc(jobStep(sj)) + '</span><time data-gbt="' + j.id + '">' + pr.txt + '</time></span></div>' +
           '<button class="p-ghost p-sm" data-gba="cancel" title="Stops waiting for this clip here. Higgsfield may already have charged for it.">Stop waiting</button>';
       } else if (st === 'confirm') {
@@ -2910,7 +2910,7 @@
         const c = jobClip(j), w = j.status === 'working' && !jobStale(j), pr = w ? jobProg(j) : null;
         const lab = jobStale(j) ? 'Stalled' : w ? pr.txt.split(' ')[0] : j.status === 'failed' ? 'Failed' : j.status === 'describe' ? 'Prompt' : 'Waiting';
         return '<button class="vs-gb-c" role="listitem" data-st="' + (jobStale(j) ? 'stale' : j.status) + '"' + (c ? ' data-gbc="' + c.id + '"' : '') + (sel && c && sel.id === c.id ? ' aria-current="true"' : '') + ' title="' + esc(((c && (media[c.mid] || {}).name) || j.name || 'Photo') + ' · ' + (j.move || '') + ' · ' + (j.duration || 5) + ' s') + '">' +
-          '<i style="background-image:url(\'/_animate/' + esc(j.photo || '') + '\')"></i><span>' + lab + '</span>' + (w ? '<u><em data-gbp="' + j.id + '" style="width:' + pr.pct.toFixed(1) + '%"></em></u>' : '') + '</button>';
+          '<i style="background-image:url(\'/_animate/' + esc(j.photo || '') + '\')"></i><span>' + lab + '</span>' + (w ? '<u><em data-gbp="' + j.id + '" style="transform:scaleX(' + (pr.pct / 100).toFixed(3) + ')"></em></u>' : '') + '</button>';
       }).join('') + (stale ? '<button class="p-ghost p-sm" data-gba="clear">Clear ' + stale + ' stalled</button>' : '') + '</div>';
     }
     return h;
@@ -2925,7 +2925,7 @@
     if (barShown !== on) { barShown = on; fitCanvas(); }
   }
   function barTick() {
-    document.querySelectorAll('#genBar [data-gbp]').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.gbp); if (j) el.style.width = jobProg(j).pct.toFixed(1) + '%'; });
+    document.querySelectorAll('#genBar [data-gbp]').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.gbp); if (j) el.style.transform = 'scaleX(' + (jobProg(j).pct / 100).toFixed(3) + ')'; });
     document.querySelectorAll('#genBar time[data-gbt]').forEach(el => { const j = JOBS.find(x => x.id === el.dataset.gbt); if (j) el.textContent = jobProg(j).txt; });
     document.querySelectorAll('#genBar .vs-gb-c[data-st=working] span').forEach(el => { const c = el.closest('[data-gbc]'), it = c && P.clips.find(x => x.id === c.dataset.gbc), j = it && it.job && JOBS.find(x => x.id === it.job.id); if (j) el.textContent = jobProg(j).txt.split(' ')[0]; });
   }
