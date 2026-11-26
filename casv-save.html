@@ -14,7 +14,7 @@
      page: it holds the Google sign-in, reads the project and its media from CASV's working folder
      on that computer (/api/work/...) and writes them into the ad set's Drive folder:
        <ad set folder>/Video/<name>.casv          the project
-       <ad set folder>/Video/<name> Assets/       one file per media item, named by its role
+       <ad set folder>/Video/Assets/               one file per media item, named by its role; every save overwrites them
      Opened as casv-save.html#save.8794 (save | pick | open, then CASV's port). */
   body{margin:0;background:var(--ps-app);color:var(--ps-ink);font:400 15px/1.5 'Google Sans Flex',system-ui,sans-serif}
   .cs{display:flex;flex-direction:column;gap:16px;min-height:100vh;box-sizing:border-box;padding:24px 20px}
@@ -204,16 +204,16 @@
     if (!set) { st('Finding the ad sets…'); set = await choose(await findSets(), 'Choose the ad set “' + name + '” belongs to. It is remembered for this video.'); }
     $('sub').textContent = set.name + ' › Video › ' + name;
     st('Opening the ad set’s Video folder…'); bar(0);
-    var video = await folder(set.folder, 'Video', true), assets = await folder(video, name + ' Assets', true);
+    var video = await folder(set.folder, 'Video', true), assets = await folder(video, 'Assets', true);
     var there = await list(assets), names = nameAll(used, P), total = used.reduce(function (n, md) { return n + (md.size || 0); }, 0) || 1, done = 0, sent = 0, rows = [];
     for (var i = 0; i < used.length; i++) {
       var md = used[i], nm = names[md.id], have = there.find(function (f) { return f.name === nm && f.mimeType !== FOLDER; });
-      if (have && +have.size === md.size) { md.fid = have.id; rows.push([nm, 'already there']); }
-      else {
+      // every save writes every file again: what is on Drive is always what the video uses now
+      {
         st('Uploading ' + (i + 1) + ' of ' + used.length + ' · ' + nm + ' (' + mb(md.size || 0) + ')');
         var b = await (await work('/api/work/media?id=' + md.id)).blob();
         md.fid = await put(assets, nm, new Blob([b], { type: String(md.type || b.type || '').split(';')[0] || 'application/octet-stream' }), have);
-        sent++; rows.push([nm, mb(md.size || 0)]);
+        sent++; rows.push([nm, (have ? 'replaced · ' : '') + mb(md.size || 0)]);
       }
       done += md.size || 0; bar(done / total * .95);
     }
@@ -232,7 +232,7 @@
     tell(ans);
     $('files').hidden = false;
     $('files').innerHTML = [[file, 'project']].concat(rows).map(function (r) { return '<li><b>' + esc(r[0]) + '</b><s>' + esc(r[1]) + '</s></li>'; }).join('');
-    st('Saved. ' + (sent ? sent + (sent === 1 ? ' file' : ' files') + ' uploaded' : 'Every file was already there') + (used.length - sent && sent ? ', ' + (used.length - sent) + ' already there' : '') + '.');
+    st('Saved. ' + sent + (sent === 1 ? ' file' : ' files') + ' written to Video › Assets.');
     acts('<a class="p-ghost" href="https://drive.google.com/drive/folders/' + encodeURIComponent(video) + '" target="_blank" rel="noopener">Open the folder in Google Drive</a><button type="button" class="p-btn" id="x">Close</button>');
     $('x').onclick = function () { window.close(); };
   }
@@ -252,7 +252,7 @@
     if (!head.project || head.project.v !== 1) throw new Error('That file is not a Video Studio project.');
     if (head.assets && head.assets.length) {
       // a project saved from the Save button: its media is in the Assets folder, one file each
-      var dir = await folder(video, pick.name + ' Assets', false), there = dir ? await list(dir) : [], blobs = [], total = head.assets.reduce(function (n, a) { return n + (a.size || 0); }, 0) || 1, done = 0;
+      var dir = (await folder(video, 'Assets', false)) || (await folder(video, pick.name + ' Assets', false)), there = dir ? await list(dir) : [], blobs = [], total = head.assets.reduce(function (n, a) { return n + (a.size || 0); }, 0) || 1, done = 0;
       for (var i = 0; i < head.assets.length; i++) {
         var a = head.assets[i], f = there.find(function (x) { return x.name === a.file; });
         if (!f) throw new Error('“' + a.file + '” is missing from the video’s Assets folder on Drive.');
