@@ -1141,3 +1141,20 @@ in the browser, specially the media assets, all files need to be on Google Drive
 - Verified on 8797 + the Drive stand-in (share-dev 8798): the move out of the browser, save, save
   again (nothing re-uploaded), open on a changed project. NOT exercised: real Google Drive, the
   postMessage path (the test pane opens the window in the same tab), files over a few MB.
+
+# THE LIBRARY BELONGS TO ITS VIDEO (2026-11-26, standing instruction)
+
+"assets are only related to the sessions". Every project has `P.id` (made by `fresh()`, given to an
+older project at boot or on Reopen). Every media record carries `pid`: `DB.put` / `putStrict`
+stamp the open video's id when there is none, `dbRec` keeps it, and `ownV(m)` (a record with no
+pid belongs to the open video) filters `libM()`. So a new video starts with an EMPTY library, and
+Reopen the last video, Open project, Open from an ad set and CAS's inbox show that video's own
+files (`pidIn(u)` stamps a project's files with its id before they are written). A Higgsfield clip
+imported for another video is copied into this one (`hfHas` is per video). Other videos' files stay
+in `_work/<port>/`, hidden. First clean-up: 8 files of other projects moved to `_work/8794-removed/`.
+
+Save (same day, by request): the media folder is `Video/Assets/` (no video name), and every save
+writes every used file again, replacing the one there. NOTE: two videos saved into the same ad set
+share that folder and their `photo-01.jpg`… overwrite each other; Open falls back to the older
+`<name> Assets/` folder. Verified on 8797 + the Drive stand-in: two videos' libraries kept apart
+across New, Reopen and a reload; save, save again ("replaced").

@@ -130,7 +130,7 @@
   const PKEY = 'provident-video-project', LKEY = 'provident-video-dev-logos', TKEY = 'provident-video-theme';
   function fresh() {
     return {
-      v: 1, size: '9x16', clips: [], audio: [], texts: [], logos: [],
+      v: 1, id: uid() + uid(), size: '9x16', clips: [], audio: [], texts: [], logos: [],
       brand: { on: true, align: 'left', vpos: 'top', scale: 100, wash: 40, partner: null, pScale: 100, tint: 'match', ink: 'white', qr: null, qrPos: 'bl', qrScale: 100 }
     };
   }
@@ -155,6 +155,12 @@
       flush: () => q };
   })();
   try { const s = JSON.parse(WS.getItem(PKEY) || 'null'); if (s && s.v === 1) { P = Object.assign(fresh(), s); P.brand = Object.assign(fresh().brand, s.brand); } } catch (e) {}
+  // ── THE LIBRARY BELONGS TO ITS VIDEO (2026-11-26, standing instruction: "assets are only related
+  // to the sessions"). Every media file carries `pid`, the id of the video it was added to, and the
+  // library lists only the open video's. A new video starts with an empty library; Reopen the last
+  // video, Open project and Open from an ad set bring that video's own files back. A file with no
+  // pid (from before this rule) belongs to whichever video is open when it is first seen.
+  const ownV = m => { if (!m) return false; if (!m.pid) m.pid = P.id; return m.pid === P.id; };
   if (!SIZES[P.size]) P.size = '9x16';
   const media = {};                 // id -> { id, kind, name, url, dur, w, h, poster, peaks }
   let sel = null;                   // { kind: 'clip'|'audio'|'text'|'logo', id }
@@ -195,8 +201,8 @@
       const db = await this.open();
       return new Promise((res, rej) => { const t = db.transaction('media', mode); const q = fn(t.objectStore('media')); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error || new Error('aborted')); });
     },
-    put(rec) { return this.tx('readwrite', s => s.put(rec)).catch(() => {}); },
-    putStrict(rec) { return this.tx('readwrite', s => s.put(rec)); },
+    put(rec) { if (!rec.pid) rec.pid = P.id; return this.tx('readwrite', s => s.put(rec)).catch(() => {}); },
+    putStrict(rec) { if (!rec.pid) rec.pid = P.id; return this.tx('readwrite', s => s.put(rec)); },
     del(id) { return this.tx('readwrite', s => s.delete(id)).catch(() => {}); },
     all() { return this.tx('readonly', s => s.getAll()).catch(() => []); },
     idle() { return Promise.resolve(); }
@@ -206,6 +212,7 @@
   const DB = !WS.ok ? IDB : {
     _up: {}, _q: {},
     putStrict(rec) {
+      if (!rec.pid) rec.pid = P.id;
       const run = async () => {
         if (this._up[rec.id] !== rec.blob) {
           const r = await fetch('/api/work/media?id=' + rec.id, { method: 'PUT', body: rec.blob });
@@ -1740,7 +1747,7 @@
       return st.f === 'star' ? !!x.star : st.f === 'used' ? u > 0 : st.f === 'free' ? !u : st.f === 'video' ? m.kind === 'video' : st.f === 'photo' ? m.kind === 'image' : true;
     });
   }
-  const libM = () => { const used = P.casBg && !P.casBg.all ? JSON.stringify([P.clips, P.audio, P.logos]) : ''; return Object.values(media).filter(m => !used || (P.casBg.media || []).indexOf(m.id) >= 0 || used.indexOf(m.id) >= 0); };
+  const libM = () => { const used = P.casBg && !P.casBg.all ? JSON.stringify([P.clips, P.audio, P.logos]) : ''; return Object.values(media).filter(ownV).filter(m => !used || (P.casBg.media || []).indexOf(m.id) >= 0 || used.indexOf(m.id) >= 0); };
   const sBtn = (id, cls) => { const on = !!lm(id).star; return '<span class="vs-st' + (cls || '') + '" role="button" tabindex="0" data-star="' + id + '"' + (on ? ' data-on="1"' : '') + ' aria-pressed="' + on + '" aria-label="' + (on ? 'Remove the star' : 'Star') + '" title="' + (on ? 'Starred' : 'Star') + '">' + sico('star') + '</span>'; };
   const mBtn = id => '<span class="vs-mo" role="button" tabindex="0" data-more="' + id + '" aria-haspopup="menu" aria-label="Rename, move or remove" title="Rename, move or remove">' + sico('more') + '</span>';
   function libList(key, M) {
@@ -1785,7 +1792,7 @@
     if (!box) return renderLib();
     box.innerHTML = libList(key, M); if (n) n.textContent = libCount(libPick(key, M).length, libAll(key, M).length);
   }
-  const dbRec = r => ({ id: r.id, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks });
+  const dbRec = r => ({ id: r.id, pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV });
   async function libRename(id) {
     const m = media[id]; if (!m) return;
     const v = await ask('Rename', 'A name you will recognise. It shows here and on the timeline.', 'Rename', m.name);
@@ -2557,6 +2564,7 @@
     if (!yes) { done(); return; }
     try {
       const u = await casUnpack(await (await fetch('/api/inbox/file?id=' + row.id)).blob());
+      pidIn(u);
       const old = ((await DB.all()) || []).map(r => r.id), keep = {};
       for (const r of u.recs) { keep[r.id] = 1; await DB.putStrict(r); }
       loading = true; clearTimeout(saveT);
@@ -2581,7 +2589,12 @@
     if (total() && !(await ask('Open “' + nm + '”?', 'It replaces the video open here. That one is kept: Reopen the last video brings it back' + (P.cas ? '' : ' — it has not been sent to CAS') + '.', 'Open it'))) return;
     await putProject(u);
   }
+  function pidIn(u) {
+    const pr = u.head.project; if (!pr.id) pr.id = uid() + uid();
+    u.recs.forEach(r => { r.pid = pr.id; });
+  }
   async function putProject(u, after) {
+    pidIn(u);
     try {
       for (const r of u.recs) await DB.putStrict(r);
       loading = true; clearTimeout(saveT);
@@ -2774,7 +2787,7 @@
   let HFGOT = {}; try { HFGOT = JSON.parse(localStorage.getItem(HFKEY) || '{}'); } catch (e) {}
   const hfAsp = x => x.aspect || (x.w && x.h ? (x.w === x.h ? '1:1' : x.w < x.h ? '9:16' : '16:9') : '');
   const hfWhen = x => { const d = new Date(x.at); return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }); };
-  const hfHas = x => !!media[HFGOT[x.id]];
+  const hfHas = x => ownV(media[HFGOT[x.id]]);
   const hfShown = () => (HFL.items || []).filter(x => HFL.f === 'all' || hfAsp(x) === HFL.f);
   function hfOpen() { HFL.open = true; HFL.pick.clear(); HFL.imp = ''; $('#hfOv').dataset.on = '1'; if (playing) pause(); hfRender(); hfLoad(); $('#hfX').focus(); }
   function hfClose() { if (HFL.imp) return; HFL.open = false; delete $('#hfOv').dataset.on; $('#hfP').innerHTML = ''; }
@@ -2829,7 +2842,8 @@
       const x = HFL.items.find(q => q.id === ids[i]); if (!x) continue;
       HFL.imp = 'Importing ' + (i + 1) + ' of ' + ids.length + '…'; hfFoot();
       try {
-        let rec = media[HFGOT[x.id]];          // already here: use it again, never a second copy
+        let rec = media[HFGOT[x.id]];          // already in this video: use it again, never a second copy
+        if (rec && !ownV(rec)) { const o = rec; rec = { id: uid(), kind: o.kind, name: o.name, blob: o.blob }; await probe(rec); media[rec.id] = rec; DB.put(dbRec(rec)); HFGOT[x.id] = rec.id; try { localStorage.setItem(HFKEY, JSON.stringify(HFGOT)); } catch (e) {} }
         if (!rec) {
           const r = await fetch('/api/hf/file?id=' + x.id); if (!r.ok) throw new Error('download');
           const blob = await r.blob(), ext = (blob.type.split('/')[1] || 'mp4').replace('quicktime', 'mov');
@@ -3354,7 +3368,7 @@
   const prevOn = () => { let ok = false; try { ok = !!WS.getItem(PREV); } catch (e) {} $('#prevBtn').hidden = $('#prevBtn2').hidden = !ok; };
   async function startNew(name, from, quiet) {
     if (total() && !quiet && !(await ask(from ? 'Start a new video for ' + from + '?' : 'Start a new video?',
-      'The timeline is cleared for a new video. This one is kept: Reopen the last video brings it back' + (P.cas ? '' : ' — it has not been sent to CAS') + '. Everything you uploaded stays in the library.', 'Start new'))) return false;
+      'The timeline and the library are cleared for a new video. This one is kept, with its files: Reopen the last video brings it back' + (P.cas ? '' : ' — it has not been sent to CAS') + '.', 'Start new'))) return false;
     if (total()) { try { WS.setItem(PREV, JSON.stringify(P)); } catch (e) {} }
     mark(); const keep = P.size; P = fresh(); P.size = keep; if (name) P.name = String(name).slice(0, 60); sel = null; T = 0; partnerLoad(); renderAll(); prevOn(); save();
     return true;
@@ -3372,6 +3386,7 @@
     if (total() && !(await ask('Reopen the last video?', 'It swaps places with the video open now, which becomes the last video.', 'Reopen'))) return;
     try { if (total()) WS.setItem(PREV, JSON.stringify(P)); else WS.removeItem(PREV); } catch (e) {}
     mark(); P = Object.assign(fresh(), old); P.brand = Object.assign(fresh().brand, old.brand); if (!SIZES[P.size]) P.size = '9x16';
+    if (!old.id) { const was = {}; [P.clips, P.audio, P.logos].forEach(l => (l || []).forEach(x => { was[x.mid] = 1; })); Object.keys(was).forEach(id => { const m = media[id]; if (m && m.pid !== P.id) { m.pid = P.id; DB.put(dbRec(m)); } }); }
     sel = null; T = 0; partnerLoad(); renderAll(); prevOn(); save();
   });
   prevOn();
@@ -3551,6 +3566,8 @@
     for (const r of recs || []) { try { await probe(r); media[r.id] = r; } catch (e) {} }
     const ok = i => !!media[i.mid];
     P.clips = P.clips.filter(ok); P.audio = P.audio.filter(ok); P.logos = P.logos.filter(ok);
+    if (!P.id) { P.id = uid() + uid(); save(); }
+    Object.values(media).forEach(m => { if (!m.pid) { m.pid = P.id; DB.put(dbRec(m)); } });
     if (P.drive && P.drive.sig === 'open') { P.drive.sig = driveSig(); save(); }
     driveAsk();   // just opened from its ad set: it is as Drive has it
     if (document.fonts && document.fonts.load) { try { await Promise.all([300, 400, 500].map(w => document.fonts.load(w + " 40px 'Google Sans Flex'"))); } catch (e) {} }
