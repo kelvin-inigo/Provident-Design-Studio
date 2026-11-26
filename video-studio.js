@@ -1543,6 +1543,16 @@
       } else it.dur = clamp(snapT(o.at + o.dur + d, it.id) - o.at, .2, isA ? (lim - o.in) / (o.rate || 1) : lim);
     }
     dirty = true; tlGeomSoon();
+    // ACROSS TRACKS (2026-11-26, by request): a photo or video clip dragged up onto Motion graphics
+    // becomes a motion graphic there, and one dragged down onto Video becomes a clip in the gap
+    // nearest the pointer. The track lights while it would; the change happens on release.
+    drag.x = null;
+    if (drag.mode === 'move' && !drag.g && m && (m.kind === 'video' || m.kind === 'image')) {
+      const ov = document.elementFromPoint(e.clientX, e.clientY), row = ov && ov.closest && ov.closest('.vs-trk'), trk = row && row.dataset.trk;
+      if (drag.kind === 'clip' && trk === 'logo' && P.clips.length > 1) drag.x = { trk: 'logo', t: snapT(Math.max(0, xToT(e))) };
+      else if (drag.kind === 'logo' && trk === 'clip') drag.x = planFor(m.kind, ov, e);
+    }
+    dropPaint(drag.x);
     const sp = drag.mode !== 'move' && !drag.g && span(drag.kind, it);   // the playhead lights while an end sits on it
     tl.toggleAttribute('data-snapped', !!sp && (Math.abs(sp[0] - T) < 1e-4 || Math.abs(sp[1] - T) < 1e-4));
   });
@@ -1566,6 +1576,27 @@
   }
   const endDrag = () => {
     snapFree = false; tl.removeAttribute('data-snapped');
+    if (drag && drag.x && drag.moved) {    // released over the other track: undo the slide, then move it across
+      const x = drag.x, kind = drag.kind, id = drag.id; dropPaint(null); drag = null;
+      P = JSON.parse(undo[undo.length - 1]);
+      const keep = T;
+      if (kind === 'clip') {
+        const c = P.clips.find(q => q.id === id); if (!c) { renderAll(); return; }
+        const len = clipLen(c), isV = (media[c.mid] || {}).kind === 'video';
+        P.clips = P.clips.filter(q => q !== c);
+        T = x.t; addLogo(c.mid, true); T = keep;
+        const l = P.logos[P.logos.length - 1]; if (l && l.mid === c.mid) { l.at = x.t; l.dur = len; if (isV) l.in = c.in || 0; sel = { kind: 'logo', id: l.id }; }
+      } else {
+        const l = P.logos.find(q => q.id === id); if (!l) { renderAll(); return; }
+        const isV = (media[l.mid] || {}).kind === 'video';
+        P.logos = P.logos.filter(q => q !== l);
+        addClip(l.mid, true); const c = P.clips.pop();
+        if (isV) { c.in = l.in || 0; c.out = Math.min(media[l.mid].dur, c.in + l.dur); } else { c.in = 0; c.out = l.dur; }
+        P.clips.splice(Math.min(x.i, P.clips.length), 0, c); sel = { kind: 'clip', id: c.id };
+      }
+      dirty = true; save(); renderAll(); return;
+    }
+    dropPaint(null);
     if (drag) drag.done = true;            // the length tag of a resize goes with the release
     if (drag && drag.moved) renderAll();
     else if (drag && drag.kind) {

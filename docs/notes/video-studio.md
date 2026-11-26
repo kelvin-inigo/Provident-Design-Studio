@@ -1256,3 +1256,14 @@ graphics becomes a motion graphic at that moment, over the rest of the timeline 
 nearest gap; a sound goes to Music, or Sound. The click that follows a drag is swallowed, so a
 plain click still adds the old way. Escape cancels. Checked with a real pointer drag: a Media
 video landed on Motion graphics at 5.50 s, no extra clip.
+
+**Across tracks (2026-11-26).** A photo or video clip dragged up onto Motion graphics becomes a
+motion graphic at the pointer's time (its length and, for a video, its in-point kept); a photo or
+video motion graphic dragged down onto Video becomes a clip in the gap nearest the pointer. While
+dragging, `drag.x` holds the plan and the target track lights; on release the slide is undone
+from the drag's own undo snapshot and the item moves across (one undo step). Checked both ways
+with a real pointer drag.
+
+Testing trap: the Browser pane is the user's own view of CASV. A test copy opened in the pane's
+current tab, then its server stopped, left the user on a dead page ("not working"). Test in a new
+tab and close it; put the user's tab back on 8794.
