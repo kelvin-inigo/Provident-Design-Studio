@@ -2246,14 +2246,13 @@
   let gtab = 'anim';
   const jobClip = j => P.clips.find(x => (x.job && x.job.id === j.id) || x.descJob === j.id);
   const genN = () => JOBS.filter(j => jobActive(j) && jobClip(j)).length;        // this video's jobs only
-  function genTab() { const b = $('#rtabs').querySelector('[data-rtab="gen"]'), n = genN(), t = 'Generate' + (n ? ' · ' + n : ''); if (b && b.textContent !== t) b.textContent = t; }
+  function genTab() { const b = $('#rtabs').querySelector('[data-rtab="gen"]'), n = genN(), t = 'Generate'; if (b && b.textContent !== t) b.textContent = t; }
   function genHtml() {
-    const n = genN();
-    if (VO.busy || VO.quote != null) gtab = 'vo'; else if (MU.busy || MU.quote != null) gtab = 'mu';
+    // the animate queue moved to the take deck under the picture (2026-11-26, by request)
+    if (VO.busy || VO.quote != null) gtab = 'vo'; else if (MU.busy || MU.quote != null) gtab = 'mu'; else if (gtab !== 'mu') gtab = 'vo';
     return '<div class="vs-sec"><div class="vs-seg" id="gtabs" role="tablist" aria-label="What to generate">' +
-      [['anim', 'Animate' + (n ? ' · ' + n : '')], ['vo', 'Voiceover'], ['mu', 'Music']].map(o => '<button role="tab" data-gtab="' + o[0] + '" aria-selected="' + (gtab === o[0]) + '"' + (gtab === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div></div>' +
-      (gtab === 'vo' ? voHtml() : gtab === 'mu' ? muHtml()
-        : queueHtml() || '<div class="vs-sec"><div class="vs-none"><b>Nothing is animating</b>Select a photo on the timeline and choose a camera move under Selected. What is waiting or generating is listed here, whichever video it is for.</div></div>');
+      [['vo', 'Voiceover'], ['mu', 'Music']].map(o => '<button role="tab" data-gtab="' + o[0] + '" aria-selected="' + (gtab === o[0]) + '"' + (gtab === o[0] ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div></div>' +
+      (gtab === 'mu' ? muHtml() : voHtml());
   }
   // repainting must not take the caret out of a script somebody is typing
   function paintGen() {
@@ -2737,43 +2736,20 @@
     const i = w.findIndex(j => j.id === id), ord = n => n + (n % 10 === 1 && n !== 11 ? 'st' : n % 10 === 2 && n !== 12 ? 'nd' : n % 10 === 3 && n !== 13 ? 'rd' : 'th');
     return [i >= 0 ? (w.length > 1 ? ord(i + 1) + ' of ' + w.length + ' waiting' : 'The only one waiting') : '', g ? g + ' generating' : ''].filter(Boolean).join(' · ');
   }
+  // THE RIGHT PANEL KEEPS ONLY WHAT THE TAKE DECK DOES NOT HAVE (2026-11-26, by request: "remove
+  // anything here that is already on the horizontal window"). Move, model, length, quality,
+  // Generate, the price, the progress and the queue are the deck's; here: extend, the prompt,
+  // extra direction, people, and queueing it for Claude. Hidden while a job is in hand.
   function animHtml(it, sec, f, row) {
-    const j = it.job, st = j && j.status, sj = j && JOBS.find(x => x.id === j.id) || {}, mv = MOVES.find(m => m[0] === it.move);
-    const what = genWhat(it);
-    const card = (state, title, body, acts) => '<div class="vs-job" data-st="' + state + '"><b>' + title + '</b><s>' + what + '</s>' + body + (acts ? '<div class="vs-acts">' + acts + '</div>' : '') + '</div>';
-    const lands = '';
-    if (st === 'confirm') return sec('Animate this photo', 'Higgsfield', card('confirm', 'Ready to generate',
-      '<span class="vs-note"><b>This will spend ' + (j.credits == null ? 'credits' : j.credits + ' credits') + '</b> from your Higgsfield balance. Nothing has been spent yet.</span>',
-      '<button class="p-ghost p-sm" id="animCancel">Cancel</button><button class="p-btn p-sm" id="animGo">Generate' + (j.credits == null ? '' : ' · ' + j.credits + ' credits') + '</button>'));
-    if (st === 'working') return sec('Animate this photo', 'Higgsfield', card('working', 'Generating',
-      '<div class="vs-busy" role="progressbar" aria-label="Generating"><i></i></div><div class="vs-jl"><span>' + jobStep(sj) + '</span><time data-since="' + j.id + '">' + jobSince(sj) + '</time></div>' +
-      (queueLine(j.id) ? '<span class="vs-note">' + queueLine(j.id) + ' in the whole queue.</span>' : '') + lands,
-      '<button class="p-ghost p-sm" id="animCancel" title="Stops waiting for this clip here. Higgsfield may already have charged for it.">Stop waiting for it</button>'));
-    if (st === 'queued') return sec('Animate this photo', 'Higgsfield', card('queued', 'Waiting in the queue',
-      '<div class="vs-jl"><span>' + (queueLine(j.id) || 'Waiting') + '</span><time data-since="' + j.id + '">' + jobSince(sj) + '</time></div>' +
-      '<span class="vs-note">Nothing runs until you start it: run <b>/animate-photos</b> in Claude, and it works through the queue.</span>' + lands,
-      '<button class="p-ghost p-sm" id="animCancel">Take it off the queue</button>'));
-    const dis = '';
-    // each move plays on a small copy of this photo, so the choice is seen before credits are spent
-    const mvM = media[it.mid], mvBg = mvM && mvM.url ? 'background-image:url(\'' + mvM.url + '\');background-position:' + (it.fx == null ? 50 : it.fx) + '% ' + (it.fy == null ? 50 : it.fy) + '%' : '';
-    return sec('Animate this photo', 'Higgsfield',
-      (st === 'failed' ? '<div class="vs-job" data-st="failed"><b>That did not work</b><span class="vs-note">' + esc(j.error || 'No reason was given.') + ' Change anything below and try again.</span></div>' : '') +
-      '<div class="vs-f"><label>Camera move' + (it.move ? '' : ' <s>choose one</s>') + '</label><div class="vs-mvs" role="radiogroup" aria-label="Camera move">' + MOVES.filter((m, i) => mvAll || i < 6 || it.move === m[0]).map(m => '<button class="vs-mv" role="radio" aria-checked="' + (it.move === m[0]) + '" data-mv="' + m[0] + '"' + (it.move === m[0] ? ' data-on="1"' : '') + dis + '><i class="vs-mvp" aria-hidden="true"><u data-m="' + m[0] + '" style="' + mvBg + '"></u></i><span>' + m[1] + '</span></button>').join('') + '</div>' + (mvAll ? '' : '<button class="vs-link" data-mvall="1">More moves</button>') + '</div>' +
-      f('Model', '<div class="vs-seg">' + GEN_MODELS.map(q => '<button data-gm="' + q[0] + '"' + (genModel(it)[0] === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-      (() => { const l = genLim(it), d = genDurOf(it);
-        return '<div class="vs-f vs-dur"><label>Duration <s data-out="genDur">' + d + 's</s></label><input type="range" class="p-range" data-ir="genDur" data-unit="s" min="' + l[0] + '" max="' + l[1] + '" step="1" value="' + d + '" aria-label="Duration, seconds">' +
-          '<div class="vs-ticks" aria-hidden="true">' + l[2].map(t => '<i style="left:' + ((t - l[0]) / (l[1] - l[0]) * 100).toFixed(2) + '%">' + t + '</i>').join('') + '</div></div>'; })() +
-      (genSeed(it) ? f('Quality', '<div class="vs-seg">' + GEN_RES.map(q => '<button data-gr="' + q[0] + '"' + (genRes(it)[0] === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-          row('Bitrate', '<div class="vs-seg">' + [['standard', 'Standard'], ['high', 'High']].map(q => '<button data-gb="' + q[0] + '"' + (genBit(it) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>')
-        : row('Quality', '<div class="vs-seg">' + [['std', 'Standard'], ['pro', 'Pro']].map(q => '<button data-gq="' + q[0] + '"' + ((it.genMode || 'std') === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>')) +
-      '<div class="vs-go"><div class="vs-jl"><span id="genWhat">' + (!it.move ? 'Choose a camera move to continue' : it.descJob ? 'Waiting for Claude\'s prompt' : what) + '</span></div>' +
-        '<button class="p-btn p-sm" id="animNow"' + (it.move && !it.descJob ? '' : ' disabled') + '>' + (!it.move || it.descJob ? 'Generate' : (st === 'failed' ? 'Try again' : 'Generate') + ' · ' + genCredits(it) + ' credits') + '</button>' + '</div>' +
-      '<details class="vs-pr" data-acc="more"' + (moreOpen ? ' open' : '') + '><summary><b>More options</b><s>Prompt, direction, queue</s>' + CHEV + '</summary><div class="vs-pr-b">' +
+    const st = it.job && it.job.status;
+    if (st === 'confirm' || st === 'working' || st === 'queued' || st === 'describe') return '';
+    return sec('Animate this photo', 'set the move under the picture',
+
       (wideOf(it) ? row('<span title="A photo wider than the video is not cropped: Nano Banana 2.1 adds more of the scene above and below first (' + EXT_CR + ' credits). No crops it to the frame.">Extend to ' + (P.size === '1x1' ? '1:1' : '9:16') + '</span>', '<div class="vs-seg">' + [[1, 'Yes'], [0, 'No']].map(q => '<button data-gx="' + q[0] + '"' + ((extOn(it) ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') : '') +
       promptBox(it) +
       f('Extra direction <s>optional</s>', '<input class="p-in" data-s="moveNote" value="' + esc(it.moveNote || '') + '" placeholder="Golden hour light">') +
       row('People in it', '<div class="vs-seg">' + [[0, 'No'], [1, 'Yes']].map(q => '<button data-gp="' + q[0] + '"' + ((it.people ? 1 : 0) === q[0] ? ' data-on="1"' : '') + '>' + q[1] + '</button>').join('') + '</div>') +
-        '<button class="vs-link" id="animBtn" title="Costs nothing until you run /animate-photos in Claude, which works through the queue"' + (it.move ? '' : ' disabled') + '>Add it to the queue for Claude instead</button>' + '</div></details>');
+        '<button class="vs-link" id="animBtn" title="Costs nothing until you run /animate-photos in Claude, which works through the queue"' + (it.move ? '' : ' disabled') + '>Add it to the queue for Claude instead</button>');
   }
   // THE PROMPT (2026-11-19, by request: "bake this skill in CASV"). The prompt is the
   // photo-to-video-prompt framework's 14 sections. The studio fills them without seeing the photo

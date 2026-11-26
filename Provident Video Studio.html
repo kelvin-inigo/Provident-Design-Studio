@@ -699,6 +699,22 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 @keyframes vs-up{from{opacity:0;transform:translate(-50%,6px)}}
 
 /* ── narrower windows ── */
+/* THE SETTINGS PANEL RUNS TO THE FOOT OF THE WINDOW (2026-11-26, by request: "more important than
+   the timeline"). On a desktop the main grid's children join the page grid, so the right panel
+   spans the picture, the transport bar and the timeline; the timeline is as wide as the library
+   and the picture together. Phones keep their own layout below. */
+@media (min-width:861px){
+  body{position:relative;grid-template-columns:var(--vs-lw,var(--vs-lwd)) minmax(0,1fr) var(--vs-rw,332px)}
+  .p-top{grid-column:1 / -1}
+  .vs-body{display:contents}
+  .vs-rail.l{grid-row:2;grid-column:1}
+  .vs-stage{grid-row:2;grid-column:2}
+  .vs-rzx{grid-row:2 / 3;grid-column:2 / 3;left:-5px}
+  .vs-rail.r{grid-row:2 / span 3;grid-column:3}
+  .vs-bar{grid-row:3;grid-column:1 / 3}
+  .vs-tl{grid-row:4;grid-column:1 / 3}
+}
+@media (min-width:861px) and (max-width:1180px){body{--vs-rw:296px}}
 @media (max-width:1180px){
   :root{--vs-lwd:240px}
   .vs-body{grid-template-columns:var(--vs-lw,var(--vs-lwd)) minmax(0,1fr) 296px}

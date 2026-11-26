@@ -1223,3 +1223,13 @@ under 760px). The chevron folds the deck to one 40px line (name, a thin bar, the
 count), kept per computer in localStorage (`provident-video-deck`). The deck reflows on its own
 width (container queries at 1180 / 760 / 480). Measured: one row 116px at 1252px wide, 160 / 234px
 in a 598px column, 40px folded.
+
+**Right panel to the foot, duplicates out (2026-11-26, by request).** On a desktop (over 860px)
+`.vs-body` is `display:contents` and its children are placed on the page grid: the right panel
+spans the picture, the transport bar and the timeline (`grid-row: 2 / span 3`); the timeline and
+its bar run under the library and the picture only. The library divider is placed in the picture's
+grid area (`2 / 3`, or an absolutely placed item runs to the page's foot). Phones keep their own
+layout. The Selected panel's **Animate this photo** keeps only what the deck does not have
+(extend, prompt, extra direction, people, queue it for Claude) and hides while a job is in hand;
+the Generate tab is **Voiceover | Music** (its Animate queue went to the deck; other videos'
+jobs are no longer listed anywhere, and still come home when they finish).
