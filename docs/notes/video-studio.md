@@ -1309,3 +1309,16 @@ box colour right, corners fully transparent.
 token) over the whole frame just before the graphic itself, at the graphic's own fade and
 opacity, so it comes and goes with it. Checked by pixels: a corner of the photo went
 61,103,147 → 47,78,114 at 40 % → 32,53,82 at 80 %, the graphic staying bright above it.
+
+## CASV on demand: install on a new Mac (2026-11-26)
+
+By request: CASV is not on a Mac by default; anything on the site that calls CASV offers to install it, with a progress bar.
+
+- `tools/video-dev/casv-local.sh` is the whole payload manager: `install` (default) · `update` · `open` · `signin` · `status` · `uninstall`. The site copies one line, `curl -fsSL https://raw.githubusercontent.com/kelvin-inigo/Provident-Design-Studio/video-studio/tools/video-dev/casv-local.sh | bash`; a web page cannot start an installer itself, so pasting it in Terminal is the one manual step.
+- Install: Apple's Command Line Tools if missing (`xcode-select --install`, then it waits; Python 3 and `/usr/bin/swiftc` come from them) → the branch's files from codeload (the GitHub API gives the commit; `.casv-version` stamps it) rsync'd into `~/Provident Video Studio/` (outside Documents: no privacy prompt for the helper), never touching `_work _animate _outbox _inbox` → login item `ae.provident.casv` (`/usr/bin/python3 -u serve.py 8794`, KeepAlive, log `~/Library/Logs/Provident/casv.log`, PATH with `~/.local/node/bin`) → Higgsfield CLI if missing (Node 22 from nodejs.org, SHA-256 checked, into `~/.local/node`, then `npm i -g @higgsfield/cli`; failure is not fatal) → `~/Applications/Provident Video Studio.app` (osacompile, built locally so not quarantined) which runs `casv-local.sh open`: update if the branch moved (helper restarted), then open the page.
+- Progress: while installing it serves `{pct,text,state:run|done|error}` on `127.0.0.1:8793` with a netcat loop (Python may not exist yet), CORS `*` and `Allow-Private-Network`. The site's dialog polls it every second.
+- It refuses to install if something else already answers on 8794 without its login item (a hand-started dev copy, like this Mac's).
+- Sign-ins stay the designer's: `casv-local.sh signin` runs `higgsfield auth login` and `serve.py --claude-login`.
+- A changed `casv-convert.swift` deletes `_work/bin/casv-convert` so it is rebuilt on next use.
+- Test overrides: `CASV_DIR CASV_PORT CASV_FEEDPORT CASV_LABEL CASV_APPS CASV_TARBALL CASV_NO_OPEN`. Tested on a scratch folder with ports 8797/8789 and label `ae.provident.casv-test` (installed, served, uninstalled); not yet run on a Mac without the Command Line Tools.
+- Site side (main, `share-link.js`): `CasvGet.ensure({why})` — see docs/notes/reviews-sharing-drive.md.
