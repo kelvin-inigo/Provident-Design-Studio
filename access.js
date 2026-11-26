@@ -464,6 +464,7 @@
   // table. One select per person; each option's tooltip says what that role can do.
   // NEW ROLE… (2026-11-18, by request): the last choice turns the dropdown into a field for the
   // team's name, in place; Add makes the role (op accrole) and picks it
+  const phoneQ = () => { try { return matchMedia('(max-width:640px)').matches; } catch (e) { return false; } };
   function seg(name, val, sel) {
     if (A.naming && A.naming.k === name && A.naming.e === val)
       return '<form class="ac-nr" data-ac="newrole" data-k2="' + name + '" data-e="' + esc(val) + '"><input class="ac-nr-in" name="n" required minlength="2" maxlength="40" placeholder="Name the team" aria-label="New role name" autocomplete="off"' + (A.naming.v ? ' value="' + esc(A.naming.v) + '"' : '') + '>' +
@@ -473,6 +474,9 @@
     const opt = k => '<option value="' + k + '"' + (sel === k ? ' selected' : '') + ' title="' + esc(ROLE_SUB[k] || '') + '">' + esc(ROLE[k] || k) + '</option>';
     return '<span class="ac-dd"><select class="ac-sel" aria-label="Role" data-k="' + name + '" data-e="' + esc(val) + '" title="' + esc(ROLE_SUB[sel] || '') + '">' +
       std.map(opt).join('') + (mine.length ? '<optgroup label="Roles you named">' + mine.map(opt).join('') + '</optgroup>' : '') +
+      // ON A PHONE the person row is one line, so removing someone is the picker's last choice
+      // (as an iOS menu puts its destructive action last); it still asks first (2026-11-26)
+      (name === 'role' && phoneQ() ? '<optgroup label="—"><option value="__rm">Remove access…</option></optgroup>' : '') +
       (sel && ROLES.indexOf(sel) < 0 ? '<option value="' + esc(sel) + '" selected>' + esc(ROLE[sel] || sel) + '</option>' : '') +
       '<option value="__new">New role…</option></select></span>';
   }
@@ -548,7 +552,7 @@
         '<tr data-st="active"><td><div class="ac-p"><span class="acx-av">' + avIn(A.me.name, adm) + '</span><span><b>' + esc(A.me.name || adm) + '</b><small>' + esc(adm) + '</small></span></div></td><td><span class="ac-role">Admin · you</span></td><td>now</td><td></td></tr>' +
         Pp.map(u => {
           const act = u.status === 'active';
-          return '<tr data-st="' + esc(u.status) + '"><td><div class="ac-p"><span class="acx-av">' + avIn(u.name, u.email) + '</span><span><b>' + esc(u.name || u.email) + '</b><small>' + esc(u.email) + '</small></span></div></td>' +
+          return '<tr data-st="' + esc(u.status) + '"><td><div class="ac-p"><span class="acx-av">' + avIn(u.name, u.email) + '</span><span><b>' + esc(u.name || u.email) + '</b>' + (u.name ? '<small>' + esc(u.email) + '</small>' : '') + '</span></div></td>' +
             '<td>' + (act ? seg('role', u.email, u.role) : '<span class="ac-st">' + esc({ declined: 'Declined', revoked: 'Access removed' }[u.status] || u.status) + '</span>') + '</td>' +
             '<td class="ac-num">' + (u.last ? esc(when(u.last)) : '<span class="ac-dim">not yet</span>') + '</td>' +
             '<td class="ac-end">' + (act ? '<button type="button" class="acx-ghost ac-no" data-ac="revoke" data-e="' + esc(u.email) + '">Remove access</button>'
@@ -644,6 +648,10 @@
       if (v === '__new') { A.naming = { k: t.dataset.k, e: em, focus: true }; drawAdmin(true); return; }
       if (t.dataset.k === 'pick') { A.pick = Object.assign({}, A.pick, { [em]: v }); drawAdmin(true); }
       else if (t.dataset.k === 'add') { A.addRole = v; drawAdmin(true); }
+      else if (t.dataset.k === 'role' && v === '__rm') {
+        if (confirm('Remove ' + em + '’s access? They are signed out of the studio the next time it checks, within five minutes.')) change(em, 'revoke', null, t);
+        else drawAdmin(true);
+      }
       else if (t.dataset.k === 'role') change(em, 'role', v, t);
       return;
     }
@@ -1131,6 +1139,34 @@ html:not([data-acc-isadmin]) .p-nav2-acc,html[data-acc-preview] .p-nav2-acc{disp
 }
 @media (max-width:520px){
   .ac .ac-tabs{display:flex;max-width:100%;overflow-x:auto;scrollbar-width:none}.ac .ac-tabs::-webkit-scrollbar{display:none}.ac .ac-tabs button{flex:none;padding:0 11px;font-size:13px;gap:6px}
+}
+
+/* ── A PHONE (2026-11-26, the home-screen app pass) ──
+   One line per person: who, then their role as a trailing picker (Remove access… is its last
+   choice). The preview picker fits its column (its longest name made it 559px wide and the page
+   576px on a 375 screen). Every field is 16px, so iOS does not zoom when it is tapped; every
+   control is 44px. */
+@media (max-width:640px){
+  .ac .ac-pv{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+  .ac .ac-pv .ac-dd,.ac .ac-dd-eye{display:flex;width:100%;min-width:0}
+  .ac .ac-sel,.ac .ac-dd-eye .ac-sel,.ac .ac-add .ac-sel{width:100%;min-width:0;height:44px;font-size:16px}
+  .ac .ac-add{gap:8px;padding:12px}
+  .ac .ac-add label{flex:1 0 100%}
+  .ac .ac-add input{flex:1 0 100%;height:44px;font-size:16px}
+  .ac .ac-add .ac-dd{flex:1 1 0;min-width:0}
+  .ac .ac-add button[type=submit]{height:44px;flex:none}
+  .ac .ac-nr-in{font-size:16px}
+  .ac .ac-tabs button{height:40px}
+  .ac .ac-pv .acx-ghost,.ac .acx-btn,.ac .acx-ghost{min-height:44px}
+  .ac .ac-t tr{grid-template-columns:minmax(0,1fr) minmax(0,168px);align-items:center;gap:6px 12px;padding:10px 0}
+  .ac .ac-t td:nth-child(2){justify-self:end;width:100%;min-width:0}
+  .ac .ac-t td:nth-child(2) .ac-dd{width:100%;min-width:0}
+  .ac .ac-t td:nth-child(2) .ac-sel{height:40px;padding-left:10px;padding-right:28px;font-size:16px;background:transparent;text-align:right;text-align-last:right;color:var(--ps-ink-2)}
+  .ac .ac-t td:nth-child(2) .ac-dd::after{right:10px}
+  .ac .ac-t td:nth-child(2) .ac-role,.ac .ac-t td:nth-child(2) .ac-st{display:block;text-align:right}
+  .ac .ac-t tr[data-st=active] .ac-end{display:none}
+  .ac .ac-t .acx-av{width:36px;height:36px}
+  .ac .ac-p{gap:10px}
 }
 `;
   const st = document.createElement('style'); st.id = 'acx-css'; st.textContent = css;

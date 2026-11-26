@@ -992,3 +992,97 @@ request the three P1s, in the user's order and with their choice of name.
 - Left from the critique: Done cells loudest / Missing quietest (P2), the Kanban List has no
   missing line (P2), organic posts ~2,500px down (P3), the Engine nav badge at 2.86:1.
 
+## 2026-11-26 — the home-screen app (Revision 1.79)
+
+By request ("it needs to act as a native iOS app"). The shared half (the head tags, `web-app.js`,
+the studios) is in `docs/notes/chrome-and-design-system.md`, *THE HOME-SCREEN APP*. On this page,
+one block at the end of the sheet, phone (≤640) and `pointer:coarse` only:
+
+- **Header.** Sticky again (the 21 Nov pass made it static), one 52px row (`--uh-h`), glass on
+  `.p-top::before` (NOT on `.p-top`: the fixed tab bar is its child, see the trap in the chrome
+  note). `#uh-ttl` (new span, filled by `route()`: "Home", else the title before the dash) takes
+  the wordmark's place at `data-past`, like an iOS large title. Controls 36px at a 44px pitch.
+- **Tab bar.** Glass, 54px + inset (`--tabbar-h`, was 60), an icon over each word (`.uh-ti`,
+  hidden on the desktop; new symbols `g-home`, `g-help`, `g-eng`), 11px labels, the current tab
+  in full ink at weight 600 with a heavier stroke, no pill. It slides away at `data-kb`.
+- **Sticky filters.** `.pj-tools` / `.sx-tools` stick under the header as glass; at
+  `data-sdir="down"` a `clip-path` leaves only the first row (the chips, 60px). A clip, not a
+  height: Safari has no scroll anchoring, and a collapsing sticky row would jump the list.
+- **Folding groups.** `.pj-s > h2` (sticky under the chips), `.pj-gh` and `.hm-side .pan > .sh`
+  toggle `data-fold` on their box (`foldTap`, `foldApply`; `role=button`, `aria-expanded`, Enter
+  and Space). State is `localStorage['provident-home-fold']`, keyed by the heading's words, and
+  a MutationObserver on `#pg` puts it back after every redraw. Phone only.
+- **Bug found and fixed: Projects was 23,497px tall for 12 projects on a phone** (Home's desk
+  772px for 4). The phone rule `.pj-g .dk2{row-gap:18px}` out-ranked `.dk2[data-st]{row-gap:0}`,
+  so each 2px packing row carried an 18px gap. Now `.dk2[data-st]{row-gap:0}` in the phone block:
+  3,391px.
+- Verified at 375×812, light and dark: Home, Tracker, Projects (fold, sticky, clip), New.
+  Desktop 1440: nav static in the bar, no icons, no title, tools static, nothing folds.
+
+## 2026-11-26 (later) — the phone, second pass (Revision 1.81)
+
+After /impeccable critique of the phone view (20/40). In the phone block at the end of the sheet
+and the script after `route()`:
+- **Four tabs:** Access, Engine and Help hide on a phone; `#uh-more` (a button in `.uh-nav`,
+  hidden on the desktop) opens More's sheet: the account card, Access (with the pending count,
+  also on the tab as `#more-n`), Engine, Help, Appearance (presses `#themebtn`), Sign in/out,
+  Design system reference. More is the current tab on Access / Engine / Help. The header's
+  theme button and account pop-over are hidden on a phone; New is 44px.
+- **The sheet** `#sht`: `sheetOpen(html)` / `sheetClose()`, scrim tap, Escape, drag the top 64px
+  down (110px, or a quick flick) to close; `data-sheet` on the root stops the page scrolling.
+- **New** (`a[href="#/new"]` on a phone with two studios to start) opens `newSheet()` instead
+  of the page; `#/new` itself still renders for a link.
+- **Back:** `#uh-back` replaces the wordmark on `item/*` (to Tracker), `new*` and `files/*` (to
+  Home) and `help/<guide>` (to Help); `history.back()` when this tab has been somewhere, else the
+  parent. `.bk` / `.mnt-bk` hide on a phone. No footer on a phone.
+- **Home:** the greeting is one compact card (26px + a 17px line, ~120px, was 220); with nothing
+  waiting (`.hm[data-clear]`) Pick up where you left off comes first; Where everything is with
+  nothing in motion (`.pan[data-zero]`) is its heading only.
+- **Tracker:** the title and Progress | Kanban share a row; the lede hides; on a phone `tkBar`
+  puts Filter and the switches INSIDE `.sx-tools` (`phoneQ()` at draw time; a phone↔tablet change
+  redraws); Filter's `.pm` is a sheet with a dim. **Trap:** the tools' glass moved to `::before`
+  and their fold clip is set only while folded — a backdrop-filter or a clip-path on the tools
+  would contain or clip the fixed sheet inside them; and `.sx-tools:has(.pm)` goes to z 95 to
+  clear the tab bar (a sticky z-index is a stacking context).
+- **Projects:** the sticky studio heading sits under the tools' live height (`--tools-h`, a
+  ResizeObserver) and under 60px while folded; Open a project / post file is one compact row.
+- **Access (access.js):** below 641px the preview picker fits its column (it was 559px; the page
+  576px wide); each person is one ~61px row with the role picker on the right (168px); Remove
+  access… is the picker's last choice on a phone (`phoneQ()` at render) and still confirms; a
+  person with no name shows their address once; every field is 16px. `#pg` keeps 28px under the
+  title when the admin panel follows it.
+- Measured: no sideways scroll on any page at 375; Access 375/375.
+
+## 2026-11-26 — phone polish (Revision 1.82)
+- **Folding headings stay headings.** The second pass put `role=button` on Projects' `h2` (and
+  `.pj-gh`, Home's `.pan > .sh` with `role=heading`), which dropped their heading role. Now
+  `foldApply` lays a `.fold-b` button over the heading (`aria-label` = the heading's words,
+  `aria-expanded`); links inside a heading sit above it (z 2). Phone only; the desktop has none.
+- **Heading levels:** Tracker's empty states (Progress and Kanban) were an `h3` straight under the
+  page's `h1`; they carry `aria-level="2"` (look unchanged).
+- **More** names an admin "Admin" (the account card said "Designer", the role an admin designs as).
+- **Floating tab bar** (by request, from an annotated screenshot: "icons only, then a floating
+  rounded corner container"): at ≤640 `.uh-nav` is a 56px glass capsule, 16px from each side and
+  max(10px, the home indicator's inset) from the foot, radius 28; the current tab is a `--ps-fill`
+  pill; the words are `font-size:0` (still in the markup for VoiceOver); `--tabbar-h` is the
+  capsule plus its gap, so toasts and the send receipt sit above it. The studios' panel bar keeps
+  its words (Components / Component / Layout are not guessable from icons).
+- **Compact controls, iOS style** (by request, from an annotated Tracker: "more compactness and
+  more iOS style layout for these long menus … go and find menus like this and change"). One
+  pattern at ≤640: a 38px search field with a 38px round button at its end (`.sx-row`, `.sx-fb`),
+  then a 32px segmented control (`.sx-seg`, also `.pj-ph .flt`, Access's `.ac-tabs`, Help's
+  `.hp-sw`, and Tracker's Progress | Kanban).
+  - **Tracker:** `tkBar` returns `tkBarPhone()` on a phone (drawn by `phoneQ()`): four rows
+    (~300px) became two (~94px). Everything else is in one **Filter and view** sheet (`.pm.pm-sh`):
+    iOS switches (`.pm-sw`, `role=switch`; same ids `sx-mine` / `sx-closed`, so the old handlers
+    work), the facets (`tkFacets`, shared with the desktop), and on Kanban a `phx` string built in
+    `viewStatus`: Board | List, Overdue work, Sort, Group, Density (the same `data-sv` /
+    `data-sl` / `data-ss` / `data-sg` / `data-sd` buttons). The button counts what is on (filters
+    + the two switches) and goes ink-filled. **Trap:** the dim behind the sheet is a real button
+    (`.pm-dim`, `data-mn="filter"`); a `::before` on `.pp` swallowed the tap, because a click
+    inside `.pp` never closes a menu.
+  - **Projects:** `viewProjects` draws `.pj-tools.pj-ph` on a phone: search + an Open button
+    (`data-pjopen`, a sheet with A project file / A post file), then the kinds.
+  - The folded tools keep the search row (56px), and Projects' sticky heading follows.
+  - Help's counts lose their pill inside the switch (`body .hp-sw button s`, help.js injects its
+    sheet later).

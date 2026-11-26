@@ -193,14 +193,48 @@ say so and point to the step above.
   under the lists reads them again now.
 - Safari and Firefox work too, but they can't use a **Source folder**. Exports then download as a
   zip instead.
-- **On an iPad or a phone** (Safari or Chrome) the studios fit the screen. On a tablet held
-  upright and on a phone the top bar has two rows: **Projects**, the folder, **Save** and
-  **Share** on top, then **Ad set | Design** (CAS) or **Guided | All controls** (OPS), the theme,
-  **Undo** and **Redo**. On a phone the step that moves the work on (**Add to an ad set**,
-  **Save to Drive** and the like) sits at the foot of the screen, over **Components /
-  Component / Layout** (CAS) or **Template / Slide** (OPS).
-- **The home site on a phone** (Home, Tracker, an ad set's page): the menu (**Home**, **Tracker**,
-  **Projects**, **Access**, **Help**) is a bar at the foot of the screen. Home shows what waits on
+- **On an iPad** (Safari or Chrome) the studios fit the screen. Held upright, the top bar has two
+  rows: **Projects**, the folder, **Save** and **Share** on top, then **Ad set | Design** (CAS) or
+  **Guided | All controls** (OPS), the theme, **Undo** and **Redo**.
+- **On a phone** a project opens in **Ad set** (CAS) or **Guided** (OPS); **Design** and **All
+  controls** are one tap away in the top bar. The top bar is one row: **‹** (back to Home), the
+  mode switch, **Undo** and **Redo**, and **⋯** (More). More holds the rest: the project's name
+  (type to rename it), the step that moves the work on (**Add to an ad set**, **Save to Drive**…),
+  **Preview**, **Share and export**, **Save**, **Source folder**, **Projects** and
+  **Appearance** (Light or Dark). In Design / All controls the foot bar is **Components /
+  Component / Layout / Variants** (CAS) or **Template / Slide / Look** (OPS). Each opens a sheet
+  from the foot of the screen over the lower half: the canvas stays live above it, so tap a
+  component on the canvas to edit it. Drag the sheet's handle up for the full height, down to put
+  it away, or tap its tab again. **Variants** holds Provident / Unbranded, **Add Variant** and
+  **All variants**; **Look** holds **Post look**. **Share and export** opens as a sheet too. With
+  the keyboard up the foot bars step aside, and a tap on the page puts the keyboard away. CAS's
+  Ad set screen scrolls as one page, the preview first.
+- **On an iPhone's home screen.** In Safari open the site, tap **Share**, then **Add to Home
+  Screen**. The **PDS** icon opens the site full screen, without Safari's bars, and it works like
+  an app: links between Home and the studios stay inside it, and swiping from the left edge goes
+  back. The app keeps its own sign-in, so sign in with Google once inside it. If the Google
+  window will not come back to the app, sign in from Safari instead and tell the admin.
+- **The home site on a phone** (Home, Tracker, an ad set's page): the menu is a bar at the foot of
+  the screen with four tabs, **Home**, **Tracker**, **Projects** and **More**, shown as icons in a
+  rounded bar that floats over the foot of the page (house, lines, folder, three dots); the page
+  you are on is the one with the shaded pill. **More** opens a
+  sheet with your account, **Access** (admin), **Engine**, **Help**, **Appearance** (Light or
+  Dark) and **Sign out**. The **+** at the top right opens a sheet: **A campaign** or **An organic
+  post**. A page you open from another (an ad set, a post, a help guide) has **‹** at the top left
+  to go back. The top bar stays as you scroll and shows the page's name once its title has
+  scrolled away. **Tracker** and **Projects** each have two short rows under the title: **Find by
+  name** with a round button at its end, then **Everything | Campaign ads | Organic posts**. On
+  Tracker the button is **Filter and view**: a sheet with **Only what waits on me** and **Show
+  closed** switches, Stage, Due and From, and on Kanban **Board | List**, Overdue work, Sort,
+  Group and Density; a number on the button says how many are on, and **Clear** resets them. On
+  Projects the button opens **Open a file** (a project file or a post file). Scrolling down
+  leaves only the search row; scrolling up brings the rest back. **Access** and **Help** use the
+  same compact switch for their tabs. With nothing waiting on you, Home opens on **Pick up where you left off**. In **Access ›
+  People** each person is one row with their role on the right; **Remove access…** is the last
+  choice in the role list, and it asks first. On
+  **Projects**, tap **Campaign ads**, **Organic posts** or a campaign's name to fold or open that
+  group; on Home the same goes for **Where everything is**, **Access** and **Your studios**. The
+  phone remembers what you folded. Home shows what waits on
   you, then **Where everything is**, then the rest. **Tracker** shows one short card per campaign
   with what is missing in words; **Show the deliverables** opens the English and Arabic grid.
   **Send to…**, the person picker and **Settings** open as sheets from the bottom, their buttons

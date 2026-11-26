@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Provident Design Studio</title>
 <meta name="description" content="Provident Design Studio: one home for Campaign ads and Organic posts — what is waiting on you, where everything stands, and the way into each studio.">
+<!-- HOME-SCREEN WEB APP (2026-11-26): saved to an iPhone's home screen, PDS opens without the
+     browser's bars. The status bar is the system's own ("default": legible in both themes, and
+     nothing of ours sits under it); web-app.js tells the stylesheets about the keyboard, the
+     scroll position and whether this is the home-screen app. See docs/notes/chrome-and-design-system.md. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PDS">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="apple-touch-icon" href="app-icon-180.png">
+<script src="./web-app.js"></script>
 
 <!-- SET data-theme BEFORE FIRST PAINT. Light-first, and the key is `provident-theme`, the SAME
      one the studios read, so a choice made here carries into whichever studio opens next. -->
@@ -1009,6 +1022,321 @@ body{-webkit-tap-highlight-color:transparent;
   .b-l::after,.fresh a::after,.desk-more a::after,.p-wm::after{content:""; position:absolute; inset:-14px -6px}
   .row-t a::after{content:""; position:absolute; inset:-12px 0}
 }
+/* ═════ THE HOME-SCREEN APP (2026-11-26, by request: "it needs to act as a native iOS app") ═════
+   web-app.js sets data-standalone / data-kb / data-scrolled / data-past / data-sdir on <html>.
+   On a phone the header is a 52px glass bar that stays (the page's title takes the wordmark's
+   place once the big title has scrolled away), the tab bar is glass with an icon over each word,
+   the filter rows stick under the header and fold to their first row on the way down, and the
+   groups on Projects and Home fold on a tap. Glass = the bar's own ground at 74% over a blur of
+   whatever is passing under it, so the type on it keeps its contrast on any content.
+   Every rule is inside a phone or coarse-pointer query: the desktop is untouched. */
+.uh-ti,.uh-ttl{display:none}
+@media (max-width:640px){
+  :root{--uh-h:calc(52px + env(safe-area-inset-top,0px)); --tabbar-h:calc(54px + env(safe-area-inset-bottom,0px));
+    --glass:color-mix(in srgb, var(--ps-app) 74%, transparent); --glass-f:saturate(180%) blur(22px)}
+  html{scroll-padding-top:calc(var(--uh-h) + 72px)}
+  .pg{padding-top:16px}
+  .pg[data-in]{animation-duration:220ms}
+
+  /* the header: one glass row */
+  .p-top{position:sticky; top:0; z-index:40; height:var(--uh-h); box-sizing:border-box; gap:8px; overflow:visible;
+    padding:env(safe-area-inset-top,0px) 12px 0 16px; background:none;
+    border-bottom-color:transparent; transition:border-color 180ms var(--ps-ease)}
+  /* the glass is a layer BEHIND the bar's content, not the bar itself: a backdrop-filter on
+     .p-top would make it the containing block of the fixed tab bar inside it, and the tabs
+     would ride at the top of the screen */
+  .p-top::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:var(--glass);
+    -webkit-backdrop-filter:var(--glass-f); backdrop-filter:var(--glass-f)}
+  :root[data-scrolled] .p-top{border-bottom-color:var(--ps-hair)}
+  body:has(.pj-tools,.sx-tools) .p-top{border-bottom-color:transparent}
+  .p-top #newbtn,.p-top #themebtn,.p-top .uh-me{width:36px; min-width:36px; height:36px; min-height:36px}
+  .p-top .p-wm{transition:opacity 160ms var(--ps-ease), transform 160ms var(--ps-ease)}
+  .uh-ttl{display:block; position:absolute; left:16px; right:148px; bottom:0; height:52px; margin:0;
+    font:600 17px/52px var(--ps-font); letter-spacing:-.01em; color:var(--ps-ink);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none;
+    opacity:0; transform:translateY(8px); transition:opacity 160ms var(--ps-ease), transform 160ms var(--ps-ease)}
+  :root[data-past] .uh-ttl:not(:empty){opacity:1; transform:none}
+  :root[data-past] .p-top:has(.uh-ttl:not(:empty)) .p-wm{opacity:0; transform:translateY(-8px); pointer-events:none}
+  body[data-gate] .uh-ttl{display:none}
+
+  /* the tab bar: glass, an icon over each word, the current one in full ink */
+  .uh-nav{height:var(--tabbar-h); box-sizing:border-box; align-items:stretch; gap:0;
+    padding:3px 4px env(safe-area-inset-bottom,0px); background:var(--glass);
+    -webkit-backdrop-filter:var(--glass-f); backdrop-filter:var(--glass-f); box-shadow:0 -1px 0 var(--ps-hair);
+    transition:transform 220ms var(--ps-ease), visibility 0s}
+  .uh-nav a{flex-direction:column; height:auto; gap:3px; padding:6px 2px 4px; border-radius:10px;
+    font-size:11px; font-weight:500; line-height:1; letter-spacing:.01em; color:var(--ps-dim); background:none}
+  .uh-nav a:hover{background:none; color:var(--ps-dim)}
+  .uh-nav a[aria-current="page"],.uh-nav a[aria-current="page"]:hover{background:none; color:var(--ps-ink); font-weight:600}
+  .uh-ti{display:block; width:23px; height:23px; stroke-width:1.6}
+  .uh-nav a[aria-current="page"] .uh-ti{stroke-width:2.1}
+  .uh-nav .uh-n{top:2px; right:calc(50% - 24px)}
+  /* the keyboard is up: the tab bar stands down */
+  :root[data-kb] .uh-nav{transform:translateY(110%); visibility:hidden; transition:transform 220ms var(--ps-ease), visibility 0s 220ms}
+
+  /* the filter rows stick under the header; on the way down only their first row (the chips) stays */
+  .pj-tools,.sx-tools{position:sticky; top:var(--uh-h); z-index:30; margin-left:-16px; margin-right:-16px;
+    padding:8px 16px; gap:8px; box-sizing:border-box; isolation:isolate}
+  /* the fold is a clip, set only while folded: a clip at rest would also clip the Filter sheet,
+     which is a fixed child of these tools */
+  .pj-tools::before,.sx-tools::before{content:""; position:absolute; inset:0; z-index:-1; pointer-events:none; background:var(--glass);
+    -webkit-backdrop-filter:var(--glass-f); backdrop-filter:var(--glass-f)}
+  .pj-tools{margin-top:12px; margin-bottom:0}
+  .sx-tools{margin-bottom:12px}
+  .pj-tools .flt,.sx-tools .flt{width:100%; margin:0}
+  :root[data-sdir="down"]:not([data-kb]) .pj-tools:not(:focus-within),
+  :root[data-sdir="down"]:not([data-kb]) .sx-tools:not(:focus-within):not(:has(.pm)){clip-path:inset(0 0 calc(100% - 60px) 0)}
+  :root[data-sdir="down"]:not([data-kb]) .pj-s > h2{top:calc(var(--uh-h) + 60px)}
+  .sx-tools:has(.pm){z-index:95}
+  .pj-tools::before,.sx-tools::before{background:color-mix(in srgb, var(--ps-app) 88%, transparent) !important}
+  .sx-head{margin-bottom:12px; gap:12px 24px}
+  .sx-head .lede,.pg > .lede{font-size:14px}
+
+  /* Projects: the studio's heading sticks under the chips, and it and each group fold on a tap */
+  .pj-s{margin-top:20px}
+  .pj-s > h2{position:sticky; top:calc(var(--uh-h) + var(--tools-h,60px)); z-index:20; transition:top 240ms var(--ps-ease); margin:0 -16px; padding:10px 16px; min-height:44px; box-sizing:border-box;
+    background:var(--glass); -webkit-backdrop-filter:var(--glass-f); backdrop-filter:var(--glass-f); cursor:pointer}
+  .pj-gh{position:relative; min-height:44px; margin:0 0 10px; padding-right:28px; align-content:center; cursor:pointer}
+  .pj-s > h2::after,.pj-gh::after,.hm-side .pan > .sh::after{content:""; flex:none; width:7px; height:7px; margin-left:auto; box-sizing:border-box;
+    border-right:1.75px solid var(--ps-dim); border-bottom:1.75px solid var(--ps-dim); transform:translateY(-2px) rotate(45deg);
+    transition:transform 180ms var(--ps-ease)}
+  .pj-gh::after{position:absolute; right:6px; top:50%; margin-top:-5px}
+  .pj-s[data-fold] > h2::after,.pj-g[data-fold] > .pj-gh::after,.hm-side .pan[data-fold] > .sh::after{transform:translateX(-2px) rotate(-45deg)}
+  .pj-s[data-fold] > :not(h2),.pj-g[data-fold] > :not(.pj-gh),.hm-side .pan[data-fold] > :not(.sh){display:none}
+  .pj-g[data-fold] > .pj-gh{margin-bottom:0}
+  .hm-side .pan > .sh{cursor:pointer; align-items:center; min-height:28px}
+  .hm-side .pan[data-fold] > .sh{margin-bottom:0}
+  .hm-side .pan{padding:14px 16px}
+  [data-foldh]{position:relative}
+  .fold-b{position:absolute; inset:0; z-index:1; width:100%; margin:0; padding:0; border:0; border-radius:8px; background:none; cursor:pointer; -webkit-tap-highlight-color:transparent}
+  .fold-b:focus-visible{outline:2px solid var(--ps-ink); outline-offset:2px}
+  [data-foldh] a,[data-foldh] button:not(.fold-b){position:relative; z-index:2}
+
+  /* the stacked tiles: the 2px packing rows carry no gap of their own (a phone rule gave each
+     of them 18px, and twelve projects made a page 23,000px long) */
+  .dk2[data-st],.pj-g .dk2[data-st]{row-gap:0}
+
+  /* compact: the greeting and the cards give the first screen back to the work */
+  .sky{min-height:0}
+  .hm > .sky{margin-bottom:20px}
+  .qk{padding:16px}
+}
+/* a finger gets an answer the moment it lands; nothing on the chrome selects or calls out */
+@media (pointer:coarse){
+  html{touch-action:manipulation}
+  .p-top,.uh-nav,.b,.flt,.vs,.pb,.tg,.tk-xp,.sh,.pj-gh,.pj-s > h2{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
+  .b,.flt button,.flt a,.vs a,.vs button,.pb,.tk-xp,.st,.door,.uh-nav a,#themebtn,.uh-me,.icb,.dk2 > li > a{
+    transition:transform 90ms var(--ps-ease), opacity 90ms var(--ps-ease), background-color 120ms var(--ps-ease), color 120ms var(--ps-ease)}
+  .b:active,.flt button:active,.flt a:active,.vs a:active,.vs button:active,.pb:active,.tk-xp:active,#themebtn:active,.uh-me:active,.icb:active{transform:scale(.96); opacity:.82}
+  .uh-nav a:active{transform:scale(.92); opacity:.7}
+  .st:active,.door:active,.dk2 > li > a:active{transform:scale(.985); opacity:.86}
+}
+@media (prefers-reduced-motion:reduce){ .p-top .p-wm,.uh-ttl,.uh-nav,.pj-tools,.sx-tools,.sht-p,.sht-s{transition:none} }
+/* ═════ THE PHONE, SECOND PASS (2026-11-26, /impeccable critique: 20/40) ═════
+   Four tabs: Home, Tracker, Projects, More (Access, Engine, Help, appearance and the account
+   live in More's sheet, so the header keeps only New). New is a sheet; a pushed page has a back
+   button; no footer; Home, Tracker and Projects put the work before the furniture. */
+.uh-more,.uh-back{display:none}
+.sht[hidden]{display:none !important}
+@media (max-width:640px){
+  /* the header: back or wordmark, then New; the theme and the account went into More */
+  .p-top #themebtn,.p-top #meav,.p-top .mn{display:none}
+  .p-top #newbtn{width:44px; min-width:44px; height:44px; min-height:44px; border-radius:50%}
+  .uh-back{display:inline-flex; align-items:center; gap:2px; height:44px; margin-left:-10px; padding:0 8px 0 2px; color:var(--ps-ink);
+    font:400 17px/1 var(--ps-font); text-decoration:none; letter-spacing:-.01em}
+  .uh-back svg.i{width:24px; height:24px; stroke-width:2}
+  .uh-back[hidden]{display:none}
+  .p-top:has(.uh-back:not([hidden])) .p-wm{display:none}
+  .p-top:has(.uh-back:not([hidden])) .uh-ttl{left:120px; right:64px; text-align:center}
+  :root[data-past] .p-top:has(.uh-back:not([hidden])) .uh-back{opacity:1}
+  .pg .bk,.mnt-bk{display:none}
+  .uh-ttl{right:72px}
+  /* four tabs */
+  .uh-nav [data-nav="access"],.uh-nav [data-nav="engine"],.uh-nav [data-nav="help"]{display:none !important}
+  .uh-more{display:flex; position:relative; flex:1 1 0; min-width:0; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:6px 2px 4px;
+    border:0; border-radius:10px; background:none; color:var(--ps-dim); font:500 11px/1 var(--ps-font); letter-spacing:.01em; cursor:pointer}
+  .uh-more[aria-current="page"]{color:var(--ps-ink); font-weight:600}
+  .uh-more[aria-current="page"] .uh-ti{stroke-width:2.1}
+  .uh-more .uh-n{position:absolute; top:2px; right:calc(50% - 24px)}
+  .uh-nav a{font-size:11px}
+  .ft{display:none}
+  .pg{padding-bottom:calc(24px + var(--tabbar-h))}
+
+  /* the sheet */
+  .sht{position:fixed; inset:0; z-index:90}
+  .sht-s{position:absolute; inset:0; background:rgba(8,10,14,.34); opacity:0; transition:opacity 300ms var(--ps-ease)}
+  .sht[data-on] .sht-s{opacity:1}
+  .sht-p{position:absolute; left:0; right:0; bottom:0; max-height:calc(100dvh - 44px); overflow-y:auto; overscroll-behavior:contain; box-sizing:border-box; outline:none;
+    padding:8px 16px calc(20px + env(safe-area-inset-bottom,0px)); border-radius:20px 20px 0 0; background:var(--ps-app);
+    box-shadow:0 -10px 40px rgba(0,0,0,.16); transform:translateY(calc(100% + 24px)); transition:transform 420ms cubic-bezier(.32,.72,0,1)}
+  .sht[data-on] .sht-p{transform:translateY(var(--dy,0px))}
+  .sht-g{display:block; width:36px; height:5px; margin:0 auto 10px; border-radius:3px; background:var(--ps-line)}
+  .sht-h{margin:4px 2px 14px; font:600 20px/1.2 var(--ps-font); letter-spacing:-.015em; color:var(--ps-ink)}
+  .sht-me{display:flex; align-items:center; gap:12px; margin:0 0 16px; padding:12px 14px; border-radius:14px; background:var(--ps-fill)}
+  .sht-me .uh-av{width:44px; height:44px; font-size:15px; flex:none}
+  .sht-me > span:last-child{min-width:0}
+  .sht-me b{display:block; font:500 16px/1.3 var(--ps-font); color:var(--ps-ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .sht-me small{display:block; font:400 13px/1.35 var(--ps-font); color:var(--ps-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .sht-l{margin:0 0 16px; border-radius:14px; background:var(--ps-fill); overflow:hidden}
+  .sht-r{display:flex; align-items:center; gap:14px; width:100%; min-height:52px; box-sizing:border-box; padding:0 14px; border:0; background:none;
+    color:var(--ps-ink); text-decoration:none; text-align:left; font:400 16px/1.25 var(--ps-font); cursor:pointer; -webkit-user-select:none; user-select:none}
+  .sht-r{position:relative}
+  .sht-r + .sht-r::before{content:""; position:absolute; left:50px; right:0; top:0; height:1px; background:var(--ps-line)}
+  .sht-r2 + .sht-r2::before{left:14px}
+  .sht-r:active{background:var(--ps-fill-h)}
+  .sht-r > svg.i{width:22px; height:22px; color:var(--ps-ink-2); flex:none}
+  .sht-t{flex:1; min-width:0}
+  .sht-t b{display:block; font:500 16px/1.3 var(--ps-font)}
+  .sht-t small{display:block; margin-top:2px; font:400 13px/1.4 var(--ps-font); color:var(--ps-dim)}
+  .sht-r2{padding-top:12px; padding-bottom:12px; align-items:flex-start}
+  .sht-r2 .mk{margin-top:3px}
+  .sht-r2 .mk i{height:18px}
+  .sht-c{width:16px !important; height:16px !important; color:var(--ps-dim) !important; flex:none; align-self:center}
+  .sht-n{min-width:22px; height:22px; padding:0 7px; box-sizing:border-box; border-radius:11px; background:var(--ps-warn); color:#141210; font:600 12px/22px var(--ps-font); text-align:center}
+  .sht-r-v{cursor:default}
+  .sht-r-v:active{background:none}
+  .sht-seg{display:inline-flex; padding:2px; gap:2px; border-radius:9px; background:var(--ps-fill-h)}
+  .sht-seg button{height:32px; min-width:64px; padding:0 12px; border:0; border-radius:7px; background:none; color:var(--ps-ink-2); font:500 14px/1 var(--ps-font); cursor:pointer}
+  .sht-seg button[aria-pressed="true"]{background:var(--ps-app); color:var(--ps-ink); box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  .sht-r-x{justify-content:center}
+  .sht-r-x .sht-t{flex:none; color:var(--ps-bad)}
+  .sht-f{margin:4px 0 0; text-align:center; font:400 13px/1 var(--ps-font)}
+  .sht-f a{display:inline-flex; align-items:center; min-height:44px; color:var(--ps-link); text-decoration:none}
+  :root[data-sheet] body{overflow:hidden}
+
+  /* Home: the greeting is one compact card; with nothing waiting, your recent work comes first
+     and the empty board is one line */
+  .sky{padding:46px 18px 18px}
+  .sky .h1{font-size:26px; line-height:1.18; letter-spacing:-.02em}
+  .sky .h1 span{display:block; margin-top:4px; font-size:17px; line-height:1.35; letter-spacing:-.005em; color:var(--ps-ink-2)}
+  .sky-t{top:12px; right:12px; left:auto}
+  .hm > .sky{order:-3; margin-bottom:24px}
+  .hm[data-clear] .hm-main > .desk{order:-2; margin:0 0 24px}
+  .hm[data-clear] .hm-main > .sh,.hm[data-clear] .hm-main > .qk{order:-1}
+  .hm[data-clear] .hm-main > .qk{margin-bottom:8px}
+  .pan[data-zero] > .flw{display:none}
+  .pan[data-zero] > .sh{margin-bottom:0}
+  .qk{gap:12px}
+  .qk .qk-a{gap:8px 16px}
+
+  /* Tracker and Projects: the big title and its view switch share a row; the lede gives way */
+  .sx-head{flex-wrap:nowrap; align-items:center; justify-content:space-between; margin-bottom:8px}
+  .sx-head > div:first-child{min-width:0}
+  .sx-head .lede,.pg > h1.h1 + .lede{display:none}
+  .sx-head .vs{flex:none; margin:0}
+  .sx-tools .sx-bar{display:flex; flex-wrap:nowrap; width:100%; margin:0; overflow-x:auto; scrollbar-width:none; gap:8px}
+  .sx-tools .sx-bar::-webkit-scrollbar{display:none}
+  .sx-tools .sx-bar > *{flex:none}
+  .sx-tools .sx-bar .tg{order:0; width:auto; height:36px; padding:0 12px; border-radius:var(--ps-pill); background:var(--ps-fill); font-size:14px}
+  .sx-tools .sx-bar .pp{position:static}
+  /* the Filter menu is a sheet over the tab bar, with a dimmed page behind it */
+  .sx-tools .pm,.sx-tools .pm[data-r]{position:fixed; left:0; right:0; bottom:0; top:auto; z-index:92; width:auto; max-height:72dvh; padding:20px 16px calc(20px + env(safe-area-inset-bottom,0px));
+    border-radius:20px 20px 0 0; box-shadow:0 -10px 40px rgba(0,0,0,.16)}
+  /* Access: the admin panel follows #pg, so #pg gives up the tab bar's room to it */
+  .pg:has(~ #acc-adm:not([hidden])){padding-bottom:28px}
+  .acc-adm{padding-bottom:calc(24px + var(--tabbar-h))}
+  .pj-tools .pj-open{display:flex; flex-wrap:nowrap; gap:8px; width:100%; overflow-x:auto; scrollbar-width:none}
+  .pj-tools .pj-open .b{flex:none; height:36px; min-height:36px; font-size:14px}
+}
+
+
+/* ═════ THE FLOATING TAB BAR (2026-11-26, by request: "make them icons only, then a floating
+   rounded corner container") ═════
+   On a phone the four tabs are icons in a glass capsule that floats 10px over the foot of the
+   page (and the home indicator), as iOS's own tab bars now do. The words stay in the markup for
+   VoiceOver and as each tab's name (font-size 0 hides them, it does not remove them). The page
+   scrolls under the capsule; --tabbar-h is the room it takes, so everything that sits above the
+   tab bar (toasts, the send receipt, the Filter sheet's lift) follows. */
+@media (max-width:640px){
+  :root{--tabbar-h:calc(56px + 10px + max(10px, env(safe-area-inset-bottom,0px)))}
+  .uh-nav{left:max(16px, env(safe-area-inset-left,0px)); right:max(16px, env(safe-area-inset-right,0px));
+    bottom:max(10px, env(safe-area-inset-bottom,0px)); width:auto; height:56px; padding:5px; gap:2px; align-items:stretch;
+    border-radius:28px; background:color-mix(in srgb, var(--ps-app) 72%, transparent);
+    -webkit-backdrop-filter:saturate(180%) blur(24px); backdrop-filter:saturate(180%) blur(24px);
+    box-shadow:inset 0 0 0 1px var(--ps-hair), 0 8px 28px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.08)}
+  :root:not([data-theme="light"]) .uh-nav{box-shadow:inset 0 0 0 1px var(--ps-line), 0 8px 28px rgba(0,0,0,.45)}
+  .uh-nav a,.uh-more{flex:1 1 0; height:46px; min-height:46px; padding:0; gap:0; border-radius:23px;
+    font-size:0; letter-spacing:0; color:var(--ps-dim); justify-content:center; align-items:center}
+  .uh-nav a[aria-current="page"],.uh-more[aria-current="page"]{background:var(--ps-fill); color:var(--ps-ink)}
+  .uh-nav .uh-ti{width:25px; height:25px; stroke-width:1.7}
+  .uh-nav a[aria-current="page"] .uh-ti,.uh-more[aria-current="page"] .uh-ti{stroke-width:2.1}
+  .uh-nav .uh-n,.uh-more .uh-n{top:4px; right:calc(50% - 22px); font-size:10.5px}
+  :root[data-kb] .uh-nav{transform:translateY(calc(100% + 40px))}
+}
+
+/* ═════ COMPACT CONTROLS, iOS STYLE (2026-11-26, by request: "more compactness and more iOS style
+   layout for these long menus … go and find menus like this and change") ═════
+   One pattern for every long stack of controls on a phone: a 38px search field with a 38px round
+   button at its end (Filter on Tracker, Open on Projects), then a 32px segmented control.
+   Tracker went from four rows (~300px) to two (~94px); Projects from three to two; Access's tabs
+   and Help's studio switch are the same segmented control. The rest lives in sheets. */
+@media (max-width:640px){
+  .sx-ph,.pj-ph{display:flex; flex-direction:column; flex-wrap:nowrap; gap:8px; padding:8px 16px 10px}
+  .sx-row{display:flex; align-items:center; gap:8px; width:100%}
+  .sx-row .srch{flex:1 1 auto; width:auto; height:38px; min-height:38px; padding:0 12px; gap:6px; border-radius:11px; margin:0}
+  .sx-row .srch svg.i{width:17px; height:17px}
+  .sx-row .srch input{font-size:16px}
+  .sx-row .pp{position:static; flex:none}
+  .sx-fb{position:relative; width:38px; min-width:38px; height:38px; min-height:38px; padding:0; justify-content:center; border-radius:50%; gap:0}
+  .sx-fb svg.i{width:19px; height:19px}
+  .sx-fb[data-on]{background:var(--ps-ink); color:var(--ps-app)}
+  .sx-fb .pb-n{position:absolute; top:-3px; right:-3px; min-width:17px; height:17px; padding:0 4px; box-sizing:border-box; border-radius:9px;
+    background:var(--ps-warn); color:#141210; font:600 10.5px/17px var(--ps-font); text-align:center; box-shadow:0 0 0 2px var(--ps-app)}
+  /* the segmented control */
+  .sx-seg,.pj-ph .flt,.ac .ac-tabs,.hp-sw{display:flex !important; width:100%; box-sizing:border-box; gap:2px; padding:2px; margin:0; overflow:visible;
+    border-radius:9px; background:var(--ps-fill); flex-wrap:nowrap}
+  .sx-seg button,.pj-ph .flt button,.ac .ac-tabs button,.hp-sw button{flex:1 1 0; min-width:0; height:32px; min-height:32px; padding:0 6px; gap:4px;
+    justify-content:center; border:0; border-radius:7px; background:none; box-shadow:none; color:var(--ps-ink-2);
+    font:500 13px/1 var(--ps-font); letter-spacing:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .sx-seg button[aria-pressed="true"],.pj-ph .flt button[aria-pressed="true"],.ac .ac-tabs button[data-on],.hp-sw button[aria-selected="true"]{
+    background:var(--ps-app); color:var(--ps-ink); box-shadow:0 1px 3px rgba(0,0,0,.12), 0 0 0 .5px var(--ps-hair)}
+  :root:not([data-theme="light"]) .sx-seg button[aria-pressed="true"],:root:not([data-theme="light"]) .pj-ph .flt button[aria-pressed="true"],
+  :root:not([data-theme="light"]) .ac .ac-tabs button[data-on],:root:not([data-theme="light"]) .hp-sw button[aria-selected="true"]{background:var(--ps-fill-h)}
+  .pj-ph .flt button small,.hp-sw button s{font-size:11.5px; color:var(--ps-dim); text-decoration:none}
+  body .hp-sw button s,body .hp-sw button[aria-selected="true"] s{min-width:0; height:auto; padding:0; margin:0; background:none; box-shadow:none; font:500 11.5px/1 var(--ps-font); color:var(--ps-dim)}
+  .ac .ac-tabs s{font-size:11.5px}
+  /* the folded tools keep their first row: the search and its button */
+  :root[data-sdir="down"]:not([data-kb]) .sx-ph:not(:focus-within):not(:has(.pm)),
+  :root[data-sdir="down"]:not([data-kb]) .pj-ph:not(:focus-within){clip-path:inset(0 0 calc(100% - 56px) 0)}
+  :root[data-sdir="down"]:not([data-kb]) .pj-s > h2{top:calc(var(--uh-h) + 56px)}
+  /* the Filter and view sheet */
+  .sx-ph .pm.pm-sh{position:fixed; left:0; right:0; bottom:0; top:auto; z-index:92; width:auto; max-height:80dvh; overflow-y:auto; overscroll-behavior:contain;
+    padding:0 16px calc(20px + env(safe-area-inset-bottom,0px)); border-radius:20px 20px 0 0; background:var(--ps-app); box-shadow:0 -10px 40px rgba(0,0,0,.18)}
+  .pm-dim{position:fixed; inset:0; z-index:91; border:0; padding:0; margin:0; background:rgba(8,10,14,.34); cursor:default}
+  .pm-top{position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:4px; margin:0 -16px 4px; padding:16px 12px 10px 18px; background:var(--ps-app)}
+  .pm-top::before{content:""; position:absolute; top:7px; left:50%; width:36px; height:5px; margin-left:-18px; border-radius:3px; background:var(--ps-line)}
+  .pm-top b{font:600 17px/1.2 var(--ps-font); color:var(--ps-ink)}
+  .pm-a{height:36px; padding:0 10px; border:0; border-radius:8px; background:none; color:var(--ps-link); font:400 16px/1 var(--ps-font); cursor:pointer}
+  .pm-done{font-weight:600}
+  .pm-sh .pm-h{padding:16px 4px 6px; font:500 13px/1.2 var(--ps-font); color:var(--ps-dim); text-transform:none}
+  .pm-sh .po{min-height:44px; padding:8px 6px; font-size:16px}
+  .pm-sh .po small{font-size:13px}
+  .pm-g{margin:6px 0 0; border-radius:12px; background:var(--ps-fill); overflow:hidden}
+  .pm-sw{display:flex; align-items:center; gap:12px; width:100%; min-height:50px; box-sizing:border-box; padding:6px 14px; border:0; background:none; color:var(--ps-ink);
+    text-align:left; font:400 16px/1.25 var(--ps-font); cursor:pointer; position:relative}
+  .pm-sw + .pm-sw::before{content:""; position:absolute; top:0; left:14px; right:0; height:1px; background:var(--ps-line)}
+  .pm-sw .po-l{flex:1; min-width:0}
+  .pm-sw .po-s{display:block; margin-top:2px; font-size:13px; color:var(--ps-dim)}
+  .pm-sw i{position:relative; flex:none; width:51px; height:31px; border-radius:16px; background:var(--ps-fill-h); transition:background-color 200ms var(--ps-ease)}
+  .pm-sw i::after{content:""; position:absolute; top:2px; left:2px; width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.2); transition:transform 220ms var(--ps-ease)}
+  .pm-sw[aria-checked="true"] i{background:var(--ps-good)}
+  .pm-sw[aria-checked="true"] i::after{transform:translateX(20px)}
+  .pm-seg{display:flex; gap:2px; padding:2px; border-radius:9px; background:var(--ps-fill)}
+  .pm-seg button{flex:1; height:32px; border:0; border-radius:7px; background:none; color:var(--ps-ink-2); font:500 13px/1 var(--ps-font); cursor:pointer}
+  .pm-seg button[aria-pressed="true"]{background:var(--ps-app); color:var(--ps-ink); box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  :root:not([data-theme="light"]) .pm-seg button[aria-pressed="true"]{background:var(--ps-fill-h)}
+  /* the page title and its view switch: the switch is a compact segmented control too */
+  .sx-head .vs{height:auto; padding:2px; gap:2px; border-radius:9px}
+  .sx-head .vs a{height:30px; min-height:30px; padding:0 12px; border-radius:7px; font-size:13px}
+  .sx-head .vs a[aria-current="page"]{background:var(--ps-app); box-shadow:0 1px 3px rgba(0,0,0,.12)}
+  :root:not([data-theme="light"]) .sx-head .vs a[aria-current="page"]{background:var(--ps-fill-h)}
+  /* Help: the search first, the studio switch under it, both stuck under the bar */
+  .hp-bar{position:sticky; top:var(--uh-h); flex-direction:column; align-items:stretch; gap:8px; margin:0 -16px 20px; padding:8px 16px 10px}
+  .hp-bar .hp-q{order:-1; flex:none; width:100%; min-width:0; height:38px; margin:0; border-radius:11px}
+  .hp-bar .hp-q input{font-size:16px}
+  /* Access: the preview picker is a quiet row, not a second big pill */
+  .ac .ac-pv .ac-sel{height:40px; border-radius:11px}
+}
 </style>
 </head>
 <body class="p-shell">
@@ -1037,6 +1365,11 @@ body{-webkit-tap-highlight-color:transparent;
 <symbol id="g-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11" height="11" rx="2"/><path d="M15.5 8.5V6A1.5 1.5 0 0 0 14 4.5H6A1.5 1.5 0 0 0 4.5 6v8A1.5 1.5 0 0 0 6 15.5h2.5"/></symbol>
 <symbol id="g-file" viewBox="0 0 24 24"><path d="M13.5 3.5H7A1.5 1.5 0 0 0 5.5 5v14A1.5 1.5 0 0 0 7 20.5h10a1.5 1.5 0 0 0 1.5-1.5V8.5z"/><path d="M13.5 3.5v5h5"/></symbol>
 <symbol id="g-sync" viewBox="0 0 24 24"><path d="M19.5 12a7.5 7.5 0 0 1-13.1 5M4.5 12a7.5 7.5 0 0 1 13.1-5M17.6 3.5V7h-3.5M6.4 20.5V17h3.5"/></symbol>
+<symbol id="g-more" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.2 12h.1M12 12h.1M15.8 12h.1" stroke-width="2.4"/></symbol>
+<symbol id="g-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.8"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></symbol>
+<symbol id="g-home" viewBox="0 0 24 24"><path d="M4 10.6 12 4l8 6.6V19a1 1 0 0 1-1 1h-4.6v-5.6H9.6V20H5a1 1 0 0 1-1-1z"/></symbol>
+<symbol id="g-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.7 9.7a2.4 2.4 0 1 1 3.5 2.1c-.8.4-1.2 1-1.2 1.9M12 16.7v.1"/></symbol>
+<symbol id="g-eng" viewBox="0 0 24 24"><circle cx="6" cy="6.5" r="2.3"/><circle cx="18" cy="6.5" r="2.3"/><circle cx="12" cy="17.5" r="2.3"/><path d="M8.3 6.5h7.4M7.2 8.5l3.7 7M16.8 8.5l-3.7 7"/></symbol>
 <symbol id="g-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="3.5"/><path d="M10.5 12.5L19 4M16 7l2.5 2.5M14 9l2 2"/></symbol>
 </defs>
 </svg>
@@ -1068,13 +1401,16 @@ body{-webkit-tap-highlight-color:transparent;
       <path d="M781.64,0h-387.07c-11.45,0-20.77,9.32-20.77,20.77v49.63c0,11.45,9.32,20.77,20.77,20.77h387.07c11.45,0,20.77-9.32,20.77-20.77V20.77c0-11.45-9.32-20.77-20.77-20.77ZM797.3,20.77v49.63c0,8.63-7.02,15.66-15.66,15.66h-387.07c-8.63,0-15.66-7.02-15.66-15.66V20.77c0-8.63,7.02-15.66,15.66-15.66h387.07c8.63,0,15.66,7.02,15.66,15.66Z"/>
       <path class="p-wm-d" d="M357.14,67.05c2.21,0,3.99-1.79,3.99-3.99s-1.79-3.99-3.99-3.99-3.99,1.79-3.99,3.99,1.79,3.99,3.99,3.99Z"/>
     </svg></a>
+  <a class="uh-back" id="uh-back" href="#/" hidden><svg class="i" aria-hidden="true"><use href="#g-chevl"/></svg><span id="uh-backl">Home</span></a>
+  <span class="uh-ttl" id="uh-ttl" aria-hidden="true"></span>
   <nav class="uh-nav" aria-label="Main">
-    <a href="#/" data-nav="home">Home</a>
-    <a href="#/tracker" data-nav="tracker">Tracker</a>
-    <a href="#/projects" data-nav="projects">Projects</a>
-    <a href="#/access" data-nav="access">Access <span class="uh-n" id="acc-n" hidden></span></a>
-    <a href="#/engine" data-nav="engine" hidden>Engine</a>
-    <a href="#/help" data-nav="help">Help</a>
+    <a href="#/" data-nav="home"><svg class="i uh-ti" aria-hidden="true"><use href="#g-home"/></svg>Home</a>
+    <a href="#/tracker" data-nav="tracker"><svg class="i uh-ti" aria-hidden="true"><use href="#g-list"/></svg>Tracker</a>
+    <a href="#/projects" data-nav="projects"><svg class="i uh-ti" aria-hidden="true"><use href="#g-folder"/></svg>Projects</a>
+    <a href="#/access" data-nav="access"><svg class="i uh-ti" aria-hidden="true"><use href="#g-key"/></svg>Access <span class="uh-n" id="acc-n" hidden></span></a>
+    <a href="#/engine" data-nav="engine" hidden><svg class="i uh-ti" aria-hidden="true"><use href="#g-eng"/></svg>Engine</a>
+    <a href="#/help" data-nav="help"><svg class="i uh-ti" aria-hidden="true"><use href="#g-help"/></svg>Help</a>
+    <button class="uh-more" id="uh-more" type="button" aria-haspopup="dialog"><svg class="i uh-ti" aria-hidden="true"><use href="#g-more"/></svg>More<span class="uh-n" id="more-n" hidden></span></button>
   </nav>
   <span class="sp"></span>
   <a class="b b-p" id="newbtn" href="#/new"><svg class="i"><use href="#g-plus"/></svg><span id="newlbl">New</span></a>
@@ -1100,6 +1436,9 @@ body{-webkit-tap-highlight-color:transparent;
     <div class="np-card"><div data-rs-plan></div></div></div>
   <aside class="np-side" id="np-side" aria-label="How a campaign moves"></aside></div></section>
 
+<!-- THE SHEET (2026-11-26): on a phone, More and New open here, from the foot of the screen, as
+     an iOS sheet: a grabber, drag down or tap outside to close, Escape on a keyboard. -->
+<div class="sht" id="sht" hidden><div class="sht-s" data-shtx></div><div class="sht-p" id="sht-p" role="dialog" aria-modal="true" aria-labelledby="sht-h" tabindex="-1"><span class="sht-g" aria-hidden="true"></span><div class="sht-b" id="sht-b"></div></div></div>
 <footer class="ft">
   <span>Provident Design Studio</span>
   <span class="sp"></span>
@@ -1424,7 +1763,7 @@ body{-webkit-tap-highlight-color:transparent;
     if (cur >= n) cur = Math.max(0, n - 1);
     var top = list[cur], fd = flip; flip = 0;
     // the greeting spans the page; the side column starts level with Next up (2026-11-03)
-    var h = '<div class="hm"><section class="sky" id="sky" aria-label="Today"><div class="sky-l" aria-hidden="true"><i class="sky-g"></i><i class="sky-st"></i><i class="sky-sun"></i>' +
+    var h = '<div class="hm"' + (n ? '' : ' data-clear') + '><section class="sky" id="sky" aria-label="Today"><div class="sky-l" aria-hidden="true"><i class="sky-g"></i><i class="sky-st"></i><i class="sky-sun"></i>' +
       SKY_CLOUDS.map(function(c, i){ return '<i class="sky-c" style="--x:' + c[0] + '%;--y:' + c[1] + '%;--w:' + c[2] + 'px;--k:' + c[3] + ';--i:' + i + '"></i>'; }).join('') +
       '</div><h1 class="h1">' + hi + '<span>' + tail + '</span></h1><time class="sky-t" id="sky-t">' + skyClock() + '</time></section><div class="hm-main">';
 
@@ -1471,7 +1810,7 @@ body{-webkit-tap-highlight-color:transparent;
     // where everything is: the four stages, each with the work actually in it
     if (data.known){
       var both = studiosFor(r).length > 1;
-      h += '<section class="pan"><div class="sh" role="heading" aria-level="2">Where everything is<small>' + data.rows.length + ' in motion</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">The board</a></div><ol class="flw">';
+      h += '<section class="pan"' + (data.rows.length ? '' : ' data-zero') + '><div class="sh" role="heading" aria-level="2">Where everything is<small>' + data.rows.length + ' in motion</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">The board</a></div><ol class="flw">';
       MOVING.forEach(function(s){
         var c = data.rows.filter(function(x){ return x.stage === s.k; }).sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
         var a = c.filter(function(x){ return x.studio === 'cas'; }).length, o = c.length - a;
@@ -1735,7 +2074,8 @@ body{-webkit-tap-highlight-color:transparent;
   }
   // the shared controls: kind chips and search, then Filter and the two switches; board (the
   // Kanban's own controls) joins the second row after them
-  function tkBar(S, pmIn, board){
+  function tkBar(S, pmIn, board, phx){
+    if (phoneQ()) return tkBarPhone(S, pmIn, phx || '');
     var h = '<div class="sx-tools">';
     if (S.both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].concat(S.hubN ? [['hub', 'Content Hub']] : []).map(function(f){
       var c = S.all.filter(function(x){ return f[0] === 'all' || (f[0] === 'hub' ? x.hub : x.studio === f[0]); }).length;
@@ -1743,18 +2083,44 @@ body{-webkit-tap-highlight-color:transparent;
     h += '<label class="srch">' + ico('search') + '<input id="sx-q" type="search" placeholder="Find by name" value="' + esc(sxQ) + '" aria-label="Find by name"></label></div>';
     h += '<div class="sx-bar"><div class="pp"><button class="pb" type="button" data-mn="filter" data-fk="mn:filter" aria-expanded="' + (sxMenu === 'filter') + '">' + ico('filter') + 'Filter' + (S.nF ? '<span class="pb-n">' + S.nF + '</span>' : '') + '</button>';
     if (sxMenu === 'filter') {
-      var secs = [['stage', 'Stage'], ['due', 'Due'], ['from', 'From']].map(function(f){
-        var o = S.opts(f[0]);
-        // a facet with one value is no choice: it shows only while something in it is ticked
-        if (o.length < 2 && !sxFl[f[0]].length) return '';
-        return '<p class="pm-h">' + f[1] + '</p>' + o.map(function(v){ return po('data-ff', f[0] + ':' + v[0], v[1], v[2], sxFl[f[0]].indexOf(v[0]) >= 0); }).join('');
-      }).join('');
+      var secs = tkFacets(S);
       h += '<div class="pm"' + pmIn + ' role="group" aria-label="Filter">' + (secs || '<p class="pm-n">Everything here is at the same stage, from the same person, with the same due state. There is nothing to narrow.</p>') + '</div>';
     }
     h += '</div>';
     if (roleOf() !== 'ct') h += '<button class="tg" type="button" id="sx-mine" data-fk="sx-mine" aria-pressed="' + sxMine + '"><i></i>Only what waits on me</button>';
     if (data.closed.length) h += '<button class="tg" type="button" id="sx-closed" data-fk="sx-closed" aria-pressed="' + sxClosed + '" title="Launched campaigns and posted posts"><i></i>Show closed <small>' + data.closed.length + '</small></button>';
     return h + (board || '') + '</div>';
+  }
+  function tkFacets(S){
+    return [['stage', 'Stage'], ['due', 'Due'], ['from', 'From']].map(function(f){
+      var o = S.opts(f[0]);
+      // a facet with one value is no choice: it shows only while something in it is ticked
+      if (o.length < 2 && !sxFl[f[0]].length) return '';
+      return '<p class="pm-h">' + f[1] + '</p>' + o.map(function(v){ return po('data-ff', f[0] + ':' + v[0], v[1], v[2], sxFl[f[0]].indexOf(v[0]) >= 0); }).join('');
+    }).join('');
+  }
+  // TRACKER ON A PHONE (2026-11-26, by request: "more compactness and more iOS style layout for
+  // these long menus"). Two short rows under the title, as in iOS Mail or Files: the search field
+  // with a filter button at its end, then a segmented control for the kind. Everything else
+  // (Only what waits on me, Show closed, Stage / Due / From, and on Kanban Board or List, Overdue,
+  // Sort, Group, Density) is in one Filter and view sheet; the button counts what is switched on.
+  function tkBarPhone(S, pmIn, phx){
+    var mineOk = roleOf() !== 'ct', on = S.nF + (sxMine && mineOk ? 1 : 0) + (sxClosed && data.closed.length ? 1 : 0);
+    var sw = function(id, label, val, sub){ return '<button class="pm-sw" type="button" id="' + id + '" data-fk="' + id + '" role="switch" aria-checked="' + !!val + '"><span class="po-l">' + label + (sub ? '<span class="po-s">' + sub + '</span>' : '') + '</span><i aria-hidden="true"></i></button>'; };
+    var h = '<div class="sx-tools sx-ph"><div class="sx-row"><label class="srch">' + ico('search') + '<input id="sx-q" type="search" placeholder="Find by name" value="' + esc(sxQ) + '" aria-label="Find by name" enterkeyhint="search"></label>' +
+      '<div class="pp"><button class="pb sx-fb" type="button" data-mn="filter" data-fk="mn:filter" aria-expanded="' + (sxMenu === 'filter') + '" aria-label="Filter and view' + (on ? ', ' + on + ' on' : '') + '"' + (on ? ' data-on' : '') + '>' + ico('filter') + (on ? '<span class="pb-n">' + on + '</span>' : '') + '</button>';
+    if (sxMenu === 'filter') {
+      var body = (mineOk || data.closed.length ? '<div class="pm-g">' + (mineOk ? sw('sx-mine', 'Only what waits on me', sxMine) : '') +
+        (data.closed.length ? sw('sx-closed', 'Show closed', sxClosed, data.closed.length + ' launched or posted') : '') + '</div>' : '') +
+        tkFacets(S) + phx;
+      h += '<button class="pm-dim" type="button" data-mn="filter" tabindex="-1" aria-label="Close"></button>' +
+        '<div class="pm pm-sh"' + pmIn + ' role="dialog" aria-label="Filter and view"><div class="pm-top"><b>Filter and view</b><span class="sp"></span>' +
+        (on || sxQ || sxF !== 'all' ? '<button class="pm-a" type="button" data-fx="*">Clear</button>' : '') + '<button class="pm-a pm-done" type="button" data-mn="filter">Done</button></div>' + body + '</div>';
+    }
+    h += '</div></div>';
+    if (S.both) h += '<div class="sx-seg" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].concat(S.hubN ? [['hub', 'Hub']] : []).map(function(f){
+      return '<button type="button" data-sf="' + f[0] + '" data-fk="sf:' + f[0] + '" aria-pressed="' + (sxF === f[0]) + '">' + f[1] + '</button>'; }).join('') + '</div>';
+    return h + '</div>';
   }
   // what is in force, each removable
   function tkActs(){
@@ -1790,7 +2156,7 @@ body{-webkit-tap-highlight-color:transparent;
     function att(x){ return x.stage === 'closed' ? 5 : x.mine ? 0 : isLate(x) ? 1 : !signedOff(x) && x.stage !== 'ready' ? 2 : shortOf(x) ? 3 : 4; }
     var rows = S.all.filter(function(x){ return S.pass(x); }).sort(function(a, b){ return att(a) - att(b) || dn(a) - dn(b) || (b.at || 0) - (a.at || 0); });
     h += tkActRow(act, rows.length, S.all.length, 0);
-    if (!rows.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico(act.length ? 'filter' : 'tray') + '</span><div><h3>' + (act.length ? 'Nothing matches these filters' : 'Nothing in motion') + '</h3><p>' +
+    if (!rows.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico(act.length ? 'filter' : 'tray') + '</span><div><h3 aria-level="2">' + (act.length ? 'Nothing matches these filters' : 'Nothing in motion') + '</h3><p>' +
       (act.length ? 'Take a filter off, or clear them all.' : 'Campaigns and posts appear here as they are filed.') + '</p>' + (act.length ? '<div class="qk-a"><button class="b b-g" type="button" data-fx="*">Clear the filters</button></div>' : '') + '</div></div>' + freshLine();
     var cas = rows.filter(function(x){ return x.studio === 'cas'; }), ops = rows.filter(function(x){ return x.studio !== 'cas'; });
     // both kinds showing: each under its own heading, campaigns first
@@ -1834,13 +2200,19 @@ body{-webkit-tap-highlight-color:transparent;
       '<p class="pm-h">Group by</p>' + [['stage', 'Stage'], ['from', 'From'], ['kind', 'Kind']].map(function(o){ return po('data-sg', o[0], o[1], null, sxV.grp === o[0], 1); }).join('') +
       '<p class="pm-h">Density</p>' + [['cozy', 'Comfortable'], ['compact', 'Compact']].map(function(o){ return po('data-sd', o[0], o[1], null, sxV.den === o[0], 1); }).join('') + '</div>';
     bh += '</div>';
-    h += tkBar(S, pmIn, bh);
+    var phx = '<p class="pm-h">Show as</p><div class="pm-seg" role="group" aria-label="Show as">' + [['board', 'Board'], ['list', 'List']].map(function(v){
+        return '<button type="button" data-sv="' + v[0] + '" data-fk="sv:' + v[0] + '" aria-pressed="' + (sxV.v === v[0]) + '">' + v[1] + '</button>'; }).join('') + '</div>' +
+      (lateAll ? '<p class="pm-h">Overdue work · ' + lateAll + '</p>' + po('data-sl', 'lane', 'In its own lane', null, sxV.late === 'lane', 1) + po('data-sl', 'stage', 'In its stage', null, sxV.late === 'stage', 1) + po('data-sl', 'hide', 'Hidden', null, sxV.late === 'hide', 1) : '') +
+      '<p class="pm-h">Sort by</p>' + [['due', 'Due date'], ['name', 'Name'], ['updated', 'Last updated']].concat(sxV.grp === 'stage' ? [] : [['stage', 'Stage']]).map(function(o){ return po('data-ss', o[0], o[1], null, so === o[0], 1); }).join('') +
+      '<p class="pm-h">Group by</p>' + [['stage', 'Stage'], ['from', 'From'], ['kind', 'Kind']].map(function(o){ return po('data-sg', o[0], o[1], null, sxV.grp === o[0], 1); }).join('') +
+      '<p class="pm-h">Density</p>' + [['cozy', 'Comfortable'], ['compact', 'Compact']].map(function(o){ return po('data-sd', o[0], o[1], null, sxV.den === o[0], 1); }).join('');
+    h += tkBar(S, pmIn, bh, phx);
 
     // what is in force, each removable, and how much of the board it leaves
     var act = tkActs();
     h += tkActRow(act, vis.length, all.length, hid);
 
-    if (!vis.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico(act.length ? 'filter' : 'tray') + '</span><div><h3>' + (act.length ? 'Nothing matches these filters' : hid ? 'Only overdue work is left' : 'Nothing on the board yet') + '</h3>' +
+    if (!vis.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico(act.length ? 'filter' : 'tray') + '</span><div><h3 aria-level="2">' + (act.length ? 'Nothing matches these filters' : hid ? 'Only overdue work is left' : 'Nothing on the board yet') + '</h3>' +
       '<p>' + (hid ? (hid === 1 ? 'One overdue campaign or post is' : hid + ' overdue campaigns and posts are') + ' hidden.' : act.length ? 'Take a filter off, or clear them all.' : 'Campaigns and posts appear here as they are filed.') + '</p>' +
       '<div class="qk-a">' + (act.length ? '<button class="b b-g" type="button" data-fx="*">Clear the filters</button>' : '') + (hid ? '<button class="b b-g" type="button" data-sl="lane">Show overdue in its own lane</button>' : '') + '</div></div></div>' + freshLine();
 
@@ -2017,6 +2389,14 @@ body{-webkit-tap-highlight-color:transparent;
     document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', tracker: 'Tracker \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio', engine: 'Engine \u2014 Provident Design Studio', help: 'Help \u2014 Provident Design Studio' }[nav];
     // the ad set or post page is not the Tracker in the browser's tab list (2026-11-21, phone critique)
     if (/^#\/item\//.test(location.hash)) document.title = (/^#\/item\/ops\//.test(location.hash) ? 'Post' : 'Ad set') + ' \u2014 Provident Design Studio';
+    // THE PHONE'S BAR (2026-11-26): a pushed page (an ad set or post, New, a file list, a help guide)
+    // gets a back button where the wordmark was; Access, Engine and Help light the More tab
+    var bk = parts[0] === 'item' ? ['#/tracker', 'Tracker'] : parts[0] === 'new' || parts[0] === 'files' ? ['#/', 'Home'] : parts[0] === 'help' && parts[1] ? ['#/help', 'Help'] : null;
+    $('uh-back').hidden = !bk || nav === 'gate'; if (bk) { $('uh-back').href = bk[0]; $('uh-backl').textContent = bk[1]; }
+    var mo = $('uh-more'); if (/^(access|engine|help)$/.test(nav)) mo.setAttribute('aria-current', 'page'); else mo.removeAttribute('aria-current');
+    var mn = $('more-n'); mn.textContent = pend; mn.hidden = !pend;
+    // the phone's bar shows the page's name once its big title has scrolled away (2026-11-26)
+    $('uh-ttl').textContent = nav === 'gate' ? '' : nav === 'home' ? 'Home' : document.title.split(' \u2014 ')[0];
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'tracker' && q.v === 'kanban' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
@@ -2032,6 +2412,152 @@ body{-webkit-tap-highlight-color:transparent;
   }
   var lastNav = '';
   window.addEventListener('hashchange', function(){ route(true); });
+
+  // ═════ THE PHONE'S SHEETS AND TABS (2026-11-26, the home-screen app pass) ═════
+  // More (Access, Engine, Help, appearance, your account) and New open as an iOS sheet from the
+  // foot of the screen. The sheet is one element (#sht); its content is drawn when it opens.
+  function phoneQ(){ try { return matchMedia('(max-width:640px)').matches; } catch (x) { return false; } }
+  var shtLast = null, shtT = 0;
+  function sheetOpen(html){
+    var sh = $('sht'), p = $('sht-p');
+    clearTimeout(shtT); $('sht-b').innerHTML = html; p.style.removeProperty('--dy'); p.scrollTop = 0;
+    if (sh.hidden) { shtLast = document.activeElement; sh.hidden = false; void p.offsetWidth; }
+    sh.setAttribute('data-on', ''); document.documentElement.setAttribute('data-sheet', '');
+    try { p.focus({ preventScroll: true }); } catch (x) {}
+  }
+  function sheetClose(now){
+    var sh = $('sht'); if (sh.hidden) return;
+    sh.removeAttribute('data-on'); document.documentElement.removeAttribute('data-sheet');
+    clearTimeout(shtT); shtT = setTimeout(function(){ sh.hidden = true; $('sht-b').innerHTML = ''; }, now ? 0 : 320);
+    if (shtLast && shtLast.focus && document.contains(shtLast)) try { shtLast.focus({ preventScroll: true }); } catch (x) {}
+  }
+  function shRow(href, icon, label, tail, attr){
+    var inner = '<svg class="i" aria-hidden="true"><use href="#g-' + icon + '"/></svg><span class="sht-t">' + label + '</span>' + (tail || '') + '<svg class="i sht-c" aria-hidden="true"><use href="#g-chev"/></svg>';
+    return href ? '<a class="sht-r" href="' + href + '"' + (attr || '') + '>' + inner + '</a>' : '<button class="sht-r" type="button"' + (attr || '') + '>' + inner + '</button>';
+  }
+  function moreSheet(){
+    var light = document.documentElement.getAttribute('data-theme') === 'light';
+    var nm = me && (me.name || me.email), on = phase === 'in';
+    var navAcc = document.querySelector('[data-nav="access"]'), navEng = document.querySelector('[data-nav="engine"]');
+    var pend = isAdmin() && acc && acc.now ? acc.now().pending : 0;
+    var h = '<h2 class="sht-h" id="sht-h">More</h2>';
+    if (nm) h += '<div class="sht-me"><span class="uh-av">' + avIn(me.name, me.email) + '</span><span><b>' + esc(nm) + '</b><small>' + esc(me.email || '') + '</small>' +
+      (data.r ? '<small>' + esc(isAdmin() ? 'Admin' : roleLabel(rawRole()) || roleLabel(data.r)) + '</small>' : '') + '</span></div>';
+    var rows = (navAcc && !navAcc.hidden ? shRow('#/access', 'key', 'Access', pend ? '<span class="sht-n">' + pend + '</span>' : '') : '') +
+      (navEng && !navEng.hidden ? shRow('#/engine', 'eng', 'Engine') : '') + shRow('#/help', 'help', 'Help');
+    h += '<div class="sht-l">' + rows + '</div>';
+    h += '<div class="sht-l"><div class="sht-r sht-r-v"><svg class="i" aria-hidden="true"><use href="#g-' + (light ? 'sun' : 'eng') + '"/></svg><span class="sht-t">Appearance</span>' +
+      '<span class="sht-seg" role="group" aria-label="Appearance"><button type="button" data-thm="light" aria-pressed="' + light + '">Light</button><button type="button" data-thm="dark" aria-pressed="' + !light + '">Dark</button></span></div></div>';
+    if (acc) h += '<div class="sht-l"><button class="sht-r sht-r-x" type="button" data-sign="' + (on ? 'out' : 'in') + '"><span class="sht-t">' + (on ? 'Sign out' : 'Sign in with Google') + '</span></button></div>';
+    h += '<p class="sht-f"><a href="ui-design-system/index.html">Design system reference</a></p>';
+    return h;
+  }
+  function newSheet(){
+    var r = data.r, cs = canStart(r);
+    var ln = { cas: [r === 'pm' ? 'File a ticket' : 'A campaign', 'Paid Meta ads for one or more audiences, English then Arabic, in every size.'],
+      ops: [r === 'smm' ? 'Draft a post' : 'An organic post', 'A feed or story post from one of the locked templates, one page or a carousel.'] };
+    return '<h2 class="sht-h" id="sht-h">What are you starting?</h2><div class="sht-l">' + cs.map(function(k){
+      return '<a class="sht-r sht-r2" href="' + STUDIO[k].start + '">' + mk(k).replace(STUDIO[k].n, '') + '<span class="sht-t"><b>' + ln[k][0] + '</b><small>' + ln[k][1] + '</small></span><svg class="i sht-c" aria-hidden="true"><use href="#g-chev"/></svg></a>';
+    }).join('') + '</div>';
+  }
+  $('uh-more').addEventListener('click', function(){ sheetOpen(moreSheet()); });
+  // Projects' Open button on a phone: the two kinds of file, as a sheet
+  document.addEventListener('click', function(e){
+    if (!e.target.closest || !e.target.closest('[data-pjopen]')) return;
+    sheetOpen('<h2 class="sht-h" id="sht-h">Open a file</h2><div class="sht-l">' + designs().map(function(k){
+      return '<a class="sht-r sht-r2" href="' + STUDIO[k].file + '#view=open">' + mk(k).replace(STUDIO[k].n, '') + '<span class="sht-t"><b>' + (k === 'cas' ? 'A project file' : 'A post file') + '</b><small>' + (k === 'cas' ? 'A campaign saved from the Campaign Ads Studio' : 'A post saved from the Organic Post Studio') + '</small></span><svg class="i sht-c" aria-hidden="true"><use href="#g-chev"/></svg></a>';
+    }).join('') + '</div>');
+  });
+  $('sht').addEventListener('click', function(e){
+    var t = e.target;
+    if (t.closest('[data-shtx]')) { sheetClose(); return; }
+    var th = t.closest('[data-thm]');
+    if (th) { var light = document.documentElement.getAttribute('data-theme') === 'light'; if ((th.dataset.thm === 'light') !== light) $('themebtn').click(); sheetOpen(moreSheet()); return; }
+    if (t.closest('a[href],[data-sign]')) sheetClose(true);
+  });
+  document.addEventListener('keydown', function(e){
+    if ($('sht').hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); sheetClose(); return; }
+    if (e.key !== 'Tab') return;
+    // the sheet is modal: the keyboard's focus goes round inside it
+    var box = $('sht-p'), f = [].filter.call(box.querySelectorAll('button,a[href],input,[tabindex]:not([tabindex="-1"])'), function(x){ return !x.disabled && x.offsetParent !== null; });
+    if (!f.length) return;
+    if (e.shiftKey && (document.activeElement === f[0] || document.activeElement === box)) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && document.activeElement === f[f.length - 1]) { e.preventDefault(); f[0].focus(); }
+  });
+  // drag the sheet down by its grabber or heading to put it away, as on iOS
+  (function(){
+    var p = $('sht-p'), y0 = null, dy = 0, t0 = 0;
+    p.addEventListener('pointerdown', function(e){
+      if (e.button || e.clientY - p.getBoundingClientRect().top > 64 || p.scrollTop > 0) return;
+      y0 = e.clientY; dy = 0; t0 = Date.now(); p.style.transition = 'none';
+      try { p.setPointerCapture(e.pointerId); } catch (x) {}
+    });
+    p.addEventListener('pointermove', function(e){
+      if (y0 === null) return; dy = Math.max(0, e.clientY - y0); p.style.setProperty('--dy', dy + 'px');
+    });
+    function end(){
+      if (y0 === null) return; y0 = null; p.style.transition = '';
+      var fast = dy > 40 && Date.now() - t0 < 220;
+      if (dy > 110 || fast) sheetClose(); else p.style.removeProperty('--dy');
+    }
+    p.addEventListener('pointerup', end); p.addEventListener('pointercancel', end);
+  })();
+  // New on a phone is a sheet of what you can start, not a page of two large cards
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[href="#/new"]');
+    if (!a || !phoneQ() || e.defaultPrevented || canStart(data.r).length < 2) return;
+    e.preventDefault(); sheetOpen(newSheet());
+  }, true);
+  // back: the page you came from, when there is one in this tab; otherwise the page above
+  var hops = 0;
+  window.addEventListener('hashchange', function(){ hops++; if (!$('sht').hidden) sheetClose(true); });
+  $('uh-back').addEventListener('click', function(e){ if (hops > 0) { e.preventDefault(); hops -= 2; history.back(); } });
+  // Projects' sticky studio heading sits under the tools at their live height (they fold to their
+  // chips on the way down and come back on the way up)
+  if (window.ResizeObserver) {
+    var toolsRO = new ResizeObserver(function(es){ es.forEach(function(en){ document.documentElement.style.setProperty('--tools-h', Math.round(en.target.getBoundingClientRect().height) + 'px'); }); });
+    new MutationObserver(function(){ var t = document.querySelector('.pj-tools'); if (t && !t._ro) { t._ro = 1; toolsRO.observe(t); } }).observe($('pg'), { childList: true, subtree: true });
+  }
+  // a phone turned into a tablet (or the other way) redraws Tracker, whose markup differs
+  try { matchMedia('(max-width:640px)').addEventListener('change', function(){ if (/^#\/tracker/.test(location.hash)) route(); sheetClose(true); }); } catch (x) {}
+  // GROUPS FOLD ON A PHONE (2026-11-26): Projects' studio headings and campaign groups, and the
+  // side panels on Home. What is folded is remembered on this phone (provident-home-fold). The
+  // pages are redrawn as HTML, so the fold is put back whenever #pg's children change.
+  var FOLD_Q = '.pj-s > h2, .pj-gh, .hm-side .pan > .sh', foldMq = window.matchMedia('(max-width:640px)'), folds = {};
+  try { folds = JSON.parse(localStorage.getItem('provident-home-fold') || '{}') || {}; } catch (x) {}
+  function foldKey(h){
+    var s = h.closest('.pj-s'), t = function(e){ return e ? e.textContent.replace(/\s+/g, ' ').trim().slice(0, 60) : ''; };
+    if (h.matches('.pj-s > h2')) return 'pj:' + (s.getAttribute('aria-label') || t(h));
+    if (h.matches('.pj-gh')) return 'pj:' + (s ? s.getAttribute('aria-label') : '') + '/' + t(h.querySelector('b'));
+    var c = h.cloneNode(true); [].forEach.call(c.querySelectorAll('small,span,a,button'), function(e){ e.remove(); });
+    return 'hm:' + t(c);
+  }
+  // the heading keeps its heading role; a button laid over it (.fold-b) does the folding, so a
+  // screen reader hears "Campaign ads, heading" and then "Campaign ads, button, expanded"
+  function foldApply(){
+    var on = foldMq.matches;
+    [].forEach.call(document.querySelectorAll(FOLD_Q), function(h){
+      var box = h.parentNode, shut = on && !!folds[foldKey(h)], b = h.querySelector(':scope > .fold-b');
+      if (box.hasAttribute('data-fold') !== shut) box.toggleAttribute('data-fold', shut);
+      if (on) {
+        if (!b) { b = document.createElement('button'); b.type = 'button'; b.className = 'fold-b'; b.setAttribute('aria-label', foldKey(h).replace(/^[a-z]+:(.*\/)?/, '')); h.setAttribute('data-foldh', ''); h.appendChild(b); }
+        b.setAttribute('aria-expanded', shut ? 'false' : 'true');
+      } else if (b) { b.remove(); h.removeAttribute('data-foldh'); }
+    });
+  }
+  function foldTap(e){
+    if (!foldMq.matches || e.type !== 'click') return;
+    var b = e.target.closest && e.target.closest('.fold-b'), h = b && b.parentNode; if (!h) return;
+    var k = foldKey(h); if (folds[k]) delete folds[k]; else folds[k] = 1;
+    try { localStorage.setItem('provident-home-fold', JSON.stringify(folds)); } catch (x) {}
+    foldApply();
+    // a group folded from far down its list would leave the screen on the next group's middle
+    var r = h.getBoundingClientRect(); if (folds[k] && r.top < 120) h.parentNode.scrollIntoView({ block: 'start' });
+  }
+  document.addEventListener('click', foldTap);
+  if (window.MutationObserver) new MutationObserver(foldApply).observe($('pg'), { childList: true, subtree: true });
+  if (foldMq.addEventListener) foldMq.addEventListener('change', foldApply);
   document.addEventListener('click', function(e){
     // a Status menu closes on a click anywhere outside it
     if (sxMenu && !(e.target.closest && e.target.closest('.pp'))) { sxMenu = ''; setTimeout(sxDraw, 0); }
@@ -2366,10 +2892,14 @@ body{-webkit-tap-highlight-color:transparent;
     var r = data.r, ks = designs(); void r;
     if (!ks.length) return '<h1 class="h1">Projects</h1><div class="qk pj-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>No projects for your role</h3><p>Your work comes to you as review links and on Tracker.</p></div></div>';
     return '<h1 class="h1">Projects</h1><p class="lede">Every project saved on this computer, newest first. Open one to keep designing.</p>' +
-      '<div class="pj-tools">' + (ks.length > 1 ? '<div class="flt" role="group" aria-label="Show" id="pj-f"></div>' : '') +
+      (phoneQ() ? '<div class="pj-tools pj-ph"><div class="sx-row"><label class="srch">' + ico('search') + '<input id="pj-q" type="search" placeholder="Find by name" value="' + esc(pjQ) + '" aria-label="Find a project by name" enterkeyhint="search"></label>' +
+        '<button class="pb sx-fb" type="button" data-pjopen aria-label="Open a file">' + ico('folder') + '</button></div>' +
+        (ks.length > 1 ? '<div class="flt" role="group" aria-label="Show" id="pj-f"></div>' : '') + '</div>' +
+        '<div id="pj"><div class="gt-busy"><i></i>Reading this computer\u2019s projects\u2026</div></div>' : '') +
+      (phoneQ() ? '' : '<div class="pj-tools">' + (ks.length > 1 ? '<div class="flt" role="group" aria-label="Show" id="pj-f"></div>' : '') +
         '<div class="pj-open">' + ks.map(function(k){ return '<a class="b b-g" href="' + STUDIO[k].file + '#view=open">' + ico('out') + (k === 'cas' ? 'Open a project file' : 'Open a post file') + '</a>'; }).join('') + '</div>' +
         '<label class="srch">' + ico('search') + '<input id="pj-q" type="search" placeholder="Find by name" value="' + esc(pjQ) + '" aria-label="Find a project by name"></label></div>' +
-      '<div id="pj"><div class="gt-busy"><i></i>Reading this computer\u2019s projects\u2026</div></div>';
+      '<div id="pj"><div class="gt-busy"><i></i>Reading this computer\u2019s projects\u2026</div></div>');
   }
   function paintProjects(){
     var host = $('pj'); if (!host) return;

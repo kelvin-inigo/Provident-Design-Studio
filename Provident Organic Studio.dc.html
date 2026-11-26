@@ -4,6 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Provident Organic Post Studio</title>
+<!-- HOME-SCREEN WEB APP (2026-11-26): saved to an iPhone's home screen, PDS opens without the
+     browser's bars. The status bar is the system's own ("default": legible in both themes, and
+     nothing of ours sits under it); web-app.js tells the stylesheets about the keyboard, the
+     scroll position and whether this is the home-screen app. See docs/notes/chrome-and-design-system.md. -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PDS">
+<meta name="theme-color" content="#FFFFFF">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link rel="apple-touch-icon" href="app-icon-180.png">
+<script src="./web-app.js"></script>
+<script src="./studio-phone.js"></script>
 <!-- Parser-inserted, BEFORE support.js: the helmet mounts its <script src> tags
      with createElement and never clears async, so image-slot.js can run at any
      moment. The storage stand-in and canvas fallbacks must already exist. -->
@@ -4422,6 +4436,165 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
   .p-shell:has(.gd[data-mode="guide"]) .gd{bottom:var(--ps-flh)}
   .p-shell:has(.gd[data-mode="guide"]):has(.p-top > .p-flow) .gd[data-mode="guide"] .gd-nav{padding-bottom:10px}
   .p-shell:has(.gd[data-mode="guide"]) .p-top > .p-flow .p-flow-go{background:transparent;color:var(--ps-ink);box-shadow:inset 0 0 0 1px var(--ps-line)}
+}
+/* ══ 30 · THE HOME-SCREEN APP (2026-11-26, by request: "it needs to act as a native iOS app") ══
+   web-app.js (in the head) sets data-standalone / data-kb / data-scrolled / data-sdir on the root
+   element and --kb, the keyboard's height. This block is what a phone does with them:
+     GLASS FOOT   the panel bar, the flow strip and the canvas bar are the bar's ground at 76 percent
+                  over a blur of what passes under them, and the stage now scrolls UNDER them
+                  (the stage carries the foot's padding, the column no longer does).
+     THE BAR       (folded on scroll in the first pass; since the second pass it is one 52px row
+                  that never folds — see the next section)
+     KEYBOARD     the foot bars stand down and the open panel pads itself by the keyboard, so the
+                  last field of a panel can be scrolled clear of it.
+     PANELS       a section's heading sticks to the top of its panel while its section is on screen.
+     START        the start screen's sidebar is three compact rows, not five.
+     TOUCH        every bar button answers the finger at once; the chrome never selects or calls out.
+   MIRRORED rule for rule in Provident Campaign Studio.dc.html (its section 70).
+   Chrome only: no rule here reaches a canvas op. Every rule is a phone or coarse-pointer query. */
+@media (pointer:coarse){
+  html{touch-action:manipulation}
+  .p-top,.p-panelbar,.p-dock,.p-cvbar,.p-br-sb{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .p-top button,.p-panelbar button,.p-dock button,.p-cvbar button,.p-br-sb button{
+    transition:transform 90ms var(--ps-ease,ease),opacity 90ms var(--ps-ease,ease),background-color var(--ps-motion,.15s),color var(--ps-motion,.15s),box-shadow var(--ps-motion,.15s)}
+  .p-top button:active,.p-panelbar button:active,.p-dock button:active,.p-cvbar button:active,.p-br-sb button:active{transform:scale(.96);opacity:.8}
+  .p-rail,.p-stage{overscroll-behavior-y:contain}
+}
+@media (max-width:760px){
+  .p-shell{--ps-gl:var(--ps-sb);--ps-glf:none}
+  @supports (background:color-mix(in srgb,red 50%,transparent)){
+    .p-shell{--ps-gl:color-mix(in srgb,var(--ps-sb) 76%,transparent);--ps-glf:saturate(180%) blur(22px)}
+  }
+
+  /* ── the glass foot: the stage scrolls under the canvas bar, the flow strip and the panel bar ── */
+  .p-shell{--ps-pbh:calc(56px + env(safe-area-inset-bottom,0px))}
+  .p-panelbar{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom,0px));
+    background:var(--ps-gl);-webkit-backdrop-filter:var(--ps-glf);backdrop-filter:var(--ps-glf)}
+  .p-panelbar button{min-height:47px;padding-top:5px;padding-bottom:4px;gap:3px;font-size:11px;line-height:1.1}
+  .p-top > .p-flow{background:var(--ps-gl);-webkit-backdrop-filter:var(--ps-glf);backdrop-filter:var(--ps-glf)}
+  .p-stagecol{padding-bottom:0}
+  .p-stage{padding-bottom:calc(84px + 48px + var(--ps-pbh) + var(--ps-flh));
+    scroll-padding-bottom:calc(84px + 48px + var(--ps-pbh) + var(--ps-flh))}
+  .p-stagecol > .p-cvbar{position:fixed;left:0;right:0;bottom:calc(var(--ps-pbh) + var(--ps-flh));z-index:20;
+    background:var(--ps-gl);-webkit-backdrop-filter:var(--ps-glf);backdrop-filter:var(--ps-glf);
+    box-shadow:inset 0 1px 0 var(--ps-hair)}
+
+
+  /* ── the keyboard is up ── */
+  :root[data-kb] .p-shell{--ps-pbh:0px !important;--ps-flh:0px !important}
+  :root[data-kb] .p-panelbar:not(:focus-within),:root[data-kb] .p-top > .p-flow:not(:focus-within){display:none !important}
+  :root[data-kb] .p-rail-l,:root[data-kb] .p-rail-c,:root[data-kb] .p-rail-r,:root[data-kb] .cw,:root[data-kb] .gd-body{padding-bottom:calc(var(--kb,0px) + 20px) !important}
+  :root[data-kb] .p-stage{padding-bottom:calc(var(--kb,0px) + 80px)}
+
+  /* ── a panel's section heading stays with its section ── */
+  .p-rail .p-acc-sec > summary.p-acc-hs{position:sticky;top:0;z-index:3;
+    background:var(--ps-gl);-webkit-backdrop-filter:var(--ps-glf);backdrop-filter:var(--ps-glf)}
+
+  /* ── the start screen: three compact rows ── */
+  .p-br-sb{padding:12px 12px 10px;gap:8px}
+  .p-br-sb > .p-ws{min-height:44px;padding:4px 10px 4px 4px}
+  .p-br-sb > .p-ws .p-ws-a{width:34px;height:34px;flex:none}
+  .p-sbn{flex-wrap:nowrap;gap:6px;overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain;
+    margin:0 -12px;padding:0 12px;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+  .p-sbn::-webkit-scrollbar{display:none}
+  .p-sbn .p-nav2{flex:none;min-height:40px;white-space:nowrap}
+  .p-sbn .p-nav2:last-child{margin-right:20px}
+  .p-sbf{flex-wrap:nowrap;align-items:stretch;gap:8px}
+  .p-sbf > .p-sbc{flex:1 1 0;min-width:0;min-height:44px;padding:6px 10px 6px 8px;gap:8px}
+  .p-sbf > .p-sbo{flex:none;min-height:44px;white-space:nowrap}
+  .p-br-mn{padding-top:14px}
+  /* no panel bar on the start screen: the flow strip, when it shows, sits on the home indicator's inset */
+  .p-shell:has(> .p-over-split){--ps-pbh:env(safe-area-inset-bottom,0px)}
+
+  /* ── the guided run: Back / Next ride the same glass, and the form scrolls under them ── */
+  .gd[data-mode="guide"] .gd-nav{background:var(--ps-gl);-webkit-backdrop-filter:var(--ps-glf);backdrop-filter:var(--ps-glf)}
+  :root[data-kb] .gd[data-mode="guide"] .gd-nav:not(:focus-within){display:none}
+}
+@media (prefers-reduced-motion:reduce){ .p-top{transition:none} }
+/* ══ 31 · THE PHONE APP, SECOND PASS (2026-11-26, /impeccable critique of the phone view, 20/40) ══
+   With studio-phone.js (head), which adds the back and More buttons, the dock tab and the sheets
+   outside the studio's own markup. Below 761px:
+     ONE TOP BAR, 52px   back · the mode switch · Undo / Redo · More. Projects, Source folder,
+                         Save, Share, the theme, Preview and the step that moves the work on are
+                         hidden here and pressed from More's sheet. The bar no longer folds.
+     ONE BOTTOM BAR      the panel tabs. The canvas bar is gone (its name heads More; its Ad set
+                         overview is the Ad set tab); the flow strip shows only where the work is
+                         moved on, Ad set (CAS) and Guided (OPS).
+     SHEETS              each panel rises from the foot to half the screen with a grabber (drag
+                         up for the full height, down to close) and the canvas stays live above
+                         it, so a component is picked by tapping it. The docks are a sheet behind
+                         the fourth tab, never over the artwork.
+     START               the start screen keeps its nav and Continue last; the studio switcher,
+                         the account row and the theme give way (Home's More has them).
+   MIRRORED rule for rule in Provident Campaign Studio.dc.html (its section 71). Chrome only. */
+@media (max-width:760px){
+  :root,:root[data-sdir]{--ps-toph:52px}
+  .p-top{height:var(--ps-toph);flex-wrap:nowrap;align-content:normal;column-gap:6px;row-gap:0;
+    padding:0 max(52px,calc(env(safe-area-inset-right,0px) + 50px)) 0 max(50px,calc(env(safe-area-inset-left,0px) + 48px))}
+  .p-top > .p-wm,.p-top > .p-tgrp:not(.p-tgrp-h),.p-top > .p-ico-o,.p-top > .p-prev,.p-top > .p-vr,.p-top > .p-top-sep{display:none !important}
+  .p-top > .p-share{order:20;width:0;min-width:0;margin:0;padding:0;overflow:visible}
+  .p-top > .p-share > button{display:none}
+  .p-top > .p-seg-mode{order:1;flex:1 1 auto;min-width:0}
+  .p-top > .p-seg-mode button{flex:1 1 0;min-width:0;height:36px;padding:0 8px;font-size:14px;white-space:nowrap}
+  .p-top > .p-spring{order:2;flex:0 0 2px;min-width:0}
+  .p-top > .p-tgrp-h{order:3;flex:none}
+  .p-top > .p-tgrp-h button{width:38px}
+  /* Share and export opens as a sheet from the foot */
+  .p-top .p-share-m{position:fixed;top:auto;bottom:0;left:0;right:0;width:auto;max-height:82dvh;z-index:96;
+    padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));border-radius:20px 20px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.2)}
+  .p-top .p-share-m::before{content:"";display:block;width:36px;height:5px;margin:-4px auto 10px;border-radius:3px;background:var(--ps-line)}
+
+  /* one bottom bar */
+  .p-stagecol > .p-cvbar{display:none !important}
+  .p-shell:not(:has(.gd[data-mode="guide"])) .p-top > .p-flow{display:none !important}
+  .p-shell:not(:has(.gd[data-mode="guide"])){--ps-flh:0px !important}
+  .p-stage{padding-bottom:calc(24px + var(--ps-pbh) + var(--ps-flh));scroll-padding-bottom:calc(24px + var(--ps-pbh) + var(--ps-flh))}
+  :root[data-phdock] .p-panelbar{padding-right:calc((100vw - 20px) / 4 + 10px)}
+
+  /* the docks: hidden until their tab opens their sheet */
+  .p-dock,.p-lkdock{display:none !important}
+  :root[data-phdock-on] .p-dock{display:flex !important;position:fixed;left:0;right:0;bottom:calc(var(--ps-pbh) + 20px);padding:0 14px;justify-content:stretch;z-index:30}
+  :root[data-phdock-on] .p-dock .p-dock-in{width:100%}
+  :root[data-phdock-on] .p-lkdock{display:flex !important;position:fixed;left:14px;right:14px;bottom:calc(var(--ps-pbh) + 20px + 36px + 12px);z-index:30;padding:0}
+  :root[data-phdock-on] .p-lkdock .p-lkseg{flex:1}
+  :root[data-phdock-on] .p-lkdock .p-lkseg button{flex:1}
+  :root[data-phdock-on]{--php-dh:88px}
+
+  /* the panels are sheets */
+  .p-veil{display:none !important}
+  .p-rail.p-rail-l,.p-rail.p-rail-c,.p-rail.p-rail-r{position:fixed;top:auto;left:0;right:0;bottom:var(--ps-pbh);width:auto;
+    height:min(54dvh,calc(100dvh - var(--ps-toph) - var(--ps-pbh) - 8px));max-height:none;z-index:60;box-sizing:border-box;
+    border:0;border-radius:18px 18px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.18);padding-top:0;padding-bottom:20px;
+    transform:translateY(calc(100% + var(--ps-pbh) + 24px));visibility:hidden;
+    transition:transform 380ms cubic-bezier(.32,.72,0,1),height 320ms cubic-bezier(.32,.72,0,1),visibility 0s 380ms}
+  .p-rail.p-rail-l[data-open],.p-rail.p-rail-c[data-open],.p-rail.p-rail-r[data-open]{left:0;right:0;visibility:visible;
+    transform:translateY(max(-200px,var(--ph-dy,0px)));transition:transform 380ms cubic-bezier(.32,.72,0,1),height 320ms cubic-bezier(.32,.72,0,1),visibility 0s}
+  :root[data-phsl] .p-rail.p-rail-l,:root[data-phsl] .p-rail.p-rail-c,:root[data-phsl] .p-rail.p-rail-r{height:calc(100dvh - var(--ps-toph) - var(--ps-pbh) - 8px)}
+  .p-rail::before{content:"";position:sticky;top:0;z-index:5;display:block;flex:none;height:22px;margin:0 0 2px;
+    background:linear-gradient(var(--ps-line),var(--ps-line)) center 8px / 36px 5px no-repeat,var(--ps-sb);border-radius:18px 18px 0 0;cursor:grab;touch-action:none}
+  .p-rail .p-acc-sec > summary.p-acc-hs{top:22px}
+  .p-panelbar button[data-on]{background:var(--ps-fill-on)}
+
+  /* small text controls keep their look and get a fingertip-sized hit area */
+  .p-plate-h .pv-ed{position:relative}
+  .p-plate-h .pv-ed::after{content:"";position:absolute;inset:-12px -10px}
+  .gd[data-mode="editor"] .gd-sec-f{position:relative}
+  .gd[data-mode="editor"] .gd-sec-f::after{content:"";position:absolute;inset:-10px}
+  /* All controls' rail is the guided run's own markup (.gd-in-zone), not a .p-rail: the same sheet.
+     .gd is z 150, so the sheet sits above the panel bar's z 70 by its bottom offset, not its z */
+  .gd[data-mode="editor"] .gd-in-zone{position:fixed;top:auto;left:0;right:0;bottom:var(--ps-pbh);width:auto;
+    height:min(54dvh,calc(100dvh - var(--ps-toph) - var(--ps-pbh) - 8px));z-index:60;box-sizing:border-box;overflow-y:auto;overscroll-behavior:contain;
+    border:0;border-radius:18px 18px 0 0;box-shadow:0 -10px 40px rgba(0,0,0,.18);padding-bottom:20px;
+    transform:translateY(calc(100% + var(--ps-pbh) + 24px));visibility:hidden;
+    transition:transform 380ms cubic-bezier(.32,.72,0,1),height 320ms cubic-bezier(.32,.72,0,1),visibility 0s 380ms}
+  .gd[data-mode="editor"] .gd-in-zone[data-open]{right:0;visibility:visible;transform:translateY(max(-200px,var(--ph-dy,0px)));
+    transition:transform 380ms cubic-bezier(.32,.72,0,1),height 320ms cubic-bezier(.32,.72,0,1),visibility 0s}
+  :root[data-phsl] .gd[data-mode="editor"] .gd-in-zone{height:calc(100dvh - var(--ps-toph) - var(--ps-pbh) - 8px)}
+  .gd[data-mode="editor"] .gd-in-zone::before{content:"";position:sticky;top:0;z-index:5;display:block;flex:none;height:22px;
+    background:linear-gradient(var(--ps-line),var(--ps-line)) center 8px / 36px 5px no-repeat,var(--ps-sb);border-radius:18px 18px 0 0;cursor:grab;touch-action:none}
+  /* the start screen */
+  .p-br-sb > .p-ws,.p-br-sb .acx-me,.p-sbn .p-nav2-q,.p-sbn .p-nav2-acc,.p-br-h .p-ico-o{display:none !important}
+  .p-shell:has(> .p-over-split) .p-top > .p-flow{display:none !important}
 }
 </style>
 </helmet>

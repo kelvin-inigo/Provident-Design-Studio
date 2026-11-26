@@ -59,7 +59,11 @@ Everything that waits on someone — tickets, hand-offs, copy checks, packages, 
 Sign-in is **Continue with Google** with an @providentestate.com account. A first-timer lands on
 **Waiting for access** and presses **Send to the admin**. Review links (`#share=…`) open without
 signing in. Chrome or Edge are best; Safari and Firefox work but can't use a **Source folder**, so
-exports download as a zip. The studios fit tablets and phones.
+exports download as a zip. The studios fit tablets and phones. On an iPhone, Safari's **Share › Add
+to Home Screen** puts a **PDS** icon on the home screen that opens the site full screen like an app.
+On a phone the home site has four tabs (Home, Tracker, Projects, More; Access, Engine, Help and the
+theme are in More), and a studio opens in Ad set (CAS) or Guided (OPS) with the other controls under
+**⋯** at the top right; the panels open as sheets from the foot of the screen.
 
 ### Roles
 

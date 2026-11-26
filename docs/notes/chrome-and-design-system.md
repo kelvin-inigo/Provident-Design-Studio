@@ -3598,3 +3598,111 @@ CAS section 69 and OPS section 29, the last block of each sheet, mirrored rule f
 - **Proved:** whole-file diff — the viewport meta and one CSS block per file, zero artwork lines.
   Desktop bar at 1440 unchanged (56px, fits). Seen in the Browser pane at 375 / 820 / 1024 / 1440;
   not yet seen on a real iPhone or iPad.
+
+## THE HOME-SCREEN APP — PDS AS AN iOS WEB APP (2026-11-26, by request)
+"I will save it on iOS as a Web App on home so it needs to act as a native iOS app": keyboard,
+snappy, compact, collapsible, sticky, compact on scroll, blur that keeps type legible.
+**Not the iOS app shell deleted on 2026-10-21** — no native wrapper, nothing native is called.
+
+- **Head, all three documents** (home, CAS, OPS): `apple-mobile-web-app-capable`,
+  `apple-mobile-web-app-title` "PDS", `theme-color`, `manifest.json` (standalone, start
+  `./index.html`), `app-icon-180/192/512.png` (the wordmark's "p." in white on `#1A2942`, drawn
+  from the wordmark path by a script, not exported by hand). Status bar style is **`default`**
+  on purpose: `black-translucent` puts white clock text over our light theme. With `default`
+  nothing of ours sits under the status bar, so no top inset is needed.
+- **`web-app.js`** (new, shared, loaded in each head; draws nothing). It sets on `<html>`:
+  `data-standalone` (opened from the icon), `data-kb` + `--kb` (keyboard up and its height, from
+  `visualViewport`; a page that resizes instead, Android, is read as a shorter page while a field
+  has focus), `data-scrolled` (> 12px), `data-past` (> 96px), `data-sdir="down"` (28px of real
+  downward travel past 72px; cleared after 18px back up or near the top; 260ms hold after each
+  flip so a bar changing height cannot flip it back). The scroller that counts is the document
+  or any pane over half the screen tall and 80% wide (`.p-stage`, `.gd-body`, `.cw`, a rail).
+  Also: a tap on the page blurs the field (controls excepted), a fixed-height screen is put back
+  after the keyboard (`scrollTo(0,0)`), `theme-color` follows `data-theme`, and in the home-screen
+  app a same-site `target="_blank"` link opens in place and pinch-zoom is off.
+- **CAS section 70 / OPS section 30**, mirrored, the last block of each sheet:
+  - **Glass foot.** `.p-panelbar`, `.p-top > .p-flow` and `.p-cvbar` are `--ps-gl`
+    (`color-mix(--ps-sb 76%, transparent)`) over `--ps-glf` (`saturate(180%) blur(22px)`), solid
+    under `@supports not`. The stage scrolls UNDER them: `.p-stagecol` lost its foot padding, the
+    stage carries it, and `.p-stagecol > .p-cvbar` is `position:fixed` above the flow strip
+    (z 20, under the rails' 60). Panel bar 65/62 → 56px (`--ps-pbh`).
+  - **The bar folds.** `:root[data-sdir="down"]{--ps-toph:48px}` and the project row (wordmark,
+    spring, the Projects group, Share, the `.p-vr` break) is `display:none`. Everything pinned
+    under the bar reads `--ps-toph`, so it follows. Measured: stage 551 → 720 → 764px at 375×812.
+  - **Keyboard.** `--ps-pbh` / `--ps-flh` go to 0 (`!important`: the guided run's `:has()` rules
+    out-rank a plain override), the panel bar and flow strip hide unless they hold the focus, the
+    rails / `.cw` / `.gd-body` pad by `--kb`.
+  - **Panels.** `summary.p-acc-hs` is sticky glass at the top of its rail.
+  - **Start screen.** The sidebar is three rows (switcher 44px, the nav one scrolling row with a
+    fading edge, Continue last beside Open a file): 325 → 229px. With no panel bar there,
+    `.p-shell:has(> .p-over-split)` seats the flow strip on the home indicator's inset (it used
+    to float 65px up with a blank band under it).
+  - **Touch.** `touch-action:manipulation` on `html`; bar buttons scale to .96 on `:active`
+    (the transition list repeats background / colour / shadow so the existing ones survive);
+    the chrome does not select or call out.
+- **THE TRAP: a `backdrop-filter` makes its element the containing block of every `position:fixed`
+  descendant.** On the home page the tab bar is a fixed child of `.p-top`; glass on `.p-top`
+  itself put the tabs at the top of the screen. The glass is `.p-top::before` there. In the
+  studios `.p-top` holds the fixed flow strip for the same reason and stays opaque. The same goes
+  for `container-type`, `transform` and `filter` on an ancestor.
+- **Proved:** each studio's diff is 13 head lines and one stylesheet block, zero removed lines
+  (no artwork path). Desktop at 1440: bar 56px and fits, stage padding 28px, `.p-cvbar` static,
+  `--ps-toph` unset, `data-sdir` never set (the stage is under 80% wide). Phone 375×812 in the
+  Browser pane, light and dark: CAS start, editor, Component rail; OPS start, All controls, the
+  guided run.
+- **NOT verified — needs a real iPhone:** the keyboard path (`visualViewport` cannot be shrunk in
+  the pane), the status bar, the icon, and **Google sign-in inside the home-screen app**:
+  `studio-base.js` signs in with `ux_mode:'popup'`, and iOS opens a popup from a standalone app in
+  a browser sheet that may not hand the code back. The home-screen app also has its own storage,
+  so it starts signed out. No service worker was added: a cache-first one would serve yesterday's
+  studio after a push.
+
+## THE PHONE APP, SECOND PASS (2026-11-26, /impeccable critique 20/40, "run all of them")
+The user chose: studios Guided-first on a phone, four tabs with a More tab, all six issues.
+- **`studio-phone.js`** (new, both studios, head, after `web-app.js`). Everything it adds lives
+  OUTSIDE the studio's render tree, appended to `<body>`: `.php-back` (presses `.p-top > .p-wm`),
+  `.php-more` (the More sheet), `.php-dockbtn` (a fourth tab drawn over the panel bar, whose
+  padding-right makes room), `.php-dsheet` (the dock sheet's ground) and `.php-sht` (the sheet).
+  More's rows press the studio's own hidden buttons, found by what they are each time
+  (`targets()`): the flow's `.p-flow-go` / `.p-flow-fin`, `.p-prev`, `.p-share > button`, the
+  `.p-tgrp` buttons by title (Save, Source folder, Projects), the theme `.p-ico-o`. The name field
+  writes through to `.p-cvname input` with the native value setter + `input`/`change` events
+  (verified in OPS: the bar's field took the typed name). Root attributes: `data-phs` (phone,
+  studio), `data-phsplash`, `data-phdock` (a dock exists and the panel bar shows),
+  `data-phdock-on`, `data-phsl` (panel at full height). It syncs on clicks, resize and a 500ms tick.
+- **Guided first:** when the start screen gives way to a project, it presses the mode switch's
+  first button (Ad set / Guided), retrying for 4s while the project loads, never after a click on
+  the switch that is not its own. Phone only: desktop OPS still opens in All controls.
+- **CAS section 71 / OPS section 31** (mirrored; the `.cw` rule is CAS-only): one 52px bar
+  (`--ps-toph:52px`; the first pass's fold is removed, the comment in 70/30 says so); `.p-cvbar`
+  hidden; the flow strip only on Ad set / Guided; `.p-dock` / `.p-lkdock` hidden until the dock
+  sheet; `.p-veil` off (the canvas stays live behind a half sheet); every `.p-rail` is a bottom
+  sheet above the panel bar, `min(54dvh, …)`, full height at `data-phsl`, slid with transform plus
+  `visibility` (so a closed one is not focusable), a sticky `::before` grabber; `.p-share-m` is a
+  sheet from the foot; the start screen loses the switcher, account row, Component usage, Access
+  and the theme. A rail's sticky `summary` sits at `top:22px` under the grabber.
+- **OPS's `.p-top` is `z-index:160`** (CAS's is auto): our buttons are 170, our sheet 200.
+- **Drag:** a pointer that lands in a sheet's top 30px (not on a control) drags it. Up 50px →
+  full height; down 90px → half from full, closed from half (the veil's own click closes it).
+  Verified with synthetic touch pointer events, not a finger.
+- **`web-app.js`:** a scroller inside `.p-rail`, `.sht-p`, `.php-sht-p`, `.pm`, `.p-share-m` or
+  `.p-dock-b` is never "the page" (a rail's scroll had hidden the studio's Share); a hash change
+  clears the scroll attributes.
+- Verified 375×812 light and dark: CAS start, Ad set (one scrolling page), Design, Component and
+  Layout sheets (drag up and down), Variants sheet, More, Share sheet; OPS Guided first, All
+  controls, Template sheet, Look tab, More with rename. Desktop 1440: OPS opens in All controls,
+  bar 56px and fits, no phone element shows. Each studio's diff: head + CSS only, 0 removed lines.
+
+## THE PHONE APP, POLISH PASS (2026-11-26, /impeccable polish)
+One inspection round at 375×812 (home pages, OPS start / Guided / All controls / Slide), one fix
+batch, one confirmation round with desktop 1440.
+- **OPS All controls' rail is `.gd-in-zone`, not a `.p-rail`** (the guided run's markup serves the
+  rail), so the second pass left it a right-hand drawer from the top bar down. OPS section 31 now
+  makes `.gd[data-mode="editor"] .gd-in-zone` the same half-height bottom sheet (grabber, full
+  height at `data-phsl`); `studio-phone.js` drags it (`RAILS`) and `web-app.js` never takes its
+  scroll for the page's. **`.gd` is `position:fixed; z-index:150`**, so the sheet clears the panel
+  bar by its `bottom` offset, not by its own z-index. Measured: top 318, height 438, drag up →
+  full height.
+- Fingertip hit areas (`::after`, look unchanged): the plate's **Edit** (`.pv-ed`, 27×20, both
+  studios) and OPS's section fold chevron (`.gd-sec-f`, 24×24).
+- Both sheets (home `#sht`, studios `.php-sht`) keep Tab inside themselves while open.
