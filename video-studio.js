@@ -212,7 +212,7 @@
   const DB = !WS.ok ? IDB : {
     _up: {}, _q: {},
     putStrict(rec) {
-      if (!rec.pid) rec.pid = P.id;
+      if (!rec.pid) rec.pid = P.id; if (!rec.at) rec.at = Date.now();
       const run = async () => {
         if (this._up[rec.id] !== rec.blob) {
           const r = await fetch('/api/work/media?id=' + rec.id, { method: 'PUT', body: rec.blob });
@@ -233,7 +233,7 @@
       let list = []; try { list = (await (await fetch('/api/work/list')).json()).media || []; } catch (e) { return []; }
       const out = []; let i = 0;
       const one = async () => { while (i < list.length) { const m = list[i++];
-        try { const b = await (await fetch('/api/work/media?id=' + m.id)).blob(), rec = Object.assign({}, m, { blob: new Blob([b], { type: m.type || b.type }) }); delete rec.type; delete rec.size; this._up[m.id] = rec.blob; out.push(rec); } catch (e) {} } };
+        try { const b = await (await fetch('/api/work/media?id=' + m.id)).blob(), rec = Object.assign({}, m, { blob: new Blob([b], { type: m.type || b.type }) }); if (!rec.at && m.mtime) rec.at = Math.round(m.mtime * 1000); delete rec.type; delete rec.size; delete rec.mtime; this._up[m.id] = rec.blob; out.push(rec); } catch (e) {} } };
       await Promise.all([one(), one(), one(), one()]);
       const at = {}; list.forEach((m, n) => { at[m.id] = n; }); return out.sort((a, b) => at[a.id] - at[b.id]);
     },
@@ -512,7 +512,7 @@
       if (!kind && /\.(mov|mp4|m4v|webm)$/i.test(f.name)) kind = 'video';
       if (!kind && /\.(mp3|wav|m4a|aac|ogg)$/i.test(f.name)) kind = 'audio';
       if (!kind) { toast(f.name + ' is not a video, audio or image file.'); continue; }
-      const rec = { id: uid(), kind, name: f.name.replace(/\.[^.]+$/, ''), blob: f };
+      const rec = { id: uid(), at: Date.now(), kind, name: f.name.replace(/\.[^.]+$/, ''), blob: f };
       try { await probe(rec); } catch (e) {
         toast(kind === 'video' ? 'This browser cannot play ' + f.name + '. Try an MP4 (H.264).' : 'Could not read ' + f.name + '.'); continue;
       }
@@ -1808,9 +1808,18 @@
   const libUses = (key, id) => (key === 'media' ? P.clips : key === 'audio' ? P.audio : P.logos).filter(x => x.mid === id).length;
   const libAll = (key, M) => M.filter(m => key === 'logos' ? m.kind === 'logo' || (m.kind === 'image' && P.logos.some(l => l.mid === m.id))   // a photo shows under Graphics only once it is placed as one
     : LKIND[key].indexOf(m.kind) >= 0);
+  // SORT (2026-11-26, by request): newest, oldest, name, length; kept per computer with the library's view
+  const SORTS = [['new', 'Newest first'], ['old', 'Oldest first'], ['az', 'Name A–Z'], ['za', 'Name Z–A'], ['long', 'Longest first'], ['short', 'Shortest first']];
+  const byName = (a, b) => String(a.name).localeCompare(String(b.name), undefined, { numeric: true, sensitivity: 'base' });
+  function libSort(list) {
+    const k = LIB.sort || 'new', at = m => m.at || 0, len = m => m.kind === 'image' || m.kind === 'logo' ? 0 : (m.dur || 0);
+    const f = { new: (a, b) => at(b) - at(a) || byName(a, b), old: (a, b) => at(a) - at(b) || byName(a, b), az: byName, za: (a, b) => byName(b, a),
+      long: (a, b) => len(b) - len(a) || byName(a, b), short: (a, b) => len(a) - len(b) || byName(a, b) }[k] || null;
+    return f ? list.slice().sort(f) : list;
+  }
   function libPick(key, M) {
     const st = LQ[key], q = st.q.trim().toLowerCase();
-    return libAll(key, M).filter(m => {
+    return libSort(libAll(key, M)).filter(m => {
       const x = lm(m.id), u = libUses(key, m.id);
       if (q && String(m.name).toLowerCase().indexOf(q) < 0 && String(x.dir || '').toLowerCase().indexOf(q) < 0) return false;
       if (st.dir === '~' ? x.dir : st.dir && x.dir !== st.dir) return false;
@@ -1851,7 +1860,8 @@
       '<div class="vs-lt"><select class="p-in" id="libDir" aria-label="Folder"><option value="">All folders</option><option value="~"' + (st.dir === '~' ? ' selected' : '') + '>Not in a folder</option>' +
         dirs.map(d => '<option value="' + esc(d) + '"' + (st.dir === d ? ' selected' : '') + '>' + esc(d) + '</option>').join('') + '</select>' +
         (inDir ? '<button class="vs-sq" data-dirren="1" title="Rename this folder" aria-label="Rename this folder">' + sico('edit') + '</button><button class="vs-sq" data-dirdel="1" title="Delete this folder. Its files stay in the library." aria-label="Delete this folder">' + ico('delete') + '</button>' : '') +
-        '<button class="vs-sq" data-dirnew="1" title="New folder" aria-label="New folder">' + sico('folder_add') + '</button></div>';
+        '<button class="vs-sq" data-dirnew="1" title="New folder" aria-label="New folder">' + sico('folder_add') + '</button></div>' +
+      '<div class="vs-lt"><select class="p-in" id="libSort" aria-label="Sort by" title="Sort the library">' + SORTS.map(o => '<option value="' + o[0] + '"' + ((LIB.sort || 'new') === o[0] ? ' selected' : '') + '>' + o[1] + '</option>').join('') + '</select></div>';
     return '<div class="vs-sec">' + '<div class="vs-h"><b>' + LNAME[key] + '</b><s id="libN">' + libCount(n, all.length) + '</s></div>' + tools +
       '<div id="libList">' + libList(key, M) + '</div></div>';
   }
@@ -1862,7 +1872,7 @@
     if (!box) return renderLib();
     box.innerHTML = libList(key, M); if (n) n.textContent = libCount(libPick(key, M).length, libAll(key, M).length);
   }
-  const dbRec = r => ({ id: r.id, pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV, stripU: r.stripU, stripM: r.stripM });
+  const dbRec = r => ({ id: r.id, at: r.at || Date.now(), pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV, stripU: r.stripU, stripM: r.stripM });
   async function libRename(id) {
     const m = media[id]; if (!m) return;
     const v = await ask('Rename', 'A name you will recognise. It shows here and on the timeline.', 'Rename', m.name);
@@ -2017,7 +2027,7 @@
     const el = e.target.closest('[data-star],[data-more]');
     if (el && e.target === el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); el.click(); }
   });
-  $('#lib').addEventListener('change', e => { if (e.target.id === 'libDir') { LQ[libKey()].dir = e.target.value; renderLib(); } });
+  $('#lib').addEventListener('change', e => { if (e.target.id === 'libDir') { LQ[libKey()].dir = e.target.value; renderLib(); } else if (e.target.id === 'libSort') { LIB.sort = e.target.value; libSave(); renderLib(); } });
   $('#lib').addEventListener('input', e => { if (e.target.id === 'libQ') { LQ[libKey()].q = e.target.value; libRefresh(); return; } });
   $('#lib').addEventListener('click', e => {
     const q = a => e.target.closest('[' + a + ']');

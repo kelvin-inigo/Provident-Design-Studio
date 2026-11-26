@@ -709,6 +709,7 @@ class H(SimpleHTTPRequestHandler):
                     try:
                         m = json.load(open(os.path.join(WORK, f)))
                         m['size'] = os.path.getsize(os.path.join(WORK, f[:-5] + '.bin'))
+                        m['mtime'] = os.path.getmtime(os.path.join(WORK, f[:-5] + '.bin'))
                         rows.append(m)
                     except Exception:
                         pass
