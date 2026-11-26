@@ -10,6 +10,7 @@
 import AVFoundation
 import CoreImage
 import VideoToolbox
+import ImageIO
 
 func fail(_ m: String) -> Never { FileHandle.standardError.write((m + "\n").data(using: .utf8)!); exit(1) }
 
@@ -21,12 +22,19 @@ try? FileManager.default.removeItem(at: dst)
 
 let asset = AVURLAsset(url: src)
 let sem = DispatchSemaphore(value: 0)
-var vTrack: AVAssetTrack?, aTrack: AVAssetTrack?, natural = CGSize.zero, xf = CGAffineTransform.identity, fps: Float = 30
+var vTrack: AVAssetTrack?, aTrack: AVAssetTrack?, natural = CGSize.zero, xf = CGAffineTransform.identity, fps: Float = 30, codec = "", depth = 32
 Task {
   do {
     vTrack = try await asset.loadTracks(withMediaType: .video).first
     aTrack = try await asset.loadTracks(withMediaType: .audio).first
-    if let t = vTrack { natural = try await t.load(.naturalSize); xf = try await t.load(.preferredTransform); fps = try await t.load(.nominalFrameRate) }
+    if let t = vTrack {
+      natural = try await t.load(.naturalSize); xf = try await t.load(.preferredTransform); fps = try await t.load(.nominalFrameRate)
+      if let fd = try await t.load(.formatDescriptions).first {
+        let st = CMFormatDescriptionGetMediaSubType(fd)
+        codec = String(bytes: [UInt8(st >> 24 & 255), UInt8(st >> 16 & 255), UInt8(st >> 8 & 255), UInt8(st & 255)], encoding: .ascii) ?? ""
+        if let d = CMFormatDescriptionGetExtension(fd, extensionKey: kCMFormatDescriptionExtension_Depth) as? Int { depth = d }
+      }
+    }
   } catch { }
   sem.signal()
 }
@@ -41,7 +49,12 @@ let W = max(2, Int((w0 * sc / 2).rounded()) * 2), H = max(2, Int((h0 * sc / 2).r
 
 let reader: AVAssetReader
 do { reader = try AVAssetReader(asset: asset) } catch { fail("macOS cannot read this file (\(error.localizedDescription))") }
-let vOut = AVAssetReaderTrackOutput(track: vt, outputSettings: [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA])
+// After Effects' classic transparent exports, QuickTime Animation ('rle ') and PNG ('png '), have
+// had no decoder in macOS since Catalina: their samples are read as they are and decoded here.
+let own = codec == "rle " || codec == "png "
+let NW = Int(natural.width), NH = Int(natural.height)
+if own && codec == "rle " && depth != 32 && depth != 24 { fail("this Animation file is \(depth)-bit; export it as Millions of Colors+ (32-bit) or ProRes 4444") }
+let vOut = AVAssetReaderTrackOutput(track: vt, outputSettings: own ? nil : [kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA])
 vOut.alwaysCopiesSampleData = false
 guard reader.canAdd(vOut) else { fail("macOS cannot decode this file's picture") }
 reader.add(vOut)
@@ -68,9 +81,57 @@ if aOut != nil {
   if writer.canAdd(i) { writer.add(i); aIn = i }
 }
 
-guard reader.startReading() else { fail("macOS could not start reading this file (\(reader.error?.localizedDescription ?? "unknown"))") }
+let codecName = ["ap4h": "ProRes 4444", "ap4x": "ProRes 4444 XQ", "apch": "ProRes 422 HQ", "apcn": "ProRes 422", "apcs": "ProRes 422 LT", "apco": "ProRes 422 Proxy", "aprn": "ProRes RAW", "Hap1": "HAP", "Hap5": "HAP Alpha", "HapY": "HAP Q", "CFHD": "CineForm", "dnxh": "DNxHD/HR", "AVdh": "DNxHD", "rle ": "Animation", "png ": "PNG"][codec] ?? ("'" + codec + "'")
+guard reader.startReading() else { fail("macOS cannot decode this file's picture (\(codecName) codec). Export it as ProRes 4444 with RGB + Alpha, or a WebM") }
 guard writer.startWriting() else { fail("could not start the converted file (\(writer.error?.localizedDescription ?? "unknown"))") }
 writer.startSession(atSourceTime: .zero)
+
+// ── decoding the two old codecs ourselves ──
+var argb = [UInt8](repeating: 0, count: max(1, NW * NH * 4))   // Animation keeps the last frame: each sample changes only some rows
+func rleFrame(_ d: [UInt8]) {
+  if d.count < 8 { return }                                    // an empty sample: nothing changed
+  var p = 4
+  func u8() -> Int { if p < d.count { p += 1; return Int(d[p - 1]) }; return -1 }
+  func be16() -> Int { let a = u8(), b = u8(); return a < 0 || b < 0 ? -1 : (a << 8) | b }
+  let header = be16(); var start = 0, lines = NH
+  if header & 0x0008 != 0 { start = be16(); p += 2; lines = be16(); p += 2 }
+  var row = start
+  while lines > 0 && row < NH && p < d.count {
+    lines -= 1
+    var x = u8() - 1
+    while p < d.count {
+      let c = Int(Int8(bitPattern: UInt8(truncatingIfNeeded: u8())))
+      if c == -1 { break }
+      if c == 0 { x += u8() - 1; continue }
+      func px() -> (Int, Int, Int, Int) { depth == 32 ? (u8(), u8(), u8(), u8()) : (255, u8(), u8(), u8()) }
+      if c < -1 { let v = px(); for _ in 0..<(-c) { if x >= 0 && x < NW { let o = (row * NW + x) * 4; argb[o] = UInt8(max(0, v.0)); argb[o + 1] = UInt8(max(0, v.1)); argb[o + 2] = UInt8(max(0, v.2)); argb[o + 3] = UInt8(max(0, v.3)) }; x += 1 } }
+      else { for _ in 0..<c { let v = px(); if x >= 0 && x < NW { let o = (row * NW + x) * 4; argb[o] = UInt8(max(0, v.0)); argb[o + 1] = UInt8(max(0, v.1)); argb[o + 2] = UInt8(max(0, v.2)); argb[o + 3] = UInt8(max(0, v.3)) }; x += 1 } }
+    }
+    row += 1
+  }
+}
+func ownFrame(_ sb: CMSampleBuffer) -> CVPixelBuffer? {
+  var pb: CVPixelBuffer?
+  guard CVPixelBufferCreate(nil, NW, NH, kCVPixelFormatType_32BGRA, [kCVPixelBufferCGBitmapContextCompatibilityKey as String: true] as CFDictionary, &pb) == kCVReturnSuccess, let b = pb else { return nil }
+  var bytes = [UInt8]()
+  if let bb = CMSampleBufferGetDataBuffer(sb) { let n = CMBlockBufferGetDataLength(bb); bytes = [UInt8](repeating: 0, count: n); _ = bytes.withUnsafeMutableBytes { CMBlockBufferCopyDataBytes(bb, atOffset: 0, dataLength: n, destination: $0.baseAddress!) } }
+  CVPixelBufferLockBaseAddress(b, []); defer { CVPixelBufferUnlockBaseAddress(b, []) }
+  guard let base = CVPixelBufferGetBaseAddress(b) else { return nil }
+  let bpr = CVPixelBufferGetBytesPerRow(b)
+  if codec == "png " {
+    guard let src = CGImageSourceCreateWithData(Data(bytes) as CFData, nil), let im = CGImageSourceCreateImageAtIndex(src, 0, nil),
+          let cg = CGContext(data: base, width: NW, height: NH, bitsPerComponent: 8, bytesPerRow: bpr, space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedFirst.rawValue | CGBitmapInfo.byteOrder32Little.rawValue) else { return nil }
+    cg.clear(CGRect(x: 0, y: 0, width: NW, height: NH)); cg.draw(im, in: CGRect(x: 0, y: 0, width: NW, height: NH))
+  } else {
+    rleFrame(bytes)
+    let o8 = base.assumingMemoryBound(to: UInt8.self)
+    for y in 0..<NH { for x in 0..<NW {
+      let i = (y * NW + x) * 4, a = Int(argb[i]), q = y * bpr + x * 4
+      o8[q] = UInt8(Int(argb[i + 3]) * a / 255); o8[q + 1] = UInt8(Int(argb[i + 2]) * a / 255); o8[q + 2] = UInt8(Int(argb[i + 1]) * a / 255); o8[q + 3] = UInt8(a)
+    } }
+  }
+  return b
+}
 
 // the picture: oriented, scaled, alpha kept (CIContext renders premultiplied BGRA)
 let ci = CIContext(options: [.workingColorSpace: NSNull(), .outputColorSpace: NSNull()])
@@ -80,9 +141,9 @@ group.enter()
 var vDone = false, checked = false, seeThrough = false
 vIn.requestMediaDataWhenReady(on: DispatchQueue(label: "v")) {
   while vIn.isReadyForMoreMediaData && !vDone {
-    guard let sb = vOut.copyNextSampleBuffer(), let px = CMSampleBufferGetImageBuffer(sb) else {
-      vDone = true; vIn.markAsFinished(); group.leave(); return
-    }
+    guard let sb = vOut.copyNextSampleBuffer() else { vDone = true; vIn.markAsFinished(); group.leave(); return }
+    if own && CMSampleBufferGetNumSamples(sb) == 0 { continue }
+    guard let px = own ? ownFrame(sb) : CMSampleBufferGetImageBuffer(sb) else { continue }
     let t = CMSampleBufferGetPresentationTimeStamp(sb)
     if !checked {                       // does the file itself carry transparency? (any alpha under 250 in the first frame)
       checked = true

@@ -1293,3 +1293,12 @@ newer). It reports `alpha` or `opaque` from the first frame (`X-CASV-Alpha`), an
 so: an opaque file is converted and placed, with "the file has no transparent background … export
 ProRes 4444 with RGB + Alpha, or a WebM". Checked: ProRes 4444 with alpha → kept; ProRes 422 →
 converted, told opaque; 1081×1921 and 4096×2304 sources → 1082×1922 and 2160×1216.
+
+**And the two old codecs (same day).** The next 10.mov failed with "Cannot Decode": macOS has no
+decoder for QuickTime Animation (`rle `) or PNG (`png `), After Effects' classic transparent
+exports, since Catalina. `casv-convert` now reads those samples as they are (passthrough
+reader) and decodes them itself: PNG through ImageIO, Animation with an RLE decoder (24 / 32-bit,
+deltas onto the previous frame, as FFmpeg's qtrle). Any other codec it cannot read is named in
+the error (ProRes RAW, HAP, CineForm, DNxHD …) with "Export it as ProRes 4444 with RGB + Alpha,
+or a WebM". Checked with generated Animation and PNG movies that avconvert refuses: both converted,
+box colour right, corners fully transparent.
