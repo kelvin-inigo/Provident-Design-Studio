@@ -1168,3 +1168,31 @@ campaign view (performance marketing's whole view; the Campaigns chip for others
   ring, the brand / audiences / designs line. `tkCampaign` and its CSS stay in the file, unused.
 - Verified on :8797, Preview as pm: 10 cards; 0 contrast failures on 125 nodes in dark and light
   (each reloaded); no sideways scroll at 1440 or 375.
+
+## One desk: the four new pages share one sheet (2026-11-27, branch `home/streamline`)
+
+By request ("redesign these new pages, unify the UI, make everything coherent … on the mobile
+view act as a native iOS app, because it will be saved as a web app"). My work, All work, the ad
+set page and the post page were each drawn in their own pass and had drifted: three page widths,
+a kicker over two of the titles, three card rings, capitals on the table head, 32px and 36px
+buttons side by side, a Drive card on top of every ad set.
+
+- **Where:** the LAST block of `index.html`'s sheet, headed `ONE DESK`. It uses the hosts' ids
+  (`#pg`, `#cas-host`, `#ops-host`), so it wins over the rules `share-link.js` and `post-flow.js`
+  inject without editing them. The studios (the CAS Ad set tab, ad set settings) are untouched.
+- **`<html data-pv>`** is set by the route painter: `home`, `tracker`, `item` (an ad set or post),
+  or the route's own name. The sheet keys its width and its phone rules on it.
+- **Shared:** one 1120px measure; the title Regular with its facts on the line under it (the
+  kickers are moved under with `order`, the markup is unchanged); one card (card ground, a 1px
+  hairline ring, 16px); With others is the same joined list as All work; a row that waits on you
+  is tinted, not ringed; header buttons are 36px; the ad set's Drive line is a quiet line at its foot.
+- **Phone:** the in-page back pills are hidden (the bar has the back); the bar names the ad set
+  or post once its title has scrolled away (a MutationObserver on the hosts, because they load
+  after the route is painted); All work is a search field, a segmented control and a grouped
+  list (name, then step and due); a post's two buttons are a glass dock over the tab bar
+  (`bottom:var(--tabbar-h)`), and Send to SMM, Back to draft, Drive folder, Hide and Delete are
+  grouped rows. The dock hides while the keyboard is up (`data-kb`).
+- **Trap:** the dock is `position:fixed`; an ancestor with a transform would become its containing
+  block, so the hosts' entrance (`u-push`) animates opacity only.
+- **Not done:** the studios' own chrome (CAS Ad set tab, settings sheet) follows the studio kit and
+  was not part of this pass; the phone's With others rows still use the old three-line row.

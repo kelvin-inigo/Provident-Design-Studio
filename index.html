@@ -1388,6 +1388,177 @@ body{-webkit-tap-highlight-color:transparent;
   /* Access: the preview picker is a quiet row, not a second big pill */
   .ac .ac-pv .ac-sel{height:40px; border-radius:11px}
 }
+/* ═════ ONE DESK (2026-11-27, /impeccable: "unify the UI, make everything coherent"; "on the
+   mobile view … act as a native iOS app, because it will be saved as a web app") ═════
+   My work, All work, the ad set page and the post page were drawn one at a time and each kept its
+   own width, title, card and step. This layer is the one set they share. It is the LAST block of
+   the sheet and uses the hosts' ids, so it wins over the studios' own injected rules without
+   touching share-link.js or post-flow.js (the studios keep their look).
+   One measure (1120px). One title (Regular, with its facts on the line UNDER it, never a kicker
+   over it). One card (card ground, a 1px hairline ring, 16px corners). One list (rows joined in a
+   card, hairline between). One 36px button height in a header. A row that waits on you is tinted,
+   never ringed in the link colour. */
+:root{--u-w:1120px; --u-ring:0 0 0 1px var(--ps-hair)}
+html[data-pv="home"] #pg,html[data-pv="tracker"] #pg,#cas-host.mnt,#ops-host.mnt{max-width:calc(var(--u-w) + 64px)}
+#cas-host.mnt,#ops-host.mnt{padding-top:28px}
+#pg .mw,#cas-host .rva{max-width:none}
+html[data-pv="home"] #pg .h1,html[data-pv="tracker"] #pg .h1{font-size:clamp(30px,3vw,40px)}
+#pg .mw > .h1{margin-bottom:28px}
+#pg .sx-head{margin-bottom:28px}
+/* cards */
+#pg .wk,#pg .rp,#pg .aw,#cas-host .rvd-phc,#cas-host .rvd-au,#cas-host .rvd-card,#cas-host .rvd-act,#cas-host .rva-tk,#ops-host .psd-card{
+  border-radius:16px; background:var(--ps-card); box-shadow:var(--u-ring)}
+#pg .rp[data-mine]{background:color-mix(in srgb, var(--ps-link) 9%, var(--ps-card)); box-shadow:var(--u-ring)}
+#pg .rp h3,#pg .wk h3{font:400 20px/1.25 var(--ps-font); letter-spacing:-.01em}
+#pg .rp{padding:18px 22px}
+/* the table's head is a quiet line, not capitals */
+#pg .aw-h{padding:0 18px 10px; font:400 12.5px/1 var(--ps-font); letter-spacing:0; text-transform:none; color:var(--ps-dim)}
+/* With others: the same joined list as All work */
+#pg .oth .rows{gap:0; border-radius:16px; background:var(--ps-card); box-shadow:var(--u-ring); overflow:hidden}
+#pg .oth .row{border-radius:0; background:none; box-shadow:none; padding:11px 18px 11px 14px}
+#pg .oth .row + .row{border-top:1px solid var(--ps-hair)}
+#pg .oth .row:hover{background:var(--ps-card-h); box-shadow:none}
+/* a pushed page: back, then picture, title, its facts under it, what happens next */
+#cas-host .rva-back,#ops-host .ps-back{height:36px; margin:0 0 24px; padding:0 16px 0 12px}
+#cas-host .rvd-h{border-radius:0; background:none; box-shadow:none; overflow:visible}
+#cas-host .rvd-hb{align-items:flex-start; gap:24px; padding:0; background:none}
+#cas-host .rvd-th,#ops-host .psd-th{border-radius:12px; background:var(--ps-fill); box-shadow:var(--u-ring)}
+#cas-host .rvd-th{width:128px; height:128px}
+#ops-host .psd-h{grid-template-columns:96px minmax(0,1fr); gap:24px; margin:0 0 32px}
+#ops-host .psd-th{width:96px}
+#cas-host .rvd-ht{gap:8px}
+#ops-host .psd-t{display:flex; flex-direction:column; align-items:flex-start}
+#ops-host .psd-t > *{order:3}
+#cas-host .rvd-ht h2,#ops-host .psd-t h2{order:0; margin:0; font:400 clamp(26px,2.5vw,34px)/1.15 var(--ps-font); letter-spacing:-.022em; color:var(--ps-ink); text-wrap:balance}
+#cas-host .rvd-ht > .rvd-k,#ops-host .psd-t > .pf-k{order:1; margin:0; font:400 13.5px/1.4 var(--ps-font); color:var(--ps-ink-2)}
+#ops-host .psd-t > .pf-k{margin-top:8px}
+#cas-host .rvd-ht > p{order:2}
+#ops-host .psd-t > .psd-now{order:2; margin:14px 0 18px; font-size:15px}
+#ops-host .psd-t > .psd-steps{width:100%; max-width:640px}
+#ops-host .psd-acts{margin-top:20px}
+#cas-host .rvd-ha .p-ghost,#cas-host .rvd-ha .p-btn,#ops-host .psd-acts .p-ghost,#ops-host .psd-acts .p-btn{height:36px}
+#ops-host .psd-acts .p-ghost{padding:0 16px}
+#cas-host .rvd-main,#cas-host .rva-body{gap:24px}
+#ops-host .psd-cols{gap:16px}
+#ops-host .psd-card{padding:20px}
+#ops-host .psd-brief{font-size:14.5px; line-height:1.55; color:var(--ps-ink); max-width:68ch}
+/* the Drive connection is furniture: a quiet line at the foot of the ad set, like the post's foot row */
+#cas-host .rva{display:flex; flex-direction:column}
+#cas-host .rva-hl{order:9; flex-direction:row; flex-wrap:wrap; align-items:center; gap:8px 16px; margin:32px 0 0; padding:16px 0 0; border-radius:0; background:none;
+  box-shadow:none; border-top:1px solid var(--ps-hair)}
+#cas-host .rva-hl > .rva-foot{flex:1 1 100%; padding:0; background:none}
+#cas-host .rva-hl > :empty{display:none}
+#ops-host .psd-foot{margin-top:32px}
+/* the same tabular figures and selection everywhere */
+#pg,#cas-host,#ops-host{font-variant-numeric:tabular-nums}
+html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{max-width:calc(var(--u-w) + 64px); margin-left:auto; margin-right:auto; width:100%; box-sizing:border-box}
+@media (hover:hover){ #pg .wk{transition:background-color var(--ps-motion) var(--ps-ease)} }
+
+/* ═════ ONE DESK ON A PHONE: the home-screen app ═════
+   What iOS does, in the studio's own colours: a pushed page has ONE back (the bar's), its title
+   block is compact, and the move you came to make sits in a glass dock over the tab bar, in thumb
+   reach; lists are grouped (rows in one rounded box, a hairline that starts after the picture, a
+   chevron for a row that opens); a search field then a segmented control; rows answer a press;
+   the other moves are rows, not underlined words. */
+@media (max-width:640px){
+  html[data-pv="home"] #pg .h1,html[data-pv="tracker"] #pg .h1{font-size:30px; line-height:1.12; letter-spacing:-.024em}
+  #pg .mw > .h1{margin-bottom:20px}
+  #pg .sx-head{margin-bottom:6px}
+  #cas-host.mnt,#ops-host.mnt{padding:12px 16px calc(28px + var(--tabbar-h))}
+  #cas-host .rva-back,#ops-host .ps-back{display:none}
+  #cas-host.mnt:not([hidden]) > div,#ops-host.mnt:not([hidden]) > div{animation:u-push 260ms cubic-bezier(.16,1,.3,1)}
+
+  /* My work */
+  #pg .wk{gap:14px; padding:16px; border-radius:20px}
+  #pg .wk h3{font-size:19px}
+  #pg .wk-a .b{height:50px; font-size:16px}
+  #pg .wks{gap:12px}
+  #pg .mw .oth{margin-top:32px}
+  #pg .oth .rows{border-radius:14px}
+  #pg .oth .row{position:relative; min-height:60px; padding:10px 14px 10px 12px; gap:12px; border-top:0}
+  #pg .oth .row + .row::before,#pg .aw li + li a::before{content:""; position:absolute; top:0; left:64px; right:0; height:1px; background:var(--ps-hair)}
+  #pg .oth .row-t a{font-size:16px}
+
+  /* All work: the search, then the kinds as a segmented control, then one grouped list */
+  #pg .sx-tools > .srch{order:-1; flex:1 1 100%; width:auto; height:38px; min-height:38px; margin:0; padding:0 12px; gap:6px; border-radius:11px}
+  #pg .sx-tools > .srch svg.i{width:17px; height:17px}
+  #pg .sx-tools > .flt{display:flex; flex:1 1 100%; flex-wrap:nowrap; gap:2px; padding:2px; margin:0; border-radius:9px; background:var(--ps-fill)}
+  #pg .sx-tools > .flt button{flex:1 1 0; min-width:0; height:32px; min-height:32px; padding:0 6px; gap:5px; justify-content:center; border-radius:7px; box-shadow:none;
+    background:none; font:500 13px/1 var(--ps-font); letter-spacing:0; white-space:nowrap}
+  #pg .sx-tools > .flt button small{font-size:11.5px}
+  #pg .sx-tools > .flt button[aria-pressed="true"]{background:var(--ps-app); color:var(--ps-ink); box-shadow:0 1px 3px rgba(0,0,0,.12), 0 0 0 .5px var(--ps-hair)}
+  :root:not([data-theme="light"]) #pg .sx-tools > .flt button[aria-pressed="true"]{background:var(--ps-fill-h)}
+  #pg .sx-tools > .tg{min-height:36px}
+  html[data-pv="tracker"][data-sdir="down"]:not([data-kb]) .sx-tools:not(:focus-within):not(:has(.pm)){clip-path:inset(0 0 calc(100% - 54px) 0)}
+  #pg .aw{border-radius:14px}
+  #pg .aw a{position:relative; grid-template-columns:40px minmax(0,1fr) auto; grid-template-rows:auto auto; gap:3px 12px; align-content:center; min-height:62px; box-sizing:border-box; padding:10px 14px 10px 12px}
+  #pg .aw li + li a{border-top:0}
+  #pg .aw-th{grid-row:1 / span 2}
+  #pg .aw-n{display:contents}
+  #pg .aw-n b{grid-column:2 / -1; font-size:16px; line-height:1.25}
+  #pg .aw-n small{display:none}
+  #pg .aw-s{display:flex; grid-column:2; grid-row:2; font-size:13.5px}
+  #pg .aw-s .seg{display:none}
+  #pg .aw .due{grid-column:3; grid-row:2}
+  #pg .rp{padding:16px; border-radius:20px}
+
+  /* a post: picture and title in one row, the sentence, the four steps in one line, the dock */
+  #ops-host .psd-h{grid-template-columns:60px minmax(0,1fr); gap:0 14px; align-items:center; margin:0 0 20px}
+  #ops-host .psd-th{width:60px; grid-row:1 / span 2; align-self:start; border-radius:8px}
+  #ops-host .psd-t{display:contents}
+  #ops-host .psd-t h2{grid-column:2; font-size:24px; line-height:1.18; align-self:end}
+  #ops-host .psd-t > .pf-k{grid-column:2; margin-top:4px; align-self:start}
+  #ops-host .psd-t > .psd-now,#ops-host .psd-t > .psd-steps,#ops-host .psd-t > .psd-or{grid-column:1 / -1}
+  #ops-host .psd-t > .psd-now{margin:18px 0 14px; font-size:16px; line-height:1.4}
+  #ops-host .psd-steps{grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px}
+  #ops-host .psd-steps li{padding-top:10px}
+  #ops-host .psd-steps b{font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  #ops-host .psd-steps span{display:none}
+  #ops-host .psd-acts{position:fixed; z-index:55; left:max(16px, env(safe-area-inset-left,0px)); right:max(16px, env(safe-area-inset-right,0px)); bottom:var(--tabbar-h);
+    flex-wrap:nowrap; gap:5px; margin:0; padding:5px; border-radius:28px; background:color-mix(in srgb, var(--ps-app) 72%, transparent);
+    -webkit-backdrop-filter:saturate(180%) blur(24px); backdrop-filter:saturate(180%) blur(24px);
+    box-shadow:inset 0 0 0 1px var(--ps-hair), 0 8px 28px rgba(0,0,0,.14), 0 1px 3px rgba(0,0,0,.08)}
+  :root:not([data-theme="light"]) #ops-host .psd-acts{box-shadow:inset 0 0 0 1px var(--ps-line), 0 8px 28px rgba(0,0,0,.45)}
+  #ops-host .psd-acts:empty,:root[data-kb] #ops-host .psd-acts{display:none}
+  #ops-host .psd-acts .p-btn,#ops-host .psd-acts .p-ghost{flex:1 1 0; min-width:0; height:46px; padding:0 10px; justify-content:center; border-radius:23px; font-size:15px; white-space:nowrap}
+  #ops-host .ps-det:has(.psd-acts:not(:empty)){padding-bottom:68px}
+  /* the other moves and the foot: grouped rows */
+  #ops-host .psd-or,#ops-host .psd-foot{display:flex; flex-direction:column; flex-wrap:nowrap; align-items:stretch; gap:0; margin:20px 0 0; padding:0; border:0; border-radius:14px; background:var(--ps-fill); overflow:hidden}
+  #ops-host .psd-or > span{display:none}
+  #ops-host .psd-or .pf-a,#ops-host .psd-foot .pf-a{position:relative; display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:50px; box-sizing:border-box; margin:0; padding:0 14px;
+    font:400 16px/1.25 var(--ps-font); color:var(--ps-ink); text-decoration:none; text-align:left}
+  #ops-host .psd-or .pf-a + .pf-a::before,#ops-host .psd-foot .pf-a + .pf-a::before{content:""; position:absolute; top:0; left:14px; right:0; height:1px; background:var(--ps-line)}
+  #ops-host .psd-or .pf-a::after,#ops-host .psd-foot a.pf-a::after,#pg .aw-n b::after{content:""; flex:none; width:7px; height:7px; box-sizing:border-box;
+    border-right:1.75px solid var(--ps-dim); border-bottom:1.75px solid var(--ps-dim); transform:rotate(-45deg)}
+  #pg .aw-n b::after{display:none}
+  #ops-host .psd-foot .psd-del{margin:0; color:var(--ps-bad)}
+  #ops-host .psd-cols{gap:12px}
+  #ops-host .psd-card{padding:16px; border-radius:14px}
+  #ops-host .psd-log li{grid-template-columns:minmax(0,1fr) auto; gap:2px 10px; font-size:14px}
+  #ops-host .psd-log li span{grid-column:1 / -1; grid-row:2}
+  #ops-host .psd-brief{font-size:16px}
+
+  /* an ad set: the same compact title block; its two tools share a row */
+  #cas-host .rvd-hb{flex-wrap:wrap; gap:14px; padding:0}
+  #cas-host .rvd-th{width:60px; height:60px; border-radius:8px}
+  #cas-host .rvd-ht{flex:1 1 0; flex-basis:0; min-width:0; gap:6px}
+  #cas-host .rvd-ht h2{font-size:24px; line-height:1.18}
+  #cas-host .rvd-ha{width:100%; max-width:none; gap:8px; flex-wrap:nowrap}
+  #cas-host .rvd-ha > *{flex:1 1 0; min-width:0; height:44px; justify-content:center}
+  #cas-host .rvd-phc,#cas-host .rvd-au,#cas-host .rvd-card,#cas-host .rvd-act{border-radius:14px}
+  #cas-host .rvd-dl{gap:8px}
+  #cas-host .rvd-dlk{flex-basis:100%; margin:0}
+  #cas-host .rvd-dlc{height:36px; font-size:14px}
+}
+@media (pointer:coarse){
+  #pg .aw a,#pg .oth .row,#ops-host .pf-a,#ops-host .psd-th{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
+  #pg .aw a:active,#pg .oth .row:active{background:var(--ps-fill)}
+  #ops-host .psd-or .pf-a:active,#ops-host .psd-foot .pf-a:active{background:var(--ps-fill-h)}
+  #ops-host .psd-acts .p-btn,#ops-host .psd-acts .p-ghost{transition:transform 90ms var(--ps-ease), opacity 90ms var(--ps-ease)}
+  #ops-host .psd-acts .p-btn:active,#ops-host .psd-acts .p-ghost:active{transform:scale(.97); opacity:.85}
+}
+@keyframes u-push{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){ #cas-host.mnt > div,#ops-host.mnt > div{animation:none !important} }
 </style>
 </head>
 <body class="p-shell">
@@ -2416,6 +2587,8 @@ body{-webkit-tap-highlight-color:transparent;
     // queues does not restart its walkthrough
     if (html !== null) pg.innerHTML = html;
     pg._hk = hk; pg.hidden = !!host;
+    // ONE DESK (2026-11-27): the page on show, for the one sheet the four pages share
+    document.documentElement.setAttribute('data-pv', host === 'cas' || host === 'ops' ? 'item' : host || nav);
     ['cas', 'ops', 'plan'].forEach(function(k){ $(k + '-host').hidden = host !== k; });
     $('plan-host').firstChild.innerHTML = ico('l') + (canStart(data.r).length > 1 ? 'Something else' : 'Home');
     $('plan-host').firstChild.href = canStart(data.r).length > 1 ? '#/new' : '#/';
@@ -2460,6 +2633,8 @@ body{-webkit-tap-highlight-color:transparent;
     var mn = $('more-n'); mn.textContent = pend; mn.hidden = !pend;
     // the phone's bar shows the page's name once its big title has scrolled away (2026-11-26)
     $('uh-ttl').textContent = nav === 'gate' ? '' : nav === 'home' ? 'My work' : document.title.split(' \u2014 ')[0];
+    // ONE DESK (2026-11-27): a pushed ad set or post is named in the bar by its own name
+    var ih = host && document.querySelector('#' + host + '-host h2'); if (ih && ih.textContent) $('uh-ttl').textContent = ih.textContent;
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'tracker' && q.v === 'kanban' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
@@ -3019,6 +3194,10 @@ body{-webkit-tap-highlight-color:transparent;
     stack(sec);
   }
 
+  // ONE DESK (2026-11-27): the ad set and post pages load after the route is painted, so the bar's
+  // title takes their name when it arrives
+  ['cas-host', 'ops-host'].forEach(function(id){ var el = document.getElementById(id); if (!el || !window.MutationObserver) return;
+    new MutationObserver(function(){ if (el.hidden) return; var h = el.querySelector('h2'), t = document.getElementById('uh-ttl'); if (h && h.textContent && t && t.textContent !== h.textContent) t.textContent = h.textContent; }).observe(el, { childList: true, subtree: true }); });
   // PDS AS A CHROME APP (2026-11-27): Chrome installs it from manifest.json into its own window
   // and Dock icon, apart from CASV (its own app, on the designer's localhost). The account menu
   // offers it once Chrome says the page qualifies, and never inside the installed window.
