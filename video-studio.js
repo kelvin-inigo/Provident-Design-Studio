@@ -687,7 +687,7 @@
       const d = T - it.at; nb.at = T; nb.dur = it.dur - d; it.dur = d;
       if (tg.kind === 'audio') { nb.in = it.in + d * (it.rate || 1); it.fo = 0; nb.fi = 0; }
       // a video mograph's second piece carries on from the cut, not from its first frame (2026-11-27, fix)
-      if (tg.kind === 'logo' && (media[it.mid] || {}).kind === 'video') { nb.in = (it.in || 0) + d; }
+      if (tg.kind === 'logo' && (media[it.mid] || {}).kind === 'video') { nb.in = (it.in || 0) + d * (it.rate || 1); }
     }
     if (nb.m) nb.m = JSON.parse(JSON.stringify(nb.m));   // a component piece edits on its own
     L.splice(L.indexOf(it) + 1, 0, nb);
@@ -803,8 +803,9 @@
       const m = media[l.mid]; if (!m || m.kind !== 'video') return;
       liveG[l.id] = 1;
       const el = elFor(gvel, l.id, 'video', m.url); el.muted = true;
-      const rel = T - l.at, on = rel >= 0 && rel < l.dur;
-      drive(el, (l.in || 0) + rel, on, 0);
+      const rel = T - l.at, on = rel >= 0 && rel < l.dur, lr = l.rate || 1;
+      if (el.playbackRate !== lr) el.playbackRate = lr;     // TIME STRETCH on a video mograph (2026-11-27)
+      drive(el, (l.in || 0) + rel * lr, on, 0);
       if (on && playing && (el.seeking || el.readyState < 2)) hold = true;
       if (!on && l.at > T && l.at - T < 1.2 && !el.seeking && Math.abs(el.currentTime - (l.in || 0)) > .02) el.currentTime = l.in || 0;   // pre-roll
     });
@@ -1569,7 +1570,7 @@
           const name = kind === 'text' ? (it.comp ? (COMP_TL[it.comp] || 'Component') + ' · ' + compWords(it) : it.call ? ({ ruler: 'Measure', count: 'Count', box: 'Box', cta: 'End card' }[it.call] + ' · ' + (it.value || it.label || it.head || '')) : plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0]) : (m.name || kind);
           body += '<div class="vs-it" data-kind="' + kind + '" data-id="' + it.id + '" tabindex="0" role="button" aria-label="' + esc(name + ', ' + (kind === 'audio' ? 'sound' : kind === 'text' ? 'text' : 'graphic')) + '"' + on(kind, it.id) + (it.track === 'sfx' ? ' data-sfx="1"' : '') +
             ' style="left:' + (LBL + it.at * pps) + 'px;width:' + Math.max(6, it.dur * pps - 1) + 'px;top:' + (4 + ln.map[it.id] * (ih + 4)) + 'px">' +
-            (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + (kind === 'audio' ? spdTag(it) : '') + '</span>' + lenTag(it.id, it.dur) + '</div>';
+            (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + (kind === 'audio' || kind === 'logo' ? spdTag(it) : '') + '</span>' + lenTag(it.id, it.dur) + '</div>';
         });
       }
       h += '<div class="vs-trk" data-trk="' + tr.id + '" style="height:' + rowH + 'px"><div class="vs-trk-l">' + ico(tr.icon) + tr.name + '</div>' + body + '</div>';
@@ -1637,7 +1638,7 @@
         multi.add(id);
       } else if (!(sel && sel.kind === kind && multi.has(id))) multi.clear();
       sel = { kind, id }; const it = find(sel), g = group();
-      drag = { mode: h ? 'trim' + h.dataset.h : 'move', kind, id, st: !!(h && e.altKey && (kind === 'audio' || (kind === 'clip' && (media[it.mid] || {}).kind === 'video'))), x0: e.clientX, o: Object.assign({}, it), moved: false, snap: JSON.stringify(P), t: xToT(e), add,
+      drag = { mode: h ? 'trim' + h.dataset.h : 'move', kind, id, st: !!(h && e.altKey && (kind === 'audio' || ((kind === 'clip' || kind === 'logo') && (media[it.mid] || {}).kind === 'video'))), x0: e.clientX, o: Object.assign({}, it), moved: false, snap: JSON.stringify(P), t: xToT(e), add,
         g: g && g.map(t => ({ id: t.id, at: t.at, dur: t.dur, in: t.in, out: t.out })) };
       renderAll();
     } else {
@@ -1661,7 +1662,7 @@
     if (!drag.moved) { if (Math.abs(dx) < 3) return; drag.moved = true; undo.push(drag.snap); redo.length = 0; }
     const it = find(drag), o = drag.o, d = dx / pps, m = media[it.mid];
     if (drag.st && !(drag.kind === 'clip' && drag.g)) {   // Option-drag an end: TIME STRETCH. The same stretch of the file, faster or slower
-      const lim = drag.kind === 'clip' ? VRATE : ARATE, r0 = o.rate || 1, len0 = drag.kind === 'clip' ? (o.out - o.in) / r0 : o.dur, span = len0 * r0;
+      const lim = drag.kind === 'audio' ? ARATE : VRATE, r0 = o.rate || 1, len0 = drag.kind === 'clip' ? (o.out - o.in) / r0 : o.dur, span = len0 * r0;
       // the end being dragged snaps to the playhead and the other edges, like every other resize
       let want = len0 + (drag.mode === 'trimr' ? d : -d);
       if (drag.kind === 'clip') { const s0 = clipStarts()[P.clips.indexOf(it)] || 0; want = snapT(s0 + want, it.id) - s0; }
@@ -1669,7 +1670,7 @@
       else want = o.at + o.dur - snapT(o.at + o.dur - want, it.id);
       const len = clamp(want, span / lim[1], span / lim[0]);
       it.rate = +(span / len).toFixed(4); if (Math.abs(it.rate - 1) < .015) it.rate = 1;
-      if (drag.kind === 'audio') { it.dur = span / it.rate; if (drag.mode === 'triml') it.at = Math.max(0, o.at + o.dur - it.dur); }
+      if (drag.kind !== 'clip') { it.dur = span / it.rate; if (drag.mode === 'triml') it.at = Math.max(0, o.at + o.dur - it.dur); }
     } else if (drag.kind === 'clip' && drag.g) {     // several clips: every length by one factor, or the block moves
       const g = drag.g, L = g.reduce((a, x) => a + (x.out - x.in), 0), least = .2 / Math.min(...g.map(x => x.out - x.in));
       if (drag.mode === 'move') {
@@ -1878,7 +1879,7 @@
   // priced first and need a yes. Both need the local server.
   // an audio item can play 25% slower to 35% faster with its pitch kept; beyond that it sounds wrong
   const RATE = [.75, 1.35], PACE = 2.5;                    // PACE: natural speech, words a second
-  // Speed, for a video clip and a sound: a slider, an exact length, and the way back. Option-drag an end on the timeline does the same.
+  // Speed, for a video clip, a video mograph and a sound: a slider, an exact length, and the way back. Option-drag an end on the timeline does the same.
   function speedSec(it, len, lim) {
     return rng('i', 'spd', 'Plays at', Math.round((it.rate || 1) * 100), lim[0] * 100, lim[1] * 100, '%') +
       '<span class="vs-note" id="rateNote">' + rateNote(it) + '</span>' +
@@ -1887,15 +1888,15 @@
   }
   // one place sets a speed: a sound keeps the same stretch of its file, so its length follows; a clip's length is worked out from its rate
   function setRate(it, kind, r) {
-    const lim = kind === 'clip' ? VRATE : ARATE; r = clamp(r, lim[0], lim[1]);
-    if (kind === 'audio') { const span = it.dur * (it.rate || 1); it.rate = r; it.dur = span / r; } else it.rate = r;
-    if (it.rate === 1 && kind === 'clip') delete it.rate;
+    const lim = kind === 'audio' ? ARATE : VRATE; r = clamp(r, lim[0], lim[1]);
+    if (kind !== 'clip') { const span = it.dur * (it.rate || 1); it.rate = r; it.dur = span / r; } else it.rate = r;
+    if (it.rate === 1 && kind !== 'audio') delete it.rate;
   }
   function rateNote(a, asked) {
     const r = a.rate || 1, pct = Math.round(r * 100);
     const lim = asked != null && Math.abs(a.dur - asked) > .05 ? ' <b>That is as far as it goes:</b> ' + a.dur.toFixed(1) + ' s. To reach ' + (+asked).toFixed(1) + ' s, ' + (asked < a.dur ? 'shorten' : 'lengthen') + ' the script or trim the audio.' : '';
-    const far = !a.out && (r < RATE[0] - .005 || r > RATE[1] + .005) ? ' A voice sounds natural between 75% and 135%.' : '';
-    return (pct === 100 ? '' : 'Pitch is kept.') + far + lim;
+    const far = a.track && (r < RATE[0] - .005 || r > RATE[1] + .005) ? ' A voice sounds natural between 75% and 135%.' : '';
+    return (pct === 100 || !(a.track || a.out) ? '' : 'Pitch is kept.') + far + lim;   // a mograph has no sound to keep
   }
   function voHint() {
     const w = VO.text.trim().split(/\s+/).filter(Boolean).length, nat = w / PACE, tg = parseFloat(VO.target);
@@ -2517,7 +2518,7 @@
         // the graphic is on screen, so a light graphic reads on a busy photo; intensity 10-90%
         washCtl(40, 'Over the whole picture while the mograph is on.') +
         '<div class="vs-acts"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div>' +
-        '</div>' + (m.cm ? sec('Claude Motion', 'where it was made',
+        '</div>' + (m.kind === 'video' ? sec('Speed', 'time stretch', speedSec(it, it.dur, VRATE)) : '') + (m.cm ? sec('Claude Motion', 'where it was made',
           '<div class="vs-acts"><button class="p-ghost p-sm" data-cmopen="' + it.mid + '" title="' + esc(m.cm) + '">Open in Claude Motion</button><button class="p-ghost p-sm" data-cmup="' + it.mid + '" title="Open the film, Export it again, and the new file replaces this one wherever it is on the timeline">Update from Claude Motion</button></div>') : '') + timing();
     }
     if (it) h += allHtml(it);
@@ -2720,6 +2721,7 @@
       const o = insp.querySelector('[data-out="' + k + '"]'); if (o) o.textContent = e.target.value + (d.unit || '');
       if (k === 'spd') {
         setRate(it, sel.kind, v / 100);
+        { const du = insp.querySelector('[data-n="dur"]'); if (du && sel.kind !== 'clip') du.value = it.dur.toFixed(2); }   // Lasts follows the speed
         const fi = insp.querySelector('[data-n="fit"]'), nt = insp.querySelector('#rateNote'); if (fi) fi.value = (sel.kind === 'clip' ? clipLen(it) : it.dur).toFixed(2); if (nt) nt.innerHTML = rateNote(it);
       }
       else if (sel.kind === 'logo' && (k === 'w' || k === 'x' || k === 'y')) lgeoW(it)[k] = v;
@@ -2741,7 +2743,7 @@
       const v = parseFloat(e.target.value); if (!isFinite(v)) return;
       const m = media[it.mid];
       if (d.n === 'at') it.at = Math.max(0, v);
-      else if (d.n === 'dur') it.dur = clamp(v, .2, sel.kind === 'audio' && m ? (m.dur - it.in) / (it.rate || 1) : 600);
+      else if (d.n === 'dur') it.dur = clamp(v, .2, (sel.kind === 'audio' || (sel.kind === 'logo' && m && m.kind === 'video')) && m ? (m.dur - (it.in || 0)) / (it.rate || 1) : 600);
       else if (d.n === 'fit') {                              // play the same stretch of the file in exactly v seconds
         const clip = sel.kind === 'clip', span = clip ? it.out - it.in : it.dur * (it.rate || 1); setRate(it, sel.kind, span / Math.max(.2, v));
         const o = insp.querySelector('#rateNote'), len = clip ? clipLen(it) : it.dur; if (o) o.innerHTML = rateNote(clip ? { rate: it.rate, dur: len, out: 1 } : it, v);
