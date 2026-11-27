@@ -1404,6 +1404,8 @@ html[data-pv="home"] #pg,html[data-pv="tracker"] #pg,#cas-host.mnt,#ops-host.mnt
 #pg .mw,#cas-host .rva{max-width:none}
 html[data-pv="home"] #pg .h1,html[data-pv="tracker"] #pg .h1{font-size:clamp(30px,3vw,40px)}
 #pg .mw > .h1{margin-bottom:28px}
+#pg .mw > .sky{margin-bottom:28px}
+#pg .mw > .sky .h1{font-size:clamp(30px,3vw,40px)}
 #pg .sx-head{margin-bottom:28px}
 /* cards */
 #pg .wk,#pg .rp,#pg .aw,#cas-host .rvd-phc,#cas-host .rvd-au,#cas-host .rvd-card,#cas-host .rvd-act,#cas-host .rva-tk,#ops-host .psd-card{
@@ -2000,7 +2002,13 @@ html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{ma
   function viewHome(){
     var list = data.mine, n = list.length, vn = viewerName(), nm = vn ? ', ' + esc(first(vn)) : '';
     var known = me && me.email && studiosFor(data.r).length && data.known;
-    var h = '<div class="mw"><h1 class="h1">' + (!known ? 'My work' : n ? (n === 1 ? 'One thing needs you' : n + ' things need you') + nm + '.' : 'You’re clear' + nm + '.') + '</h1>';
+    // THE GREETING IS BACK (2026-11-27, by request: "also bring this back"): the sky for the time of
+    // day, the date and time, and one line saying how much waits on you, over the one list
+    var hr = new Date().getHours(), hi = 'Good ' + (hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening') + nm + '.';
+    var tail = !me || !me.email ? 'Sign in to see what is waiting on you.' : !known ? 'Your work fills in from All work.' : !n ? 'Nothing is waiting on you.' : (n === 1 ? 'One thing is' : n + ' things are') + ' waiting on you.';
+    var h = '<div class="mw"><section class="sky" id="sky" aria-label="Today"><div class="sky-l" aria-hidden="true"><i class="sky-g"></i><i class="sky-st"></i><i class="sky-sun"></i>' +
+      SKY_CLOUDS.map(function(c, i){ return '<i class="sky-c" style="--x:' + c[0] + '%;--y:' + c[1] + '%;--w:' + c[2] + 'px;--k:' + c[3] + ';--i:' + i + '"></i>'; }).join('') +
+      '</div><h1 class="h1">' + hi + '<span>' + tail + '</span></h1><time class="sky-t" id="sky-t">' + skyClock() + '</time></section>';
     h += n ? '<ol class="wks">' + list.map(card).join('') + '</ol>' : quiet('home');
     if (data.others.length){
       h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" role="heading" aria-level="2" id="h-oth" style="color:var(--ps-ink-2)">' + (viewOnly() ? 'In progress' : 'With others') + '<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/tracker">See everything</a></div><ol class="rows">' +
@@ -2638,6 +2646,7 @@ html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{ma
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'tracker' && q.v === 'kanban' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
+    if (nav === 'home') { skyPaint(); if (anim || !skyT0) skyT0 = Date.now(); var sk = $('sky'), ago0 = Date.now() - skyT0; if (sk && ago0 < SKY_ENTRY) { sk.setAttribute('data-in', ''); sk.style.setProperty('--ent', -ago0 + 'ms'); } }
     if (nav === 'projects') loadDesk(paintProjects);
     if (nav === 'engine' && seesEngine()) window.providentEngine.mount(pg);
     if (hctx && html !== null) window.providentHelp.mount(pg);
