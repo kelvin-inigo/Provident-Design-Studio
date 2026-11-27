@@ -1339,3 +1339,5 @@ By request: CASV is not on a Mac by default; anything on the site that calls CAS
 - "Motion graphics" is now **Mograph** wherever it shows: the left tab, the timeline track, "Your mographs", "Drop a mograph or logo", the inspector title and the Apply-to-all wording. Code names (`logo`, `logos`, `gfx`) are unchanged.
 - "Navy wash behind it" is now **Wash behind it**, and its colour is picked from CAS's scrim swatches (`CampaignStudio.SCRIMS`, copied as `WASHES`: six dark, six light) or typed as a hex; stored per mograph as `washHex` (default Brand navy #1A2942), drawn by `drawWash` through `washRgb` (an invalid hex falls back to the brand navy). The swatches are the canvas's literals shown in the chrome, as CAS does.
 - Checked on a copy: 12 swatches, the picked one ringed, the canvas under the wash shifts with each colour (White lighter, Black darker, Off unchanged).
+
+- 2026-11-27, fix: cutting a video mograph (S) started its second piece from the video's first frame; `split()` now gives it `in` = the first piece's `in` + the cut point, as clips and sounds already did. Dragging its left edge already moved `in`.

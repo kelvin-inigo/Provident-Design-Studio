@@ -686,6 +686,8 @@
     } else {
       const d = T - it.at; nb.at = T; nb.dur = it.dur - d; it.dur = d;
       if (tg.kind === 'audio') { nb.in = it.in + d * (it.rate || 1); it.fo = 0; nb.fi = 0; }
+      // a video mograph's second piece carries on from the cut, not from its first frame (2026-11-27, fix)
+      if (tg.kind === 'logo' && (media[it.mid] || {}).kind === 'video') { nb.in = (it.in || 0) + d; }
     }
     L.splice(L.indexOf(it) + 1, 0, nb);
     sel = { kind: tg.kind, id: nb.id }; renderAll();
