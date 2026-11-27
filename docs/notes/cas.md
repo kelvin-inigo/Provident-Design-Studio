@@ -4230,3 +4230,34 @@ the four Meta sizes.
 - New chrome in both themes (reloaded into each): lowest contrast 6.21:1 light, 6.47:1 dark.
 - Not covered: a real photo library (the planner was tuned on one synthetic photo), the phone
   layout of the rail, and banners (bn/bs) as Recommended targets beyond the margin rules.
+
+
+# CAS'S AD SET TAB, STREAMLINED AND CORRECTED (2026-11-27, branch home/streamline, NOT on main)
+
+By request, with two marked-up screenshots of the tab: "can this side bar be streamlined and I feel
+it's not working as intended", and on the Deliverables card "I don't feel this is accurate, or
+should it be here, or somewhere else". All in share-link.js (`adtRender`, CSS in `injectCss`); the
+studio file is untouched, so no artwork path moved.
+
+- **The step line was wrong for an audience with no Arabic.** `rsAuds` marks Translation `done`
+  when `engOnly`, so the tab drew a ticked Translation before anything had happened. `stepsOf(a)`
+  leaves that step out; the tab's stepper, the audience tiles' segments and the top bar's segments
+  (`rsBarSegs`) read it. `a.steps` itself is unchanged (counts and the ad set page still use it).
+- **Deliverables moved into the status card** as chips (`dlc`, `.adt-dl`): "To deliver k of n",
+  then Static EN (/ AR), Animated EN (/ AR), MVP video EN (/ AR). Static follows the project (ready
+  once sent for its check; it used to read "Missing" while being designed); Animated and MVP video
+  are buttons with `data-dl` / `data-dlk`, the tab's existing tick handler. Not-needed cells are
+  not drawn (the card had a whole "Not needed" column). `dlCardHtml` is no longer called.
+- **The brief follows the status card**, open, above Copy (it sat fourth, under Deliverables).
+- **Copy**: the paragraph and numbered list under the box are hidden (`.cw-br .cw-key`); the box's
+  own placeholder shows the same format and the "i" keeps the tip.
+- **Lower half** is Audiences (with Ad set settings), Video, **Activity folded** (`details`), and
+  the Drive folder link. "Where the teams open it" is gone from the tab.
+- Verified in the real editor on :8797 (New campaign > Start designing, an English-only Broad
+  audience): three steps, none ticked; top bar three segments; chips "To deliver 0 of 3", a click
+  on Animated EN made it 1 of 3; brief 16px under the status card; the copy help hidden; no
+  script errors. One reload in between came up with no ad set at all because the dev server reset
+  connections and share-link.js did not load; a clean reload was fine.
+  **Not exercised:** an audience with Arabic, an Arabic project, a multi-audience ad set, a phone.
+- Seen and left: a Broad audience made from New campaign starts with Arabic off (the form's Arabic
+  button was not pressed), though broad phases are meant to run in English and Arabic.

@@ -614,10 +614,14 @@ leave the new market empty and make its designs yourself.
 Every audience has three deliverables, each in English and Arabic: **Static**, **Animated** (the
 same CAS design with a video as its background instead of the photo, 1:1 and 9:16, made in CAS) and
 the **MVP video** (the short key-facts video, made only in the Video Studio, CASV, and added in the
-ad set's **Video** section). The **Ad set** tab shows them in a **Deliverables** card. **Static**
-ticks itself when the project is sent on. Press **Missing** beside **Animated** or **MVP video**
-when it is delivered; it turns to **Done** and the Activity says who ticked it. The card only shows
-what is missing: it never stops a project being sent to **Done**.
+ad set's **Video** section). The **Ad set** tab shows them at the top, under the steps, as
+**To deliver**: one chip each (Static EN, Animated EN, MVP video EN, and the Arabic ones when the
+audience has Arabic). **Static** turns green by itself when the project is sent on. Click
+**Animated** or **MVP video** when it is delivered; it turns green and the Activity says who ticked
+it. The chips only show what is still owed: they never stop a project being sent to **Done**.
+The tab is now: the status and steps, the **Brief**, **Copy**, **Audiences** (with **Ad set
+settings**), **Video**, and **Activity** folded at the foot. An audience with no Arabic has three
+steps, with no Translation step.
 
 #### Phases
 

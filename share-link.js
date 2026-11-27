@@ -2549,7 +2549,7 @@
       // it, rsFlow) the designer's one action — always in view, on both workspaces
       rsBarOn: '1',
       rsBarState: mine && mine.done ? 'done' : tkS || !it.design ? 'design' : !it.copy ? 'ct' : 'next',
-      rsBarSegs: (mine ? mine.steps : []).map(x => ({ s: x.s === 'pend' ? 'todo' : x.s, t: x.label + (x.sub ? ' · ' + x.sub : '') })),
+      rsBarSegs: stepsOf(mine).map(x => ({ s: x.s === 'pend' ? 'todo' : x.s, t: x.label + (x.sub ? ' · ' + x.sub : '') })),
       rsBarStep: mine && mine.done ? 'Done' : tkS ? TASK_L[tkS] : !it.design ? (arb ? 'Arabic layout' : 'Design') : !it.copy ? (arb ? 'Translation check' : 'Copy check') : now ? now.label : 'Approved',
       rsBarWhere: [it.market, it.aud].filter(Boolean).join(' · ') + ' · ' + (arb ? 'AR' : 'EN') + (((it.design && !it.copy) || (tkS && tkS !== 'done')) && it.to ? ' · ' + withWho(it, '') : ''),
       rsBarTip: (rs.name || 'Ad set') + ' · ' + where + ' — ' + st + '. Opens the Ad set tab.',
@@ -3434,6 +3434,11 @@
     return phs.map(k => lv[k]).sort((a, b) => b.at - a.at)[0];
   }
   // A row of steps, each centred over its own label (compact: a vertical list for the panel).
+  // THE STEPS AN AUDIENCE REALLY HAS (2026-11-27, branch home/streamline; the user, on CAS's Ad set
+  // tab: "I feel it's not working as intended"). rsAuds marks Translation 'done' for an audience
+  // with no Arabic, so the tab drew it with a tick before anything had happened. Where a person
+  // reads the steps (the tab's stepper and tiles, the top bar's segments) that step is left out.
+  const stepsOf = a => a ? a.steps.filter((x, i) => !(i === 2 && a.engOnly)) : [];
   function stepperHtml(steps, compact, bare) {
     const tick = '<svg viewBox="0 -960 960 960"><path d="M382-354 734-706q12-12 28-12t28 12q12 12 12 28t-12 28L410-270q-12 12-28 12t-28-12L170-454q-12-12-11.5-28t12.5-28q12-12 28-12t28 12l155 156Z"/></svg>';
     return '<ol class="rv-st' + (compact ? ' rv-st-c' : '') + (bare ? ' rv-st-b' : '') + '" style="--n:' + steps.length + '" aria-label="Review progress">' + steps.map(x =>
@@ -4332,6 +4337,19 @@
       const btn = nx ? '<button type="button" class="p-btn adt-go" ' + (nx.send ? 'data-send="' + esc(nx.send) + '"' : nx.open ? 'data-opn="' + esc(nx.open) + '"' : nx.act ? 'data-act="' + esc(nx.act) + '"' : 'data-next="' + esc(nx.next) + '"') + ' title="' + esc(nx.tip) + '"' + (busy ? ' disabled' : '') + '>' +
         '<span>' + esc(busy && (busy === nx.act || busy === nx.next) ? 'Saving…' : nx.label) + '</span>' + PICO.go + '</button>' : '';
       const now = done ? 'Done — ready to run' : mine && mine.now ? (mine.now.task ? mine.now.label + ' · ' : '') + mine.now.sub : '';
+      // WHAT THIS AUDIENCE DELIVERS, where the designer already looks (the Deliverables card further
+      // down said "Missing" for a design being made and drew a column of "Not needed"). Chips, as on
+      // the ad set page: the Static follows the project (ready once it is sent for its check); the
+      // Animated version and the MVP video are ticked by the designer; what is not needed is not drawn.
+      const ddT = !!(rs.tok && rs.tok.dd);
+      const dlc = (() => {
+        if (!mine) return '';
+        const cs = dlRows(rs, mine).flatMap(r => r.cells.map((x, i) => x.na ? null : Object.assign({ label: r.label + (i ? ' AR' : ' EN'), st: r.k === 'static' }, x))).filter(Boolean);
+        if (!cs.length) return '';
+        return '<div class="adt-dl" role="group" aria-label="What this audience delivers"><span class="rvd-dlk">To deliver <b>' + cs.filter(x => x.on).length + ' of ' + cs.length + '</b></span><div class="rvd-dl">' + cs.map(x => x.st || !ddT
+          ? '<span class="rvd-dlc"' + (x.on ? ' data-on="1"' : '') + ' title="' + (x.on ? 'Ready' : x.st ? 'Pending: ready once it is sent for its check' : 'Pending') + '">' + (x.on ? PICO.tick : '<i></i>') + esc(x.label) + '</span>'
+          : '<button type="button" class="rvd-dlc" data-dl="' + x.id + '" data-dlk="' + esc(mine.key) + '" aria-pressed="' + x.on + '"' + (busy ? ' disabled' : '') + ' title="' + esc(x.on ? 'Ready, ticked by ' + (x.by || 'someone') + '. Click to untick.' : 'Pending. Click when it is delivered.') + '">' + (x.on ? PICO.tick : '<i></i>') + esc(x.label) + '</button>').join('') + '</div></div>';
+      })();
       top = '<section class="adt"><div class="adt-h"><div class="adt-ht">' +
         '<span class="adt-k">' + esc([rs.name, PRODUCT_NAME[rs.product], phMulti(rs) ? phN(ph) + ' phase' : ''].filter(Boolean).join(' · ')) + '</span>' +
         '<h2>' + esc([it.market, it.aud].filter(Boolean).join(' · ') || 'This project') + ' <s>' + (arb ? 'Arabic' : 'English') + '</s></h2>' +
@@ -4346,7 +4364,7 @@
         (back ? '<button type="button" class="adt-q" data-act="' + back.act + ':' + esc(it.sid) + '"' + (busy ? ' disabled' : '') + '>' + esc(back.label) + '</button>' : '') +
         (rs.tok && rs.tok.dd && !(nx && nx.send) ? '<button type="button" class="adt-q" data-send="' + esc(it.sid) + '" title="Pick the task this project goes to next, and who gets it"' + (busy ? ' disabled' : '') + '>Send to…</button>' : '') +
         '<button type="button" class="p-ghost adt-ov" data-a="overview" title="Every audience and language of the campaign, rendered from the latest work">' + PICO.img.replace('<svg', '<svg class="adt-gi"') + '<span>Overview</span></button>' + '</div></div>' +
-        (mine ? stepperHtml(mine.steps, false, true) : '') + '</section>';
+        (mine ? stepperHtml(stepsOf(mine), false, true) : '') + dlc + '</section>' + briefHtml(rs.ticket, true);
       // the campaign's audiences: each planned cell, with its progress; the designer sets them here
       const cells = rsCellsIn(rs, ph), byK = {};
       auds.forEach(a => { byK[a.market + '|' + a.aud] = a; });
@@ -4356,7 +4374,7 @@
       const tiles = cells.map(c => {
         const k = c.market + '|' + c.aud, a = byK[k], me = mine && mine === a, st = a ? (a.done ? 'Done' : a.now ? a.now.label : '') : 'To make';
         return '<li class="adt-au"' + (me ? ' data-me="1"' : '') + (a && a.done ? ' data-done="1"' : '') + '><div class="adt-au-t"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b></div>' +
-          '<span class="adt-au-s">' + (me ? 'This project' : esc(st)) + '</span>' + (a ? segHtml(a.steps) : '<span class="rv-seg rv-seg-e"></span>') +
+          '<span class="adt-au-s">' + (me ? 'This project' : esc(st)) + '</span>' + (a ? segHtml(stepsOf(a)) : '<span class="rv-seg rv-seg-e"></span>') +
           (dd ? '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + arOn(c) + '" data-arb="' + esc(k) + '"' + (pm ? ' data-ph="' + esc(ph) + '"' : '') + ' title="' + (pm ? (arOn(c) ? 'Arabic planned in ' + esc(phN(ph)) + ' — click: none in this phase' : 'No Arabic in ' + esc(phN(ph)) + ' — click to plan one') : arOn(c) ? 'Arabic version planned — click for English only' : 'English only — click to plan an Arabic version') + '">AR</button>' : '') + '</li>';
       }).join('');
       const tg = (g, v) => { const cur = g === 'markets' ? [...new Set(cells.map(c => c.market))] : [...new Set(cells.map(c => c.aud))], on = cur.indexOf(v) >= 0;
@@ -4365,13 +4383,14 @@
         (dd ? '<button type="button" class="adt-ed adt-set" data-a="settings" title="The campaign’s name, product, deadline, brief, markets, audiences and Arabic">' + PICO.tune + '<span>Ad set settings</span></button>' : '') +
         '</div><ul class="adt-aus">' + (tiles || '<li class="shl-empty">No audiences planned.</li>') + '</ul></section>';
       const log = ((this._adtLog || {}).log || []).concat((S.log || []).filter(e => (e.changes || []).some(c => c.kind !== 'note'))).sort((a, b) => b.at - a.at);
-      const act = '<section class="adt-card"><div class="adt-ch"><h3>Activity <s>' + log.length + '</s></h3></div><ol class="shl-list adt-log">' +
-        (log.length ? log.slice(0, 60).map((e, i, l) => logEntryHtml(e, { max: 8, cont: logCont(l[i - 1], e), mine: e.by === StudioBase.shareName() })).join('') : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
-      const links = dd ? '<details class="adt-card adt-lk"><summary class="adt-ch"><h3>Where the teams open it</h3>' + PICO.more + '</summary><div class="rv-lks">' + linkRows(rs.tok) + '</div>' +
-        (/^https?:\/\//.test(rs.drive || '') ? '<a class="adt-drv" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + PICO.folder + '<span>Drive folder</span></a>' : '') + '</details>' : '';
+      // ACTIVITY FOLDED, NO LINKS (2026-11-27): the log opens on demand; the three team links are gone
+      // (everyone opens the app), so only the Drive folder is left of that card
+      const act = '<details class="adt-card adt-lk"><summary class="adt-ch"><h3>Activity <s>' + log.length + '</s></h3>' + PICO.more + '</summary><ol class="shl-list adt-log">' +
+        (log.length ? log.slice(0, 60).map((e, i, l) => logEntryHtml(e, { max: 8, cont: logCont(l[i - 1], e), mine: e.by === StudioBase.shareName() })).join('') : '<li class="shl-empty">Nothing yet.</li>') + '</ol></details>';
+      const links = dd && /^https?:\/\//.test(rs.drive || '') ? '<a class="adt-drv" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + PICO.folder + '<span>Drive folder</span></a>' : '';
       // the ad set's video (CASV): the same tiles and Add video placeholder as Status
       const vsec = vidSecHtml(rs), vid = vsec ? '<section class="adt-card adt-vid">' + vsec.replace(/^<section[^>]*>/, '').replace('<h3>', '<div class="adt-ch"><h3>').replace('</h3>', '</h3></div>') : '';
-      bot = audCard + (mine ? dlCardHtml(rs, mine, dd) : '') + vid + briefHtml(rs.ticket) + act + links;
+      bot = audCard + vid + act + links;
     }
     hosts.forEach(el => {
       const html = el.dataset.adt === 'top' ? top : bot;
@@ -9281,6 +9300,12 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 /* ...and once made, the second part of that card: a hairline, its own head and tiles */
 .rvd-dza{display:flex;padding:8px 12px;border-top:1px solid var(--ps-hair)}
 .rvd-cols[data-one]{grid-template-columns:minmax(0,1fr)}
+.adt-dl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-top:16px;padding-top:14px;border-top:1px solid var(--ps-hair)}
+.adt-dl .rvd-dl{padding-top:0}
+.adt-host[data-adt="top"] .rva-brief{margin-top:16px}
+.adt-dl .rvd-dlk b{font-weight:500;color:var(--ps-ink);margin-left:2px}
+/* the Copy box's own placeholder shows the format; the paragraph and numbered list under it repeated it */
+.cw-br .cw-key{display:none}
 .rvd-need{margin:-4px 0 14px;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2);max-width:72ch}
 .rvd-dl{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:2px}
 .rvd-dlk{margin-right:6px;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
