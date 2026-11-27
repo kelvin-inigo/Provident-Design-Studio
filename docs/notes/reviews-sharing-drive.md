@@ -3058,3 +3058,28 @@ this project is sent, another project of the same phase that is unsent (`!design
 Done) and the viewer's (`toMine`) is offered before Create next audience; an approved English still
 offers Make the Arabic first. It opens `rsLink(sid)` in a new tab (the strip's `rsFlow`, the Ad set
 tab's `data-opn`). **Not run in a browser**: the editor does not open on the dev seed.
+
+## The ad set page, quieter (2026-11-27, branch home/streamline, NOT on main)
+
+By request, after My work and All work. `AV` detail page only; the structure of 2026-11-16
+(audience > design > look > language) is kept, and less of it is drawn at once.
+
+- **The brief leads** the main column (`briefHtml(rs.ticket, true)`, class `rvd-bf`), open, for
+  designers and the admin. Performance marketing and the content team keep it in the side column.
+- **The four counters are gone** from the phase card (`steps` is still computed, not drawn): the
+  phase tabs and the Waiting on chips say the same.
+- **What is not started steps back.** In an audience that has work in it, a design nobody has
+  started and an unbranded look nobody has started are collected (`later`) under one
+  `details.rvd-ns` "n not started yet" at the audience's foot, above Add a design. Its open state
+  is kept per audience across redraws (`this.nsOpen`, a capturing `toggle` listener on the view's
+  element). An audience with nothing started keeps its Start tiles in view; its unbranded row
+  that could only say "Start the English first" is left out (`!(u && u.c)`).
+- **Activity shows the latest three** (was six); Show all as before.
+- **Drive location** moved into the fold with Remove and Delete (`details.rvd-out`, now "Drive
+  location, remove or delete"). Team links and Access stay in the side column.
+- Verified on :8797 (seed): Palm Springs, Showcase: main column brief > phase > audiences > video >
+  activity; Family shows its one started row and "2 not started yet", which opens, holds its Start
+  tiles, and stays open or closed across a redraw; the two unstarted audiences show one Branded
+  row each; Save is still in the fold; page height 2504 > 2322 px at 1440. Samana (no fold) and
+  Preview as pm draw. **Not exercised:** a mixed ad set with a planned unbranded cell, the content
+  team's and view-only pages, a phone, real Drive.

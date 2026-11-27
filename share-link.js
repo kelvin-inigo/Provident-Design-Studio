@@ -5779,6 +5779,8 @@
     // when the view leaves the page; it sits outside the part the overview redraws
     setTimeout(() => { const h = eng.host; if (h && h.hlBind) h.hlBind(); }, 0);
     el.addEventListener('click', e => this.click(e));
+    // a folded "not started yet" list stays as the person left it across the page's redraws
+    el.addEventListener('toggle', e => { const t = e.target; if (t && t.dataset && t.dataset.ns) (this.nsOpen = this.nsOpen || {})[t.dataset.ns] = t.open; }, true);
     el.addEventListener('keydown', e => { if (e.key === 'Escape' && this.addOpen) { this.addOpen = false; this.draw(); } });
     // a project's actions menu: Escape closes it and hands focus back to its button
     el.addEventListener('keydown', e => { const m = e.key === 'Escape' && el.querySelector('details.rvd-mn[open]'); if (m) { m.open = false; m.querySelector('summary').focus(); } });
@@ -6929,7 +6931,7 @@
     const sent = this.sentNote && (rs.items || []).some(x => x.sid === this.sentNote.sid) ? '<p class="rvd-sent" tabindex="-1" role="' + (this.sentNote.bad ? 'alert' : 'status') + '"' + (this.sentNote.bad ? ' data-bad="1"' : '') + '><i></i><span>' + esc(this.sentNote.t) + '</span>' +
       (() => { const ui = this.sentNote.at && (rs.items || []).find(x => x.sid === this.sentNote.sid); return ui && canUndo(ui) && ui.undo.at === this.sentNote.at && !ro ? '<button type="button" class="rvd-undo" data-a="undo" data-sid="' + esc(ui.sid) + '" data-at="' + ui.undo.at + '">Undo</button>' : ''; })() +
       '<button type="button" class="rvd-sentx" data-a="sentx" aria-label="Dismiss">' + ico('x') + '</button></p>' : '';
-    const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + steps + nowLine + sent + '</section>';
+    const phase = '<section class="rvd-phc" aria-label="' + esc(phN(tab)) + '">' + this.phTabsHtml(d, rs, phs, tab, allAuds) + nowLine + sent + '</section>';
     // AUDIENCES: one row each — who, where it stands, then a tile per language
     // A TILE SAYS WHO HAS IT (2026-11-21, /impeccable critique): the task it was sent to and the person
     // A HAND-OFF'S NOTE (2026-11-21, by request) under the tile's state, until the next step moves it
@@ -7014,10 +7016,21 @@
       const li = '<li class="rvd-au"' + (parts.length && dn === parts.length ? ' data-done="1"' : '') + (parts.length ? '' : ' data-plan="1"') + '>';
       if (g.solo) return li + '<div class="rvd-auh"><h4 class="rvd-aun"><b>' + esc(audRoot(g.solo.aud) || g.solo.label) + '</b></h4></div><div class="rvd-dzb">' + lookRow('', g.solo.aud, g.solo, null, null, '') + '</div></li>';
       g.ds.sort((x, y) => x.n - y.n);
-      const body = g.ds.map(x => { const b = x.b, u = x.u, two = rs.brand === 'mixed' || !!u;
-        return '<div class="rvd-dzb"><h5 class="rvd-dzh">Design ' + x.n + '</h5>' +
-          (b ? lookRow(g.market, b.aud, b.a, b.c, null, two ? 'Branded' : '') : '') +
-          (u ? lookRow(g.market, u.aud, u.a, u.c, b && b.a, 'Unbranded') : two ? lookRow(g.market, b.aud + UB, null, null, b.a, 'Unbranded') : '') + '</div>'; }).join('');
+      // WHAT IS NOT STARTED STEPS BACK (2026-11-27, branch home/streamline): once an audience has
+      // work in it, a design or an unbranded look nobody has started is not drawn as an empty row
+      // among the real ones; they wait together under one quiet line at the audience's foot. An
+      // audience with nothing started keeps its Start tiles in view: starting it is the action.
+      const later = [];
+      const body = g.ds.map(x => { const b = x.b, u = x.u, two = rs.brand === 'mixed' || !!u, bOn = !!(b && b.a), uOn = !!(u && u.a), any = parts.length > 0;
+        const hd = '<h5 class="rvd-dzh">Design ' + x.n + '</h5>';
+        const bRow = b ? lookRow(g.market, b.aud, b.a, b.c, null, two ? 'Branded' : '') : '';
+        const uRow = u ? lookRow(g.market, u.aud, u.a, u.c, b && b.a, 'Unbranded') : two ? lookRow(g.market, b.aud + UB, null, null, b.a, 'Unbranded') : '';
+        if (any && !bOn && !uOn) { later.push('<div class="rvd-dzb">' + hd + bRow + uRow + '</div>'); return ''; }
+        if (any && uRow && !uOn) { later.push('<div class="rvd-dzb">' + hd + uRow + '</div>'); return '<div class="rvd-dzb">' + hd + bRow + '</div>'; }
+        // nothing started in this audience: an unbranded row that can only say "start the English first" is left out
+        if (!any && uRow && !(u && u.c)) return '<div class="rvd-dzb">' + hd + bRow + '</div>';
+        return '<div class="rvd-dzb">' + hd + bRow + uRow + '</div>'; }).join('') +
+        (later.length ? '<details class="rvd-ns"' + ((this.nsOpen || {})[g.k] ? ' open' : '') + ' data-ns="' + esc(g.k) + '"><summary>' + later.length + ' not started yet</summary>' + later.join('') + '</details>' : '');
       const nx = g.root + DSG + (Math.max(...g.ds.map(x => x.n)) + 1);
       const add = canDz ? '<div class="rvd-dza"><button type="button" class="rvd-dz" data-a="startcell" data-cell="' + esc(g.market + '|' + nx + '|ENG|' + tab) + '" title="' + esc('Another design for ' + g.market + ' · ' + g.root + ': ' + nx + ', a new project in a new window, with its own copy check and Arabic') + '">' + ico('add') + 'Add a design</button></div>' : '';
       // an empty market whose audience another market has already designed: copy those designs in
@@ -7040,7 +7053,7 @@
     const ACTS = [['all', 'All'], ['prog', 'Progress'], ['proj', 'Projects'], ['edit', 'Edits'], ['file', 'Video and downloads']];
     const actN = k => k === 'all' ? log.length : log.filter(e => actOf(e) === k).length;
     const aCat = ACTS.some(([k]) => k === this.actCat && actN(k)) ? this.actCat : 'all';
-    const aList = aCat === 'all' ? log : log.filter(e => actOf(e) === aCat), aCap = this.actAll ? 300 : 6;
+    const aList = aCat === 'all' ? log : log.filter(e => actOf(e) === aCat), aCap = this.actAll ? 300 : 3;
     const dayOf = ms => { const x = new Date(ms), n = new Date(), y = new Date(n - 864e5), same = (a, b) => a.toDateString() === b.toDateString();
       return same(x, n) ? 'Today' : same(x, y) ? 'Yesterday' : x.toLocaleDateString([], { weekday: 'short', day: 'numeric', month: 'short' }); };
     const hm = ms => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
@@ -7058,7 +7071,7 @@
       '<button type="button" data-a="actcat" data-c="' + k + '" aria-pressed="' + (k === aCat) + '">' + l + '<s>' + actN(k) + '</s></button>').join('') + '</div>' : '';
     const activity = '<section class="rvd-sec rvd-act"><h3>Activity <s>' + (d.part ? '' : log.length) + '</s></h3>' + actChips + '<ol class="act-l">' +
       (actRows || '<li class="shl-empty">' + (d.part ? 'Reading…' : 'Nothing yet.') + '</li>') + '</ol>' +
-      (aList.length > 6 ? '<button type="button" class="act-m" data-a="actmore" aria-expanded="' + !!this.actAll + '">' + (this.actAll ? 'Show the latest 6' : 'Show all ' + aList.length) + '</button>' : '') + '</section>';
+      (aList.length > 3 ? '<button type="button" class="act-m" data-a="actmore" aria-expanded="' + !!this.actAll + '">' + (this.actAll ? 'Show the latest 3' : 'Show all ' + aList.length) + '</button>' : '') + '</section>';
     // THE SIDE: the team links (copy, the URL in its tooltip), then the reference details
     const LSHORT = { dd: 'This page, with every project', ct: 'Approves the copy and the translation', pm: 'Downloads each finished audience' };
     const LSAY = { ct: 'Content Review', pm: 'AdSet Overview' };
@@ -7091,12 +7104,10 @@
       vidSecHtml(rs, false).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' +
       '<aside class="rvd-side">' + briefHtml(rs.ticket, false, true).replace('rva-card rva-brief', 'rvd-card rva-brief') + '</aside></div></div>';
     const side = '<aside class="rvd-side">' + (pmV ? '' : links + access) +
-      briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') +
-      '<section class="rvd-card"><h3>Drive location</h3>' +
-      '<label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label></section>' +
+      (pmV ? briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') : '') +
       // REMOVE AND DELETE, FOLDED AWAY (2026-11-21, /impeccable critique): they sat right under the
       // Drive location's Save; now they wait behind one quiet summary, the delete last
-      '<details class="rvd-out"><summary>Remove or delete this ad set</summary><div><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
+      '<details class="rvd-out"><summary>Drive location, remove or delete</summary><div><label class="rva-drv"><span class="rva-vh">Google Drive location</span><input class="p-in" value="' + esc(drv) + '" placeholder="Folder link or path"><button type="button" class="p-ghost" data-a="drive">Save</button></label><button type="button" class="rva-rm" data-a="rm">' + ico('del') + 'Remove from this list</button>' +
       '<button type="button" class="rva-rm rva-dng" data-a="delset">' + ico('del') + 'Delete for everyone</button></div></details>' +
       '</aside>';
     // PERFORMANCE MARKETING AND THE CONTENT TEAM SEE THE DESIGNS (2026-11-23, by request: "on PM view,
@@ -7113,7 +7124,7 @@
           (an ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '<i title="Still images only">Static</i>') + '</span></li>';
       }).join('') + '</ul></section>';
     })();
-    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + (pmV ? gal : audiences) + vidSecHtml(rs, true).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + (pmV ? '' : briefHtml(rs.ticket, true).replace('rva-card rva-brief', 'rvd-card rva-brief rvd-bf')) + phase + (pmV ? gal : audiences) + vidSecHtml(rs, true).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.
@@ -9221,6 +9232,13 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .rvd-ub{grid-column:1 / -1}
 /* ...and once made, the second part of that card: a hairline, its own head and tiles */
 .rvd-dza{display:flex;padding:8px 12px;border-top:1px solid var(--ps-hair)}
+.rvd-ns{border-top:1px solid var(--ps-hair)}
+.rvd-ns>summary{list-style:none;cursor:pointer;padding:12px 20px;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-ns>summary::-webkit-details-marker{display:none}
+.rvd-ns>summary::before{content:'+';display:inline-block;width:16px;color:var(--ps-ink-2)}
+.rvd-ns[open]>summary::before{content:'−'}
+.rvd-ns>summary:hover{color:var(--ps-ink)}
+.rvd-ns>summary:focus-visible{outline:2px solid var(--ps-ink);outline-offset:-2px}
 .rvd-dz{display:inline-flex;align-items:center;gap:6px;height:36px;margin:0;padding:0 14px 0 8px;border:none;border-radius:9999px;background:none;color:var(--ps-ink-2);font:500 13px/1 var(--ps-font);cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
 .rvd-dz:hover{background:var(--ps-fill);color:var(--ps-ink)}
 .rvd-dz:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}

@@ -735,6 +735,9 @@ steps: **Design › ENG copy check › Translation › Done**.
    translation check** on an Arabic project). One sheet opens with the person already chosen,
    anything missing listed, and the note box; press **Send to** and their name. For any other
    task press **Something else** in that sheet (or **Send to…** where the button says that).
+   On the ad set page the **Brief** is at the top. Designs and unbranded versions nobody has
+   started are folded under **n not started yet** at the foot of their audience; open it to
+   start one. **Drive location** is under **Drive location, remove or delete** at the side.
    Once it is sent, the same button offers **Next:** and the name of another design in this
    phase you have not sent yet; it opens in a new tab.
    The list is grouped: **Next** (**Copy check**, or **Translation check** on an Arabic
