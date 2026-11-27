@@ -884,6 +884,7 @@
     if (a === 'card') { this.open(id); this.el.scrollIntoView({ block: 'start' }); }
     else if (a === 'back') { this.det = null; this.draw(); }
     else if (a === 'refresh') this.load(false);
+    else if (a === 'logall') { this.logAll = !this.logAll; this.draw(); }
     else if (a === 'sign') { if (await dsGate('Read the posts on Google Drive')) this.load(false); }
     else if (a === 'mine') { this.mine = !this.mine; lsSet('provident-posts-mine', this.mine ? '1' : '0'); this.draw(); }
     else if (a === 'new') { const h = this.eng.host; if (h) h.setState({ splashView: 'all' }, () => setTimeout(() => { const n = document.querySelector('.pp3-name'); if (n) n.focus(); }, 60)); }
@@ -917,7 +918,7 @@
         window.alert('Couldn’t delete it: ' + (e.message || String(e))); b.disabled = false; b.textContent = 'Delete for everyone';
       }
     }
-    else if (a === 'remove') { if (window.confirm('Take this post off Status on this computer? It stays on Google Drive.')) { Posts.drop(id); this.items = (this.items || []).filter(x => x.id !== id); this.det = null; this.draw(); } }
+    else if (a === 'remove') { if (window.confirm('Hide this post on this computer? It stays on Google Drive.')) { Posts.drop(id); this.items = (this.items || []).filter(x => x.id !== id); this.det = null; this.draw(); } }
   };
   const STEP_DOT = ['draft', 'design', 'copy', 'ready'];
   function cardHtml(x) {
@@ -976,30 +977,45 @@
       if (seen.has(k)) return false; seen.add(k); return true;
     }).slice(0, 60);
     const line = e => { const c = e.changes || []; return c.map(y => y.text || ((y.label || y.page || '') + (y.now ? ': ' + clip(y.now, 70) : ''))).filter(Boolean).slice(0, 3).join(' · ') + (c.length > 3 ? ' · +' + (c.length - 3) + ' more' : ''); };
+    // ONE SENTENCE, ONE MAIN BUTTON (2026-11-27, the streamlined home): the header says whose turn it
+    // is and what they do; the steps sit under it; the usual move is a button and the unusual ones
+    // are a quiet line; the brief leads the page; Copy link is gone (everyone opens it in the app)
+    const me = !!waitingOnMe(rs) && !rs.posted;
+    const now = rs.posted ? 'Posted by ' + rs.posted.by + ' · ' + day(rs.posted.at)
+      : st.none ? 'No design yet'
+      : st.k === 3 ? 'Ready to publish' + (it && it.to ? ' · ' + waitOf(rs, 3).toLowerCase() : '')
+      : me ? ['Your turn: finish the draft, then send it to the designer', 'Your turn: design it, then send it for the copy check', 'Your turn: check the copy, then approve it'][st.k]
+      : STEPS[st.k].t + ' · ' + waitOf(rs, st.k).replace(/^With /, 'with ');
+    const open = sid && role() !== 'pm' && !ct ? '<button type="button" class="' + (me || !a.go ? 'p-btn' : 'p-ghost') + '" data-ps="openp" data-sid="' + esc(sid) + '">Open in the studio</button>'
+      : (sid || role() === 'pm' || ct ? '' : '<button type="button" class="p-btn" data-ps="start" data-id="' + esc(x.id) + '">Start the design</button>');
+    const lnk = y => y && sid ? '<button type="button" class="pf-a" data-ps="step" data-act="' + y.act + '" data-sid="' + esc(sid) + '" title="' + esc(y.tip) + '">' + esc(y.label) + '</button>' : '';
+    const other = cc ? '' : [a.alt, a.fin, a.back].map(lnk).filter(Boolean).join('');
+    const shown = this.logAll ? logs : logs.slice(0, 3);
     return '<div class="ps ps-det"' + (cc ? ' data-cc' : '') + '>' +
       '<button type="button" class="p-ghost ps-back" data-ps="back"><svg class="pf-i" viewBox="0 -960 960 960" aria-hidden="true"><path d="' + BACK_D + '"/></svg>All posts</button>' +
       '<header class="psd-h"><span class="psd-th">' + (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="">' : '<i aria-hidden="true"></i>') + '</span>' +
         '<div class="psd-t"><span class="pf-k">Organic post' + (t.deadline ? ' · due ' + esc(dueDay(t.deadline)) : '') + '</span><h2>' + esc(rs.name || 'Post') + '</h2>' +
-        '<p>Started by ' + esc(rs.by || 'someone') + ' · ' + esc(day(rs.created)) + (x.mod ? ' · changed ' + esc(ago(x.mod)) : '') + '</p>' +
-        '<div class="psd-acts">' + (sid && role() !== 'pm' && !ct ? '<button type="button" class="p-btn" data-ps="openp" data-sid="' + esc(sid) + '">Open in the studio</button>'
-          : (sid || role() === 'pm' || ct ? '' : '<button type="button" class="p-btn" data-ps="start" data-id="' + esc(x.id) + '">Start the design</button>')) +
-          (cc ? '' : btn(a.go, 'p-ghost') + btn(a.alt, 'p-ghost') + btn(a.fin, 'p-ghost') + btn(a.back, 'p-ghost')) +
-          (sid ? '<button type="button" class="p-ghost" data-ps="copy" data-link="' + esc(projLink(sid)) + '">Copy link</button>' : '') +
-          (rs.drive ? '<a class="p-ghost" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">Drive folder</a>' : '') + '</div></div></header>' +
+        '<p class="psd-now"' + (me ? ' data-me' : '') + '>' + esc(now) + '</p>' +
+        '<ol class="psd-steps">' + STEPS.map(step).join('') + '</ol>' +
+        '<div class="psd-acts">' + open + (cc ? '' : btn(a.go, open ? 'p-ghost' : 'p-btn')) + '</div>' +
+        (other ? '<p class="psd-or"><span>Or</span>' + other + '</p>' : '') + '</div></header>' +
       // THE CONTENT TEAM'S COPY CHECK, IN THE PAGE (2026-11-04, by request): OPS framed with cc=1,
       // the words beside every page; Approve copy and Back to design are inside it
       (cc ? '<section class="psd-cc" data-sid="' + esc(sid) + '"><iframe class="psd-ccf" title="Copy check" src="' + esc(projLink(sid).replace('#', '?cc=1#')) + '"></iframe></section>' : '') +
       '<div class="psd-cols"><div>' +
-        '<section class="psd-card"><h3>Progress</h3><ol class="psd-steps">' + STEPS.map(step).join('') + '</ol></section>' +
-        '<section class="psd-card"><h3>Activity</h3>' + (logs.length ? '<ul class="psd-log">' + logs.map(e => '<li><b>' + esc(e.by || '') + '</b><span>' + esc(line(e)) + '</span><s>' + esc(ago(e.at || 0)) + '</s></li>').join('') + '</ul>' : '<p class="ps-none">Nothing yet</p>') + '</section>' +
-      '</div><aside>' +
         '<section class="psd-card"><h3>Brief</h3>' + (t.brief ? '<p class="psd-brief">' + esc(t.brief) + '</p>' : '<p class="ps-none">No brief</p>') +
           ((t.files || []).length ? '<ul class="psd-files">' + t.files.map(f => '<li><a href="https://drive.google.com/file/d/' + esc(f.id) + '/view" target="_blank" rel="noopener">' + esc(f.name) + '</a></li>').join('') + '</ul>' : '') + '</section>' +
-        '<button type="button" class="pf-a psd-rm" data-ps="remove" data-id="' + esc(x.id) + '">Take off this computer’s Status</button>' +
+      '</div><aside>' +
+        '<section class="psd-card"><h3>Activity</h3>' + (logs.length ? '<ul class="psd-log">' + shown.map(e => '<li><b>' + esc(e.by || '') + '</b><span>' + esc(line(e)) + '</span><s>' + esc(ago(e.at || 0)) + '</s></li>').join('') + '</ul>' +
+          (logs.length > 3 ? '<button type="button" class="pf-a psd-more" data-ps="logall">' + (this.logAll ? 'Show less' : 'Show all ' + logs.length) + '</button>' : '') : '<p class="ps-none">Nothing yet</p>') + '</section>' +
+      '</aside></div>' +
+      '<footer class="psd-foot">' +
+        (rs.drive ? '<a class="pf-a" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">Drive folder</a>' : '') +
+        '<button type="button" class="pf-a psd-rm" data-ps="remove" data-id="' + esc(x.id) + '" title="It stays on Google Drive and for everyone else">Hide on this computer</button>' +
         // DELETE FOR EVERYONE (2026-11-04, by request: clearing out empty "Untitled post" drafts):
         // dsApi rsdel marks the post deleted, so discover() skips it, and sends its files to Drive's trash
         (['admin', 'designer', 'smm'].indexOf(role()) >= 0 ? '<button type="button" class="pf-a psd-rm psd-del" data-ps="delete" data-id="' + esc(x.id) + '" data-nm="' + esc(rs.name || 'this post') + '">Delete for everyone</button>' : '') +
-      '</aside></div></div>';
+      '</footer></div>';
   };
 
   // ── markup hosts mount from the shell's render ──────────────────────────────────────────
@@ -1209,12 +1225,17 @@
 @keyframes psPulse{50%{opacity:.5}}
 @media (prefers-reduced-motion:reduce){.ps-load i{animation:none}}
 .ps-back{display:inline-flex;align-items:center;gap:6px;height:32px;margin:0 0 20px;padding:0 14px 0 10px}
-.psd-h{display:grid;grid-template-columns:96px minmax(0,1fr);gap:20px;align-items:start;margin:0 0 24px}
-.psd-th{display:block;width:96px;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--ps-fill)}.psd-th img{width:100%;height:100%;object-fit:cover;display:block}
+.psd-h{display:grid;grid-template-columns:132px minmax(0,1fr);gap:24px;align-items:start;margin:0 0 24px}
+.psd-th{display:block;width:132px;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--ps-fill)}.psd-th img{width:100%;height:100%;object-fit:cover;display:block}
 .psd-t h2{margin:2px 0 6px;font:500 28px/1.2 var(--ps-font);letter-spacing:-.01em}
 .psd-t p{margin:0;font:400 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.psd-t .psd-now{margin:0 0 16px;font:400 15px/1.4 var(--ps-font);color:var(--ps-ink-2)}.psd-t .psd-now[data-me]{color:var(--ps-ink);font-weight:500}
+.psd-t .psd-steps{max-width:720px}
+.psd-or{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;margin:12px 0 0}
+.psd-more{margin-top:12px}
+.psd-foot{display:flex;flex-wrap:wrap;gap:8px 24px;margin:24px 0 0;padding-top:16px;border-top:1px solid var(--ps-hair)}.psd-foot a{color:var(--ps-ink-2)}.psd-foot .psd-del{margin-left:auto}
 .psd-acts{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0}.psd-acts a{text-decoration:none;display:inline-flex;align-items:center}
-.psd-cols{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;align-items:start}
+.psd-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
 .psd-cc{margin:0 0 20px;border-radius:16px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--ps-line);background:var(--ps-card)}
 .psd-ccf{display:block;width:100%;height:calc(100vh - 110px);min-height:560px;border:0}
 /* the copy check carries the post's name and its steps itself, as CAS's content-team window does */

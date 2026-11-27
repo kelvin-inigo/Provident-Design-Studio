@@ -779,3 +779,13 @@ screen (`upd(screen: 'splash')`, both studios): nothing is discarded, `markSaved
 picking a template still asks about unsaved work. Verified on share-dev: hub carousel resumed →
 `#view=new` → Start a post → Just listed opened with a new pid and no `hubCardId`; CAS `#view=tpl`
 lands on its start screen. Simulated the hub open by calling `hubDraftOpen` with a carousel doc.
+
+## 2026-11-27 · the post page, streamlined (branch `home/streamline`, not on main)
+
+`StatusView.detHtml` redrawn by request ("is this the best ux for this page?"). The header now
+carries one sentence saying whose turn it is and what they do (`.psd-now`), the four steps under
+it (the Progress card is gone), and at most two buttons: Open in the studio and the usual move
+on. The unusual moves (Send to SMM, Back to draft, the SMM's skips) are a quiet "Or" line of
+links. Brief leads the body; Activity shows the latest three with Show all (`this.logAll`).
+Drive folder, Hide on this computer (was "Take off this computer's Status") and Delete for
+everyone sit in a foot row. Copy link is removed: everyone opens the post in the app.

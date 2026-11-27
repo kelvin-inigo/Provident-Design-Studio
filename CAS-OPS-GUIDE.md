@@ -1710,7 +1710,7 @@ the project's name, so looking at a template no longer leaves an "Untitled post"
 **Delete for everyone** (a post's page, under the brief; the admin, designers and the social media
 manager) takes the post off Status and Home on every computer. Click it once, then click again
 (**Click again to delete …**) within a few seconds. Its Google Drive folder goes to Drive's trash,
-where it can be restored for 30 days. **Take off this computer's Status** only hides it here.
+where it can be restored for 30 days. **Hide on this computer** only hides it here.
 
 **What waits on you is on the home page** (`index.html`): the posts **Waiting on you**, most
 urgent first, with their step, who handed them over and when they're due. A post's page there has
