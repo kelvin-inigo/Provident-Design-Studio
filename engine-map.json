@@ -351,7 +351,7 @@
    "from": "casv",
    "to": "drive",
    "check": "casv",
-   "carries": "Save to the ad set's Video folder, Open from an ad set (the site's save window)"
+   "carries": "Save to the ad set's Video folder, Open from an ad set, and the Drive link: the library kept the same as Video/Assets (the site's window)"
   },
   {
    "from": "casv",

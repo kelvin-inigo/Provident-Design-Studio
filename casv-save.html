@@ -53,7 +53,7 @@
 <script>
 (function () {
   'use strict';
-  var m = /^#(save|pick|open)\.(\d{2,5})$/.exec(location.hash), D = window.providentDrive;
+  var m = /^#(save|pick|open|sync)\.(\d{2,5})$/.exec(location.hash), D = window.providentDrive;
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (t) { return String(t == null ? '' : t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var st = function (t, bad) { var p = $('st'); p.textContent = t || ''; if (bad) p.dataset.bad = '1'; else delete p.dataset.bad; };
@@ -209,12 +209,14 @@
     var video = await folder(set.folder, 'Video', true), assets = await folder(video, 'Assets', true);
     var there = await list(assets), names = nameAll(used, P), total = used.reduce(function (n, md) { return n + (md.size || 0); }, 0) || 1, done = 0, sent = 0, rows = [];
     for (var i = 0; i < used.length; i++) {
-      var md = used[i], nm = names[md.id], have = there.find(function (f) { return f.name === nm && f.mimeType !== FOLDER; });
+      var md = used[i], nm = names[md.id], have = (md.gid && there.find(function (f) { return f.id === md.gid; })) || there.find(function (f) { return f.name === nm && f.mimeType !== FOLDER; });
       // every save writes every file again: what is on Drive is always what the video uses now
       {
         st('Uploading ' + (i + 1) + ' of ' + used.length + ' · ' + nm + ' (' + mb(md.size || 0) + ')');
         var b = await (await work('/api/work/media?id=' + md.id)).blob();
         md.fid = await put(assets, nm, new Blob([b], { type: String(md.type || b.type || '').split(';')[0] || 'application/octet-stream' }), have);
+        if (have && have.name !== nm) await gd('/drive/v3/files/' + have.id + '?fields=id' + ALL, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: nm }) });
+        try { var mo = Object.assign({}, md, { gid: md.fid, gname: nm }); delete mo.size; delete mo.mtime; delete mo.fid; await work('/api/work/meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: md.id, meta: mo }) }); } catch (e) {}
         sent++; rows.push([nm, (have ? 'replaced · ' : '') + mb(md.size || 0)]);
       }
       done += md.size || 0; bar(done / total * .95);
@@ -237,6 +239,93 @@
     st('Saved. ' + sent + (sent === 1 ? ' file' : ' files') + ' written to Video › Assets.');
     acts('<a class="p-ghost" href="https://drive.google.com/drive/folders/' + encodeURIComponent(video) + '" target="_blank" rel="noopener">Open the folder in Google Drive</a><button type="button" class="p-btn" id="x">Close</button>');
     $('x').onclick = function () { window.close(); };
+  }
+
+
+  // ── THE DRIVE LINK (2026-11-27, by request: "anything that is imported on the library should
+  // automatically go where the google drive folder assets is, then it automatically reads the
+  // existing files inside the google drive folder"). #sync.<port>: this window stays open beside
+  // the Video Studio, holding the Google sign-in (CASV runs on localhost, where Google refuses one),
+  // and every few seconds
+  //   · uploads each file of the open video's library that is not on Drive yet into
+  //     <ad set>/Video/Assets/, named by its role like Save does, and writes the Drive file's id
+  //     (`gid`) and name (`gname`) into the file's record on this computer;
+  //   · downloads each file in that Assets folder the library does not have (a teammate's, or one
+  //     saved from another computer) into the working folder, where the Video Studio picks it up.
+  // Nothing is deleted on either side. The video is linked to its ad set once (here, or by Save).
+  async function sync() {
+    $('h').textContent = 'Drive link'; document.title = 'Drive link · Video Studio';
+    await signedIn();
+    var state = (await (await work('/api/work/state')).json()).state || {}, P = JSON.parse(state.project || 'null');
+    if (!P || P.v !== 1) throw new Error('There is no video open in the Video Studio.');
+    var name = safe(P.name || (P.cas && P.cas.title)), set = P.drive && P.drive.set && P.drive.set.folder ? P.drive.set : null;
+    if (!set) {
+      st('Finding the ad sets…');
+      set = await choose(await findSets(), 'Choose the ad set “' + name + '” belongs to. Its files go to Video › Assets there, and it is remembered for this video.');
+      var ans = { what: 'linked', set: { name: set.name, folder: set.folder }, at: Date.now() };
+      try { await work('/api/work/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'drive', value: JSON.stringify(ans) }) }); } catch (e) {}
+      tell(ans);
+    }
+    $('sub').textContent = set.name + ' › Video › Assets';
+    st('Opening the Assets folder…');
+    var video = await folder(set.folder, 'Video', true), assets = await folder(video, 'Assets', true), pid = P.id;
+    acts('<a class="p-ghost" href="https://drive.google.com/drive/folders/' + encodeURIComponent(assets) + '" target="_blank" rel="noopener">Open the Assets folder</a>');
+    var log = [], busy = false, ups = 0, downs = 0;
+    var note = function (t, s2) { log.unshift([t, s2]); log = log.slice(0, 8); $('files').hidden = false; $('files').innerHTML = log.map(function (r) { return '<li><b>' + esc(r[0]) + '</b><s>' + esc(r[1]) + '</s></li>'; }).join(''); };
+    // told twice, like Save: straight to the Video Studio's window, and left in its working folder
+    var beat = function (o) { tell(o); work('/api/work/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'sync', value: JSON.stringify(o) }) }).catch(function () {}); };
+    var KIND = function (mt) { return /^video\//.test(mt) ? 'video' : /^audio\//.test(mt) ? 'audio' : /^image\//.test(mt) ? 'image' : ''; };
+    var meta = function (md, add) { var o = Object.assign({}, md, add); delete o.size; delete o.mtime; return work('/api/work/meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: md.id, meta: o }) }); };
+    async function round() {
+      if (busy) return; busy = true;
+      try {
+        var s0 = (await (await work('/api/work/state')).json()).state || {}, Q = JSON.parse(s0.project || 'null');
+        if (!Q || Q.id !== pid) {               // the Video Studio opened another video: start again for that one
+          tell({ what: 'sync', state: 'off' }); st('The Video Studio opened another video. Linking that one…'); setTimeout(function () { location.reload(); }, 1500); return;
+        }
+        var lib = ((await (await work('/api/work/list')).json()).media || []).filter(function (md) { return !md.pid || md.pid === pid; });
+        var there = (await list(assets)).filter(function (f) { return f.mimeType !== FOLDER; }), byId = {}, byName = {};
+        there.forEach(function (f) { byId[f.id] = f; byName[f.name] = f; });
+        var names = nameAll(lib.slice(), Q), owned = {}, up = 0, down = 0;
+        lib.forEach(function (md) { if (md.gid && byId[md.gid]) owned[md.gid] = 1; });
+        // up: a file of the library that Drive does not have
+        for (var i = 0; i < lib.length; i++) {
+          var md = lib[i]; if (md.gid && byId[md.gid]) continue;
+          var nm = md.gname || names[md.id], same = byName[nm];
+          if (same && !owned[same.id] && (!same.size || +same.size === md.size)) {   // already there (a Save wrote it): adopt it
+            await meta(md, { gid: same.id, gname: same.name }); owned[same.id] = 1; continue;
+          }
+          if (same) { var n = 2, stem = nm.replace(/\.[^.]+$/, ''), ext = nm.split('.').pop(); while (byName[stem + '-' + n + '.' + ext]) n++; nm = stem + '-' + n + '.' + ext; }
+          st('Uploading ' + nm + ' (' + mb(md.size || 0) + ')…');
+          var b = await (await work('/api/work/media?id=' + md.id)).blob();
+          var gid = await put(assets, nm, new Blob([b], { type: String(md.type || b.type || '').split(';')[0] || 'application/octet-stream' }), null);
+          await meta(md, { gid: gid, gname: nm }); owned[gid] = 1; byName[nm] = { id: gid, name: nm }; up++; ups++; note(nm, 'uploaded · ' + mb(md.size || 0));
+        }
+        // down: a file in the Assets folder the library does not have
+        for (var j = 0; j < there.length; j++) {
+          var f = there[j], kind = KIND(String(f.mimeType || ''));
+          if (owned[f.id] || !kind || /\.casv$/i.test(f.name)) continue;
+          st('Downloading ' + f.name + ' (' + mb(+f.size || 0) + ')…');
+          var blob = await get(f.id), id = Math.random().toString(36).slice(2, 12);
+          await work('/api/work/media?id=' + id, { method: 'PUT', body: blob });
+          await work('/api/work/meta', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, meta: { id: id, kind: kind, name: f.name.replace(/\.[^.]+$/, ''), pid: pid, at: Date.now(), type: f.mimeType, gid: f.id, gname: f.name } }) });
+          owned[f.id] = 1; down++; downs++; note(f.name, 'from Drive · ' + mb(blob.size));
+        }
+        var t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        st('Up to date · ' + lib.length + ' in the library · checked ' + t + '. Keep this window open while you work.');
+        beat({ what: 'sync', state: 'ok', up: ups, down: downs, set: { name: set.name, folder: set.folder }, at: Date.now() });
+      } catch (e) {
+        st((e && e.message) || String(e), true);
+        beat({ what: 'sync', state: 'error', msg: String((e && e.message) || e).slice(0, 200), at: Date.now() });
+        if (!(await D.ensure())) {                // Google's hour ran out: one click to carry on
+          acts('<button type="button" class="p-btn" id="in">Continue with Google</button>');
+          $('in').onclick = async function () { try { await D.signIn(); acts(''); } catch (x) {} };
+        }
+      } finally { busy = false; }
+    }
+    window.addEventListener('pagehide', function () { tell({ what: 'sync', state: 'off' }); try { navigator.sendBeacon && fetch(AT + '/api/work/state', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'sync', value: null }) }); } catch (e) {} });
+    await round();
+    setInterval(round, 5000);
   }
 
   async function open() {
@@ -274,7 +363,7 @@
     acts('<button type="button" class="p-btn" id="x">Close</button>'); $('x').onclick = function () { window.close(); };
   }
 
-  (OPEN ? open() : save()).catch(function (e) {
+  (OPEN ? open() : MODE === 'sync' ? sync() : save()).catch(function (e) {
     bar(null); st((e && e.message) || String(e), true);
     acts('<button type="button" class="p-btn" id="again">Try again</button>'); $('again').onclick = function () { location.reload(); };
   });
