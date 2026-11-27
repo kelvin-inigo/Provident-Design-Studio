@@ -1196,3 +1196,19 @@ buttons side by side, a Drive card on top of every ad set.
   block, so the hosts' entrance (`u-push`) animates opacity only.
 - **Not done:** the studios' own chrome (CAS Ad set tab, settings sheet) follows the studio kit and
   was not part of this pass; the phone's With others rows still use the old three-line row.
+
+### One desk, later the same day: CAS's Ad set tab, and the greeting back
+
+- **The greeting is back on My work** (by request: "also bring this back"): the sky for the time of
+  day, the date and time, and one line ("3 things are waiting on you"). `viewHome` draws it again
+  and the route painter calls `skyPaint()`; the list under it is unchanged.
+- **CAS's Ad set tab** takes the same sheet, as a block at the end of the `.adt` rules in
+  `share-link.js` (headed `ONE DESK IN CAS`): 20px cards on a hairline ring, the title Regular with
+  the campaign on the line under it, section headings at 600 in ink, 36px buttons, and "This
+  project" tinted, not ringed in blue. Chrome only; no canvas path is touched.
+- **The deliverable chips touched each other** on the tab and on the home's ad set page: a later
+  `.rvd-dl{display:block}` beat the flex rule. `.rvd-dl:has(.rvd-dlc)` is a wrapping flex row with an 8px gap.
+- **Ad set settings** already follows the studio kit (pills, 36px buttons); only its ring moved to the hairline.
+- **Testing trap:** a CAS workspace that already holds a project does not open the same `#share=`
+  again and falls back to the home's Projects; test with a fresh `?ws=` value. The seeded demo
+  designs (Palm Springs) have no project file and never open; DEMO · Marina Heights does.

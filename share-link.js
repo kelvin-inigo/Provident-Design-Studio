@@ -9304,6 +9304,23 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .adt-dl .rvd-dl{padding-top:0}
 .adt-host[data-adt="top"] .rva-brief{margin-top:16px}
 .adt-dl .rvd-dlk b{font-weight:500;color:var(--ps-ink);margin-left:2px}
+/* ONE DESK IN CAS (2026-11-27, /impeccable: the Ad set tab on the same sheet as the home's pages).
+   One card (20px, a hairline ring), the title Regular with the campaign on the line UNDER it, a
+   section heading at 600 in ink, 36px buttons, and "this project" tinted, not ringed in blue. */
+.adt,.adt-card,.adt-host .rva-card{padding:20px;border-radius:16px;background:var(--ps-card);box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.adt-card.adt-lk{padding:0}
+.adt-ht{gap:6px}
+.adt-ht>*{order:2}
+.adt-ht>h2{order:0;font:400 26px/1.15 var(--ps-font);letter-spacing:-.02em}
+.adt-ht>.adt-k{order:1;font:400 13.5px/1.4 var(--ps-font);color:var(--ps-ink-2)}
+.adt-card h3,[data-adt] .rva-card h3{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.adt-go,.adt-ov,.adt-none .p-btn,.adt-q{height:36px}
+.adt-au{box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.adt-au[data-me]{background:var(--ps-tint-1,var(--ps-fill));box-shadow:inset 0 0 0 1px var(--ps-hair)}
+.rvd-dl:has(.rvd-dlc){display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.adt-dl .rvd-dl{margin-top:0}
+.adt-card.adt-reply .adt-ch h3{font:600 14px/1.3 var(--ps-font);color:var(--ps-ink)}
+.shl-dlg-c.rss{box-shadow:0 0 0 1px var(--ps-hair)}
 /* the Copy box's own placeholder shows the format; the paragraph and numbered list under it repeated it */
 .cw-br .cw-key{display:none}
 .rvd-need{margin:-4px 0 14px;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2);max-width:72ch}
