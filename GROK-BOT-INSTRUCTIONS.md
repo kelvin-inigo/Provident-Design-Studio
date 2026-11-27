@@ -90,8 +90,8 @@ theme are in More), and a studio opens in Ad set (CAS) or Guided (OPS) with the 
    files, markets and audiences) › **File as ticket**. Broad reach is the default.
 2. A designer opens it on **Status** and presses **Pick up** (or **Use an existing design**).
 3. Paste the copy into **Copy** on the **Ad set** tab (format in Part 2), check it, **Fill with the
-   … copy**. Design the ad, then **Send to…** and pick **Copy check** (or **Arabic**, **Animated**, **Video**,
-   **Design**, **Done**: any order), then who gets it.
+   … copy**. Design the ad, then **Send to copy check** and pick who gets it (**Something else** in that
+   sheet lists **Arabic**, **Animated**, **Video**, **Design**, **Done**: any order).
    Filing the ticket (or **Start designing**) posts the ad set's name in Roam's **Paid Ads Hub**;
    every later step replies in that message's thread, each starting with the ad set's name and
    the audience: **Translation check** / **Copy check** for the checker (the link opens on that
@@ -145,6 +145,8 @@ theme are in More), and a studio opens in Ad set (CAS) or Guided (OPS) with the 
   **Copy from Local** on its card on the ad set page (**Copy the rest from Local** when it is missing
   only some designs). **New market: Start from scratch** in the
   settings skips the copy.
+- A design not yet sent shows **Send to copy check** (**Send for translation check** in Arabic): one
+  sheet with the person, anything missing and the note; **Something else** opens the list.
 - **Send to…** lists, grouped **Next** / **Back** / **Finish**: **Copy check** (**Translation
   check** on an Arabic project), **Arabic**, **Animated**, **MVP video**, then **Design**, then
   **Done** (which asks **Mark done?** first). Then, in the same dialog, it asks who gets it: the

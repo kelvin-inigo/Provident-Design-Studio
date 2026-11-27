@@ -3031,3 +3031,24 @@ in the root. Any way of speeding up the time to save the MVP and animated?"
 - `window.__rv` is the open review on localhost only (a test handle, as `__casAn`).
 - Not done: faster-than-real-time encoding (WebCodecs + an MP4 muxer) — the recording is still
   as long as the clip.
+
+## The send button names the usual step and opens one sheet (2026-11-27, branch home/streamline, NOT on main)
+
+By request, after the sandbox review ("Hand-off strip first"). The complaint: Send to… made the
+designer pick from six tasks, then a person, then a note, for what is nearly always a copy check.
+
+- **`usualTask(it)`** (share-link.js): `copy` while the design has not been sent (and the copy is
+  not approved), `done` when a designer task sits on an approved project, else `''`.
+  **`usualLabel`**: Send to copy check / Send for translation check / Mark done / Send to….
+- **`adtNext`** names the strip and Ad set tab button with it; the ad set page tile (`.rvd-snd`) too.
+- **`sendToDlg(rs, it, miss, { pre })`**: with a usual step and a picker available
+  (`providentAccess.willAsk`), it goes straight to access.js's picker as the one sheet: title is
+  the step, `warn` is the pre-check list (`.acx-pk-w`, the button reads Send anyway), the note box,
+  and Back is labelled **Something else** and shows the old task list. With no picker (not signed
+  in) or for Done / a reopen, the list opens with that step's own question already open, so nothing
+  sends on one press without a confirmation.
+- Verified on :8797 (seeded stand-in, ad set page): tile reads Send to copy check; one sheet; a
+  send with a note landed "Copy check · with Priya"; Something else shows the list with focus on
+  Copy check; the warn variant through `providentSendTo`. **Not verified:** the CAS editor's strip
+  (the editor does not open on the dev server's seed), real Drive, Roam. OPS is unchanged: its
+  button already names the step; its picker still has no note.

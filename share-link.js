@@ -4055,6 +4055,12 @@
   // confirm); then the person in the same place, with Back to the tasks. Keyboard: arrows move
   // through the tasks, Tab stays inside, focus goes back where it came from. Shared by the
   // editor's Ad set tab and the ad set page on Status. Resolves { act, ho, k } or null.
+  // THE USUAL NEXT STEP (2026-11-27, branch home/streamline): a design in the designer's hands goes
+  // to its check; a designer's task on an approved project ends in Done. The button is named for
+  // it and opens on it; every other task is one press behind it ("Something else"). '' = no usual
+  // step, so the button stays Send to… and opens the list.
+  const usualTask = it => { const tk = taskOf(it); return !it ? '' : !it.design ? (it.copy ? '' : 'copy') : tk && tk !== 'done' && it.copy ? 'done' : ''; };
+  const usualLabel = (it, k) => k === 'copy' ? (it.lang === 'ARB' ? 'Send for translation check' : 'Send to copy check') : k === 'done' ? 'Mark done' : 'Send to…';
   const stoAct = (it, k) => k === 'copy' ? (it.copy ? 'copy-open' : 'design-done') : k === 'design' ? 'design-open' : 'task-' + k;
   function dlgTrap(box, e) {
     if (e.key !== 'Tab') return;
@@ -4074,7 +4080,7 @@
     return () => { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); };
   }
   window.providentVvFit = vvFit;
-  function sendToDlg(rs, it, miss) {
+  function sendToDlg(rs, it, miss, opt) {
     injectCss();
     const arb = it.lang === 'ARB', tk = taskOf(it), cur = tk || (!it.design ? 'design' : !it.copy ? 'copy' : ''), from = document.activeElement;
     const R = {
@@ -4125,11 +4131,14 @@
       };
       document.addEventListener('keydown', key, true);
       el.addEventListener('input', e => { if (e.target.id === 'sto-nt') noteV = e.target.value; });
-      const go = async k => {
-        const act = stoAct(it, k);
+      const go = async (k, direct) => {
+        const act = stoAct(it, k), warn = k === 'copy' && !it.copy ? miss : [];
         // the person, in the same place: the task list steps aside until the picker answers
         away = true; el.classList.add('sto-away');
-        const ho = await handOffFor(rs, it, act, { back: true, note: k !== 'done' && !noteRow(k), noteV, lead: 'Send to ' + R[k][0] + ' · ' + itemLabel(it) + '. They get a Chrome alert if they have this ad set open; either way it waits in their queue on Home.' });
+        const ho = await handOffFor(rs, it, act, direct
+          ? { back: true, backLabel: 'Something else', note: true, noteV, title: usualLabel(it, k), lead: itemLabel(it, rs) + '. It waits in their queue on Home.', warn, go: warn.length ? 'Send anyway' : 'Send',
+              warnHead: warn.every(m => /^it looks \d+% like /.test(m) || /^Meta shows ads/.test(m)) ? 'Before it goes to the content team:' : 'Before it goes to the content team, this is missing:' }
+          : { back: true, note: k !== 'done' && !noteRow(k), noteV, lead: 'Send to ' + R[k][0] + ' · ' + itemLabel(it) + '. They get a Chrome alert if they have this ad set open; either way it waits in their queue on Home.' });
         away = false; el.classList.remove('sto-away');
         if (ho === 'back') { ask = ''; focusK = k; draw(); return; }
         if (!ho) return close(null);
@@ -4148,7 +4157,12 @@
         if ((k === 'done' || noteRow(k) || (k === 'copy' && !it.copy && miss.length)) && ask !== k) { ask = k; focusK = k; return draw(); }
         go(k);
       });
-      document.body.appendChild(el); draw();
+      document.body.appendChild(el);
+      // OPENED ON THE USUAL STEP: straight to the one sheet (person, what is missing, note) when a
+      // picker will open; otherwise the list, with that step's own question already open
+      const pre = opt && opt.pre && R[opt.pre] && opt.pre !== cur ? opt.pre : '', A = window.providentAccess;
+      if (pre && pre !== 'done' && !noteRow(pre) && A && A.willAsk && A.willAsk(rs, it, stoAct(it, pre))) { focusK = pre; draw(); go(pre, true); }
+      else { if (pre) { focusK = pre; if (pre === 'done' || noteRow(pre) || (pre === 'copy' && miss.length)) ask = pre; } draw(); }
     });
   }
   window.providentSendTo = sendToDlg;
@@ -4169,7 +4183,7 @@
     if (!it || this._rvBusy) return;
     // what would make the content team send it straight back: only this editor's own project can say
     const miss = it.sid === S.id && this.rsPrecheck ? this.rsPrecheck().concat(await this.simCheck()) : [];
-    const r = await sendToDlg(rs, it, miss);
+    const r = await sendToDlg(rs, it, miss, { pre: usualTask(it) });
     if (r) this.rvStep(r.act + ':' + it.sid, r.ho);
   };
   SP.rvDrive = async function (v) {
@@ -4278,7 +4292,7 @@
     // sent to Arabic, and the Arabic is not made yet: making it is the task
     if (tk === 'arabic' && !arb && ar) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
     // WITH THE DESIGNER: the hand-off opens the list of tasks, and the designer picks where it goes
-    if (!it.design || (tk && tk !== 'done')) return { send: it.sid, label: 'Send to…', tip: 'Pick the task this project goes to next — copy check, Arabic, animated, video or done — and who gets it' };
+    if (!it.design || (tk && tk !== 'done')) { const u = usualTask(it); return { send: it.sid, label: usualLabel(it, u), tip: u === 'copy' ? 'Hands it to the content team: pick who checks it and add a note. Something else lists the other tasks' : u === 'done' ? 'Nothing is left on this project. Something else lists the other tasks' : 'Pick the task this project goes to next — copy check, Arabic, animated, video or done — and who gets it' }; }
     if (!arb && ar && it.copy) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
     if (eng) return { next: [eng.market, eng.aud, 'ENG', ph].join('|'), label: 'Create next audience', tip: 'A blank project for ' + eng.market + ' · ' + eng.aud + ', filled from the pasted copy' };
     if (ar) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
@@ -6132,7 +6146,7 @@
     if (a === 'sendto') {
       const rs = this.det && this.det.rs, it = rs && (rs.items || []).find(x => x.sid === t.dataset.sid); if (!it) return;
       const m = t.closest('details'); if (m) m.open = false;
-      const r = await sendToDlg(rs, it, []); if (!r) return;
+      const r = await sendToDlg(rs, it, [], { pre: usualTask(it) }); if (!r) return;
       const tkk = /^task-/.test(r.act) ? r.act.slice(5) : '';
       askNotify();
       // WHILE IT SAVES, AND AFTER (2026-11-21, second critique): the tile's button says Sending…; the
@@ -6946,7 +6960,7 @@
             '<span class="rvd-mnd" role="separator"></span><button type="button" class="rva-dng" data-a="rmproj" data-sid="' + esc(it.sid) + '" data-lab="' + esc(itemLabel(it)) + '">Remove</button></span></details>') +
         // SEND TO… IN VIEW (2026-11-21, second critique): the step that moves the work on is a button on
         // the tile, not the first line of its ⋯ menu beside Remove
-        ((rs.tok || {}).dd && this.edit !== it.sid && !dead ? '<button type="button" class="rvd-snd" data-a="sendto" data-sid="' + esc(it.sid) + '" aria-label="' + esc('Send ' + itemLabel(it) + ' to…') + '">' + PICO.go.replace('<svg', '<svg aria-hidden="true"') + '<span>Send to…</span></button>' : '') + '</div>';
+        ((rs.tok || {}).dd && this.edit !== it.sid && !dead ? '<button type="button" class="rvd-snd" data-a="sendto" data-sid="' + esc(it.sid) + '" aria-label="' + esc(usualTask(it) ? usualLabel(it, usualTask(it)) + ' · ' + itemLabel(it) : 'Send ' + itemLabel(it) + ' to…') + '">' + PICO.go.replace('<svg', '<svg aria-hidden="true"') + '<span>' + esc(usualLabel(it, usualTask(it))) + '</span></button>' : '') + '</div>';
     };
     // A MIXED AD SET: every branded audience can also run unbranded. Until it does, the card ends
     // on one placeholder that copies its English design (in a new window) onto the unbranded look

@@ -741,7 +741,9 @@
     if (list.length > 1) list = list.filter(p => p.email !== mine).concat(list.filter(p => p.email === mine));
     // a finished post goes back to whoever drafted it, unless someone else is picked
     const pre = k === 'smm' && it && it.draft && it.draft.em ? it.draft.em : '';
-    const o = { T, list, err, k, pre, title: opt.title || T.head, lead: opt.lead || '', go: opt.go || 'Send', back: !!opt.back, note: !!opt.note, noteV: opt.noteV || '' };
+    const o = { T, list, err, k, pre, title: opt.title || T.head, lead: opt.lead || '', go: opt.go || 'Send', back: !!opt.back, note: !!opt.note, noteV: opt.noteV || '',
+      // ONE SHEET FOR THE USUAL STEP (2026-11-27): what is missing shows above the people, and Back can be named
+      warn: (opt.warn || []).filter(Boolean), warnHead: opt.warnHead || 'Before it goes:', backLabel: opt.backLabel || 'Back' };
     const to = await pickDlg(o);
     if (to === undefined) return null;
     // Back (2026-11-21): Send to… shows its task list again
@@ -758,13 +760,14 @@
       const w = document.createElement('div'); w.className = 'acx-pk'; w.setAttribute('role', 'dialog'); w.setAttribute('aria-modal', 'true'); w.setAttribute('aria-labelledby', 'acx-pk-h');
       const draw2 = () => {
         w.innerHTML = '<div class="acx-pk-in"><h2 id="acx-pk-h">' + esc(o.title) + '</h2>' + (o.lead ? '<p class="acx-pk-l">' + esc(o.lead) + '</p>' : '') +
+          (o.warn.length ? '<div class="acx-pk-w" role="group" aria-label="' + esc(o.warnHead) + '"><p>' + esc(o.warnHead) + '</p><ul>' + o.warn.map(m => '<li>' + esc(m) + '</li>').join('') + '</ul></div>' : '') +
           (o.list.length ? '<div class="acx-pk-list" role="radiogroup" aria-label="' + esc(o.title) + '">' + o.list.map(p =>
             '<button type="button" role="radio" aria-checked="' + (p.email === sel) + '" tabindex="' + (p.email === sel ? 0 : -1) + '" class="acx-pk-p" data-e="' + esc(p.email) + '"' + (p.email === sel ? ' data-on' : '') + '>' +
             '<span class="acx-av">' + avIn(p.name, p.email) + '</span><span class="acx-pk-t"><b>' + esc(nameOf(p)) + (p.email === mine ? ' <s>you</s>' : '') + '</b><small>' + esc(p.email) + '</small><small>' + esc(SEGL[p.role] || ROLE[p.role] || '') +
             (p.last ? ' · last in ' + esc(when(p.last)) : ' · not signed in yet') + '</small></span><i class="acx-pk-r" aria-hidden="true">' + ic('check') + '</i></button>').join('') + '</div>'
             : '<p class="acx-pk-l">' + esc(o.err || ('Nobody is on the ' + o.T.word + ' yet. The admin adds people in Access.')) + ' It goes to the whole ' + esc(o.T.word) + ' instead.</p>') +
           (o.note ? '<label class="acx-pk-nl" for="acx-pk-nt">Note for them <s>optional</s></label><textarea id="acx-pk-nt" class="acx-pk-nt" rows="2" maxlength="300" placeholder="Anything they should know before they start">' + esc(o.noteV) + '</textarea>' : '') +
-          '<div class="acx-row acx-pk-f">' + (o.back ? '<button type="button" class="acx-ghost acx-pk-bk" data-pk="back">' + ic('back') + 'Back</button>' : '') + '<button type="button" class="acx-ghost" data-pk="no">Cancel</button><button type="button" class="acx-btn" data-pk="go">' + ic('send') +
+          '<div class="acx-row acx-pk-f">' + (o.back ? '<button type="button" class="acx-ghost acx-pk-bk" data-pk="back">' + ic('back') + esc(o.backLabel) + '</button>' : '') + '<button type="button" class="acx-ghost" data-pk="no">Cancel</button><button type="button" class="acx-btn" data-pk="go">' + ic('send') +
           '<span class="acx-pk-gt">' + esc(o.list.length && sel ? o.go + ' to ' + nameOf(o.list.find(p => p.email === sel) || {}).split(' ')[0] : o.go) + '</span></button></div></div>';
       };
       const from = document.activeElement;
@@ -880,6 +883,8 @@
     },
     roleName: r => ROLE[r] || r || '',
     team, handOff, me,
+    // whether a step opens the person picker at all (share-link.js: the one-sheet send needs to know)
+    willAsk: (rs, it, act) => !!teamFor(rs, it, act) && (A.on === true || !!(A.quiet && A.quiet.status === 'active')),
     // a person's Google photo (or ''), and the inside of an avatar circle: photo or initials
     photo: (n, e) => photoOf(n, e), avIn,
     // the share service as the signed-in person (the home reads the Content Hub's tasks with it)
@@ -904,6 +909,7 @@ html[data-acc-role="smm"] .p-ws:not([data-on]),html[data-acc-role="smm"] .p-sec-
 .acx-pk-in{width:min(480px,100%);max-height:calc(100vh - 32px);overflow:auto;box-sizing:border-box;padding:24px;border-radius:16px;background:var(--ps-card);color:var(--ps-ink);box-shadow:0 0 0 1px var(--ps-line);font-family:var(--ps-font)}
 .acx-pk h2{font:500 20px/1.25 var(--ps-font);margin:0 0 6px}
 .acx-pk-l{font:400 14px/1.5 var(--ps-font);color:var(--ps-ink-2);margin:0 0 16px}
+.acx-pk-w{margin:0 0 16px;padding:10px 14px;border-radius:8px;background:var(--ps-warn-q);font:400 13.5px/1.45 var(--ps-font);color:var(--ps-ink)}.acx-pk-w p{margin:0 0 4px;font-weight:500}.acx-pk-w ul{margin:0;padding-left:18px}
 .acx-pk-nl{display:block;margin:16px 0 6px;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink)}
 .acx-pk-nl s{text-decoration:none;font-weight:400;color:var(--ps-dim)}
 .acx-pk-nt{display:block;margin:0 0 20px;box-sizing:border-box;width:100%;min-height:64px;resize:vertical;padding:10px 12px;border:0;border-radius:12px;background:var(--ps-fill);font:400 14px/1.45 var(--ps-font);color:var(--ps-ink)}

@@ -187,7 +187,7 @@
       sum: 'The top bar always offers the next move.',
       steps: [
         { t: 'Beside **Ad set | Design**, four small bars show the step, with the market, audience and language. The button beside them is the next thing to do.', f: 'cas-design', s: 'step' },
-        { t: 'Press **Send to…** and pick the task: **Copy check**, **Arabic**, **Animated**, **Video**, **Design** or **Done**. Then pick who gets it. It lists anything missing first.' },
+        { t: 'Press **Send to copy check**. One sheet shows who gets it, anything missing, and a note box. For another task (**Arabic**, **Animated**, **Video**, **Design**, **Done**) press **Something else**.' },
         { t: 'Then **Create next audience** opens the next planned audience with the copy already there: **Fill**, design, send.' },
         { t: 'Once an audience’s English is approved, **Make the Arabic** copies the design in the Arabic typeface, laid out right to left, with the words written in Arabic.' }
       ],

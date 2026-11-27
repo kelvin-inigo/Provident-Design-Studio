@@ -724,8 +724,11 @@ steps: **Design › ENG copy check › Translation › Done**.
 2. **Design.** The top bar, beside **Ad set | Design**, always shows where this project stands
    in its campaign: four small bars for the four steps, the step it is on, and its market,
    audience and language (for example *Design · Local · Family · EN*). Beside it is the one
-   thing to do next. When the design is ready, press **Send to…** and pick the task the project
-   goes to. The list is grouped: **Next** (**Copy check**, or **Translation check** on an Arabic
+   thing to do next. When the design is ready, press **Send to copy check** (**Send for
+   translation check** on an Arabic project). One sheet opens with the person already chosen,
+   anything missing listed, and the note box; press **Send to** and their name. For any other
+   task press **Something else** in that sheet (or **Send to…** where the button says that).
+   The list is grouped: **Next** (**Copy check**, or **Translation check** on an Arabic
    project, **Arabic**, **Animated**, **MVP video**), **Back** (**Design**) and **Finish**
    (**Done**, which asks **Mark done?** before it goes). Any order works, and you can send it back.
    Then pick who gets it, in the same dialog (the content team for a copy check, a designer for
