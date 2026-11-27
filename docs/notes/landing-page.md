@@ -1150,3 +1150,21 @@ Everything and Posts stay the compact table; its Made count has a tooltip pointi
 `tkCampaign`'s "Open the Kanban" line now links the campaign's own page.
 Verified on :8797: Campaigns chip draws cards with grids and no table; Preview as pm draws 10 cards
 (7 with grids, the rest tickets), no sideways scroll at 1440.
+
+## All work: a campaign is Ready and Pending (2026-11-27, later still, branch home/streamline)
+
+By request, with a screenshot of the grid cards: "this window looks confusing as it is ... actually
+show what's ready and what's pending." `rpCampaign(x)` replaces `tkCampaign` in `viewAll`'s
+campaign view (performance marketing's whole view; the Campaigns chip for others).
+
+- One card (`.rp`): name, then due · step (the sub is dropped when it only repeats "n deliverables
+  missing") · Waits on you; at the right "k of n ready" and one button (performance marketing gets
+  the row's own verb, Open the package / Download what is ready; others Open).
+- Two lines under it from `x.dlv` (same `TK_DL`, `TK_EN`): **Ready k** as ticked chips, **Pending
+  m** as hollow-dot chips, named in words (Static EN, Static AR, Animated EN, Animated AR, MVP
+  video, Copy). Part-way says how far ("Static EN, 5 of 7") and is pending. **Not needed is not
+  drawn.** Everything ready: "Everything is ready." A ticket: one line, nothing to track yet.
+- Gone from this view: the 4 x 2 cell grid, "English only" captions, hatched Missing cells, the
+  ring, the brand / audiences / designs line. `tkCampaign` and its CSS stay in the file, unused.
+- Verified on :8797, Preview as pm: 10 cards; 0 contrast failures on 125 nodes in dark and light
+  (each reloaded); no sideways scroll at 1440 or 375.

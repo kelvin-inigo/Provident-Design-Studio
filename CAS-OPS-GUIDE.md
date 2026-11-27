@@ -123,8 +123,9 @@ say so and point to the step above.
     by due date. Click a row to open it. Three controls: the **Everything** / **Campaigns** /
     **Posts** chips, **Find by name**, and **Show finished** for launched and posted work. There
     With **Campaigns** picked (and always for performance marketing) each campaign shows its
-    check of what is ready: **Static**, **Animated**, **MVP video** and **Copy**, in English and
-    Arabic, each **Done**, **n of m** or **Missing**. There
+    two lines: **Ready** (ticked: for example Static EN, Static AR, Copy) and **Pending** (for
+    example Animated EN, MVP video; one part-way says how far, "Static EN, 5 of 7"). What a
+    campaign does not need is not listed. There
     is no Progress or Kanban view any more; an old Status or Kanban link opens this table. The
     paragraphs below that describe Progress, Kanban and their filters are the previous design.
   - **Tracker** has two views, switched at its top right: **Progress** (the default) and

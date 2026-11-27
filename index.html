@@ -71,6 +71,25 @@ button{font-family:inherit}
 @media (min-width:641px){ .uh-nav [data-nav="projects"],.uh-nav [data-nav="access"],.uh-nav [data-nav="engine"],.uh-nav [data-nav="help"]{display:none} }
 .mn-i .uh-n{margin-left:auto}
 .mw{max-width:980px; margin:0 auto; width:100%}
+/* ALL WORK: a campaign as Ready and Pending */
+.rps{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px}
+.rp{padding:16px 20px 18px; border-radius:16px; background:var(--ps-card); box-shadow:0 0 0 1px var(--ps-hair)}
+.rp[data-mine]{box-shadow:0 0 0 1.5px var(--ps-link)}
+.rp-h{display:flex; align-items:center; gap:18px; margin-bottom:12px}
+.rp-t{flex:1; min-width:0}
+.rp h3{margin:0; font:400 19px/1.25 var(--ps-font); letter-spacing:-.01em}
+.rp h3 a{color:var(--ps-ink); text-decoration:none} .rp h3 a:hover{text-decoration:underline; text-underline-offset:3px}
+.rp-m{display:flex; flex-wrap:wrap; align-items:center; gap:4px 14px; margin:4px 0 0; font-size:13px; color:var(--ps-ink-2)}
+.rp-n{flex:none; font-size:13.5px; color:var(--ps-ink-2); white-space:nowrap} .rp-n b{font-weight:500; color:var(--ps-ink)}
+.rp-l{display:grid; grid-template-columns:92px minmax(0,1fr); gap:12px; align-items:start; padding:8px 0}
+.rp-l + .rp-l{border-top:1px solid var(--ps-hair)}
+.rp-k{padding-top:5px; font:500 13px/1.3 var(--ps-font); color:var(--ps-ink)} .rp-k b{font-weight:400; color:var(--ps-ink-2); margin-left:4px}
+.rp-l ul{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px}
+.rp-l li{display:inline-flex; align-items:center; gap:6px; height:28px; padding:0 11px 0 9px; border-radius:8px; font-size:13px; color:var(--ps-ink); background:var(--ps-fill)}
+.rp-l[data-s="ready"] li{background:var(--ps-good-q)} .rp-l[data-s="ready"] li svg{width:14px; height:14px; color:var(--ps-good); stroke-width:2.4}
+.rp-l[data-s="pend"] li i{width:8px; height:8px; border-radius:50%; box-shadow:inset 0 0 0 1.5px var(--ps-ink-2)}
+.rp-q{margin:0; font-size:13.5px; color:var(--ps-ink-2)} .rp-all{padding-top:8px}
+@media (max-width:640px){ .rp-h{flex-wrap:wrap; gap:10px} .rp-t{flex-basis:100%} .rp-h .b{margin-left:auto} .rp-l{grid-template-columns:1fr; gap:6px} .rp-k{padding-top:0} }
 /* ALL WORK: one table */
 .aw-h,.aw a{display:grid; grid-template-columns:52px minmax(0,1.5fr) minmax(0,1.7fr) 86px 150px; gap:18px; align-items:center}
 .aw-h{padding:0 18px 8px; font:500 12px/1 var(--ps-font); letter-spacing:.04em; text-transform:uppercase; color:var(--ps-ink-2)}
@@ -2125,6 +2144,27 @@ body{-webkit-tap-highlight-color:transparent;
   // not drawn any more (viewTracker / viewStatus below are kept, unreached, until this lands); a
   // late row says so in red and sorts to the top after what waits on you. Old ?v=kanban and
   // #/status links land here.
+  // A CAMPAIGN, AS READY AND PENDING (2026-11-27, by request with a screenshot: "this window looks
+  // confusing as it is ... actually show what's ready and what's pending"). The 4 x 2 grid of
+  // Done / Missing / English only / Not needed cells and the ring are replaced by two lines of
+  // plain names: what is ready (ticked), what is pending. A deliverable that is not needed is not
+  // drawn at all; one part-way says how far ("Static EN, 5 of 7"). Same data: x.dlv, TK_DL, TK_EN.
+  function rpCampaign(x){
+    var d = x.dlv, ok = [], no = [];
+    if (d) TK_DL.forEach(function(t){ var z = d[t[0]]; if (!z) return;
+      (TK_EN[t[0]] ? [['e', '']] : [['e', ' EN'], ['a', ' AR']]).forEach(function(l){ var v = z[l[0]]; if (!v || !v[1]) return;
+        if (v[0] >= v[1]) ok.push(t[1] + l[1]); else no.push(t[1] + l[1] + (v[0] ? ', ' + v[0] + ' of ' + v[1] : '')); }); });
+    var n = ok.length + no.length, pm = data.r === 'pm';
+    var li = function(a, tick){ return a.map(function(t){ return '<li>' + (tick ? '<svg class="i" aria-hidden="true"><use href="#g-check"/></svg>' : '<i></i>') + esc(t) + '</li>'; }).join(''); };
+    var body = x.open ? '<p class="rp-q">A ticket. There is nothing to track until a designer picks it up.</p>'
+      : !d || !n ? '<p class="rp-q">Open it to see what is ready.</p>'
+      : (ok.length ? '<div class="rp-l" data-s="ready"><span class="rp-k">Ready <b>' + ok.length + '</b></span><ul>' + li(ok, 1) + '</ul></div>' : '') +
+        (no.length ? '<div class="rp-l" data-s="pend"><span class="rp-k">Pending <b>' + no.length + '</b></span><ul>' + li(no, 0) + '</ul></div>' : '<p class="rp-q rp-all">Everything is ready.</p>');
+    return '<li class="rp"' + (x.mine ? ' data-mine' : '') + '><div class="rp-h"><div class="rp-t"><h3><a href="' + itemLink(x) + '">' + esc(x.name) + '</a></h3>' +
+      '<p class="rp-m">' + dueEl(x) + '<span>' + esc(x.step || '') + (x.sub && !/deliverables? missing/.test(x.sub) ? ' · ' + esc(x.sub) : '') + '</span>' + tkYou(x) + '</p></div>' +
+      (n ? '<span class="rp-n"><b>' + ok.length + ' of ' + n + '</b> ready</span>' : '') +
+      '<a class="b b-g" href="' + href(x) + '"' + tgt(x) + ' aria-label="' + esc((pm && x.verb ? x.verb : 'Open') + ': ' + x.name) + '">' + esc(pm && x.verb ? x.verb : 'Open') + '</a></div>' + body + '</li>';
+  }
   function viewAll(){
     var ss = studiosFor(data.r), both = ss.length > 1;
     var h = '<div class="sx-head"><div><h1 class="h1">All work</h1><p class="lede">' + (both ? 'Every campaign and post, who has it, and when it is due.' : ss[0] === 'ops' ? 'Every post, the step it is at, and when it is due.' : 'Every campaign, the step it is at, and when it is due.') + '</p></div></div>';
@@ -2149,7 +2189,7 @@ body{-webkit-tap-highlight-color:transparent;
     // again: Static, Animated, MVP video and Copy, English and Arabic, Done / n of m / Missing
     // (tkCampaign, as Progress drew it), in the same attention order. Everything and Posts stay
     // the one compact table.
-    if (sxF === 'cas' || (!both && ss[0] === 'cas')) return h + '<div class="tk">' + rows.map(tkCampaign).join('') + '</div>' + freshLine();
+    if (sxF === 'cas' || (!both && ss[0] === 'cas')) return h + '<ol class="rps">' + rows.map(rpCampaign).join('') + '</ol>' + freshLine();
     h += '<div class="aw-h" aria-hidden="true"><span></span><span>Name</span><span>Step</span><span>Made</span><span>Due</span></div><ol class="aw">' + rows.map(function(x){
       var k = x.studio === 'cas' && x.dlv ? tkCount(x.dlv) : null, st = SC[x.stage] || {};
       return '<li><a href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="aw-th">' + rd(x, 44) + '</span>' +
