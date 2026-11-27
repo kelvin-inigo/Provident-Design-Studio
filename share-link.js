@@ -2754,7 +2754,7 @@
     const has = (m, a, l, ph) => items.some(x => x.market === m && x.aud === a && (!l || (x.lang || 'ENG') === l) && (!ph || phOf(rs, x) === ph));
     let cells = rsCells(rs);
     const mWas = new Set(cells.map(c => c.market));
-    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: !!(rs.video && rs.video.on), broad: (rs.broad || []).slice(), dup: true, qr: rs.qr && rs.qr.u ? { u: rs.qr.u, name: rs.qr.name || 'QR code' } : null, qrv: 0 };
+    const d = { name: rs.name || '', product: AUDS[rs.product] ? rs.product : 'residential', deadline: tk.deadline || '', brief: tk.brief || '', phases: phList(rs), brand: rs.brand === 'unbranded' || rs.brand === 'mixed' ? rs.brand : 'provident', video: true, broad: (rs.broad || []).slice(), dup: true, qr: rs.qr && rs.qr.u ? { u: rs.qr.u, name: rs.qr.name || 'QR code' } : null, qrv: 0 };
     // phases live on Drive ad sets (the old share store keeps none); a phase with projects stays
     const phOk = isDs((rs.tok || {}).dd), phBusy = k => (rs.items || []).some(x => phOf(rs, x) === k);
     // each phase is a field holding its name; what is typed there renames it on Save (d.phn)
@@ -2766,7 +2766,7 @@
     const el = document.createElement('div');
     el.className = 'shl-dlg';
     el.innerHTML = '<div class="shl-dlg-c rss" role="dialog" aria-modal="true" aria-labelledby="rss-t">' +
-      '<h2 id="rss-t">Ad set settings</h2><p class="shl-lead">Saved on the ad set, for everyone who has its links.</p>' +
+      '<h2 id="rss-t">Ad set settings</h2><p class="shl-lead">For the whole campaign, and everyone working on it.</p>' +
       // TWO PARTS (2026-11-21, /impeccable critique): what the campaign is, and what it plans to make
       '<div class="p-tabs rss-tabs" role="tablist" aria-label="Settings"><button type="button" role="tab" id="rss-tc" aria-controls="rss-pc" data-pane="c" aria-selected="true" data-on="1">Campaign</button>' +
       '<button type="button" role="tab" id="rss-tp" aria-controls="rss-pp" data-pane="p" aria-selected="false" tabindex="-1">Plan</button></div>' +
@@ -2776,8 +2776,8 @@
       (phOk ? '<div class="rsp-f"><span id="rss-br-l" title="New projects open with the Provident brand, or on the unbranded look (no wordmark, no QR, their own colours and fonts). Mixed: every audience is branded and can also run unbranded, with its own words — Start the unbranded on Status copies its branded design. Projects already made keep their own.">Brand</span><div class="p-tabs rsp-brand" role="radiogroup" aria-labelledby="rss-br-l"></div><p class="rss-help" data-brhelp></p></div>' : '') +
       (ticket ? '<label class="rsp-f"><span>Deadline</span><input class="p-in" type="date" data-f="deadline"></label>' : '') + '</div>' +
       (ticket ? '<label class="rsp-f"><span>Brief</span><textarea class="p-in" data-f="brief" rows="3" placeholder="The script, fact sheet or brief"></textarea></label>' : '') +
-      // VIDEO (2026-11-13): the ad set also delivers a video, made in the Video Studio; Status then shows an Add video placeholder
-      (phOk ? '<div class="rsp-f"><span id="rss-vid-l" title="The ad set also delivers a video, made in the Video Studio (CASV). Status shows an Add video placeholder until it is added.">Video</span><div class="p-tabs rsp-vid" role="radiogroup" aria-labelledby="rss-vid-l"></div></div>' : '') +
+      // VIDEO: no switch any more (2026-11-27). The MVP video is in every campaign's minimum, so the
+      // ad set always carries its Video section; d.video is true and a save writes it.
       // QR CODE (2026-11-20): one for the whole ad set — every design and a new CASV video take it
       (phOk ? '<div class="rsp-f rss-qrf"><span id="rss-qr-l" title="One QR code for the whole ad set. Every design in it takes this QR when it is opened, and a new video made in CASV starts with it. A design keeps the last one it took if this is removed.">QR code</span><div class="rss-qr" role="group" aria-labelledby="rss-qr-l"></div>' +
         '<input type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" data-qrin hidden></div>' : '') +
@@ -2785,7 +2785,7 @@
       '<div class="rss-pane" id="rss-pp" role="tabpanel" aria-labelledby="rss-tp" data-pane-p hidden>' +
       (phOk ? '<div class="rsp-g rss-phs"><span title="Each phase is its own package of every planned audience, with its own projects and its own tab on the ad set page">Phases</span><div class="rsp-tg" data-g="ph"></div>' +
         '<div class="rss-phx"><input class="p-in" data-phx-in maxlength="40" placeholder="Name a phase, e.g. Ad Fatigue 03" aria-label="A phase of your own" autocomplete="off" spellcheck="false"><button type="button" class="p-ghost" data-phx="">Add phase</button></div>' +
-        '<p class="rss-help">Each phase is its own package of every planned audience, with its own tab on the ad set page. <b>Broad</b> runs a phase with one Broad audience per market, in English and Arabic, and no audience-based designs.</p></div>' : '') +
+        '<p class="rss-help"><b>Broad</b> on a phase: one design per market for everyone, no audience designs.</p></div>' : '') +
       '<div class="rss-plan"><div class="rss-ph"><b>Audiences</b><span class="rsp-n"></span></div>' +
       '<div class="rsp-more"><div class="rsp-g"><span>Markets</span><div class="rsp-tg" data-g="m"></div></div><div class="rsp-g"><span>Audiences</span><div class="rsp-tg" data-g="a"></div></div></div>' +
       // A NEW MARKET: COPY OR BLANK (2026-11-23, by request) — shown only when a market switched on here could be copied into
@@ -2796,20 +2796,23 @@
     document.body.appendChild(el);
     const $ = q => el.querySelector(q), st = (t, bad) => { const p = $('.shl-st'); p.textContent = t || ''; p.classList.toggle('bad', !!t && bad !== false); };
     ['name', 'deadline', 'brief'].forEach(f => { const i = $('[data-f="' + f + '"]'); if (i) { i.value = d[f] || ''; i.addEventListener('input', () => { d[f] = i.value; st(''); }); } });
+    // which audiences have their Arabic-by-phase open, kept across the dialog's redraws
+    const arOpen = {};
+    el.addEventListener('toggle', e => { const t = e.target; if (t && t.dataset && t.dataset.arpd) arOpen[t.dataset.arpd] = t.open; }, true);
     const draw = () => {
       const tab = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.product === k) + '" data-prod="' + k + '"' + (d.product === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       $('.rsp-prod').innerHTML = tab('residential', 'Residential') + tab('commercial', 'Commercial');
       const bt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.brand === k) + '" data-brand="' + k + '"' + (d.brand === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       if ($('.rsp-brand')) $('.rsp-brand').innerHTML = bt('provident', 'Branded') + bt('unbranded', 'Unbranded') + bt('mixed', 'Mixed');
       // what the chosen brand means, in view (it lived only in a tooltip)
-      if ($('[data-brhelp]')) $('[data-brhelp]').textContent = ({ provident: 'New projects open with the Provident brand.', unbranded: 'New projects open on the unbranded look: no wordmark, no QR, their own colours and fonts.',
-        mixed: 'Every audience is branded and can also run unbranded, with its own words. Start the unbranded on the ad set page copies its branded design.' })[d.brand] + ' Projects already made keep their own.';
+      if ($('[data-brhelp]')) $('[data-brhelp]').textContent = ({ provident: 'New designs carry the Provident brand.', unbranded: 'New designs have no wordmark and no QR code.',
+        mixed: 'Each audience gets a branded design and can also get an unbranded one.' })[d.brand];
       const vt = (k, l) => '<button type="button" role="radio" aria-checked="' + (d.video === k) + '" data-vidon="' + (k ? '1' : '0') + '"' + (d.video === k ? ' data-on="1"' : '') + '>' + l + '</button>';
       if ($('.rsp-vid')) $('.rsp-vid').innerHTML = vt(false, 'No video') + vt(true, 'Includes a video');
       if ($('.rss-qr')) $('.rss-qr').innerHTML = d.qr
-        ? '<img class="rss-qri" alt="" src="' + esc(d.qr.u) + '"><span class="rss-qrt"><b>' + esc(d.qr.name) + '</b><s>Every design and a new CASV video take this QR</s></span>' +
+        ? '<img class="rss-qri" alt="" src="' + esc(d.qr.u) + '"><span class="rss-qrt"><b>' + esc(d.qr.name) + '</b><s>Every design takes it</s></span>' +
           '<button type="button" class="p-ghost" data-qr="up">Replace</button><button type="button" class="p-ghost" data-qr="rm">Remove</button>'
-        : '<span class="rss-qrt rss-qr0"><s>None yet — upload it once and every design in the ad set takes it</s></span><button type="button" class="p-ghost" data-qr="up">Upload a QR code</button>';
+        : '<span class="rss-qrt rss-qr0"><s>One for the whole campaign. Every design takes it.</s></span><button type="button" class="p-ghost" data-qr="up">Upload a QR code</button>';
       const ms = new Set(cells.map(c => c.market)), as = new Set(cells.map(c => c.aud).filter(a => a === audRoot(a)));
       const tg = (g, v, on, tip) => '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-tg="' + g + '" data-v="' + esc(v) + '" title="' + esc(tip || '') + '">' + (on ? PICO.tick : '') + esc(v) + '</button>';
       $('[data-g="m"]').innerHTML = MARKETS.map(m => tg('m', m, ms.has(m), MKT_TIP[m])).join('');
@@ -2835,16 +2838,16 @@
       // a broad phase makes only the Broad audience; any other, only the audience-based ones
       const inPh = (c, k) => !k || isBroad(c.aud) === (d.broad.indexOf(k) >= 0) || has(c.market, c.aud, null, k);
       const n = phs.reduce((t, k) => { const cs = cells.filter(c => inPh(c, k)); return t + cs.length + cs.filter(c => k ? arbIn(c, k) : c.arb).length; }, 0);
-      $('.rsp-n').textContent = n + (n === 1 ? ' project' : ' projects') + (phOk && d.phases.length > 1 ? ' · ' + d.phases.length + ' phases' : '');
+      $('.rsp-n').textContent = n + (n === 1 ? ' design to make' : ' designs to make') + (phOk && d.phases.length > 1 ? ' across ' + d.phases.length + ' phases' : '') + ', each with its Animated version and MVP video';
       $('.rsp-tiles').innerHTML = cells.map(c => {
         const k = c.market + '|' + c.aud, busy = has(c.market, c.aud), arLock = has(c.market, c.aud, 'ARB');
         return '<div class="rsp-tile" role="listitem"' + (c.arb ? ' data-ar="1"' : '') + '><div class="rsp-tt"><s>' + esc(c.market) + '</s><b>' + esc(c.aud) + '</b>' + (busy ? '<i class="rss-has">Has a project</i>' : '') + '</div>' +
           '<div class="rsp-lg"><span class="rsp-l" title="English — always made">EN</span>' +
           '<button type="button" class="rsp-l rsp-ar" aria-pressed="' + c.arb + '" data-arb="' + esc(k) + '" title="' + (arLock ? 'Has an Arabic project — remove it first to make this English only' : c.arb ? 'Arabic version on — click for English only' : 'English only — click to add an Arabic version') + '" aria-label="Arabic version for ' + esc(c.market + ' ' + c.aud) + '">AR</button></div>' +
           // more than one phase: which of them get the Arabic (a fatigue round may not)
-          (multi && c.arb ? '<div class="rss-arp" role="group" aria-label="' + esc('Arabic for ' + c.market + ' ' + c.aud + ', by phase') + '"><span>Arabic in</span>' + phSort(d.phases).map(pk => {
+          (multi && c.arb ? (() => { const nOn = d.phases.filter(pk => arbIn(c, pk)).length; return '<details class="rss-arpd" data-arpd="' + esc(k) + '"' + (arOpen[k] ? ' open' : '') + '><summary>' + (nOn === d.phases.length ? 'Arabic in every phase' : 'Arabic in ' + nOn + ' of ' + d.phases.length + ' phases') + '</summary>'; })() + '<div class="rss-arp" role="group" aria-label="' + esc('Arabic for ' + c.market + ' ' + c.aud + ', by phase') + '">' + phSort(d.phases).map(pk => {
             const pl = phL(pk), on = arbIn(c, pk), lock = on && has(c.market, c.aud, 'ARB', pk);
-            return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-arbph="' + esc(k + '|' + pk) + '" title="' + esc(lock ? pl + ' has an Arabic project — remove it first' : on ? 'Click: no Arabic in ' + pl : 'Click: make the Arabic in ' + pl) + '">' + (on ? PICO.tick : '') + esc(pl) + '</button>'; }).join('') + '</div>' : '') +
+            return '<button type="button" class="rsp-t" aria-pressed="' + on + '" data-arbph="' + esc(k + '|' + pk) + '" title="' + esc(lock ? pl + ' has an Arabic project — remove it first' : on ? 'Click: no Arabic in ' + pl : 'Click: make the Arabic in ' + pl) + '">' + (on ? PICO.tick : '') + esc(pl) + '</button>'; }).join('') + '</div></details>' : '') +
           '</div>';
       }).join('');
     };
@@ -8944,7 +8947,12 @@ html[data-rv-role="ct"] .as-nav-a[data-st="prog"] s{color:var(--ps-ink)}
 .rss .rsp-more{padding:14px}
 .rss-has{font:400 12px/1.3 var(--ps-font);color:var(--ps-dim)}
 .rss .rsp-tile{flex-wrap:wrap;align-content:flex-start}
-.rss-arp{flex:1 1 100%;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:10px;border-top:1px solid var(--ps-hair)}
+.rss-arpd{flex:1 1 100%;padding-top:10px;border-top:1px solid var(--ps-hair)}
+.rss-arpd>summary{list-style:none;cursor:pointer;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rss-arpd>summary::-webkit-details-marker{display:none}
+.rss-arpd>summary:hover{color:var(--ps-ink)}
+.rss-arpd>summary:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rss-arp{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:8px}
 .rss-arp>span{font:500 12px/1 var(--ps-font);color:var(--ps-ink-2);margin-right:2px}
 .rss-arp .rsp-t{height:28px;padding:0 10px;font-size:12px}
 .rss-arp .rsp-t[aria-pressed="true"]{padding-left:7px}

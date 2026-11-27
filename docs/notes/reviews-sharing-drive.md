@@ -3143,3 +3143,23 @@ MVP video ticks lived only in the editor's Ad set tab.
   gallery with no chips; 0 contrast failures on the new text in dark and light (each reloaded); no
   sideways scroll at 1440. **Not exercised:** a phone, the content team's and view-only pages, an
   unbranded look's chips, real Drive. The Google Drive bar at the top of the page is unchanged.
+
+## Ad set settings, shorter (2026-11-27, branch home/streamline, by request)
+
+`rsSettings`. The two tabs (Campaign | Plan), validation, the discard question and the sticky
+footer are as they were; less is said and one switch is gone.
+
+- **No Video switch.** The MVP video is in every campaign's minimum, so `d.video` is `true` in the
+  dialog and a save writes it: an ad set that had it off gets its Video section at its next save.
+  (`data-vidon` and `.rsp-vid` code is left, undrawn.)
+- Lead: "For the whole campaign, and everyone working on it." (it spoke of links).
+- Brand help is one short line per choice; the QR line is one short sentence.
+- Plan: the phases help is one line about Broad; the count reads "n designs to make across k
+  phases, each with its Animated version and MVP video".
+- **Arabic by phase is folded** per audience tile: `details.rss-arpd`, its summary "Arabic in every
+  phase" / "Arabic in 2 of 3 phases"; open state kept across the dialog's redraws (`arOpen`, a
+  capturing `toggle` listener).
+- Verified on :8797: both tabs draw; Cancel with nothing changed closes at once; the fold opens,
+  stays open through a refused toggle (its lock message shows); a brief edit saved and showed on
+  the page with the Video section; a changed name then Cancel asked Discard / Keep editing.
+  **Not exercised:** a phone, a ticket's settings, real Drive.

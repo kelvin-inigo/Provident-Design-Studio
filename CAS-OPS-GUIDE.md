@@ -644,8 +644,8 @@ settings with a new phase added, the page opens on that phase. **Create next aud
 A phase that has projects can't be dropped.
 
 **Arabic per phase.** An audience's **AR** covers every phase. When an ad set has more than one
-phase, each Arabic audience tile in **Ad set settings** also has an **Arabic in** row with one
-chip per phase: untick a phase (an Ad Fatigue round, say) and that audience is English only there.
+phase, each Arabic audience tile in **Ad set settings** also has a line, **Arabic in every phase**;
+open it for one chip per phase: untick a phase (an Ad Fatigue round, say) and that audience is English only there.
 Its Arabic tile on that phase's tab reads **Not needed in <phase>**, and Translation is skipped.
 In CAS's **Ad set** tab the **AR** on each audience is the current phase's Arabic. A phase that
 already has an Arabic project for that audience can't be unticked.
@@ -1016,8 +1016,9 @@ app** gives it its own window and **CASV** icon, separate from PDS. Applications
 Studio** then updates CASV and opens that window. CASV's **provident.** wordmark opens PDS in its own
 window or tab.
 
-**Turn it on.** Status › the ad set › **Ad set settings** › **Video** › **Includes a video**. The ad
-set page then shows a **Video** section with an **Add video** placeholder. Only the designer and the
+**It is always on.** Every campaign delivers the MVP video, so there is no switch in **Ad set
+settings** any more (an older ad set gets it the next time its settings are saved). The ad
+set page shows a **Video** section with an **Add video** placeholder. Only the designer and the
 admin see Add video.
 
 **The designer adds it.**

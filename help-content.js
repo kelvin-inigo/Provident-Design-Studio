@@ -289,7 +289,7 @@
       title: 'Put the video on the ad set',
       sum: 'Send to CAS records both sizes; Add video puts them in the ad set.',
       steps: [
-        { t: 'Turn it on once: Status › the ad set › **Ad set settings** › **Video** › **Includes a video**.' },
+        { t: 'Every campaign has a **Video** section on its page; there is no switch to turn on.' },
         { t: 'In CASV press **Send to CAS**, name the video and press **Record and send**. It records the Reel and then the Square.', f: 'casv', s: 'top' },
         { t: 'On the ad set page press **Add video**, pick it under **From CASV on this computer**, choose its **Audience** and press **Add video**.', f: 'item-cas', s: 'aud' },
         { t: 'Comments made on the ad set come back to CASV as numbered pins on its timeline. Fix, **Send to CAS** again, then **Replace video**.' }
