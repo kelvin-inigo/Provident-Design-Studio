@@ -58,7 +58,8 @@
     root.style.setProperty('--kb', (on ? Math.round(h) : 0) + 'px');
     if (on !== kbOn) {
       kbOn = on; set('data-kb', on ? '1' : null);
-      if (on) { clearTimeout(kbT); kbT = setTimeout(reveal, 90); }
+      // twice: iOS is still sliding the keyboard up at 90 ms, and the first look can be early
+      if (on) { clearTimeout(kbT); kbT = setTimeout(reveal, 90); setTimeout(reveal, 420); }
       // the keyboard leaves a fixed-height screen pushed up; put it back
       else if (locked() && (window.scrollY || (vv && vv.offsetTop))) window.scrollTo(0, 0);
     }
@@ -66,6 +67,13 @@
   if (vv) { vv.addEventListener('resize', kbRead); vv.addEventListener('scroll', kbRead); }
   window.addEventListener('resize', function () { if (!kbOn && !isField(d.activeElement)) maxH = window.innerHeight; kbRead(); });
   d.addEventListener('focusin', function () { setTimeout(kbRead, 60); setTimeout(kbRead, 360); }, true);
+  // THE FIELD YOU ARE IN STAYS IN VIEW (2026-11-27, by request): moving to the next field with the
+  // keyboard already up, the keyboard changing height (its suggestions bar), and a textarea growing
+  // under your typing all bring the field back above the keyboard
+  var kbH = 0;
+  d.addEventListener('focusin', function () { if (kbOn) setTimeout(reveal, 120); }, true);
+  if (vv) vv.addEventListener('resize', function () { var h = Math.round(window.innerHeight - vv.height); if (kbOn && Math.abs(h - kbH) > 24) setTimeout(reveal, 60); kbH = h; });
+  d.addEventListener('input', function (e) { if (kbOn && e.target && e.target.tagName === 'TEXTAREA') reveal(); }, true);
   d.addEventListener('focusout', function () { setTimeout(kbRead, 60); setTimeout(kbRead, 360); }, true);
   // a tap on the page itself puts the keyboard away, as it does in an app; a tap on a control
   // is left alone, so a button beside the field still works with the keyboard up

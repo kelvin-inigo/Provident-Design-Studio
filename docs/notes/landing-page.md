@@ -1225,3 +1225,18 @@ this" (the header), "any way this can be compact?" (a My work card).
 - **The header is a 44px bar** (`--uh-h`), wordmark only, or Back with the page's name centred.
 - **A My work card is about 130px, from about 210**: picture 52px, kind and due on one line, the
   name on one line, the step line on one line (each ends in an ellipsis), a 40px button.
+
+### The phone, third round (2026-11-27, later)
+
+By request: "center this and bigger" (the wordmark), "improve this" (All work's kinds), "too many
+text, can some of them be hidden on mobile view", and the keyboard must not cover the field in use.
+
+- **The wordmark is centred, 20px tall, in a 48px bar** (`--uh-h`); Back is pinned to the bar's left.
+- **All work's kinds** are a 36px control; the chosen part is the resting navy (`--ps-fill-on`).
+- **`.ph-x` is text a phone leaves out** (display none at 640px and under): who sent a My work
+  item, and the detail after the step on All work and With others. A My work card shows the
+  studio's icon without its name. With others rows are name, step and due, like All work.
+- **Keyboard (`web-app.js`):** `reveal()` ran once, when the keyboard came up. It now runs again
+  420 ms later (iOS is still sliding at 90 ms), when focus moves to another field with the
+  keyboard up, when the keyboard changes height, and as a textarea grows. The home's sheets
+  stand on the keyboard (`bottom:var(--kb)`). Not tried on a real iPhone: the pane has no keyboard.

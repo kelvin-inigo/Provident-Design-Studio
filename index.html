@@ -1589,6 +1589,39 @@ html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{ma
   #pg .wk-a{gap:6px}
   #pg .wk-a .b{height:40px; min-height:40px; font-size:15px}
 }
+/* ═════ THE PHONE, THIRD ROUND OF ANNOTATIONS (2026-11-27: "center this and bigger", "improve
+   this", "too many text, can some of them be hidden on mobile view", the keyboard) ═════
+   The wordmark is centred and larger in a 48px bar. The kinds on All work are a taller control
+   whose chosen part is the resting navy, as every chosen thing in the chrome is. A row says its
+   name, its step and its due date; who sent it, the audience and the studio's name wait for the
+   item's page (.ph-x is text a phone leaves out). */
+@media (max-width:640px){
+  .ph-x{display:none}
+  :root{--uh-h:calc(48px + env(safe-area-inset-top,0px))}
+  .p-top{justify-content:center}
+  .p-top > .sp{display:none}
+  .p-top .p-wm{margin:0 auto}
+  .p-top .p-wm svg{height:20px; width:auto}
+  .uh-ttl{height:48px; line-height:48px}
+  .uh-back{position:absolute; left:6px; bottom:2px; margin:0}
+  #pg .sx-tools > .flt{gap:3px; padding:3px; border-radius:12px}
+  #pg .sx-tools > .flt button{height:36px; min-height:36px; border-radius:9px; font:500 14px/1 var(--ps-font); color:var(--ps-ink-2)}
+  #pg .sx-tools > .flt button small{font-size:12.5px; color:var(--ps-dim)}
+  #pg .sx-tools > .flt button[aria-pressed="true"],:root:not([data-theme="light"]) #pg .sx-tools > .flt button[aria-pressed="true"]{background:var(--ps-fill-on); color:var(--ps-ink); box-shadow:none; font-weight:600}
+  #pg .sx-tools > .flt button[aria-pressed="true"] small{color:var(--ps-ink-2)}
+  html[data-pv="tracker"][data-sdir="down"]:not([data-kb]) .sx-tools:not(:focus-within):not(:has(.pm)){clip-path:inset(0 0 calc(100% - 54px) 0)}
+  /* fewer words */
+  #pg .wk-k .mk{font-size:0; gap:0}
+  #pg .oth .row{grid-template-columns:40px minmax(0,1fr) auto; grid-template-rows:auto; align-items:center}
+  #pg .oth .row .th{--w:40px !important}
+  #pg .oth .row .rd{--h:40px !important}
+  #pg .oth .row-t{grid-column:2 / -1; grid-row:1}
+  #pg .oth .row-m{margin-top:3px; padding-right:140px; flex-wrap:nowrap; white-space:nowrap}
+  #pg .oth .row-m .mk,#pg .oth .row-m .seg{display:none}
+  #pg .oth .row > .due{grid-column:3; grid-row:1; align-self:end; margin-bottom:1px}
+  /* the keyboard: a sheet stands on it, never under it */
+  :root[data-kb] .sht-p,:root[data-kb] .sx-ph .pm.pm-sh{bottom:var(--kb,0px); max-height:calc(100dvh - var(--kb,0px) - 44px)}
+}
 @keyframes u-push{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){ #cas-host.mnt > div,#ops-host.mnt > div{animation:none !important} }
 </style>
@@ -2027,7 +2060,7 @@ html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{ma
     var more = (dlOf(x) ? postedBtn(x, 'b b-q') : r === 'pm' && x.launch ? '<button class="b b-q" type="button" data-launch="' + esc(x.launch) + '" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') + hubOkBtn(x, 'b b-q');
     return '<li class="wk"><a class="wk-th" href="' + link + '" tabindex="-1" aria-hidden="true">' + rd(x, 88) + '</a><div class="wk-b">' +
       '<div class="wk-k">' + mkOf(x) + dueEl(x) + '</div><h3><a href="' + link + '">' + esc(x.name) + '</a></h3>' +
-      '<p class="wk-why"><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</p>' + noteEl(x, 'row-nt') + '</div>' +
+      '<p class="wk-why"><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (x.from ? '<span class="ph-x"> · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') + '</span>' : '') + '</p>' + noteEl(x, 'row-nt') + '</div>' +
       '<div class="wk-a">' + main + more + '</div></li>';
   }
   function viewHome(){
@@ -2105,7 +2138,7 @@ html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{ma
   function row(x, other){
     var link = itemLink(x);
     return '<li class="row"><a class="th" style="--w:' + (other ? 44 : 56) + 'px" href="' + link + '" tabindex="-1" aria-hidden="true">' + rd(x, other ? 44 : 56) + '</a><div class="row-t"><a href="' + link + '">' + esc(x.name) + '</a>' +
-      '<div class="row-m">' + mkOf(x) + segs(x) + '<span><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (other ? '' : x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</span></div>' + (other ? '' : noteEl(x, 'row-nt')) + '</div>' +
+      '<div class="row-m">' + mkOf(x) + segs(x) + '<span><b>' + esc(x.step || '') + '</b>' + (x.sub ? '<span class="ph-x"> · ' + esc(x.sub) + '</span>' : '') + (other ? '' : x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</span></div>' + (other ? '' : noteEl(x, 'row-nt')) + '</div>' +
       // a row's actions: open it, and (2026-11-04, by request) social media's Posted and
       // performance marketing's Launch, as on Next up
       dueEl(x) + (other ? '' : '<span class="row-a">' + (dlOf(x) ? '<a class="b b-g" href="#/files/' + encodeURIComponent(x.dl) + '">Open the files</a>' : '<a class="b b-g" href="' + href(x) + '"' + tgt(x) + '>' + esc(x.verb || 'Open') + '</a>') +
@@ -2404,7 +2437,7 @@ html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{ma
       var k = x.studio === 'cas' && x.dlv ? tkCount(x.dlv) : null, st = SC[x.stage] || {};
       return '<li><a href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="aw-th">' + rd(x, 44) + '</span>' +
         '<span class="aw-n"><b>' + esc(x.name) + '</b><small>' + (x.hub ? 'Content Hub post' : x.studio === 'cas' ? 'Campaign' : 'Post') + (x.mine ? ' · <em>waits on you</em>' : '') + '</small></span>' +
-        '<span class="aw-s">' + segs(x) + '<span><b>' + esc(x.studio === 'ops' ? x.step || st.n || '' : st.n || x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + '</span></span>' +
+        '<span class="aw-s">' + segs(x) + '<span><b>' + esc(x.studio === 'ops' ? x.step || st.n || '' : st.n || x.step || '') + '</b>' + (x.sub ? '<span class="ph-x"> · ' + esc(x.sub) + '</span>' : '') + '</span></span>' +
         '<span class="aw-m"' + (k && k.of ? ' title="' + k.n + ' of ' + k.of + ' deliverables in. The Campaigns chip shows which."' : '') + '>' + (k && k.of ? k.n + ' of ' + k.of : '') + '</span>' + dueEl(x) + '</a></li>';
     }).join('') + '</ol>';
     return h + freshLine();
