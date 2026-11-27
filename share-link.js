@@ -6233,6 +6233,18 @@
       t.textContent = 'Opened in a new tab';
     }
     if (a === 'rm' && window.confirm('Remove this ad set from the list on this computer? The links keep working, and the record stays on the share store — paste the designer’s link to add it back.')) { Arch.drop(this.sel); this.sel = null; this.det = null; this.load(); }
+    // A DELIVERABLE TICKED ON THE AD SET PAGE: the same write as the editor's Ad set tab (rsset dl)
+    if (a === 'dltick') {
+      const on = t.getAttribute('aria-pressed') !== 'true', key = t.dataset.dlk, id = t.dataset.dl;
+      t.disabled = true;
+      try {
+        const r = await api('rsset', { id: this.sel }, { by: StudioBase.shareName() || 'Designer', dl: { key, id, on } });
+        if (this.det && r && r.rs) this.det.rs.dl = r.rs.dl;
+        this.draw();
+        const f = [...this.el.querySelectorAll('.rvd-dlc[data-dl="' + id + '"]')].find(b => b.dataset.dlk === key); if (f) f.focus();
+      } catch (er) { t.disabled = false; this.sentNote = { sid: '', t: 'Not saved: ' + (er.message || String(er)), bad: true }; window.alert(er.message || String(er)); }
+      return;
+    }
     if (a === 'drive') {
       const v = this.el.querySelector('.rva-drv input').value.trim();
       t.disabled = true;
@@ -6995,6 +7007,20 @@
     const stage0 = sub => ({ i: 0, step: 'Not started', sub, seg: segHtml(STEP_LABELS.map(l => ({ label: l, s: 'pend' }))) });
     const noArb = c => '<div class="rva-lt" data-empty="1"><span class="rva-lt-th"></span><span class="rva-lt-t"><b>Arabic</b><s>' + (c.arb ? 'Not needed in ' + esc(phN(tab)) : 'Not needed for this audience') + '</s></span></div>';
     // a: this look's projects in this phase · c: its planned cell · base: the branded part of the same design
+    // WHAT A DESIGN MUST DELIVER, IN ONE PLACE (2026-11-27, branch home/streamline, by request: "go
+    // through the flow and simplify it, you know all the deliverables designers are required to
+    // produce"). The two tiles are the Static in English and Arabic; under them the rest of the
+    // minimum (dlRows: Animated and the MVP video, per language) as chips a designer ticks when
+    // delivered, the same Ready / Pending words as All work. Before this the ticks lived only in
+    // the editor's Ad set tab, so this page never said what was still owed.
+    const canDl = !!(rs.tok && rs.tok.dd) && !ro && !pmV;
+    const dlChips = a => {
+      const cs = dlRows(rs, a).filter(r => r.k !== 'static').flatMap(r => r.cells.map((x, i) => x.na ? null : Object.assign({ label: r.label + (i ? ' AR' : ' EN') }, x))).filter(Boolean);
+      if (!cs.length) return '';
+      return '<div class="rvd-dl" role="group" aria-label="Also to deliver"><span class="rvd-dlk">Also to deliver</span>' + cs.map(x => canDl
+        ? '<button type="button" class="rvd-dlc" data-a="dltick" data-dl="' + x.id + '" data-dlk="' + esc(a.key) + '" aria-pressed="' + x.on + '" title="' + esc(x.on ? 'Ready, ticked by ' + (x.by || 'someone') + '. Click to untick.' : 'Pending. Click when it is delivered.') + '">' + (x.on ? PICO.tick : '<i></i>') + esc(x.label) + '</button>'
+        : '<span class="rvd-dlc"' + (x.on ? ' data-on="1"' : '') + ' title="' + (x.on ? 'Ready' : 'Pending') + '">' + (x.on ? PICO.tick : '<i></i>') + esc(x.label) + '</span>').join('') + '</div>';
+    };
     const lookRow = (market, aud, a, c, base, lab) => {
       let st, tiles;
       if (a) { const extra = a.items.filter(it => it !== a.eng && it !== a.arb);
@@ -7002,9 +7028,9 @@
       else if (rs.brand === 'mixed' && isUb(aud) && base && base.eng) { st = stage0('A copy of the branded English'); tiles = ubTile(base); }
       else if (c) { st = stage0(phs.length > 1 ? 'No ' + esc(phN(tab)) + ' project yet' : 'Planned in Ad set settings'); tiles = ph(market, aud, 'ENG') + (arbIn(c, tab) ? ph(market, aud, 'ARB') : noArb(c)); }
       else { st = stage0('After the branded English'); tiles = ubTile({ market, aud: ubBase(aud), eng: null }); }
-      const head = '<div class="rvd-lkh" data-i="' + st.i + '"><span class="rvd-lkl">' + (lab ? '<b class="rvd-lkn">' + lab + '</b>' : '<b class="rvd-lkn"><i></i>' + esc(st.step) + '</b>') + st.seg + '</span>' +
+      const head = '<div class="rvd-lkh" data-i="' + st.i + '"><span class="rvd-lkl">' + (lab ? '<b class="rvd-lkn">' + lab + '</b>' : '<b class="rvd-lkn"><i></i>' + esc(st.step) + '</b>') + '</span>' +
         '<span class="rvd-lkm" title="' + (lab ? esc(st.step) + ' — ' : '') + st.sub + '">' + (lab ? '<i></i><b>' + esc(st.step) + '</b> · ' : '') + st.sub + '</span></div>';
-      return '<div class="rvd-lk"' + (a ? ' data-k="' + esc(a.key) + '"' : '') + '>' + head + '<div class="rvd-lkc">' + tiles + '</div></div>';
+      return '<div class="rvd-lk"' + (a ? ' data-k="' + esc(a.key) + '"' : '') + '>' + head + '<div class="rvd-lkc">' + tiles + (a ? dlChips(a) : '') + '</div></div>';
     };
     const groups = [];
     const grp = (market, aud, key) => { const k = market ? market + '|' + audRoot(aud) : 'p:' + key; let g = groups.find(x => x.k === k); if (!g) groups.push(g = { k, market, root: market ? audRoot(aud) : '', ds: [], solo: null }); return g; };
@@ -7014,8 +7040,15 @@
     const canDz = isDs(d.id) && !ro;
     const sim = this.simOf(d);
     const partsOf = g => g.solo ? [g.solo] : g.ds.flatMap(x => [x.b, x.u]).filter(x => x && x.a).map(x => x.a);
+    const tot = { on: 0, n: 0 };
     const audRows = groups.map(g => {
       const parts = partsOf(g), dn = parts.filter(a => a.done).length;
+      // k of n ready: every deliverable of every design in this audience; a planned design nobody
+      // has started still owes its whole minimum (3 in English only, 6 with Arabic)
+      const cnt = parts.reduce((z, a) => { const c = dlCount(dlRows(rs, a)); return { on: z.on + c.on, n: z.n + c.n }; }, { on: 0, n: 0 });
+      g.ds.forEach(x => { if (x.b && !x.b.a && x.b.c) cnt.n += arbIn(x.b.c, tab) ? 6 : 3; });
+      tot.on += cnt.on; tot.n += cnt.n;
+      const rdy = cnt.n ? '<b>' + cnt.on + ' of ' + cnt.n + '</b> ready' : '';
       const sum = !parts.length ? 'Not started' : dn === parts.length ? 'Done' : parts.length > 1 ? dn + ' of ' + parts.length + ' done' : '';
       const li = '<li class="rvd-au"' + (parts.length && dn === parts.length ? ' data-done="1"' : '') + (parts.length ? '' : ' data-plan="1"') + '>';
       if (g.solo) return li + '<div class="rvd-auh"><h4 class="rvd-aun"><b>' + esc(audRoot(g.solo.aud) || g.solo.label) + '</b></h4></div><div class="rvd-dzb">' + lookRow('', g.solo.aud, g.solo, null, null, '') + '</div></li>';
@@ -7042,10 +7075,11 @@
       const dsrc = canDz ? dupFrom(rs, tab, [g.market], g.root) : '', dleft = dsrc ? dupJobs(rs, tab, dsrc, [g.market], g.root).length : 0;
       const dup = dleft ? '<button type="button" class="p-ghost rvd-dup" data-a="dupmkt" data-from="' + esc(dsrc) + '" data-to="' + esc(g.market) + '" data-root="' + esc(g.root) + '" data-ph="' + esc(tab) + '" title="' + esc((parts.length ? dleft + ' ' + dsrc + ' · ' + g.root + ' project' + (dleft === 1 ? ' is' : 's are') + ' not in ' + g.market + ' yet. Copies ' + (dleft === 1 ? 'it' : 'them') : 'Copies every ' + dsrc + ' · ' + g.root + ' design') + ', with pictures and video background, as its own projects') + '">' + ico('copy') + (parts.length ? 'Copy the rest from ' : 'Copy from ') + esc(dsrc) + '</button>' : '';
       return li + '<div class="rvd-auh"><h4 class="rvd-aun"><s>' + esc(g.market) + '</s><b>' + esc(g.root) + '</b></h4>' +
-        '<span class="rvd-aur">' + dup + '<span class="rvd-ausm">' + (g.ds.length > 1 ? g.ds.length + ' designs' + (sum ? ' · ' : '') : '') + sum + '</span></span></div>' + this.simRow(sim, rs, proj, tab, g) + body + add + '</li>';
+        '<span class="rvd-aur">' + dup + '<span class="rvd-ausm">' + (g.ds.length > 1 ? g.ds.length + ' designs' + (rdy || sum ? ' · ' : '') : '') + (rdy || sum) + '</span></span></div>' + this.simRow(sim, rs, proj, tab, g) + body + add + '</li>';
     }).join('');
     const nNew = groups.filter(g => !partsOf(g).length).length;
-    const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + groups.length + (nNew ? ' · ' + nNew + ' not started' : '') + '</s>' + (ro ? '' : '<button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button>') + '</h3><ul class="rvd-auds">' + (audRows || '<li class="shl-empty">' + (ro ? 'No projects yet.' : 'No projects yet. Add the first one.') + '</li>') + '</ul></section>';
+    const audiences = '<section class="rvd-sec"><h3>' + (phs.length > 1 ? esc(phN(tab)) + ' audiences' : 'Audiences') + ' <s>' + groups.length + (tot.n ? ' · ' + tot.on + ' of ' + tot.n + ' deliverables ready' : nNew ? ' · ' + nNew + ' not started' : '') + '</s>' + (ro ? '' : '<button type="button" class="p-ghost rvd-add" data-a="addopen">' + ico('add') + 'Add a project</button>') + '</h3>' +
+      (groups.length ? '<p class="rvd-need">Each design delivers a Static in English' + (cells.some(c => arbIn(c, tab)) || auds.some(a => !a.engOnly) ? ' and Arabic' : '') + ', an Animated version and the MVP video. Tick the last two when they are delivered.</p>' : '') + '<ul class="rvd-auds">' + (audRows || '<li class="shl-empty">' + (ro ? 'No projects yet.' : 'No projects yet. Add the first one.') + '</li>') + '</ul></section>';
     // ACTIVITY, COMPRESSED (2026-11-16, by request): a row per entry under its day, a filter by kind
     // (Progress · Projects · Edits · Video and downloads, each only when it has entries), and the
     // latest six until Show all. A project's own edits are one line, their words behind Show changes.
@@ -7128,7 +7162,9 @@
           (an ? '<em class="rvd-anim" title="This design plays a video behind it on the 1:1 and 9:16">' + PLAY_I + 'Animated</em>' : '<i title="Still images only">Static</i>') + '</span></li>';
       }).join('') + '</ul></section>';
     })();
-    return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + (pmV ? '' : briefHtml(rs.ticket, true).replace('rva-card rva-brief', 'rvd-card rva-brief rvd-bf')) + phase + (pmV ? gal : audiences) + vidSecHtml(rs, true).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' + side + '</div></div>' +
+    // ONE COLUMN when the side has nothing but the fold (no team links any more, no access request)
+    const one = !pmV && !access;
+    return back + '<div class="rvd">' + head + '<div class="rvd-cols"' + (one ? ' data-one="1"' : '') + '><div class="rvd-main">' + (pmV ? '' : briefHtml(rs.ticket, true).replace('rva-card rva-brief', 'rvd-card rva-brief rvd-bf')) + phase + (pmV ? gal : audiences) + vidSecHtml(rs, true).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + (one ? side.replace('<aside class="rvd-side">', '<div class="rvd-side">').replace(/<\/aside>$/, '</div>') : '') + '</div>' + (one ? '' : side) + '</div></div>' +
       (this.addOpen ? this.addHtml(proj) : '');
   };
   // AN OPEN TICKET: what was asked for, and one action — pick it up.
@@ -9236,6 +9272,23 @@ span.rva-fl,span.rva-fl:hover{background:var(--ps-fill);cursor:default}
 .rvd-ub{grid-column:1 / -1}
 /* ...and once made, the second part of that card: a hairline, its own head and tiles */
 .rvd-dza{display:flex;padding:8px 12px;border-top:1px solid var(--ps-hair)}
+.rvd-cols[data-one]{grid-template-columns:minmax(0,1fr)}
+.rvd-need{margin:-4px 0 14px;font:400 13.5px/1.5 var(--ps-font);color:var(--ps-ink-2);max-width:72ch}
+.rvd-dl{grid-column:1 / -1;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:2px}
+.rvd-dlk{margin-right:6px;font:500 12.5px/1.3 var(--ps-font);color:var(--ps-ink-2)}
+.rvd-dlc{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px 0 10px;border:none;border-radius:8px;background:var(--ps-fill);color:var(--ps-ink);font:400 13px/1 var(--ps-font)}
+button.rvd-dlc{cursor:pointer;transition:background-color var(--ps-motion,.15s) var(--ps-ease,ease)}
+button.rvd-dlc:hover:not(:disabled){background:var(--ps-fill-h)}
+.rvd-dlc>i{width:8px;height:8px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--ps-ink-2)}
+.rvd-dlc>svg{width:15px;height:15px;fill:var(--ps-good)}
+.rvd-dlc[aria-pressed="true"],.rvd-dlc[data-on]{background:var(--ps-good-q)}
+button.rvd-dlc[aria-pressed="true"]:hover:not(:disabled){background:var(--ps-good-q);box-shadow:inset 0 0 0 1px var(--ps-good)}
+.rvd-dlc:focus-visible{outline:2px solid var(--ps-ink);outline-offset:2px}
+.rvd-dlc:disabled{opacity:.6;cursor:default}
+.rvd-ausm b{font-weight:500;color:var(--ps-ink)}
+/* a Start tile says what it starts; how it does it is its tooltip */
+.rvd-lkc .rvd-ph .rva-lt-t s{display:none}
+.rvd-lkc .rvd-ph{min-height:52px}
 .rvd-ns{border-top:1px solid var(--ps-hair)}
 .rvd-ns>summary{list-style:none;cursor:pointer;padding:12px 20px;font:500 13px/1.3 var(--ps-font);color:var(--ps-ink-2)}
 .rvd-ns>summary::-webkit-details-marker{display:none}

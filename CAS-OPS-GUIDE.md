@@ -739,6 +739,9 @@ steps: **Design › ENG copy check › Translation › Done**.
    translation check** on an Arabic project). One sheet opens with the person already chosen,
    anything missing listed, and the note box; press **Send to** and their name. For any other
    task press **Something else** in that sheet (or **Send to…** where the button says that).
+   The ad set page lists what each design must deliver: the **Static** in English and Arabic
+   (the two tiles), and under them **Also to deliver**: **Animated** and **MVP video**, per
+   language. Click one when it is delivered; it turns green. Each audience says **k of n ready**.
    On the ad set page the **Brief** is at the top. Designs and unbranded versions nobody has
    started are folded under **n not started yet** at the foot of their audience; open it to
    start one. **Drive location** is under **Drive location, remove or delete** at the side.

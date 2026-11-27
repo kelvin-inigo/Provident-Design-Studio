@@ -3116,3 +3116,30 @@ there, no more needing to send them multiple links."
   preselected, the note, Something else, **Send anyway to Priya**; sending left the Ad set tab's
   receipt "Sent to Copy check ... with Priya" and Undo. **Next: was not exercised**: that ad set
   had no second unsent design, so the strip had nothing to offer.
+
+## The ad set page is built around what must be delivered (2026-11-27, branch home/streamline)
+
+By request: "go to the adset details page, go through the flow and simplify it, you know all the
+deliverables designers are required to produce." The minimum per design is the Static in English
+(and Arabic where the audience has it), the Animated version and the MVP video (`dlRows`). The page
+showed the two static tiles and step segments, and never said what else was owed; the Animated /
+MVP video ticks lived only in the editor's Ad set tab.
+
+- **`dlChips(a)`** in `lookRow`: under a started look's two tiles, "Also to deliver" and a chip per
+  non-static cell of `dlRows(rs, a)` (Animated EN / AR, MVP video EN / AR; not-needed cells are not
+  drawn). A designer link (`rs.tok.dd`, not view-only, not pm/ct) gets buttons, `data-a="dltick"`;
+  others get the same chips as text. Ticked reads as Ready (green wash, tick), else Pending.
+- **`dltick`** in `AV.click`: `rsset` with `dl: { key, id, on }`, the editor tab's own write; the
+  page redraws from `r.rs.dl` and focus returns to the chip.
+- **Counts**: each audience's head says "k of n ready" (every `dlRows` cell of its started designs,
+  plus 3 or 6 for a planned branded design nobody has started); the section head says "k of n
+  deliverables ready" for the phase. One sentence under it states the minimum (`.rvd-need`).
+- **Quieter rows**: the look head lost its four step segments (label, then step and who has it);
+  a Start tile shows only its title, the how-it-works line is its tooltip (CSS, `.rvd-lkc .rvd-ph`).
+- **One column** when the side holds only the fold (`data-one` on `.rvd-cols`; the side is drawn at
+  the foot of the main column). With an access request, or for pm/ct, the two columns stay.
+- Verified on :8797 (seed, admin, Palm Springs Showcase): chips drawn; a real click ticked Animated
+  EN (audience 1 > 2 of 12, phase 1 > 2 of 18), unticked back, focus kept; Preview as pm draws its
+  gallery with no chips; 0 contrast failures on the new text in dark and light (each reloaded); no
+  sideways scroll at 1440. **Not exercised:** a phone, the content team's and view-only pages, an
+  unbranded look's chips, real Drive. The Google Drive bar at the top of the page is unchanged.
