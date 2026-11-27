@@ -111,12 +111,12 @@ say so and point to the step above.
   managed here for both studios. The studios themselves are for designing: opened with nothing in
   them, CAS and OPS bring you to the home's **Projects**, and their sidebar's **Home**, **Status** (Tracker's Kanban),
   **Projects** and **Access** all come back to this page. The home page has these tabs at the top:
-  - **Home** shows **Next up**: the one campaign or post most worth doing now, with its picture,
-    its step and one button that opens it in its studio. **‹ ›** (or the arrow keys) flip through
-    the rest. Under it, **Also waiting on you** (filter by **Campaign ads** or **Organic posts**)
-    and **With others**. On the right, **Where everything is** shows each stage (**New**,
-    **Design**, **Copy check**, **Signed off**) with the work in it, and **Your studios**. Your last
-    saved projects sit at the bottom under **Pick up where you left off**.
+  - **My work** (the home) is one list: everything waiting on you, one card each, with its
+    picture, its step, who sent it and one button that opens it. The headline counts them
+    ("4 things need you"), and the tab carries the same number. Under the list, **With others**
+    shows what is in progress elsewhere; **See everything** opens Tracker. On a computer,
+    **Projects**, **Help**, **Your access** and **Engine** are in the account menu (your picture,
+    top right).
   - **Tracker** has two views, switched at its top right: **Progress** (the default) and
     **Kanban**. Status is no longer its own page: its board, with every control, is Tracker's
     **Kanban**, and an old Status link opens it. Wherever this guide says *Status*, it means

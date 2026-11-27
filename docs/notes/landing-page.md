@@ -1086,3 +1086,29 @@ and the script after `route()`:
   - The folded tools keep the search row (56px), and Projects' sticky heading follows.
   - Help's counts lose their pill inside the switch (`body .hp-sw button s`, help.js injects its
     sheet later).
+
+# HOME IS "MY WORK" (2026-11-27, branch home/streamline, NOT on main)
+
+By request, after the sandbox review (sandbox/, same branch): the home had too much on it for its
+one job. `viewHome` is now one list.
+
+- **`card(x)`** per `data.mine` row: the render, studio and due, the name, step · sub · from, the
+  hand-off note, and one filled button (the studio's own `verb` / `href`, or Open the files for
+  social media); Launch, Posted and the hub's approve stay as a quiet second button.
+- Headline: "N things need you, <first name>." / "You're clear, <first name>." Empty and
+  not-connected states are `quiet('home')` as before.
+- **With others**: `data.others`, five rows, **See everything** → `#/tracker`.
+- **Gone from Home**: the sky panel, Next up's pager (`cur`, `data-nx`), the studio filter
+  (`homeF`), Pick up where you left off (the desk; Projects still has every file), Where everything
+  is, the Access card, Your studios (and with it the Video Studio row — CASV now has no link on the
+  home). Their CSS and helpers (`skyPaint`, `desk`, `paintDesk`, `studioLinks`) are still in the
+  file, unused on this route; remove them when this lands.
+- **Top bar, desktop (≥641px)**: My work (with its count, `#mine-n`) and Tracker. Projects, Help,
+  Your access (with the waiting count) and Engine are in the account menu (`#mn-proj`, `#mn-eng`,
+  `#mn-acc-n`), shown by the same rules as their nav links. The links stay in the nav for the
+  phone, whose tab bar and More sheet are unchanged.
+- Verified on :8797 (seed): admin 4 cards; Preview as pm (Open the package + Launch, Download what
+  is ready), smm (Open the files + Posted), cten (clear); 0 contrast failures on 59 nodes, light
+  (reloaded) and dark; top bar 55px, no sideways scroll at 1440; phone 375 no overflow.
+  **Not done:** Tracker is not yet renamed or simplified; the guide, help frames and Grok notes
+  still describe the old Home; real Drive and sign-in not exercised.

@@ -66,6 +66,22 @@ button{font-family:inherit}
 .uh-nav a:hover{background:var(--ps-fill-h); color:var(--ps-ink)}
 .uh-nav a[aria-current="page"]{background:var(--ps-fill-on); color:var(--ps-ink)}
 .uh-nav a[hidden]{display:none}
+/* MY WORK (2026-11-27): the top bar is the two places on a desktop; the rest is in the account menu.
+   A phone keeps its own tab bar and More sheet. */
+@media (min-width:641px){ .uh-nav [data-nav="projects"],.uh-nav [data-nav="access"],.uh-nav [data-nav="engine"],.uh-nav [data-nav="help"]{display:none} }
+.mn-i .uh-n{margin-left:auto}
+.mw{max-width:980px; margin:0 auto; width:100%}
+.mw .h1{margin-bottom:24px}
+.wks{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px}
+.wk{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:22px; align-items:center; padding:18px 22px 18px 18px; border-radius:16px; background:var(--ps-card); box-shadow:0 0 0 1px var(--ps-hair)}
+.wk-th{display:flex; width:96px; justify-content:center}
+.wk-k{display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; font-size:13px; color:var(--ps-ink-2)}
+.wk h3{margin:4px 0 2px; font:400 20px/1.25 var(--ps-font); letter-spacing:-.01em}
+.wk h3 a{color:var(--ps-ink); text-decoration:none} .wk h3 a:hover{text-decoration:underline; text-underline-offset:3px}
+.wk-why{margin:0; font-size:14px; line-height:1.45; color:var(--ps-ink-2)} .wk-why b{font-weight:500; color:var(--ps-ink)}
+.wk-a{display:flex; flex-direction:column; align-items:stretch; gap:8px}
+.mw .oth{margin-top:40px}
+@media (max-width:760px){ .wk{grid-template-columns:auto minmax(0,1fr); gap:14px; padding:14px} .wk-th{width:64px; align-self:start} .wk-th .rd{--h:60px !important} .wk-a{grid-column:1 / -1} }
 .uh-n{display:inline-grid; place-items:center; min-width:20px; height:20px; padding:0 6px; box-sizing:border-box; border-radius:var(--ps-pill);
   background:var(--ps-primary); color:var(--ps-primary-i); font:600 11.5px/1 var(--ps-font); font-variant-numeric:tabular-nums}
 .uh-me{display:inline-grid; place-items:center; width:36px; height:36px; padding:0; border:0; border-radius:50%; background:var(--ps-fill-on); color:var(--ps-ink);
@@ -1406,7 +1422,7 @@ body{-webkit-tap-highlight-color:transparent;
   <a class="uh-back" id="uh-back" href="#/" hidden><svg class="i" aria-hidden="true"><use href="#g-chevl"/></svg><span id="uh-backl">Home</span></a>
   <span class="uh-ttl" id="uh-ttl" aria-hidden="true"></span>
   <nav class="uh-nav" aria-label="Main">
-    <a href="#/" data-nav="home"><svg class="i uh-ti" aria-hidden="true"><use href="#g-home"/></svg>Home</a>
+    <a href="#/" data-nav="home"><svg class="i uh-ti" aria-hidden="true"><use href="#g-home"/></svg>My work <span class="uh-n" id="mine-n" hidden></span></a>
     <a href="#/tracker" data-nav="tracker"><svg class="i uh-ti" aria-hidden="true"><use href="#g-list"/></svg>Tracker</a>
     <a href="#/projects" data-nav="projects"><svg class="i uh-ti" aria-hidden="true"><use href="#g-folder"/></svg>Projects</a>
     <a href="#/access" data-nav="access"><svg class="i uh-ti" aria-hidden="true"><use href="#g-key"/></svg>Access <span class="uh-n" id="acc-n" hidden></span></a>
@@ -1423,7 +1439,10 @@ body{-webkit-tap-highlight-color:transparent;
   <div class="mn" id="me-menu" popover>
     <div class="mn-h"><span class="uh-av" id="mn-av"></span><span><b id="mn-n"></b><small id="mn-e"></small></span></div>
     <span class="mn-r" id="mn-r"></span>
-    <a class="mn-i" href="#/access">Your access</a>
+    <a class="mn-i" href="#/projects" id="mn-proj">Projects</a>
+    <a class="mn-i" href="#/help">Help</a>
+    <a class="mn-i" href="#/access">Your access <span class="uh-n" id="mn-acc-n" hidden></span></a>
+    <a class="mn-i" href="#/engine" id="mn-eng" hidden>Engine</a>
     <button class="mn-i" type="button" id="mn-inst" title="Opens PDS in its own window, with its own icon in the Dock and Launchpad" hidden>Install PDS as an app</button>
     <button class="mn-i" type="button" id="mn-x"></button>
   </div>
@@ -1758,89 +1777,32 @@ body{-webkit-tap-highlight-color:transparent;
   }
 
   // ═════ HOME ═════
+  // ═════ MY WORK (2026-11-27, branch home/streamline) ═════
+  // Home is one list: what waits on the person looking, one card and one button each, then what is
+  // with others. The greeting panel, Next up's pager, the studio filter, Pick up where you left
+  // off, Where everything is, the Access card and Your studios are gone from this page (Projects,
+  // Access, Engine and Help are in the account menu; the board is Tracker). Same rows as before:
+  // data.mine / data.others from build(), the studios' own verb, href, note and due.
+  function card(x){
+    var link = itemLink(x), r = data.r;
+    var main = dlOf(x) ? '<a class="b b-p b-lg" href="#/files/' + encodeURIComponent(x.dl) + '">Open the files' + ico('r') + '</a>'
+      : '<a class="b b-p b-lg" href="' + href(x) + '"' + tgt(x) + '>' + esc(x.verb || 'Open') + ico('r') + '</a>';
+    var more = (dlOf(x) ? postedBtn(x, 'b b-q') : r === 'pm' && x.launch ? '<button class="b b-q" type="button" data-launch="' + esc(x.launch) + '" data-nm="' + esc(x.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') + hubOkBtn(x, 'b b-q');
+    return '<li class="wk"><a class="wk-th" href="' + link + '" tabindex="-1" aria-hidden="true">' + rd(x, 88) + '</a><div class="wk-b">' +
+      '<div class="wk-k">' + mkOf(x) + dueEl(x) + '</div><h3><a href="' + link + '">' + esc(x.name) + '</a></h3>' +
+      '<p class="wk-why"><b>' + esc(x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + (x.from ? ' · from ' + esc(x.from) + (x.at ? ', ' + esc(ago(x.at)) : '') : '') + '</p>' + noteEl(x, 'row-nt') + '</div>' +
+      '<div class="wk-a">' + main + more + '</div></li>';
+  }
   function viewHome(){
-    var r = data.r, list = data.mine, hr = new Date().getHours();
-    var vn = viewerName();
-    var hi = 'Good ' + (hr < 12 ? 'morning' : hr < 18 ? 'afternoon' : 'evening') + (vn ? ', ' + esc(first(vn)) : '') + '.';
-    var n = list.length, tail = !me || !me.email ? 'Sign in to see what is waiting on you.' : !studiosFor(r).length ? 'Nothing is waiting on you.' : !data.known ? 'Your queue fills in from Tracker.' : !n ? 'Nothing is waiting on you.' : (n === 1 ? 'One thing is' : n + ' things are') + ' waiting on you.';
-    if (cur >= n) cur = Math.max(0, n - 1);
-    var top = list[cur], fd = flip; flip = 0;
-    // the greeting spans the page; the side column starts level with Next up (2026-11-03)
-    var h = '<div class="hm"' + (n ? '' : ' data-clear') + '><section class="sky" id="sky" aria-label="Today"><div class="sky-l" aria-hidden="true"><i class="sky-g"></i><i class="sky-st"></i><i class="sky-sun"></i>' +
-      SKY_CLOUDS.map(function(c, i){ return '<i class="sky-c" style="--x:' + c[0] + '%;--y:' + c[1] + '%;--w:' + c[2] + 'px;--k:' + c[3] + ';--i:' + i + '"></i>'; }).join('') +
-      '</div><h1 class="h1">' + hi + '<span>' + tail + '</span></h1><time class="sky-t" id="sky-t">' + skyClock() + '</time></section><div class="hm-main">';
-
-    h += '<div class="sh" role="heading" aria-level="2">Next up' + (n > 1 ? '<small>' + (cur + 1) + ' of ' + n + '</small><span class="sp"></span><span class="pgr">' +
-      '<button class="icb" type="button" data-nx="-1" aria-label="Previous"' + (cur ? '' : ' disabled') + '>' + ico('chevl') + '</button>' +
-      '<button class="icb" type="button" data-nx="1" aria-label="Next"' + (cur < n - 1 ? '' : ' disabled') + '>' + ico('chev') + '</button></span>' : '') + '</div>';
-    if (top){
-      var st = top.steps || [], sg = top.segs || [];
-      h += '<article class="nx"' + (fd ? ' data-flip style="--d:' + fd + '"' : '') + '><a href="' + itemLink(top) + '" tabindex="-1" aria-hidden="true">' + rd(top, 250, true) + '</a><div class="nx-b">' +
-        '<div class="nx-src">' + mk(top.studio) + dueEl(top) + '</div>' +
-        '<h3><a href="' + itemLink(top) + '">' + esc(top.name) + '</a></h3>' +
-        '<p class="lede" style="font-size:13px;margin-top:10px"><b style="font-weight:500;color:var(--ps-ink)">' + esc(top.step || '') + '</b>' + (top.sub ? ' · ' + esc(top.sub) : '') + (top.from ? ' · from ' + esc(top.from) : '') + (top.at ? ', ' + esc(ago(top.at)) : '') + '</p>' + noteEl(top, 'nx-nt') +
-        (st.length && sg.length ? '<ol class="nx-steps" style="--n:' + st.length + '">' + st.map(function(l, i){
-          var copy = top.studio === 'ops' ? i === 2 : i === 1 || i === 2, v = sg[i];
-          return '<li data-s="' + (v === 'done' ? 'done' : v === 'cur' ? (copy ? 'warn' : 'cur') : 'todo') + '"><span>' + esc(l) + '</span></li>';
-        }).join('') + '</ol>' : '') +
-        '<div class="nx-acts">' + (dlOf(top) ? '<a class="b b-p b-lg" href="#/files/' + encodeURIComponent(top.dl) + '">Open the files' + ico('r') + '</a>'
-          : '<a class="b b-p b-lg" href="' + href(top) + '"' + tgt(top) + '>' + esc(top.verb || 'Open') + ico('r') + '</a>') +
-        (dlOf(top) || href(top) !== itemLink(top) ? '<a class="b b-q" href="' + itemLink(top) + '">Details</a>' : '') +
-        // LAUNCH (2026-11-04, by request): performance marketing says the package is running
-        (r === 'pm' && top.launch ? '<button class="b b-l" type="button" data-launch="' + esc(top.launch) + '" data-nm="' + esc(top.name) + '">' + ico('check') + '<span>Launch</span></button>' : '') +
-        // POSTED (2026-11-04, by request): social media closes the post once it is published
-        (dlOf(top) ? postedBtn(top, 'b b-l') : '') + hubOkBtn(top, 'b b-l') + '</div></div></article>';
-    } else h += quiet('home');
-
-    var rest = list.filter(function(x){ return x !== top; });
-    if (rest.length){
-      var cnt = { all: rest.length, cas: 0, ops: 0 };
-      rest.forEach(function(x){ cnt[x.studio]++; });
-      if (!cnt[homeF]) homeF = 'all';
-      h += '<section class="ib" aria-labelledby="h-ib"><div class="sh" role="heading" aria-level="2" id="h-ib">Also waiting on you<small>' + rest.length + '</small></div>';
-      if (cnt.cas && cnt.ops) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaign ads'], ['ops','Organic posts']].map(function(f){
-        return '<button type="button" data-hf="' + f[0] + '" aria-pressed="' + (homeF === f[0]) + '">' + f[1] + ' <small>' + cnt[f[0]] + '</small></button>'; }).join('') + '</div>';
-      h += '<ol class="rows">' + rest.filter(function(x){ return homeF === 'all' || homeF === x.studio; }).map(function(x){ return row(x); }).join('') + '</ol></section>';
-    }
+    var list = data.mine, n = list.length, vn = viewerName(), nm = vn ? ', ' + esc(first(vn)) : '';
+    var known = me && me.email && studiosFor(data.r).length && data.known;
+    var h = '<div class="mw"><h1 class="h1">' + (!known ? 'My work' : n ? (n === 1 ? 'One thing needs you' : n + ' things need you') + nm + '.' : 'You’re clear' + nm + '.') + '</h1>';
+    h += n ? '<ol class="wks">' + list.map(card).join('') + '</ol>' : quiet('home');
     if (data.others.length){
-      h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" role="heading" aria-level="2" id="h-oth" style="color:var(--ps-ink-2)">' + (viewOnly() ? 'In progress' : 'With others') + '<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">All on the board</a></div><ol class="rows">' +
+      h += '<section class="oth" aria-labelledby="h-oth"><div class="sh" role="heading" aria-level="2" id="h-oth" style="color:var(--ps-ink-2)">' + (viewOnly() ? 'In progress' : 'With others') + '<small>' + data.others.length + '</small><span class="sp"></span><a class="b b-l" href="#/tracker">See everything</a></div><ol class="rows">' +
         data.others.slice(0, 5).map(function(x){ return row(x, true); }).join('') + '</ol></section>';
     }
-    h += freshLine();
-    h += '<section class="desk" id="desk" hidden aria-labelledby="h-desk"><div class="sh" role="heading" aria-level="2" id="h-desk">Pick up where you left off<small id="desk-n"></small></div><ol class="dk2" id="reel"></ol><p class="desk-more" id="desk-more" hidden></p></section>';
-    h += '</div><aside class="hm-side" aria-label="Overview">';
-
-    // where everything is: the four stages, each with the work actually in it
-    if (data.known){
-      var both = studiosFor(r).length > 1;
-      h += '<section class="pan"' + (data.rows.length ? '' : ' data-zero') + '><div class="sh" role="heading" aria-level="2">Where everything is<small>' + data.rows.length + ' in motion</small><span class="sp"></span><a class="b b-l" href="#/tracker?v=kanban">The board</a></div><ol class="flw">';
-      MOVING.forEach(function(s){
-        var c = data.rows.filter(function(x){ return x.stage === s.k; }).sort(function(a, b){ return (b.mine - a.mine) || ((due(a.due) || {n:999}).n - (due(b.due) || {n:999}).n); });
-        var a = c.filter(function(x){ return x.studio === 'cas'; }).length, o = c.length - a;
-        var late = c.filter(isLate).length;
-        var sub = !c.length ? 'Nothing here' : both ? [a ? a + (a === 1 ? ' ad set' : ' ad sets') : '', o ? o + (o === 1 ? ' post' : ' posts') : ''].filter(Boolean).join(' · ') : whoOf(s);
-        var stack = c.slice(0, 3).map(function(x){ return '<span class="fl-t"' + (x.mine ? ' data-me' : '') + '>' + rd(x, 30) + '</span>'; }).join('') + (c.length > 3 ? '<span class="fl-more">+' + (c.length - 3) + '</span>' : '');
-        h += '<li style="--c:' + s.c + '"' + (c.length ? '' : ' data-empty') + '><a href="#/tracker?v=kanban&stage=' + s.k + '" aria-label="' + s.n + ': ' + c.length + (late ? ', ' + late + ' overdue' : '') + '">' +
-          '<i class="fl-d"></i><span class="fl-n"><b>' + s.n + '</b><small>' + sub + (late ? '<em>' + late + ' overdue</em>' : '') + '</small></span>' +
-          '<span class="fl-s" aria-hidden="true">' + stack + '</span><span class="fl-c">' + c.length + '</span></a></li>';
-      });
-      h += '</ol></section>';
-    }
-    if (isAdmin()){
-      var pend = acc && acc.now ? acc.now().pending : 0;
-      h += '<section class="pan"><div class="sh" role="heading" aria-level="2">Access<span class="sp"></span><a class="b b-l" href="#/access">Open</a></div><p class="lede" style="margin:0;font-size:14px">' +
-        (pend ? '<b style="font-weight:500;color:var(--ps-ink)">' + pend + (pend === 1 ? ' person is' : ' people are') + ' waiting to get in.</b> ' : 'No one is waiting to get in. ') + 'Requests, people and their roles are under Access.</p></section>';
-    }
-    var opens = designs();
-    if (opens.length) h += '<section class="pan"><div class="sh" role="heading" aria-level="2">Your studios</div>' + opens.map(function(k){
-      return '<a class="st" data-k="' + k + '" href="' + (k === 'cas' ? '#/new/cas' : STUDIO[k].start) + '"><span class="mk" data-s="' + k + '"><i></i></span><span><b>' + STUDIO[k].long + '</b><small>' + STUDIO[k].desc + '</small></span>' + ico('chev') + '</a>';
-    }).join('') +
-      // CASV, the Video Studio: it runs on the designer's own computer (photos are animated there), so
-      // this row opens that local page; its finished videos reach an ad set through Add video on Status
-      (cap('design-cas') ? '<a class="st" data-casv="1" href="' + esc(casvAt()) + '" target="_blank" rel="noopener" title="Opens the Video Studio on this computer, or offers to install it."><span class="mk" data-s="cas"><i></i></span><span><b>Video Studio</b><small>Reels and squares for an ad set · runs on this computer</small></span>' + ico('chev') + '</a>' : '') +
-      '</section>';
-    h += '</aside></div>';
-    return h;
+    return h + freshLine() + '</div>';
   }
   // ═════ A READY POST'S FILES: social media's package window (2026-11-04, by request) ═════
   // Like performance marketing's package: every exported image of the post, its size, a Download
@@ -2380,6 +2342,9 @@ body{-webkit-tap-highlight-color:transparent;
     if (navAcc) navAcc.hidden = !!(me && me.email) && phase === 'in' && !isAdmin();
     var navEng = document.querySelector('[data-nav="engine"]'); if (navEng) navEng.hidden = !seesEngine();
     var pend = isAdmin() && acc && acc.now ? acc.now().pending : 0, an = $('acc-n'); an.textContent = pend; an.hidden = !pend;
+    // MY WORK (2026-11-27): the count sits on its tab; Projects, Access and Engine follow the same rules in the account menu
+    var mnn = $('mine-n'), nm0 = phase === 'in' ? data.mine.length : 0; mnn.textContent = nm0; mnn.hidden = !nm0;
+    $('mn-proj').hidden = navTop.hidden; $('mn-eng').hidden = !seesEngine(); var man = $('mn-acc-n'); man.textContent = pend; man.hidden = !pend;
     var cs = canStart(data.r), nb = $('newbtn');
     nb.hidden = !cs.length; nb.href = cs.length > 1 ? '#/new' : cs.length ? STUDIO[cs[0]].start : '#/new';
     $('newlbl').textContent = cs.length > 1 ? 'New' : cs[0] === 'cas' ? 'New ticket' : 'New post';
@@ -2394,7 +2359,7 @@ body{-webkit-tap-highlight-color:transparent;
     if (/^#\/item\//.test(location.hash)) document.title = (/^#\/item\/ops\//.test(location.hash) ? 'Post' : 'Ad set') + ' \u2014 Provident Design Studio';
     // THE PHONE'S BAR (2026-11-26): a pushed page (an ad set or post, New, a file list, a help guide)
     // gets a back button where the wordmark was; Access, Engine and Help light the More tab
-    var bk = parts[0] === 'item' ? ['#/tracker', 'Tracker'] : parts[0] === 'new' || parts[0] === 'files' ? ['#/', 'Home'] : parts[0] === 'help' && parts[1] ? ['#/help', 'Help'] : null;
+    var bk = parts[0] === 'item' ? ['#/tracker', 'Tracker'] : parts[0] === 'new' || parts[0] === 'files' ? ['#/', 'My work'] : parts[0] === 'help' && parts[1] ? ['#/help', 'Help'] : null;
     $('uh-back').hidden = !bk || nav === 'gate'; if (bk) { $('uh-back').href = bk[0]; $('uh-backl').textContent = bk[1]; }
     var mo = $('uh-more'); if (/^(access|engine|help)$/.test(nav)) mo.setAttribute('aria-current', 'page'); else mo.removeAttribute('aria-current');
     var mn = $('more-n'); mn.textContent = pend; mn.hidden = !pend;
@@ -2403,7 +2368,6 @@ body{-webkit-tap-highlight-color:transparent;
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'tracker' && q.v === 'kanban' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
-    if (nav === 'home') { desk(); skyPaint(); if (anim || !skyT0) skyT0 = Date.now(); var sk = $('sky'), ago0 = Date.now() - skyT0; if (sk && ago0 < SKY_ENTRY) { sk.setAttribute('data-in', ''); sk.style.setProperty('--ent', -ago0 + 'ms'); } }
     if (nav === 'projects') loadDesk(paintProjects);
     if (nav === 'engine' && seesEngine()) window.providentEngine.mount(pg);
     if (hctx && html !== null) window.providentHelp.mount(pg);
