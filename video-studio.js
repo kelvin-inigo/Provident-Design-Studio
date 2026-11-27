@@ -2572,6 +2572,9 @@
   // again replaces the same video and the reviewers' comments find their way back (casNotes).
   let casStop = false, casBusy = false;
   const CAS_SITE = () => { try { return localStorage.getItem('provident-casv-site') || 'https://design-studio.ngrok-free.dev/'; } catch (e) { return 'https://design-studio.ngrok-free.dev/'; } };
+  // The wordmark opens PDS itself (the live site, in its own app or a new tab), never the copy of
+  // the site that sits in CASV's folder, and never inside CASV's app window (2026-11-27).
+  { const wm = document.querySelector('.p-top .p-wm'); if (wm) { wm.href = CAS_SITE(); wm.target = '_blank'; wm.rel = 'noopener'; } }
   // ── SAVE TO THE AD SET'S DRIVE FOLDER (2026-11-26, by request) ─────────────────────────
   // Google refuses a sign-in from this page's address (localhost), so Save opens a small window of
   // the Design Studio site (casv-save.html), which is signed in. That window reads the project and
