@@ -647,7 +647,7 @@
   }
   function addText(preset) {
     mark();
-    const base = { id: uid(), at: T, dur: 3, eyebrow: '', text: 'Your Headline Here', sub: '', size: 'Medium', pos: 'bottom', align: 'left', anim: 'rise', scrim: 55 };
+    const base = { id: uid(), at: T, dur: 3, eyebrow: '', text: 'Your Headline Here', sub: '', size: 'Medium', pos: 'bottom', align: 'left', anim: 'rise', washOn: true, wash: 55 };
     const pre = {
       headline: {},
       full: { eyebrow: 'New launch', sub: 'One supporting line under the headline.' },
@@ -957,13 +957,17 @@
     if (!L.rows.length) return;
     const out = tx.anim === 'none' || still ? 1 : ease((tx.dur - rel) / .3), inn = tx.anim === 'none' ? 1 : ease(rel / .45);
     const env = Math.min(inn, out);
-    // the wash covers the text area only, plus breathing room, and fades out beyond it
-    if (tx.scrim > 0) {
-      const a = tx.scrim / 100 * env, y0 = L.top - 20, y1 = L.top + L.h + 20, f = 320;
+    // THE WASH BEHIND A TEXT (2026-11-27, by request): the mograph's controls (on/off, CAS's scrim
+    // colours or a hex, intensity). Centred copy gets an overlay over the whole picture; copy at the
+    // top or bottom gets a scrim that runs from that edge to just past the text and fades out.
+    const wo = washOf(tx);
+    if (wo.on) {
+      const WC = washRgb(tx.washHex);
+      const a = wo.a / 100 * env, y0 = L.top - 20, y1 = L.top + L.h + 20, f = 320;
       let gr;
-      if (tx.pos === 'top') { gr = cx.createLinearGradient(0, 0, 0, y1 + f); gr.addColorStop(0, 'rgba(' + ART.wash + ',' + a + ')'); gr.addColorStop(y1 / (y1 + f), 'rgba(' + ART.wash + ',' + a * .8 + ')'); gr.addColorStop(1, 'rgba(' + ART.wash + ',0)'); cx.fillStyle = gr; cx.fillRect(0, 0, g.w, y1 + f); }
-      else if (tx.pos === 'centre') { gr = cx.createLinearGradient(0, y0 - f, 0, y1 + f); const n = f / (y1 - y0 + 2 * f); gr.addColorStop(0, 'rgba(' + ART.wash + ',0)'); gr.addColorStop(n, 'rgba(' + ART.wash + ',' + a * .8 + ')'); gr.addColorStop(1 - n, 'rgba(' + ART.wash + ',' + a * .8 + ')'); gr.addColorStop(1, 'rgba(' + ART.wash + ',0)'); cx.fillStyle = gr; cx.fillRect(0, y0 - f, g.w, y1 - y0 + 2 * f); }
-      else { gr = cx.createLinearGradient(0, y0 - f, 0, g.h); gr.addColorStop(0, 'rgba(' + ART.wash + ',0)'); gr.addColorStop(f / (g.h - y0 + f), 'rgba(' + ART.wash + ',' + a * .8 + ')'); gr.addColorStop(1, 'rgba(' + ART.wash + ',' + a + ')'); cx.fillStyle = gr; cx.fillRect(0, y0 - f, g.w, g.h - y0 + f); }
+      if (tx.pos === 'top') { gr = cx.createLinearGradient(0, 0, 0, y1 + f); gr.addColorStop(0, 'rgba(' + WC + ',' + a + ')'); gr.addColorStop(y1 / (y1 + f), 'rgba(' + WC + ',' + a * .8 + ')'); gr.addColorStop(1, 'rgba(' + WC + ',0)'); cx.fillStyle = gr; cx.fillRect(0, 0, g.w, y1 + f); }
+      else if (tx.pos === 'centre') { cx.fillStyle = 'rgba(' + WC + ',' + (a * .85).toFixed(3) + ')'; cx.fillRect(0, 0, g.w, g.h); }
+      else { gr = cx.createLinearGradient(0, y0 - f, 0, g.h); gr.addColorStop(0, 'rgba(' + WC + ',0)'); gr.addColorStop(f / (g.h - y0 + f), 'rgba(' + WC + ',' + a * .8 + ')'); gr.addColorStop(1, 'rgba(' + WC + ',' + a + ')'); cx.fillStyle = gr; cx.fillRect(0, y0 - f, g.w, g.h - y0 + f); }
     }
     cx.fillStyle = ART.ink; cx.textBaseline = 'alphabetic';
     let wi = 0;
@@ -1006,6 +1010,8 @@
   const washName = h => { h = String(h || WASHES.dark[0][1]).toLowerCase(); const w = WASHES.dark.concat(WASHES.light).find(x => x[1].toLowerCase() === h); return w ? w[0] : h.toUpperCase(); };
   const washRgb = h => { const m = /^#?([0-9a-f]{6}|[0-9a-f]{3})$/i.exec(String(h || '').trim()); if (!m) return ART.wash;
     const x = m[1].length === 3 ? m[1].replace(/./g, c => c + c) : m[1]; return [0, 2, 4].map(i => parseInt(x.substr(i, 2), 16)).join(','); };
+  // a text's or component's wash: the mograph's fields; a text saved before 2026-11-27 had `scrim` alone
+  const washOf = t => t.washOn === undefined ? { on: (+t.scrim || 0) > 0, a: +t.scrim || 0 } : { on: !!t.washOn, a: t.wash == null ? 55 : +t.wash };
   function drawWash(l) {
     if (!l.washOn) return;
     const g = G(), rel = T - l.at, k = (l.fade && !(!playing && sel && sel.id === l.id) ? Math.min(ease(rel / .35), ease((l.dur - rel) / .3)) : 1);
@@ -1428,6 +1434,16 @@
       // the wordmark's band is kept clear on its own edge (CAS's 80 of clear space under / over it)
       const wm = P.brand && P.brand.on && (P.brand.vpos || 'top') === pos ? tk0.logo + 80 : 0;
       let y = pos === 'top' ? tk0.pad[0] + wm : H - tk0.pad[2] - wm - total;
+      // one scrim for the edge's group: the first component there with its wash on sets it
+      const w = ls.find(x => washOf(x.t).on);
+      if (w) {
+        const t = w.t, still = !playing && sel && sel.id === t.id, rel = still ? 99 : T - t.at;
+        const env = t.anim === 'none' || still ? 1 : Math.min(ease(rel / .45), ease((t.dur - rel) / .3));
+        const a = washOf(t).a / 100 * env, WC = washRgb(t.washHex), f = 320, g = G();
+        const y0 = y - 20, y1 = y + total + 20; let gr;
+        if (pos === 'top') { gr = cx.createLinearGradient(0, 0, 0, y1 + f); gr.addColorStop(0, 'rgba(' + WC + ',' + a + ')'); gr.addColorStop(y1 / (y1 + f), 'rgba(' + WC + ',' + a * .8 + ')'); gr.addColorStop(1, 'rgba(' + WC + ',0)'); cx.fillStyle = gr; cx.fillRect(0, 0, g.w, y1 + f); }
+        else { gr = cx.createLinearGradient(0, y0 - f, 0, g.h); gr.addColorStop(0, 'rgba(' + WC + ',0)'); gr.addColorStop(f / (g.h - y0 + f), 'rgba(' + WC + ',' + a * .8 + ')'); gr.addColorStop(1, 'rgba(' + WC + ',' + a + ')'); cx.fillStyle = gr; cx.fillRect(0, y0 - f, g.w, g.h - y0 + f); }
+      }
       ls.forEach(x => { compPaint(x, y); y += x.L.h + gap; });
     });
   }
@@ -1452,7 +1468,7 @@
     if (!CK) { toast('The component kit did not load. Reload the page.'); return; }
     mark(); const id = uid();
     const t = { id, at: T, dur: 4, comp: ty, m: Object.assign({ id: 'c' + id, type: ty }, JSON.parse(JSON.stringify(COMP_SEED[ty] || {}))),
-      vr: CK.VOPT[ty][0][0], size: 'm', pos: 'bottom', align: 'left', anim: 'rise' };
+      vr: CK.VOPT[ty][0][0], size: 'm', pos: 'bottom', align: 'left', anim: 'rise', washOn: true, wash: 55 };
     P.texts.push(t); sel = { kind: 'text', id }; renderAll();
   }
   const compWords = t => { const m = t.m || {}; return plain(m.text || m.sub || (m.chips || [])[0] || ((m.cols || [])[0] || {}).v || '').split('\n')[0]; };
@@ -2173,13 +2189,11 @@
         ['number', 'Big number', 'Big number: a Jumbo figure under an eyebrow, word by word', '<span class="vs-m"><small>HOMES</small><em style="font-size:16px">73</em></span>']
       ];
       const call = [
-        ['ruler', 'Measure', 'Measure line: a line that grows, with a figure, such as 380 m tall', '<span class="vs-m" data-a="c"><span class="r"><i></i><q>380 m</q></span></span>'],
-        ['count', 'Count up', 'Counting figure: a number that counts up over a label', '<span class="vs-m" data-a="c"><span class="n">71 72 <em>73</em></span></span>'],
-        ['box', 'Outline box', 'Outline box: an outline that draws round a label', '<span class="vs-m" data-a="c"><span class="o"><small>HOME</small></span></span>'],
+        // Measure, Count up and Outline box left the library (2026-11-27, by request); ones already on a video still play
         ['cta', 'End card', 'End card: a frosted panel at the end with your message, a button and the wordmark', '<span class="vs-m" data-a="c"><span class="k"><u style="width:26px"></u><u class="t" style="width:18px"></u><b></b></span></span>']
       ];
       h += '<div class="vs-sec">' + H('Add text', 'at the playhead') + '<div class="vs-grid">' + pre.map(o => tile('data-addtext', o)).join('') + '</div></div>';
-      h += '<div class="vs-sec">' + H('Add a callout', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div></div>';
+      h += '<div class="vs-sec">' + H('End card', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div></div>';
       if (CK) h += '<div class="vs-sec">' + H('Add a component', 'from CAS, at the playhead') + COMP_GROUPS.map(gp => '<div class="vs-cg"><s>' + gp[0] + '</s><div class="vs-grid">' +
         gp[1].map(ty => tile('data-addcomp', [ty, COMP_TL[ty], COMP_TL[ty] + ': ' + COMP_TIP[ty] + '. ' + CK.VOPT[ty].length + (CK.VOPT[ty].length === 1 ? ' style' : ' styles') + ', S to XL.', COMP_SPEC[ty]])).join('') + '</div></div>').join('') + '</div>';
     } else {
@@ -2330,14 +2344,14 @@
   const ALLG = {
     clip: [['Sound', ['vol', 'mute']], ['Transition', ['tr', 'trD']], ['Fit and zoom', ['fit', 'z', 'fx', 'fy']]],
     audio: [['Volume and fades', ['vol', 'fi', 'fo']], ['Caption style', ['capOn', 'capN', 'capStyle', 'capSize', 'capCase', 'capHi', 'capY']]],
-    text: [['Size, place and effect', ['size', 'pos', 'align', 'anim', 'scrim', 'lead']]],
+    text: [['Size, place and effect', ['size', 'pos', 'align', 'anim', 'lead']], ['Wash behind it', ['washOn', 'washHex', 'wash']]],
     call: [['Size', ['scale']]],
     logo: [['Size, opacity and colour', ['w', 'op', 'tint', 'fade']]]
   };
   function allOf(it) {
     const k = sel.kind;
     if (k === 'audio') return { g: ALLG.audio, peers: P.audio.filter(a => a !== it && a.track === it.track), word: it.track === 'music' ? 'music' : 'sound', track: it.track === 'music' ? 'Music' : 'Sound' };
-    if (k === 'text' && it.comp) return { g: [['Style, size, place and effect', ['vr', 'size', 'pos', 'align', 'anim']]], peers: P.texts.filter(t => t !== it && t.comp === it.comp), word: COMP_TL[it.comp].toLowerCase(), track: 'Text' };
+    if (k === 'text' && it.comp) return { g: [['Style, size, place and effect', ['vr', 'size', 'pos', 'align', 'anim']], ['Wash behind it', ['washOn', 'washHex', 'wash']]], peers: P.texts.filter(t => t !== it && t.comp === it.comp), word: COMP_TL[it.comp].toLowerCase(), track: 'Text' };
     if (k === 'text') return it.call === 'cta' ? null : it.call ? { g: ALLG.call, peers: P.texts.filter(t => t !== it && t.call === it.call), word: 'callout of this kind', track: 'Text' }
       : { g: ALLG.text, peers: P.texts.filter(t => t !== it && !t.call), word: 'text', track: 'Text' };
     if (k === 'clip') return { g: ALLG.clip, peers: P.clips.filter(c => c !== it), word: 'clip', track: 'Video' };
@@ -2382,6 +2396,14 @@
     } }
     const segv = (k, cur, opts, cls) => '<div class="vs-seg' + (cls ? ' ' + cls : '') + '">' + opts.map(o => '<button data-k="' + k + '" data-v="' + o[0] + '"' + (String(cur) === String(o[0]) ? ' data-on="1"' : '') + '>' + o[1] + '</button>').join('') + '</div>';
     const seg = (k, opts, cls) => segv(k, it[k], opts, cls);
+    // THE WASH CONTROLS, one set for a mograph, a text and a component (2026-11-27)
+    const washCtl = (def, what) => row('Wash behind it', seg('washOn', [[true, 'On'], [false, 'Off']], 's')) +
+      (it.washOn ? (what ? '<div class="vs-wn">' + what + '</div>' : '') + '<div class="vs-f"><label>Wash colour <s>' + esc(washName(it.washHex)) + '</s></label>' +
+        ['dark', 'light'].map(k => '<div class="vs-sws">' + WASHES[k].map(w => '<button data-k="washHex" data-v="' + w[1] + '" title="' + w[0] + ' ' + w[1] + '" aria-label="' + w[0] + '"' +
+          ((it.washHex || WASHES.dark[0][1]).toLowerCase() === w[1].toLowerCase() ? ' data-on="1"' : '') + ' style="background:' + w[1] + '"></button>').join('') + '</div>').join('') +
+        '<input class="p-in vs-hex" data-s="washHex" value="' + esc(it.washHex || WASHES.dark[0][1]) + '" maxlength="7" spellcheck="false" aria-label="Wash colour, hex"></div>' +
+        rng('i', 'wash', 'Wash intensity', it.wash == null ? def : it.wash, 10, 90, '%') : '');
+    if (it && sel.kind === 'text' && !it.call && it.washOn === undefined) { const w = washOf(it); it.washOn = w.on; it.wash = w.on ? w.a : 55; }
     const f = (label, body) => '<div class="vs-f"><label>' + label + '</label>' + body + '</div>';
     const row = (label, body) => '<div class="vs-row"><span>' + label + '</span>' + body + '</div>';
     const cap = (t, meta) => '<div class="vs-cap"><b>' + t + '</b>' + (meta ? '<s title="' + meta + '">' + meta + '</s>' : '') + '</div>';
@@ -2451,7 +2473,8 @@
       h = cap('Component', COMP_TL[ty]) + '<div class="vs-sec">' + (words || '<div class="vs-none">Nothing to type: it is drawn from the style below.</div>') + '</div>' +
         sec('Style', CK.VOPT[ty].length + (CK.VOPT[ty].length === 1 ? ' style' : ' styles'), tiles + row('Size', seg('size', [['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL']])) + inkRow + icons) +
         sec('Place and effect', '', row('Position', seg('pos', [['top', 'Top'], ['bottom', 'Bottom']])) + row('Alignment', seg('align', [['left', 'Left'], ['centre', 'Centre']])) +
-          f('Effect <s>how it arrives</s>', '<select class="p-in" data-s="anim">' + ANIMS.map(a => '<option value="' + a[0] + '"' + ((it.anim || 'rise') === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select>')) + timing();
+          f('Effect <s>how it arrives</s>', '<select class="p-in" data-s="anim">' + ANIMS.map(a => '<option value="' + a[0] + '"' + ((it.anim || 'rise') === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select>') +
+          washCtl(55, 'A scrim from the ' + ((it.pos || 'bottom') === 'top' ? 'top' : 'bottom') + ' edge, past the components there.')) + timing();
     } else if (sel.kind === 'text' && it.call === 'cta') {
       h = cap('End card', esc(it.head || '')) + '<div class="vs-sec">' +
         f('Line above <s>optional</s>', '<textarea class="p-in" data-s="line" rows="2">' + esc(it.line || '') + '</textarea>') +
@@ -2480,7 +2503,7 @@
         sec('Layout', '', f('Size', seg('size', ART.order.map(s => [s, s]))) +
         row('Line spacing', segv('lead', leadOf(it), [['tight', 'Tight'], ['normal', 'Normal'], ['open', 'Open']])) +
         row('Position', seg('pos', [['top', 'Top'], ['centre', 'Centre'], ['bottom', 'Bottom']])) + row('Alignment', seg('align', [['left', 'Left'], ['centre', 'Centre']])) +
-        rng('i', 'scrim', 'Wash under the text', it.scrim, 0, 100, '%')) +
+        washCtl(55, it.pos === 'centre' ? 'Centred: an overlay over the whole picture.' : 'At the ' + (it.pos === 'top' ? 'top' : 'bottom') + ': a scrim from that edge, past the text.')) +
         sec('Effect', 'how it arrives', '<select class="p-in" data-s="anim">' + ANIMS.map(a => '<option value="' + a[0] + '"' + (it.anim === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select>' +
         '<div class="vs-acts"><button class="p-ghost p-sm" id="previewBtn">' + ico('play_arrow') + 'Play this text</button></div>') + timing();
     } else {
@@ -2491,13 +2514,7 @@
         row('Fades in and out', seg('fade', [[true, 'Yes'], [false, 'No']], 's')) +
         // NAVY WASH BEHIND IT (2026-11-26, by request): the brand navy over the whole picture while
         // the graphic is on screen, so a light graphic reads on a busy photo; intensity 10-90%
-        row('Wash behind it', seg('washOn', [[true, 'On'], [false, 'Off']], 's')) +
-        // ITS COLOUR (2026-11-26, by request): CAS's scrim swatches, dark and light, and a hex
-        (it.washOn ? '<div class="vs-f"><label>Wash colour <s>' + esc(washName(it.washHex)) + '</s></label>' +
-          ['dark', 'light'].map(k => '<div class="vs-sws">' + WASHES[k].map(w => '<button data-k="washHex" data-v="' + w[1] + '" title="' + w[0] + ' ' + w[1] + '" aria-label="' + w[0] + '"' +
-            ((it.washHex || WASHES.dark[0][1]).toLowerCase() === w[1].toLowerCase() ? ' data-on="1"' : '') + ' style="background:' + w[1] + '"></button>').join('') + '</div>').join('') +
-          '<input class="p-in vs-hex" data-s="washHex" value="' + esc(it.washHex || WASHES.dark[0][1]) + '" maxlength="7" spellcheck="false" aria-label="Wash colour, hex"></div>' +
-          rng('i', 'wash', 'Wash intensity', it.wash == null ? 40 : it.wash, 10, 90, '%') : '') +
+        washCtl(40, 'Over the whole picture while the mograph is on.') +
         '<div class="vs-acts"><button class="p-ghost p-sm" data-place="50,50">Centre it</button><button class="p-ghost p-sm" data-place="corner">Bottom corner</button></div>' +
         '</div>' + (m.cm ? sec('Claude Motion', 'where it was made',
           '<div class="vs-acts"><button class="p-ghost p-sm" data-cmopen="' + it.mid + '" title="' + esc(m.cm) + '">Open in Claude Motion</button><button class="p-ghost p-sm" data-cmup="' + it.mid + '" title="Open the film, Export it again, and the new file replaces this one wherever it is on the timeline">Update from Claude Motion</button></div>') : '') + timing();
