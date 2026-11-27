@@ -1424,6 +1424,7 @@ body{-webkit-tap-highlight-color:transparent;
     <div class="mn-h"><span class="uh-av" id="mn-av"></span><span><b id="mn-n"></b><small id="mn-e"></small></span></div>
     <span class="mn-r" id="mn-r"></span>
     <a class="mn-i" href="#/access">Your access</a>
+    <button class="mn-i" type="button" id="mn-inst" title="Opens PDS in its own window, with its own icon in the Dock and Launchpad" hidden>Install PDS as an app</button>
     <button class="mn-i" type="button" id="mn-x"></button>
   </div>
 </header>
@@ -2958,6 +2959,15 @@ body{-webkit-tap-highlight-color:transparent;
     sec.hidden = false;
     stack(sec);
   }
+
+  // PDS AS A CHROME APP (2026-11-27): Chrome installs it from manifest.json into its own window
+  // and Dock icon, apart from CASV (its own app, on the designer's localhost). The account menu
+  // offers it once Chrome says the page qualifies, and never inside the installed window.
+  var instEvt = null;
+  function paintInst(){ $('mn-inst').hidden = !instEvt || matchMedia('(display-mode: standalone)').matches; }
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); instEvt = e; paintInst(); });
+  window.addEventListener('appinstalled', function(){ instEvt = null; paintInst(); });
+  $('mn-inst').addEventListener('click', function(){ var e = instEvt; instEvt = null; paintInst(); if (e) e.prompt().catch(function(){}); });
 
   route();
 })();

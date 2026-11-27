@@ -214,6 +214,10 @@ say so and point to the step above.
   an app: links between Home and the studios stay inside it, and swiping from the left edge goes
   back. The app keeps its own sign-in, so sign in with Google once inside it. If the Google
   window will not come back to the app, sign in from Safari instead and tell the admin.
+- **On a computer, as a Chrome app.** In Chrome on the site, click your photo (top right) ›
+  **Install PDS as an app**, or the install icon at the right of Chrome's address bar. PDS then
+  opens in its own window with its own icon in the Dock and Launchpad, and CAS and OPS open inside
+  it. CASV is a separate app (see the Video Studio, below).
 - **The home site on a phone** (Home, Tracker, an ad set's page): the menu is a bar at the foot of
   the screen with four tabs, **Home**, **Tracker**, **Projects** and **More**, shown as icons in a
   rounded bar that floats over the foot of the page (house, lines, folder, three dots); the page
@@ -984,6 +988,11 @@ progress bar shows on the page. If Apple asks to install its Command Line Tools,
 it is done press **Open CASV**. From then on CASV starts with the Mac, updates itself, and is also in
 Applications › **Provident Video Studio**. To generate video, sign in once with the line the
 installer prints at the end.
+
+**CASV as its own app.** In CASV, the file menu (the video's name, top left) › **Install CASV as an
+app** gives it its own window and **CASV** icon, separate from PDS. Applications › **Provident Video
+Studio** then updates CASV and opens that window. CASV's **provident.** wordmark opens PDS in its own
+window or tab.
 
 **Turn it on.** Status › the ad set › **Ad set settings** › **Video** › **Includes a video**. The ad
 set page then shows a **Video** section with an **Add video** placeholder. Only the designer and the
