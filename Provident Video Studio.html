@@ -669,6 +669,13 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
 .p-top #histGrp{margin-right:6px}
 .p-top #outBtn{gap:8px}
 .p-top #saveBtn{gap:8px}
+/* the Drive link's state (2026-11-27): off = not linked, idle = window closed, on, bad */
+.p-top #syncBtn{width:40px;padding:0;justify-content:center;color:var(--ps-ink-2)}
+.p-top #syncBtn[data-s="on"]{color:var(--ps-good)}
+.p-top #syncBtn[data-s="bad"]{color:var(--ps-bad)}
+.vs-gd{position:absolute;right:4px;bottom:4px;width:8px;height:8px;border-radius:50%;box-shadow:0 0 0 2px var(--ps-card)}
+.vs-gd[data-s="on"]{background:var(--ps-good)}
+.vs-gd[data-s="off"]{background:var(--ps-dim)}
 .p-top #saveBtn[data-saved]{color:var(--ps-ink-2)}
 .p-top #outBtn .vs-chev,.vs-file .vs-chev{width:14px;height:14px;flex:none;opacity:.7}
 .p-top .vs-file{max-width:280px;min-width:0;padding:0 10px 0 12px;gap:6px;font-weight:600}
@@ -867,6 +874,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   </div>
   <button class="p-ghost p-ico-t vs-tq" id="previewBtn2" title="See the video inside Facebook and Instagram" aria-label="Preview"></button>
   <button class="p-ghost p-ico-t" id="outBtn" popovertarget="outPop" aria-expanded="false" title="Save the video or a single frame to Downloads"></button>
+  <button class="p-ghost p-ico" id="syncBtn" aria-label="Google Drive link"></button>
   <button class="p-ghost p-ico-t" id="saveBtn" aria-label="Save to Google Drive"></button>
   <button class="p-btn p-ico-t" id="sendBtn" aria-label="Send to CAS" title="Record both sizes and hand them to CAS for the ad set"></button>
 </header>

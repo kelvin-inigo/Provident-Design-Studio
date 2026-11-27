@@ -565,6 +565,7 @@
       else if ((kind === 'video' || kind === 'image') && (firstVideo || want === 'stage')) { addClip(rec.id, true); firstVideo = false; }
       if (kind === 'audio' && want === 'stage') addAudio(rec.id, 'music', true);
     }
+    if (added && P.drive && P.drive.set && !syncOn() && Date.now() - syncTold > 60000) { syncTold = Date.now(); setTimeout(() => toast('Open the Drive link (the cloud button) to put this in ' + P.drive.set.name + ' › Video › Assets.'), 4000); }
     if (added) {
       const k = Object.values(media).pop().kind;
       if (want !== 'stage' && want !== 'place') tab = k === 'audio' ? 'audio' : k === 'logo' || want === 'logo' || want === 'cmrep' ? 'logos' : 'media';
@@ -2080,13 +2081,15 @@
       '<div class="a"><s' + (u ? ' title="On the timeline' + (u > 1 ? ' ' + u + ' times' : '') + '"' : '') + '>' + fmt(m.dur).slice(0, -3) + (u ? ' · used' + (u > 1 ? ' ×' + u : '') : '') + '</s><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="music" title="Add as the music bed, from the start">Music</button><button class="vs-mini" data-addaudio="' + m.id + '" data-trk="sfx" title="Add as a sound at the playhead">Sound</button></div>' +
       '<span class="vs-rt">' + sBtn(m.id) + mBtn(m.id) + '</span></div>'); }).join('');
     const add = key === 'media' ? 'data-addclip' : 'data-addlogo', tip = key === 'media' ? 'Click to add it to the end of the video track.' : 'Click to place it at the playhead.';
+    // on Google Drive or only on this computer, once the video is linked to an ad set (the Drive link)
+    const gd = m => P.drive && P.drive.set ? '<span class="vs-gd" data-s="' + (m.gid ? 'on' : 'off') + '" title="' + (m.gid ? 'In ' + esc(P.drive.set.name) + ' › Video › Assets on Google Drive' : 'Only on this computer until the Drive link uploads it') + '"></span>' : '';
     const bg = m => "background-image:url('" + (m.poster || m.url) + "')", kindTxt = m => m.kind === 'video' ? fmt(m.dur) : key === 'media' ? 'Photo' : '';
     if (key === 'media' && LIB.view === 'list') return '<div class="vs-ml">' + v.map(m => { const u = libUses(key, m.id); return (
       '<button class="vs-mr" ' + add + '="' + m.id + '" title="' + esc(m.name) + '. ' + tip + '"><i style="' + bg(m) + '"></i><span class="n"><b>' + esc(m.name) + '</b><s>' + [m.kind === 'video' ? 'Video · ' + fmt(m.dur).slice(0, -3) : 'Photo', usedTxt(u), lm(m.id).dir && !st.dir ? esc(lm(m.id).dir) : ''].filter(Boolean).join(' · ') + '</s></span>' +
       '<span class="vs-rt">' + sBtn(m.id) + mBtn(m.id) + '</span></button>'); }).join('') + '</div>';
     return '<div class="vs-grid"' + (key === 'media' ? ' data-m="1"' : '') + '>' + v.map(m => { const u = libUses(key, m.id), k = kindTxt(m); return (
       '<button class="vs-t" data-pic="' + (key === 'media' ? '1' : 'fit') + '" ' + add + '="' + m.id + '" title="' + esc(m.name) + '. ' + tip + '"><i style="' + bg(m) + '">' +
-      (u && key === 'media' ? '<q>' + usedTxt(u) + '</q>' : '') + (k ? '<s>' + k + '</s>' : '') + '<em>' + ico('add') + '</em>' + sBtn(m.id) + mBtn(m.id) + '</i><b>' + esc(m.name) + '</b>' + dirTag(m) + '</button>'); }).join('') + '</div>';
+      (u && key === 'media' ? '<q>' + usedTxt(u) + '</q>' : '') + (k ? '<s>' + k + '</s>' : '') + '<em>' + ico('add') + '</em>' + sBtn(m.id) + mBtn(m.id) + gd(m) + '</i><b>' + esc(m.name) + '</b>' + dirTag(m) + '</button>'); }).join('') + '</div>';
   }
   function libSec(key, M) {
     const st = LQ[key], all = libAll(key, M), n = libPick(key, M).length;
@@ -2111,7 +2114,7 @@
     if (!box) return renderLib();
     box.innerHTML = libList(key, M); if (n) n.textContent = libCount(libPick(key, M).length, libAll(key, M).length);
   }
-  const dbRec = r => ({ id: r.id, at: r.at || Date.now(), pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV, stripU: r.stripU, stripM: r.stripM, gfx: r.gfx, cm: r.cm });
+  const dbRec = r => ({ id: r.id, at: r.at || Date.now(), pid: ownV(r) ? P.id : r.pid, kind: r.kind, name: r.name, blob: r.blob, dur: r.dur, w: r.w, h: r.h, poster: r.poster, peaks: r.peaks, cuts: r.cuts, cutsV: r.cutsV, stripU: r.stripU, stripM: r.stripM, gfx: r.gfx, cm: r.cm, gid: r.gid, gname: r.gname });
   async function libRename(id) {
     const m = media[id]; if (!m) return;
     const v = await ask('Rename', 'A name you will recognise. It shows here and on the timeline.', 'Rename', m.name);
@@ -2903,6 +2906,7 @@
       : 'Save this video and every file it uses to an ad set’s Google Drive folder';
     b.setAttribute('aria-label', want + (d && d.set ? ' to ' + d.set.name : ' to Google Drive'));
     const sb = $('#setBtn'); if (sb) sb.hidden = !(d && d.set);
+    syncPaint();
   }
   async function driveGo(mode) {
     if (!WS.ok) { toast('Restart the Video Studio on this computer, then try again: it is running an older helper.'); return; }
@@ -2924,6 +2928,8 @@
     if (!site || e.origin !== site || !d || d.casv !== 1) return;
     if (d.what === 'ready') { await WS.flush(); await DB.idle(); try { e.source.postMessage({ casv: 1, what: 'go' }, site); } catch (x) {} }
     else if (d.what === 'saved') driveSaved(d);
+    else if (d.what === 'linked') driveLinked(d);
+    else if (d.what === 'sync') { syncS = d.state === 'off' ? null : Object.assign({}, d, { seen: Date.now() }); syncPaint(); if (d.state === 'ok') syncPull(); }
     else if (d.what === 'opened') casInbox();
   });
   function driveSaved(d) {
@@ -2939,9 +2945,68 @@
     try {
       const v = ((await (await fetch('/api/work/state')).json()).state || {}).drive; if (!v) return;
       await fetch('/api/work/state', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: 'drive', value: null }) });
-      driveSaved(JSON.parse(v));
+      const a = JSON.parse(v); if (a && a.what === 'linked') driveLinked(a); else driveSaved(a);
     } catch (e) {}
   };
+  // THE DRIVE LINK (2026-11-27, by request): the site's window (casv-save.html#sync) keeps the
+  // library and <ad set>/Video/Assets on Drive the same while it is open: what is imported here
+  // goes up, what is in the folder comes down into the working folder. This side links the video,
+  // opens the window, shows its state on the cloud button and on each library file, and takes in
+  // files the window downloaded (syncPull). A video's link is P.drive.set, the same as Save's.
+  let syncS = null, syncTold = 0;
+  function driveLinked(d) {
+    if (!d || !d.set || !/^[\w-]{10,}$/.test(d.set.folder || '')) return;
+    if (P.drive && P.drive.set && P.drive.set.folder === d.set.folder) return;
+    P.drive = Object.assign({}, P.drive, { set: { name: String(d.set.name || 'Ad set').slice(0, 120), folder: d.set.folder } });
+    save(); drivePaint(); syncPaint(); renderLib(); toast('Linked to ' + P.drive.set.name + ' › Video › Assets on Google Drive');
+  }
+  const syncOn = () => !!(syncS && Date.now() - syncS.seen < 15000);
+  function syncGo() {
+    if (!WS.ok) { toast('Restart the Video Studio on this computer, then try again: it is running an older helper.'); return; }
+    clearTimeout(saveT); WS.setItem(PKEY, JSON.stringify(P));
+    const w = window.open(CAS_SITE().replace(/\/?$/, '/') + 'casv-save.html#sync.' + (location.port || '80'), 'casv-sync', 'width=460,height=560');
+    if (!w) toast('Allow pop-ups for this page, then press the cloud button again.');
+  }
+  function syncPaint() {
+    const b = $('#syncBtn'); if (!b) return;
+    const linked = !!(P.drive && P.drive.set), on = syncOn(), bad = on && syncS.state === 'error';
+    const st = !linked ? 'off' : bad ? 'bad' : on ? 'on' : 'idle';
+    if (b.dataset.s !== st) { b.dataset.s = st; b.innerHTML = ico(st === 'on' ? 'cloud_done' : st === 'off' ? 'cloud_upload' : 'cloud_off'); }
+    const t = !linked ? 'Link this video to an ad set: what you import goes to its Video › Assets folder on Google Drive, and what is there comes into the library'
+      : bad ? 'Google Drive: ' + (syncS.msg || 'the Drive link stopped') + ' Open the Drive link window.'
+      : on ? 'Google Drive: in step with ' + P.drive.set.name + ' › Video › Assets'
+      : 'Google Drive link is closed: new files stay on this computer until you open it. Click to open it.';
+    b.title = t; b.setAttribute('aria-label', t);
+  }
+  // files the Drive link downloaded, and the Drive ids it wrote, come into the library
+  let syncBusy = false;
+  async function syncPull() {
+    if (syncBusy || !WS.ok) return; syncBusy = true;
+    try {
+      const list = ((await (await fetch('/api/work/list')).json()).media || []).filter(m => m.pid === P.id);
+      let changed = false;
+      for (const m of list) {
+        const have = media[m.id];
+        if (have) { if (m.gid && have.gid !== m.gid) { have.gid = m.gid; have.gname = m.gname; changed = true; } continue; }
+        try {
+          const b = await (await fetch('/api/work/media?id=' + m.id)).blob();
+          const rec = Object.assign({}, m, { blob: new Blob([b], { type: m.type || b.type }) }); delete rec.size; delete rec.mtime;
+          await probe(rec); delete rec._newPoster; media[rec.id] = rec; DB.put(dbRec(rec)); changed = true;
+          toast(rec.name + ' came in from Google Drive.');
+        } catch (e) {}
+      }
+      if (changed) renderLib();
+    } catch (e) {} finally { syncBusy = false; }
+  }
+  // the window also leaves its state in the working folder: read when no message came (another tab, a reload)
+  setInterval(async () => {
+    if (!(P.drive && P.drive.set) && WS.ok) await driveAsk();   // linked from the Drive link window, which may not be this page's own
+    if (P.drive && P.drive.set && !syncOn() && WS.ok) {
+      try { const v = ((await (await fetch('/api/work/state')).json()).state || {}).sync, d = v && JSON.parse(v);
+        if (d && d.at && Date.now() - d.at < 15000) syncS = Object.assign({}, d, { seen: d.at }); } catch (e) {}
+    }
+    syncPaint(); if (P.drive && P.drive.set && syncOn()) syncPull();
+  }, 5000);
   window.addEventListener('focus', driveAsk);
   const recordOnce = () => new Promise(res => exportVideo(res));
   const wait = ms => new Promise(r => setTimeout(r, ms));
@@ -4043,6 +4108,7 @@
   }
   $('#newBtn').addEventListener('click', () => startNew());
   $('#saveBtn').innerHTML = ico('upload') + '<span class="vs-l2">Save</span>'; $('#saveBtn').addEventListener('click', () => driveGo('save'));
+  $('#syncBtn').addEventListener('click', syncGo);
   $('#openDriveBtn').innerHTML = sico('folder') + 'Open from an ad set<s>Google Drive</s>'; $('#openDriveBtn').addEventListener('click', () => { $('#filePop').hidePopover(); driveGo('open'); });
   $('#setBtn').innerHTML = ico('upload') + 'Save to another ad set'; $('#setBtn').addEventListener('click', () => { $('#filePop').hidePopover(); driveGo('pick'); });
   $('#openBtn').innerHTML = sico('folder') + 'Open a project file<s>.casv</s>'; $('#prevBtn2').innerHTML = ico('undo') + 'Reopen the last video'; $('#prevBtn2').addEventListener('click', () => $('#prevBtn').click()); $('#openBtn').addEventListener('click', () => projIn.click()); $('#emptyOpen').addEventListener('click', () => projIn.click());

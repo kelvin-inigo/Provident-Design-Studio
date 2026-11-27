@@ -47,7 +47,7 @@ INBOX = os.path.join(ROOT, '_inbox')
 # folders); each media file is <id>.bin with its facts in <id>.json. The save window on the
 # Design Studio site reads the same routes (/api/work/…).
 WORK = os.path.join(ROOT, '_work', str(PORT))
-WORK_KEYS = ('project', 'prev', 'logos', 'lib', 'drive')
+WORK_KEYS = ('project', 'prev', 'logos', 'lib', 'drive', 'sync')   # sync: the Drive link's heartbeat (2026-11-27)
 WORK_LOCK = threading.Lock()
 
 
@@ -661,7 +661,17 @@ class H(SimpleHTTPRequestHandler):
                 return self._json(200, {'ok': True})
             if not isinstance(body.get('meta'), dict):
                 return self._json(400, {'error': 'bad request'})
-            work_write(wid + '.json', dict(body['meta'], id=wid))
+            meta = dict(body['meta'], id=wid)
+            # the Drive link writes a file's Drive id and name; the Video Studio rewrites the record
+            # without them, so they are kept (2026-11-27)
+            try:
+                old = json.load(open(os.path.join(WORK, wid + '.json')))
+                for k in ('gid', 'gname'):
+                    if k not in meta and old.get(k):
+                        meta[k] = old[k]
+            except Exception:
+                pass
+            work_write(wid + '.json', meta)
             return self._json(200, {'ok': True})
         jid = str(body.get('id') or '')
         if not re.match(r'^[a-z0-9]{4,16}$', jid):
