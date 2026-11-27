@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDS</title>
+<!-- The chrome kit, copied in by sync-kit.sh: tokens, buttons and the typeface are PDS's own. -->
+<link rel="stylesheet" href="kit/provident-ui.css">
+<link rel="stylesheet" href="panel.css">
+<script src="theme.js"></script>
+</head>
+<body>
+<header class="x-top">
+  <img src="icons/pds-32.png" alt="" width="24" height="24">
+  <b>PDS</b>
+  <span class="x-sp"></span>
+  <button class="p-ghost p-sm" id="optBtn" type="button" title="The office address, CASV's port and notifications">Settings</button>
+</header>
+
+<section class="x-sec" id="wait" aria-labelledby="wait-h">
+  <div class="x-h"><h2 id="wait-h">Waiting on you</h2><span class="x-n" id="wait-n"></span><span class="x-sp"></span><button class="p-ghost p-sm" id="waitRef" type="button">Refresh</button></div>
+  <p class="x-note" id="wait-note"></p>
+  <ul class="x-list" id="wait-list"></ul>
+</section>
+
+<section class="x-sec" id="tray" aria-labelledby="tray-h">
+  <div class="x-h"><h2 id="tray-h">Tray</h2><span class="x-n" id="tray-n"></span></div>
+  <div class="x-acts">
+    <button class="p-ghost p-sm" id="capBtn" type="button" title="Drag a box around part of the page; it is copied for /cas-component and kept here (⌥⇧S)">Capture an area</button>
+    <button class="p-ghost p-sm" id="lstBtn" type="button" title="On a Property Finder or Bayut listing: its facts, photos and a QR for its link">Read this listing</button>
+  </div>
+  <p class="x-note" id="tray-note">Right-click an image or selected text on any page and choose <b>Send this image to PDS</b> or <b>Add to the CAS brief</b>.</p>
+  <ul class="x-tray" id="tray-list"></ul>
+</section>
+
+<section class="x-sec" id="ads" aria-labelledby="ads-h">
+  <div class="x-h"><h2 id="ads-h">Ads Manager</h2><span class="x-sp"></span><button class="p-ghost p-sm" id="adsRef" type="button">Refresh</button></div>
+  <p class="x-note">Download the ad set from PDS first (Download package, or one audience). Pick the downloads here, open the ad's media in Ads Manager (Add media › Upload), then put them in. Nothing is published: you review and confirm in Ads Manager.</p>
+  <h3 class="x-h3">Ad sets</h3>
+  <ul class="x-list" id="sets-list"></ul>
+  <h3 class="x-h3">Downloads from PDS</h3>
+  <p class="x-note x-warn" id="ads-access" hidden>To read your downloads, turn on <b>Allow access to file URLs</b> for PDS: <button class="x-link" id="extBtn" type="button">open the extension's settings</button>.</p>
+  <ul class="x-list" id="dl-list"></ul>
+  <div class="x-acts"><button class="p-btn p-sm" id="adsPut" type="button" disabled>Put in Ads Manager’s upload</button></div>
+</section>
+
+<div class="x-toast" id="toast" role="status"></div>
+<script src="panel.js"></script>
+</body>
+</html>

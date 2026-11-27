@@ -19,6 +19,7 @@ area**; it records why things are the way they are and what was tried and reject
 | `docs/notes/reviews-sharing-drive.md` | ad sets, review links, Status, share-link.js, api/share.py, Drive, sign-in and roles |
 | `docs/notes/ops-posts-and-hub.md` | post-flow.js, OPS Home, the Content Hub, Send |
 | `docs/notes/landing-page.md` | root `index.html` |
+| `docs/notes/pds-extension.md` | `extension/` (the PDS Chrome extension, branch `pds-extension`), `pubHome` in index.html |
 | `docs/notes/web-image-studio.md` | `web-image-studio.html` — a standalone tool, detached from PDS (2026-11-17); not in the architecture PDF |
 
 Setup docs: `docs/google-drive-setup.md`, `docs/share-links-setup.md`,

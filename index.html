@@ -1705,6 +1705,18 @@ body{-webkit-tap-highlight-color:transparent;
     var known = studiosFor(r).some(function(k){ return inbox[k] && Array.isArray(inbox[k].items); });
     return { rows: rows, closed: closed, mine: mine, others: others, at: at, known: known, r: r };
   }
+  // THE PDS EXTENSION'S BADGE (2026-11-27): what Home lists as waiting on this person, and the
+  // campaign rows for its Ads Manager panel, published as window.providentHome after each build.
+  // Read only; the extension's content script carries it to the toolbar.
+  function pubHome(){
+    try {
+      var link = function(x){ return (x.hub || (x.studio === 'cas' && (data.r === 'ct' || data.r === 'pm'))) && x.href ? x.href : '#/item/' + x.studio + '/' + encodeURIComponent(x.id); };
+      var row = function(x){ return { studio: x.studio, id: String(x.id), name: x.name || '', step: x.step || '', sub: String(x.sub || '').replace(/<[^>]*>/g, ''), due: x.due || null, ready: !!x.ready, href: link(x) }; };
+      if (!data.known) return;
+      window.providentHome = { at: Date.now(), r: data.r, mine: data.mine.map(row), sets: data.rows.filter(function(x){ return x.studio === 'cas'; }).map(row) };
+      window.dispatchEvent(new CustomEvent('provident-home'));
+    } catch (x) {}
+  }
   function get(s, id){ return data.rows.concat(data.closed).filter(function(x){ return x.studio === s && String(x.id) === id; })[0]; }
   function itemLink(x){ return x.hub ? esc(x.href) : '#/item/' + x.studio + '/' + encodeURIComponent(x.id); }
   function href(x){ var r = data.r; return (x.hub || (x.studio === 'cas' && (r === 'ct' || r === 'pm'))) && x.href ? esc(x.href) : itemLink(x); }
@@ -2332,6 +2344,7 @@ body{-webkit-tap-highlight-color:transparent;
   // ═════ routing and wiring ═════
   function route(anim){
     data = build();
+    pubHome();
     var hs = location.hash.replace(/^#\/?/, ''), q = {}, path = hs.split('?')[0], parts = path.split('/');
     (hs.split('?')[1] || '').split('&').forEach(function(p){ var kv = p.split('='); if (kv[0]) q[kv[0]] = decodeURIComponent(kv[1] || ''); });
     var nav = parts[0] || 'home', html, pg = $('pg');

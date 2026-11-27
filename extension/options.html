@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PDS extension settings</title>
+<link rel="stylesheet" href="kit/provident-ui.css">
+<link rel="stylesheet" href="panel.css">
+<script src="theme.js"></script>
+<style>main{max-width:560px;margin:0 auto;padding:24px 16px}label{display:block;margin:16px 0 6px;font:400 13px/1.3 var(--ps-font)}.p-in{width:100%;box-sizing:border-box}.x-row{display:flex;align-items:center;gap:10px;margin:14px 0}.x-row label{margin:0}</style>
+</head>
+<body>
+<main>
+  <h1 class="h2" style="margin:0 0 4px;font:400 22px/1.2 var(--ps-font)">PDS extension</h1>
+  <p class="x-note">These are kept in Chrome and follow your Google sign-in in Chrome.</p>
+  <label for="site">PDS address</label>
+  <input class="p-in" id="site" type="url" spellcheck="false" autocomplete="off">
+  <p class="x-note">The office server. The page features (delivering to CAS and OPS, the waiting list) work on the office address; another address only changes where links open.</p>
+  <label for="port">CASV port on this Mac</label>
+  <input class="p-in" id="port" type="number" min="1024" max="65535">
+  <div class="x-row"><input type="checkbox" id="notify"><label for="notify">Notify me when something new is waiting on me</label></div>
+  <div class="x-row"><input type="checkbox" id="cm"><label for="cm">Add Claude Motion exports to CASV as they download</label></div>
+  <div class="x-acts"><button class="p-btn" id="save" type="button">Save</button></div>
+  <p class="x-note" id="said" role="status"></p>
+</main>
+<script src="options.js"></script>
+</body>
+</html>

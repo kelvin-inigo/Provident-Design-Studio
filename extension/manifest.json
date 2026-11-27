@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "PDS · Provident Design Studio",
+  "short_name": "PDS",
+  "version": "0.1.0",
+  "description": "Send photos, text and listings to PDS, catch Claude Motion exports for CASV, see what is waiting on you, and bring approved ads into Meta Ads Manager.",
+  "icons": { "16": "icons/pds-16.png", "32": "icons/pds-32.png", "48": "icons/pds-48.png", "128": "icons/pds-128.png" },
+  "action": { "default_title": "PDS", "default_icon": { "16": "icons/pds-16.png", "32": "icons/pds-32.png" } },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "side_panel": { "default_path": "panel.html" },
+  "options_page": "options.html",
+  "permissions": ["contextMenus", "storage", "unlimitedStorage", "notifications", "downloads", "sidePanel", "scripting", "activeTab", "tabs", "alarms"],
+  "host_permissions": ["<all_urls>"],
+  "commands": {
+    "capture-area": { "suggested_key": { "default": "Alt+Shift+S", "mac": "Alt+Shift+S" }, "description": "Capture an area of the page for a CAS component" }
+  },
+  "content_scripts": [
+    { "matches": ["https://design-studio.ngrok-free.dev/*", "http://localhost:8790/*", "http://127.0.0.1:8790/*"], "js": ["content/pds.js"], "run_at": "document_idle" },
+    { "matches": ["https://design-studio.ngrok-free.dev/*", "http://localhost:8790/*", "http://127.0.0.1:8790/*"], "js": ["content/pds-main.js"], "run_at": "document_idle", "world": "MAIN" },
+    { "matches": ["http://localhost:8794/*", "http://127.0.0.1:8794/*"], "js": ["content/casv-main.js"], "run_at": "document_idle", "world": "MAIN" },
+    { "matches": ["https://www.propertyfinder.ae/*", "https://www.bayut.com/*"], "js": ["content/listing.js"], "run_at": "document_idle" },
+    { "matches": ["https://adsmanager.facebook.com/*", "https://business.facebook.com/*"], "js": ["content/ads.js"], "run_at": "document_idle" }
+  ],
+  "web_accessible_resources": [{ "resources": ["icons/*"], "matches": ["<all_urls>"] }]
+}
