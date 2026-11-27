@@ -111,10 +111,11 @@ say so and point to the step above.
   managed here for both studios. The studios themselves are for designing: opened with nothing in
   them, CAS and OPS bring you to the home's **Projects**, and their sidebar's **Home**, **Status** (Tracker's Kanban),
   **Projects** and **Access** all come back to this page. The home page has these tabs at the top:
-  - **My work** (the home) is one list: everything waiting on you, one card each, with its
-    picture, its step, who sent it and one button that opens it. The headline counts them
-    ("4 things need you"), and the tab carries the same number. Under the list, **With others**
-    shows what is in progress elsewhere; **See everything** opens Tracker. On a computer,
+  - **My work** (the home) opens with a greeting, the date and time, and one line saying how much
+    is waiting on you. Under it is one list: everything waiting on you, one card each, with its
+    picture, its step, who sent it and one button that opens it. The greeting counts them
+    ("4 things are waiting on you"), and the tab carries the same number. Under the list, **With others**
+    shows what is in progress elsewhere; **See everything** opens All work. On a computer,
     **Projects**, **Help**, **Your access** and **Engine** are in the account menu (your picture,
     top right).
   - **All work** (once Tracker) is one table of every campaign and post: its name, the step it
@@ -229,32 +230,30 @@ say so and point to the step above.
   **Install PDS as an app**, or the install icon at the right of Chrome's address bar. PDS then
   opens in its own window with its own icon in the Dock and Launchpad, and CAS and OPS open inside
   it. CASV is a separate app (see the Video Studio, below).
-- **The home site on a phone** (Home, Tracker, an ad set's page): the menu is a bar at the foot of
-  the screen with four tabs, **Home**, **Tracker**, **Projects** and **More**, shown as icons in a
-  rounded bar that floats over the foot of the page (house, lines, folder, three dots); the page
-  you are on is the one with the shaded pill. **More** opens a
-  sheet with your account, **Access** (admin), **Engine**, **Help**, **Appearance** (Light or
-  Dark) and **Sign out**. The **+** at the top right opens a sheet: **A campaign** or **An organic
-  post**. A page you open from another (an ad set, a post, a help guide) has **‹** at the top left
-  to go back. The top bar stays as you scroll and shows the page's name once its title has
-  scrolled away. **Tracker** and **Projects** each have two short rows under the title: **Find by
-  name** with a round button at its end, then **Everything | Campaign ads | Organic posts**. On
-  Tracker the button is **Filter and view**: a sheet with **Only what waits on me** and **Show
-  closed** switches, Stage, Due and From, and on Kanban **Board | List**, Overdue work, Sort,
-  Group and Density; a number on the button says how many are on, and **Clear** resets them. On
-  Projects the button opens **Open a file** (a project file or a post file). Scrolling down
-  leaves only the search row; scrolling up brings the rest back. **Access** and **Help** use the
-  same compact switch for their tabs. With nothing waiting on you, Home opens on **Pick up where you left off**. In **Access ›
-  People** each person is one row with their role on the right; **Remove access…** is the last
-  choice in the role list, and it asks first. On
-  **Projects**, tap **Campaign ads**, **Organic posts** or a campaign's name to fold or open that
-  group; on Home the same goes for **Where everything is**, **Access** and **Your studios**. The
-  phone remembers what you folded. Home shows what waits on
-  you, then **Where everything is**, then the rest. **Tracker** shows one short card per campaign
-  with what is missing in words; **Show the deliverables** opens the English and Arabic grid.
-  **Send to…**, the person picker and **Settings** open as sheets from the bottom, their buttons
-  always in view, even with the keyboard up. After a send, the line saying what was sent sits just
-  above the menu bar, with **Undo** and a **×** to put it away.
+- **The home site on a phone** (My work, All work, an ad set's or post's page): the menu is a
+  rounded bar that floats over the foot of the page, shown as icons: **My work** (house), **All
+  work** (lines), **New** (the round navy **+** in the middle), **Projects** (folder) and **More**
+  (three dots). The page you are on has the shaded pill. **New** opens a sheet: **A campaign** or
+  **An organic post**. **More** opens a sheet with your account, **Access** (admin), **Engine**,
+  **Help**, **Appearance** (Light or Dark) and **Sign out**. The top bar is the wordmark, centred;
+  a page you open from another (an ad set, a post, a help guide) has **‹** at the top left to go
+  back, and the bar shows that page's own name once its title has scrolled away.
+  - **My work** opens with the greeting, the date and time, and how much is waiting on you. Each
+    card is the picture, the due date, the name, the step and one button. **With others** is a
+    list of name, step and due date.
+  - **All work** is **Find by name**, then **Everything | Campaigns | Posts**, then one list: each
+    row is the name, its step and its due date. The detail (who has it, the audience) is on the
+    item's page. Scrolling down leaves only the search row; scrolling up brings the rest back.
+  - **A post's page** keeps its two buttons (**Open in the studio** and the usual move, for
+    example **Send to copy check**) in a bar just above the menu. The other moves (**Send to
+    SMM**, **Back to draft**) and **Drive folder**, **Hide on this computer** and **Delete for
+    everyone** are rows you tap.
+  - **Projects** has **Find by name** with a round button that opens **Open a file**, then
+    **Everything | Campaign ads | Organic posts**; tap a group's name to fold or open it.
+  - **Send to…**, the person picker and **Settings** open as sheets from the bottom, their
+    buttons always in view. With the keyboard up, the field you are typing in stays above it.
+    After a send, the line saying what was sent sits just above the menu bar, with **Undo** and
+    a **×** to put it away.
 - Keep both `.dc.html` files in this folder. They load their scripts and fonts from here, and the
   two studios link to each other.
 - People show with their Google account photo wherever their initials were (the account menu, Status cards, Access, the hand-off picker, the activity logs). Someone who hasn't signed in since 11 November 2026 still shows initials until they next sign in.
@@ -282,8 +281,8 @@ use your **@providentestate.com** account. What you see next depends on what the
 | **Social media manager** | **OPS only.** Draft and design posts (guided and All controls), Status, and hand a post to a designer or straight to the content team. Their home's **Next up** is the posts ready to publish: **Open the files** shows every exported image with **Download** each and **Download all**, and **Posted** closes the post once it is published (on Next up and on every row of Also waiting on you). **With others** lists the posts with the designer or the content team. CAS does not open for them: it shows a page with **Open the Organic Post Studio**. |
 | **Content team · English** | Only what is handed to them, from both studios, on the home page and Status (nobody else's work). A post waiting on their copy check carries the check in its own page (the words beside every page); they never open the OPS editor — a link into OPS brings them to the post's page. A campaign waiting on you opens its content-team link in a new tab, where only **Approve English copy** shows. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links. Opening CAS itself goes to the home page. |
 | **Content team · Arabic** | The same, but in a campaign's content-team link only **Approve translation** shows (the Arabic projects). |
-| **Everyone but the admin** | The top bar shows only the pages you use: **Home**, **Tracker** and **Help** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your Google account photo, or your initials). |
-| **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **Tracker**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
+| **Everyone but the admin** | The top bar shows only the pages you use: **My work**, **All work** and **Help** for everyone, **Projects** for people who design (designers, social media), **Access** for the admin. Your role and **Sign out** are in the account menu (your Google account photo, or your initials). |
+| **Performance marketing** | The home page: **New ticket** (the only button is **File as ticket**) and **All work**, campaigns only (no organic posts anywhere). No editor, no Recent, no Component usage. On Status you can follow every campaign and edit a ticket you filed, but you can't pick it up, open a project or approve copy. A campaign's page (**Details**) shows its steps, activity, details and brief, without the audiences or the team links; **Open the package** is the way to the images. Opening CAS or OPS goes to the home page. |
 | **Digital Marketing Team** | Runs the same campaigns as the Meta ads on email, SMS and WhatsApp. It sees and does exactly what **Performance marketing** does (above): file tickets, follow campaigns on Status, open an ad set's performance-marketing link to see the finished ads, change words in **Edit text**, download and **Launch**. It has its own name and its own column (**Digital**) under Access › Roles. |
 | **AI Engineers** | The **Engine** page on the home (they land on it): how PDS is built, every commit and every deployment, live. They also have **View ad sets** (below) from the start: campaigns on Status, read-only, no posts, no editor. marketing.ads@ and ai.engineer1@ are let in as AI Engineers from the start. |
 | **A role the admin named** | A team that fits none of the above (for example Video production). It opens only what the admin ticks for it under Access › Roles; until then Home and Status are there but list no campaigns or posts. |
