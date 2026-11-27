@@ -2080,6 +2080,21 @@ window.providentDrive = {
       cc.requestCode();
     });
   },
+  appMode() { try { return navigator.standalone === true; } catch (e) { return false; } },
+  BACK: 'provident-gback',
+  backUri() { return location.origin + '/gback.html'; },
+  redirUrl(id, w, n) {
+    const p = { client_id: id, redirect_uri: this.backUri(), response_type: 'code', scope: this.SCOPE, access_type: 'offline',
+      include_granted_scopes: 'true', state: n, prompt: this.kept() ? (w ? '' : 'select_account') : 'consent' };
+    if (w && w.email) p.login_hint = w.email;
+    return 'https://accounts.google.com/o/oauth2/v2/auth?' + Object.keys(p).filter(k => p[k]).map(k => k + '=' + encodeURIComponent(p[k])).join('&');
+  },
+  redirIn(id, w) {
+    const n = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2, '0')).join('');
+    try { localStorage.setItem(this.BACK, JSON.stringify({ n, to: location.href, at: Date.now() })); } catch (e) {}
+    location.assign(this.redirUrl(id, w, n));
+    return new Promise(() => {});   // the page is leaving; nothing resolves here
+  },
   // Must be called from a click: Google opens its sign-in popup — unless the server can renew.
   async signIn() {
     // a token from an earlier sign-in, before the account was remembered: learn the account
@@ -2087,6 +2102,12 @@ window.providentDrive = {
     if (this.valid() || (await this.renew())) { if (!this.who()) await this.whoFetch(); return this.tok.at; }
     const id = this.clientId();
     if (!id) throw new Error('Google Drive is not set up on this computer yet — paste the OAuth client ID your admin gave you.');
+    // THE HOME-SCREEN APP ON AN iPHONE OR iPAD (2026-11-27, by request: "when saved on ios safari as
+    // webapp, then try to sign in ... i get this error", Google's "400. malformed"). There a popup
+    // opens in a separate in-app browser that cannot talk back to the page, so Google has nowhere
+    // to hand the code. The app goes to Google in the page itself and comes back to gback.html,
+    // which finishes the same exchange (redirect_uri = that page, not 'postmessage').
+    if (this.appMode() && (await this.srvOn())) return this.redirIn(id, this.who());
     await this.load();
     if (await this.srvOn()) return this.codeIn(id, this.who());
     return new Promise((res, rej) => {

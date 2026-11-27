@@ -69,7 +69,16 @@ To read and write those files, the studio asks each person to **sign in with Goo
 
    If the studio is ever served from another address, add that address here too. Enter only
    the start of the address, with no path and no slash at the end.
-5. **Authorised redirect URIs:** leave empty.
+5. **Authorised redirect URIs** › **Add URI** (needed for the app saved to an iPhone's or iPad's
+   Home Screen, which cannot use Google's sign-in popup; since 2026-11-27):
+
+   ```
+   https://design-studio.ngrok-free.dev/gback.html
+   ```
+
+   One line per address the studio is served from, each ending in `/gback.html`. Without it,
+   sign-in from the Home Screen app stops at Google with **Error 400: redirect_uri_mismatch**.
+   Sign-in in a browser tab does not use it.
 6. Click **Create**.
 7. Copy the **Client ID** (`…apps.googleusercontent.com`) and send it to the design team.
 
@@ -109,8 +118,8 @@ studio keeps working either way; this only removes the hourly prompt.
    - **Environments:** Production (and Preview if you want previews to use it)
    - Mark it **Sensitive**.
 3. **Redeploy** the latest deployment (Deployments › ⋯ › Redeploy), so it reads the variable.
-4. Nothing changes in Google Cloud: the authorised JavaScript origin from Step 4 is all it
-   needs, and **Authorised redirect URIs stay empty**.
+4. Nothing else changes in Google Cloud: the authorised JavaScript origin and the one redirect
+   URI from Step 4 are all it needs.
 
 To check it is on, open `https://provident-design-studio.vercel.app/api/gauth?op=status` —
 it answers `{"on":true,…}`.
@@ -145,6 +154,7 @@ signs in once more.
 |---|---|
 | *"Not set up on this computer yet"* | Paste the client ID into the Google Drive box (Using it, step 2). |
 | The sign-in window does not open | Allow pop-ups for the site, then click **Open** again. |
+| On an iPhone, in the app saved to the Home Screen, Google says **400. That’s an error … malformed** or **redirect_uri_mismatch** | The site's `/gback.html` address is missing from the client's **Authorised redirect URIs** (step 4, item 5). |
 | Google says **Error 400: redirect_uri_mismatch** or **origin_mismatch** | The address in the browser bar is not in the client's **Authorised JavaScript origins** (step 4). |
 | Google says **access_denied**, or that the app is blocked | The account is not a providentestate.com account, or step 5 is needed. |
 | *"Drive cannot find that folder"* | That account has no access to the folder, or the link is to something else. |

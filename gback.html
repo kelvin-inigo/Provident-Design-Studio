@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Signing in — Provident Design Studio</title>
+<script>try{ if (localStorage.getItem('provident-theme') !== 'dark') document.documentElement.setAttribute('data-theme','light'); }catch(e){}</script>
+<link rel="stylesheet" href="ui-design-system/provident-ui.css">
+<style>
+body{margin:0; min-height:100dvh; display:grid; place-items:center; background:var(--ps-app); color:var(--ps-ink); font-family:var(--ps-font);
+  padding:env(safe-area-inset-top,0px) 24px env(safe-area-inset-bottom,0px)}
+main{max-width:340px; text-align:center}
+h1{margin:0 0 8px; font:400 24px/1.2 var(--ps-font); letter-spacing:-.02em}
+p{margin:0 0 20px; font:400 15px/1.5 var(--ps-font); color:var(--ps-ink-2)}
+a{display:inline-flex; align-items:center; justify-content:center; height:44px; padding:0 20px; border-radius:var(--ps-pill); background:var(--ps-primary); color:var(--ps-primary-i);
+  font:600 15px/1 var(--ps-font); text-decoration:none}
+a[hidden]{display:none}
+</style>
+</head>
+<body>
+<!-- WHERE GOOGLE SENDS THE HOME-SCREEN APP BACK (2026-11-27). On an iPhone or iPad the app saved to
+     the Home Screen cannot use Google's sign-in popup (studio-base.js, providentDrive.redirIn), so it
+     goes to Google in the page and Google returns here with a code. This page hands the code to
+     /api/gauth?op=exchange (redirect_uri = this page), keeps the session exactly as the popup's
+     callback does, and goes back to the page the person was on. It must be listed under the OAuth
+     client's Authorised redirect URIs (docs/google-drive-setup.md, Step 4). -->
+<main>
+  <h1 id="t">Signing you in…</h1>
+  <p id="m">One moment.</p>
+  <a id="b" href="index.html" hidden>Back to the app</a>
+</main>
+<script src="studio-base.js"></script>
+<script>
+(async function(){
+  var D = window.providentDrive, q = new URLSearchParams(location.search), st = null, home = 'index.html';
+  try { st = JSON.parse(localStorage.getItem(D.BACK) || 'null'); localStorage.removeItem(D.BACK); } catch (e) {}
+  // only back to a page of this site
+  var to = home; try { if (st && st.to && new URL(st.to).origin === location.origin) to = st.to; } catch (e) {}
+  function fail(t, m){ document.getElementById('t').textContent = t; document.getElementById('m').textContent = m; var b = document.getElementById('b'); b.href = to; b.hidden = false; }
+  if (q.get('error')) return fail(q.get('error') === 'access_denied' ? 'Sign-in was cancelled' : 'Google sign-in failed', q.get('error') === 'access_denied' ? 'Nothing was changed.' : 'Google answered: ' + q.get('error') + '.');
+  if (!q.get('code') || !st || st.n !== q.get('state') || Date.now() - (st.at || 0) > 15 * 60000) return fail('This sign-in has expired', 'Go back and press Sign in again.');
+  try {
+    var x = await D.gpost('exchange', { code: q.get('code'), redirect_uri: D.backUri() });
+    if (!x.ok || !x.d.access_token) return fail('Google sign-in could not finish', x.d.error || 'Try again.');
+    if (x.d.kept) { try { localStorage.setItem(D.KEPT, '1'); } catch (e) {} }
+    D.tok = { at: x.d.access_token, exp: Date.now() + (Number(x.d.expires_in) || 3600) * 1000 };
+    D.keep();
+    try { await D.whoFetch(); } catch (e) {}
+    location.replace(to);
+  } catch (e) { fail('Google sign-in could not finish', 'Check the connection and try again.'); }
+})();
+</script>
+</body>
+</html>

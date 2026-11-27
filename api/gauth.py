@@ -9,6 +9,9 @@ needs the OAuth client SECRET, which cannot live in a page. So:
   POST /api/gauth?op=exchange  {code}               the code from Google's popup (redirect
                                                     'postmessage') -> an access token; the
                                                     refresh token goes into the cookie
+                               {code, redirect_uri} the same, for the home-screen app on an
+                                                    iPhone, which cannot use a popup: the code
+                                                    came back to <site>/gback.html (2026-11-27)
   POST /api/gauth?op=refresh                        the cookie -> a new access token, no popup
   POST /api/gauth?op=signout                        revoke and clear the cookie
 
@@ -28,6 +31,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import secrets
 import time
 import urllib.error
@@ -145,8 +149,14 @@ def route(method, query, headers, body):
         code = str(b.get('code') or '')
         if not code:
             return out(400, {'error': 'No code.'})
+        # the popup's code is exchanged with 'postmessage'; a code that came back to gback.html is
+        # exchanged with that page's address, and nothing else is accepted (Google also refuses a
+        # redirect_uri that is not on the client's list, or not the one the code was issued for)
+        ru = str(b.get('redirect_uri') or '')
+        if ru and not re.match(r'^https://[A-Za-z0-9.-]+/gback\.html$', ru):
+            return out(400, {'error': 'Unknown return address.'})
         st, d = google(token_url(), {'code': code, 'client_id': client_id(), 'client_secret': secret(),
-                                    'redirect_uri': 'postmessage', 'grant_type': 'authorization_code'})
+                                    'redirect_uri': ru or 'postmessage', 'grant_type': 'authorization_code'})
         if st != 200 or not d.get('access_token'):
             return out(400, {'error': 'Google refused the sign-in (%s).' % (d.get('error_description') or d.get('error') or st)})
         extra = []
