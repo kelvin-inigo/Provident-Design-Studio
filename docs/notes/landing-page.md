@@ -1138,3 +1138,15 @@ By request, the next step after My work. `#/tracker` now draws `viewAll()`.
   light (103, reloaded); no sideways scroll at 1440 or 375. **Not exercised:** Show finished (the
   seed has no finished work), real Drive. The guide's Tracker section, the help frames and the Grok
   notes still describe Progress and Kanban.
+
+## All work: the deliverables check is back for campaigns (2026-11-27, later, branch home/streamline)
+
+The user: "what happened to the check that PM needs on his view in order to track what's ready?"
+The first cut of All work reduced it to a count. Now, when the list is campaigns only (a role that
+sees only campaigns, which is performance marketing's whole view, or the Campaigns chip for anyone
+else), `viewAll` returns `rows.map(tkCampaign)`: Progress's cards, with the Static / Animated / MVP
+video / Copy grid in English and Arabic, the ring and Open the ad set, in the same attention order.
+Everything and Posts stay the compact table; its Made count has a tooltip pointing at the chip.
+`tkCampaign`'s "Open the Kanban" line now links the campaign's own page.
+Verified on :8797: Campaigns chip draws cards with grids and no table; Preview as pm draws 10 cards
+(7 with grids, the rest tickets), no sideways scroll at 1440.

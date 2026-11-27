@@ -1989,7 +1989,7 @@ body{-webkit-tap-highlight-color:transparent;
         '<button type="button" class="tk-xp" data-tkx="' + esc(x.id) + '" aria-expanded="' + op + '">' + (op ? 'Hide' : 'Show') + ' the deliverables<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>';
     }
     if (x.open) h += '<div class="tk-q">A ticket, not an ad set yet. Its deliverables appear once a designer picks it up.</div>';
-    else if (!d) h += '<div class="tk-q">Its deliverables aren’t on this computer yet. <a href="#/tracker?v=kanban">Open the Kanban</a> to load them.</div>';
+    else if (!d) h += '<div class="tk-q">Its deliverables aren’t on this computer yet. <a href="' + itemLink(x) + '">Open the campaign</a> to load them.</div>';
     else {
       h += '<div class="tk-g" role="group" aria-label="Deliverables"><span></span>' + TK_DL.map(function(k){ return '<span class="tk-hd">' + k[1] + '</span>'; }).join('') +
         [['e', 'EN', 'English'], ['a', 'AR', 'Arabic']].map(function(l){ return '<span class="tk-ln">' + l[1] + '</span>' + TK_DL.map(function(k){
@@ -2142,12 +2142,20 @@ body{-webkit-tap-highlight-color:transparent;
     var rows = all.filter(function(x){ return (sxF === 'all' || x.studio === sxF) && (!ql || String(x.name).toLowerCase().indexOf(ql) >= 0); })
       .sort(function(a, b){ return att(a) - att(b) || dn(a) - dn(b) || (b.at || 0) - (a.at || 0); });
     if (!rows.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3 aria-level="2">' + (ql ? 'Nothing by that name' : 'Nothing in motion') + '</h3><p>' + (ql ? 'Try fewer letters.' : 'Campaigns and posts appear here as they are filed.') + '</p></div></div>' + freshLine();
+    // WHAT IS READY, PER CAMPAIGN (2026-11-27, later; the user: "what happened to the check that PM
+    // needs on his view in order to track what's ready?"). The first cut of All work kept only a
+    // count ("2 of 4"). When the list is campaigns only — performance marketing's whole view, or
+    // the Campaigns chip for anyone else — each campaign is drawn with its deliverables check
+    // again: Static, Animated, MVP video and Copy, English and Arabic, Done / n of m / Missing
+    // (tkCampaign, as Progress drew it), in the same attention order. Everything and Posts stay
+    // the one compact table.
+    if (sxF === 'cas' || (!both && ss[0] === 'cas')) return h + '<div class="tk">' + rows.map(tkCampaign).join('') + '</div>' + freshLine();
     h += '<div class="aw-h" aria-hidden="true"><span></span><span>Name</span><span>Step</span><span>Made</span><span>Due</span></div><ol class="aw">' + rows.map(function(x){
       var k = x.studio === 'cas' && x.dlv ? tkCount(x.dlv) : null, st = SC[x.stage] || {};
       return '<li><a href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="aw-th">' + rd(x, 44) + '</span>' +
         '<span class="aw-n"><b>' + esc(x.name) + '</b><small>' + (x.hub ? 'Content Hub post' : x.studio === 'cas' ? 'Campaign' : 'Post') + (x.mine ? ' · <em>waits on you</em>' : '') + '</small></span>' +
         '<span class="aw-s">' + segs(x) + '<span><b>' + esc(x.studio === 'ops' ? x.step || st.n || '' : st.n || x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + '</span></span>' +
-        '<span class="aw-m">' + (k && k.of ? k.n + ' of ' + k.of : '') + '</span>' + dueEl(x) + '</a></li>';
+        '<span class="aw-m"' + (k && k.of ? ' title="' + k.n + ' of ' + k.of + ' deliverables in. The Campaigns chip shows which."' : '') + '>' + (k && k.of ? k.n + ' of ' + k.of : '') + '</span>' + dueEl(x) + '</a></li>';
     }).join('') + '</ol>';
     return h + freshLine();
   }
