@@ -1559,6 +1559,36 @@ html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{ma
   #ops-host .psd-acts .p-btn,#ops-host .psd-acts .p-ghost{transition:transform 90ms var(--ps-ease), opacity 90ms var(--ps-ease)}
   #ops-host .psd-acts .p-btn:active,#ops-host .psd-acts .p-ghost:active{transform:scale(.97); opacity:.85}
 }
+/* ═════ THE PHONE, AFTER THE ANNOTATIONS (2026-11-27: "have this in the nav bar below", "redesign
+   this", "any way this can be compact?") ═════
+   New leaves the header for the middle of the tab bar, where a thumb is. The header is then only
+   the wordmark (or Back and the page's name), so it is a slim 44px bar and the page starts sooner.
+   A card on My work is three single lines and a 40px button: about 130px, from about 210. */
+.uh-new{display:none}
+@media (max-width:640px){
+  :root{--uh-h:calc(44px + env(safe-area-inset-top,0px))}
+  .p-top #newbtn{display:none}
+  .p-top{padding-left:16px; padding-right:16px}
+  .p-top .p-wm svg{height:15px; width:auto}
+  .uh-ttl{height:44px; line-height:44px; left:16px; right:16px; text-align:center}
+  .p-top:has(.uh-back:not([hidden])) .uh-ttl{left:112px; right:112px}
+  .pg{padding-top:8px}
+  .uh-nav .uh-new{display:inline-flex; flex:0 0 46px; width:46px; height:46px; min-height:46px; margin:0 6px; padding:0; border-radius:50%;
+    background:var(--ps-primary); color:var(--ps-primary-i); align-items:center; justify-content:center}
+  .uh-nav .uh-new:hover{background:var(--ps-primary); color:var(--ps-primary-i)}
+  .uh-nav .uh-new[hidden]{display:none}
+  .uh-nav .uh-new svg.i{width:22px; height:22px; stroke-width:2}
+  #pg .wks{gap:10px}
+  #pg .wk{grid-template-columns:52px minmax(0,1fr); gap:10px 12px; padding:12px; border-radius:18px}
+  #pg .wk-th{width:52px; align-self:center}
+  #pg .wk-th .rd{--h:52px !important}
+  #pg .wk-b{min-width:0}
+  #pg .wk-k{flex-wrap:nowrap; gap:10px; font-size:12.5px; white-space:nowrap; overflow:hidden}
+  #pg .wk h3{margin:3px 0 1px; font-size:17px; line-height:1.25; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  #pg .wk-why{font-size:13.5px; line-height:1.35; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  #pg .wk-a{gap:6px}
+  #pg .wk-a .b{height:40px; min-height:40px; font-size:15px}
+}
 @keyframes u-push{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){ #cas-host.mnt > div,#ops-host.mnt > div{animation:none !important} }
 </style>
@@ -1630,6 +1660,7 @@ html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{ma
   <nav class="uh-nav" aria-label="Main">
     <a href="#/" data-nav="home"><svg class="i uh-ti" aria-hidden="true"><use href="#g-home"/></svg>My work <span class="uh-n" id="mine-n" hidden></span></a>
     <a href="#/tracker" data-nav="tracker"><svg class="i uh-ti" aria-hidden="true"><use href="#g-list"/></svg>All work</a>
+    <a class="uh-new" id="newtab" href="#/new" aria-label="New"><svg class="i" aria-hidden="true"><use href="#g-plus"/></svg></a>
     <a href="#/projects" data-nav="projects"><svg class="i uh-ti" aria-hidden="true"><use href="#g-folder"/></svg>Projects</a>
     <a href="#/access" data-nav="access"><svg class="i uh-ti" aria-hidden="true"><use href="#g-key"/></svg>Access <span class="uh-n" id="acc-n" hidden></span></a>
     <a href="#/engine" data-nav="engine" hidden><svg class="i uh-ti" aria-hidden="true"><use href="#g-eng"/></svg>Engine</a>
@@ -2624,6 +2655,8 @@ html[data-pv="home"] .ft,html[data-pv="tracker"] .ft,html[data-pv="item"] .ft{ma
     var cs = canStart(data.r), nb = $('newbtn');
     nb.hidden = !cs.length; nb.href = cs.length > 1 ? '#/new' : cs.length ? STUDIO[cs[0]].start : '#/new';
     $('newlbl').textContent = cs.length > 1 ? 'New' : cs[0] === 'cas' ? 'New ticket' : 'New post';
+    // on a phone New is the tab bar's middle button (2026-11-27, by request)
+    var nt = $('newtab'); nt.hidden = nb.hidden; nt.setAttribute('href', nb.getAttribute('href')); nt.setAttribute('aria-label', $('newlbl').textContent);
     var nm = me && (me.name || me.email);
     var avh = nm ? avIn(me.name, me.email) : '?';
     if ($('meav')._h !== avh) { $('meav').innerHTML = $('mn-av').innerHTML = avh; $('meav')._h = avh; }

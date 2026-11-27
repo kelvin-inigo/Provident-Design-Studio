@@ -1212,3 +1212,16 @@ buttons side by side, a Drive card on top of every ad set.
 - **Testing trap:** a CAS workspace that already holds a project does not open the same `#share=`
   again and falls back to the home's Projects; test with a fresh `?ws=` value. The seeded demo
   designs (Palm Springs) have no project file and never open; DEMO · Marina Heights does.
+
+### The phone after the annotations (2026-11-27, later)
+
+By request, on three annotated screenshots: "have this in the nav bar below" (New), "redesign
+this" (the header), "any way this can be compact?" (a My work card).
+
+- **New is the tab bar's middle button** (`#newtab`, a second link inside `.uh-nav`, phone only).
+  The route painter copies `#newbtn`'s `hidden`, `href` and label onto it, so it follows the role
+  the same way; the existing `a[href="#/new"]` handler still opens the New sheet. `#newbtn` is
+  hidden at 640px and under.
+- **The header is a 44px bar** (`--uh-h`), wordmark only, or Back with the page's name centred.
+- **A My work card is about 130px, from about 210**: picture 52px, kind and due on one line, the
+  name on one line, the step line on one line (each ends in an ellipsis), a 40px button.
