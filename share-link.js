@@ -2543,7 +2543,7 @@
       // THE MAIN SCREEN'S ONE ACTION: Design done, then Create next audience — the Ad set tab's own
       ...(() => { const nx = this.adtNext(), b = this._rvBusy || this._rsNextBusy;
         return { rsFlowOn: !!nx, rsFlowLabel: nx ? (b && (b === nx.act || b === nx.next) ? 'Saving…' : nx.label) : '', rsFlowTip: nx ? nx.tip : '',
-          rsFlow: nx ? () => (nx.send ? this.sendTo(nx.send) : nx.act ? this.rvStep(nx.act) : this.rsNext(nx.next)) : () => {} }; })(),
+          rsFlow: nx ? () => (nx.send ? this.sendTo(nx.send) : nx.open ? window.open(rsLink(nx.open), '_blank', 'noopener') : nx.act ? this.rvStep(nx.act) : this.rsNext(nx.next)) : () => {} }; })(),
       cvAdTip: 'In the ad set ' + (rs.name || '') + ' as ' + where + '. Opens the ad set overview: every audience and language, rendered from the latest work.',
       // THE TOP BAR'S FLOW: this audience's four steps as segments, the step it is on, and (beside
       // it, rsFlow) the designer's one action — always in view, on both workspaces
@@ -4294,6 +4294,11 @@
     // WITH THE DESIGNER: the hand-off opens the list of tasks, and the designer picks where it goes
     if (!it.design || (tk && tk !== 'done')) { const u = usualTask(it); return { send: it.sid, label: usualLabel(it, u), tip: u === 'copy' ? 'Hands it to the content team: pick who checks it and add a note. Something else lists the other tasks' : u === 'done' ? 'Nothing is left on this project. Something else lists the other tasks' : 'Pick the task this project goes to next — copy check, Arabic, animated, video or done — and who gets it' }; }
     if (!arb && ar && it.copy) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
+    // THE NEXT DESIGN ALREADY STARTED (2026-11-27, branch home/streamline): once this one is sent,
+    // the button offers another project of this phase that is still in the designer's hands and
+    // theirs, before offering to create a new one. It opens in its own tab, as from the ad set page.
+    const nd = (rs.items || []).find(x => x !== it && x.sid && phOf(rs, x) === ph && !x.design && !x.copy && taskOf(x) !== 'done' && toMine(x));
+    if (nd) return { open: nd.sid, label: 'Next: ' + [nd.aud || nd.market, nd.lang === 'ARB' ? 'AR' : 'EN'].filter(Boolean).join(' · '), tip: 'Opens ' + itemLabel(nd) + ', which has not been sent yet, in a new tab' };
     if (eng) return { next: [eng.market, eng.aud, 'ENG', ph].join('|'), label: 'Create next audience', tip: 'A blank project for ' + eng.market + ' · ' + eng.aud + ', filled from the pasted copy' };
     if (ar) return { next: [ar.market, ar.aud, 'ARB', ph].join('|'), label: 'Make the Arabic', tip: 'A copy of this design for ' + ar.market + ' · ' + ar.aud + ', in Arabic, to translate' };
     return null;
@@ -4316,7 +4321,7 @@
       const ph = phOf(rs, it), auds = rsAuds(rs).filter(a => a.phase === ph), mine = auds.find(a => a.items.indexOf(it) >= 0), arb = it.lang === 'ARB';
       const nx = this.adtNext(), done = mine && mine.done;
       const back = !it.design ? null : !it.copy ? { act: 'design-open', label: 'Back to design' } : { act: 'copy-open', label: arb ? 'Reopen translation check' : 'Reopen copy check' };
-      const btn = nx ? '<button type="button" class="p-btn adt-go" ' + (nx.send ? 'data-send="' + esc(nx.send) + '"' : nx.act ? 'data-act="' + esc(nx.act) + '"' : 'data-next="' + esc(nx.next) + '"') + ' title="' + esc(nx.tip) + '"' + (busy ? ' disabled' : '') + '>' +
+      const btn = nx ? '<button type="button" class="p-btn adt-go" ' + (nx.send ? 'data-send="' + esc(nx.send) + '"' : nx.open ? 'data-opn="' + esc(nx.open) + '"' : nx.act ? 'data-act="' + esc(nx.act) + '"' : 'data-next="' + esc(nx.next) + '"') + ' title="' + esc(nx.tip) + '"' + (busy ? ' disabled' : '') + '>' +
         '<span>' + esc(busy && (busy === nx.act || busy === nx.next) ? 'Saving…' : nx.label) + '</span>' + PICO.go + '</button>' : '';
       const now = done ? 'Done — ready to run' : mine && mine.now ? (mine.now.task ? mine.now.label + ' · ' : '') + mine.now.sub : '';
       top = '<section class="adt"><div class="adt-h"><div class="adt-ht">' +
@@ -4389,6 +4394,7 @@
     if (b.dataset.act) return this.rvStep(b.dataset.act);
     if (b.dataset.undo) return this.rvUndo(b.dataset.undo, b.dataset.at);
     if (b.dataset.send) return this.sendTo(b.dataset.send);
+    if (b.dataset.opn) { window.open(rsLink(b.dataset.opn), '_blank', 'noopener'); return; }
     if (b.dataset.next) return this.rsNext(b.dataset.next);
     if (!rs || !rs.tok) return;
     // a deliverable ticked by hand (animated, the MVP video), saved on the ad set and logged

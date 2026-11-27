@@ -3052,3 +3052,9 @@ designer pick from six tasks, then a person, then a note, for what is nearly alw
   Copy check; the warn variant through `providentSendTo`. **Not verified:** the CAS editor's strip
   (the editor does not open on the dev server's seed), real Drive, Roam. OPS is unchanged: its
   button already names the step; its picker still has no note.
+
+**Next design (same day).** `adtNext` gains `{ open: sid, label: 'Next: <audience> · EN|AR' }`: once
+this project is sent, another project of the same phase that is unsent (`!design`, `!copy`, not
+Done) and the viewer's (`toMine`) is offered before Create next audience; an approved English still
+offers Make the Arabic first. It opens `rsLink(sid)` in a new tab (the strip's `rsFlow`, the Ad set
+tab's `data-opn`). **Not run in a browser**: the editor does not open on the dev seed.

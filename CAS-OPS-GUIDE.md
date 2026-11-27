@@ -728,6 +728,8 @@ steps: **Design › ENG copy check › Translation › Done**.
    translation check** on an Arabic project). One sheet opens with the person already chosen,
    anything missing listed, and the note box; press **Send to** and their name. For any other
    task press **Something else** in that sheet (or **Send to…** where the button says that).
+   Once it is sent, the same button offers **Next:** and the name of another design in this
+   phase you have not sent yet; it opens in a new tab.
    The list is grouped: **Next** (**Copy check**, or **Translation check** on an Arabic
    project, **Arabic**, **Animated**, **MVP video**), **Back** (**Design**) and **Finish**
    (**Done**, which asks **Mark done?** before it goes). Any order works, and you can send it back.
