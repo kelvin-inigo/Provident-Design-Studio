@@ -3104,4 +3104,15 @@ there, no more needing to send them multiple links."
   the package (`href(x)`), the ad set page's header button for ct and pm, `&p=` deep links.
 - **Left as it was:** the editor's Share panel (Copy designer link / Copy edit link), OPS's Copy
   link on a post page, old links already sent (they still open).
-- **Not verified in a browser** (the pane was held by a Google sign-in popup): syntax only.
+- **Verified on :8797** (seeded stand-in), after the popup was closed: the ad set page has no Team
+  links and no copy buttons; a send from a tile called `roamnote` with `link` and `ctlink` both the
+  app's index.html (kind send), and a filed ticket's start note the same; the filed-ticket panel
+  says "it is on their My work" with no link, foot File another / See all work; signed in as the
+  English checker, My work showed 5 cards, the just-sent design among them, each with Check the
+  copy; Preview as pm: Open the package / Download what is ready.
+- **The CAS editor, at last** (New campaign > Start designing opens it on the dev server): the
+  strip read **Send to copy check**; pressing it opened the one sheet with the editor's own
+  pre-check ("no background photo", "the QR code is switched on but none has been added"), Priya
+  preselected, the note, Something else, **Send anyway to Priya**; sending left the Ad set tab's
+  receipt "Sent to Copy check ... with Priya" and Undo. **Next: was not exercised**: that ad set
+  had no second unsent design, so the strip had nothing to offer.

@@ -2786,7 +2786,7 @@ body{-webkit-tap-highlight-color:transparent;
       ['var(--ps-warn)', 'Copy check', 'The content team checks the English, then the Arabic translation.'],
       ['var(--ps-good)', 'Ready', 'Performance marketing downloads the package for every audience.']];
     $('np-side').innerHTML = '<section class="pan"><div class="sh" role="heading" aria-level="2">How it moves</div><ol class="np-flow">' + F.map(function(f){ return '<li><i style="--c:' + f[0] + '"></i><span><b>' + f[1] + '</b><small>' + f[2] + '</small></span></li>'; }).join('') + '</ol></section>' +
-      (!pm && waiting ? '<section class="pan"><div class="sh" role="heading" aria-level="2">Already filed<small>' + waiting + '</small></div><p class="lede" style="margin:0;font-size:14px">' + (waiting === 1 ? 'One ticket is' : waiting + ' tickets are') + ' waiting for a designer. <a class="b b-l" href="#/tracker?v=kanban&stage=new">See them on the board</a></p></section>' : '');
+      (!pm && waiting ? '<section class="pan"><div class="sh" role="heading" aria-level="2">Already filed<small>' + waiting + '</small></div><p class="lede" style="margin:0;font-size:14px">' + (waiting === 1 ? 'One ticket is' : waiting + ' tickets are') + ' waiting for a designer. <a class="b b-l" href="#/tracker?v=kanban&stage=new">See them in All work</a></p></section>' : '');
   }
   // the mounted pages' own Back goes to the board here, not to their studio list
   document.addEventListener('click', function(e){
