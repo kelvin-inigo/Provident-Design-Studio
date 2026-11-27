@@ -689,6 +689,7 @@
       // a video mograph's second piece carries on from the cut, not from its first frame (2026-11-27, fix)
       if (tg.kind === 'logo' && (media[it.mid] || {}).kind === 'video') { nb.in = (it.in || 0) + d; }
     }
+    if (nb.m) nb.m = JSON.parse(JSON.stringify(nb.m));   // a component piece edits on its own
     L.splice(L.indexOf(it) + 1, 0, nb);
     sel = { kind: tg.kind, id: nb.id }; renderAll();
   }
@@ -727,6 +728,7 @@
   function dup() {
     const it = find(sel); if (!it) return;
     mark(); const L = listOf(sel.kind), nb = Object.assign({}, it, { id: uid() });
+    if (nb.m) nb.m = JSON.parse(JSON.stringify(Object.assign({}, nb.m, { id: 'c' + nb.id })));
     if (sel.kind !== 'clip') nb.at = it.at + it.dur;
     L.splice(L.indexOf(it) + 1, 0, nb); sel = { kind: sel.kind, id: nb.id }; renderAll();
   }
@@ -1343,6 +1345,117 @@
     const t = { id: uid(), at: Math.max(0, (videoEnd() || end) - dur), dur, call: 'cta', line: 'What this means for properties around DIFC?', head: 'Read the full story', btn: 'Link in bio', mark: true, glass: 'glass', y: 50 };
     P.texts.push(t); sel = { kind: 'text', id: t.id }; seek(t.at + 1); renderAll();
   }
+
+  // ── CAS COMPONENTS (2026-11-27, by request: "import all the design components from CAS to CASV, as
+  // well as all their variants … function similar to CAS"). cas-components.js is a generated COPY of
+  // CAS's own component code (tools/video-dev/cas-copy/make.cjs): modLayout lays a component out on
+  // CAS's minor-third ladder at S/M/L/XL, emitEls turns it into ops and paintOps draws them on this
+  // canvas, so glass blurs the video under it. A component is a Text-track item (`comp` = its type,
+  // `m` = CAS's module record, `vr` its variant, `size` s/m/l/xl, `pos` top/bottom) with the text
+  // effects. Those on the same edge that are on screen together stack like CAS's top / bottom group,
+  // inside CAS's margins for the size (9:16 260/100/460/100 with the Reels rail on the bottom group).
+  const CK = window.CasComp || null, CKI = CK ? new CK() : null;
+  const COMP_TL = { eyebrow: 'Eyebrow', hero: 'Headline', hook: 'Hook', body: 'Body', price: 'Price', spec: 'Key facts', tags: 'Tags', list: 'Bullets', steps: 'Steps', cta: 'Button', divider: 'Divider', spacer: 'Spacer' };
+  const COMP_TIP = { eyebrow: 'A small tracked label', hero: 'The headline', hook: 'One strong line under the headline', body: 'Support copy', price: 'A label over a figure', spec: 'Key facts, label and figure', tags: 'Short facts as pills or a strip', list: 'Bullet points', steps: 'Numbered steps', cta: 'The button', divider: 'A rule between components', spacer: 'Space between components' };
+  const COMP_GROUPS = [['Text', ['eyebrow', 'hero', 'hook', 'body']], ['Data', ['price', 'spec', 'tags', 'list', 'steps']], ['Action and structure', ['cta', 'divider', 'spacer']]];
+  // CAS's Add a component defaults (addDefaults), as they are there
+  const COMP_SEED = {
+    eyebrow: { text: 'Exclusive launch' }, hero: { text: 'Own the skyline view' },
+    hook: { text: 'From AED 1.2M · handover 2028' }, body: { text: 'Flexible payment plans available.' },
+    tags: { chips: ['0% property tax', '10% rental yield'] },
+    spec: { cols: [{ l: 'Starting price', v: 'AED 799,000' }, { l: 'Payment plan', v: '40/60' }, { l: 'Handover', v: 'Q4 2028' }] },
+    list: { text: 'Fully furnished apartments\nNear Wynn Al Marjan Island\nHandover Q4 2028' },
+    cta: { text: 'Register your interest' }, price: { sub: 'Prices from', text: 'AED 2.6M' }, divider: {}, spacer: { h: 60 },
+    steps: { text: 'Share your investment goals\nReceive a property shortlist\nReserve your property' }
+  };
+  const COMP_SPEC = {
+    eyebrow: '<span class="vs-m"><small>NEW LAUNCH</small></span>', hero: '<span class="vs-m"><em>Skyline</em></span>',
+    hook: '<span class="vs-m"><q>From 1.2M</q></span>', body: '<span class="vs-m"><u class="t" style="width:44px"></u><u class="t" style="width:30px"></u></span>',
+    price: '<span class="vs-m"><small>FROM</small><em style="font-size:11px">2.6M</em></span>', spec: '<span class="vs-m"><q>799K · 40/60</q></span>',
+    tags: '<span class="vs-m"><q class="vs-mp">0% tax</q></span>', list: '<span class="vs-m"><q>✓ Furnished</q><q>✓ Handover</q></span>',
+    steps: '<span class="vs-m"><q>1 · 2 · 3</q></span>', cta: '<span class="vs-m"><q class="vs-mp" data-f="1">Register</q></span>',
+    divider: '<span class="vs-m"><u class="t" style="width:48px"></u></span>', spacer: '<span class="vs-m"><u class="t" style="width:2px;height:16px"></u></span>'
+  };
+  const ICON_DEF = ['apartment', 'payments', 'event', 'verified', 'location_on', 'key'];
+  const ICON_VR = { tags: 'icon', spec: 'icons', steps: 'icon' };     // the variants that draw an icon per item
+  const compIcons = {};
+  function compIcon(name) {                   // a Material Symbols icon, fetched as text so the canvas stays clean
+    name = String(name || '').trim().toLowerCase().replace(/\s+/g, '_'); if (!name || !CK) return null;
+    const c = compIcons[name]; if (c) return c.img ? c : null;
+    compIcons[name] = {};
+    fetch(CK.iconUrl(name)).then(r => r.ok ? r.text() : Promise.reject(r.status)).then(t => {
+      if (!/<svg[\s>]/i.test(t)) throw 0;
+      const u = URL.createObjectURL(new Blob([t], { type: 'image/svg+xml' })), im = new Image();
+      im.onload = () => { compIcons[name] = { img: im, u }; compThumbs.clear(); dirty = true; }; im.src = u;
+    }).catch(() => { compIcons[name] = { bad: 1 }; });
+    return null;
+  }
+  const compItems = t => t.m.type === 'tags' ? (t.m.chips || []) : t.m.type === 'spec' ? (t.m.cols || []) : String(t.m.text || '').split('\n').filter(Boolean);
+  function compAssets(t) {
+    const A = {}; if (!ICON_VR[t.m.type]) return A;
+    for (let i = 0; i < 6; i++) { const ic = compIcon((t.icons || {})[i] || ICON_DEF[i]); if (ic) A['ic' + t.m.id + '_' + i] = ic; }
+    return A;
+  }
+  const compKey = () => P.size === '1x1' ? 'sq' : 'st';
+  const compVar = (t, vr) => Object.assign(CK.newVariant('CASV'), { mvar: { [t.m.id]: vr || t.vr }, msize: { [t.m.id]: t.size || 'm' }, align: t.align === 'centre' ? 'center' : 'left' });
+  function compLay(t, vr) {
+    const v = compVar(t, vr), tk0 = CK.tkFor(compKey(), v), tk = CK.tkMod(tk0, v, t.m), pal = CK.palOf(v), center = v.align === 'center';
+    const pL = tk0.pad[3], innerW = tk0.W - pL - tk0.pad[1];
+    const box = (t.pos || 'bottom') === 'top' ? { x0: pL, w: innerW } : CK.railBox(tk0, center, innerW, pL);
+    const L = t.m.type === 'spacer' ? { els: [], h: (+t.m.h || 60) * CK.kOf(tk) } : CKI.modLayout(t.m, v, tk, box.w, pal, center);
+    return { t, L, tk0, box, pal, v };
+  }
+  function compPaint(x, y) {
+    const t = x.t, g = G(), still = !playing && sel && sel.id === t.id, rel = still ? 99 : T - t.at, anim = t.anim || 'rise';
+    const out = anim === 'none' || still ? 1 : ease((t.dur - rel) / .3), h = Math.max(1, x.L.h), A = compAssets(t);
+    const each = anim === 'lines' || anim === 'words';
+    // line by line / word by word: each piece of the component arrives in turn, top to bottom
+    (each ? x.L.els.map(e => [e]) : [x.L.els]).forEach(gr => {
+      const d = each ? clamp((gr[0].y || 0) / h, 0, 1) * (anim === 'words' ? .8 : .5) : 0;
+      const inn = anim === 'none' || still ? 1 : ease((rel - d) / .45), a = Math.min(inn, out); if (a <= 0) return;
+      const ops = []; CKI.emitEls(ops, gr, x.box.x0, y + (anim === 'fade' || anim === 'none' ? 0 : (1 - inn) * 40), t.m, A);
+      cx.save(); cx.globalAlpha = a; CKI.paintOps(cx, cv, { W: g.w, H: g.h, ops }, 1); cx.restore();
+    });
+    hits[t.id] = { kind: 'text', x: x.box.x0, y, w: x.box.w, h };
+  }
+  function drawComps() {
+    if (!CK) return;
+    const on = P.texts.filter(t => t.comp && t.m && T >= t.at && T < t.at + t.dur); if (!on.length) return;
+    ['top', 'bottom'].forEach(pos => {
+      const ls = on.filter(t => (t.pos || 'bottom') === pos).map(t => compLay(t)); if (!ls.length) return;
+      const tk0 = ls[0].tk0, gap = tk0.gapS * CK.gapOf(ls[0].v), H = tk0.H;
+      const total = ls.reduce((s, x, i) => s + x.L.h + (i ? gap : 0), 0);
+      // the wordmark's band is kept clear on its own edge (CAS's 80 of clear space under / over it)
+      const wm = P.brand && P.brand.on && (P.brand.vpos || 'top') === pos ? tk0.logo + 80 : 0;
+      let y = pos === 'top' ? tk0.pad[0] + wm : H - tk0.pad[2] - wm - total;
+      ls.forEach(x => { compPaint(x, y); y += x.L.h + gap; });
+    });
+  }
+  // a style tile is the component drawn in that variant, like CAS's
+  const compThumbs = new Map();
+  function compThumb(t, vr) {
+    const key = JSON.stringify([t.m, vr, t.size, t.align, t.icons, P.size]);
+    if (compThumbs.has(key)) return compThumbs.get(key);
+    let u = '';
+    try {
+      const x = compLay(t, vr), pad = 28, w = Math.ceil(x.box.w + pad * 2), h = Math.ceil(Math.max(40, x.L.h) + pad * 2);
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      const c2 = c.getContext('2d'); c2.fillStyle = x.pal.base; c2.fillRect(0, 0, w, h);
+      const ops = []; CKI.emitEls(ops, x.L.els, pad, pad, t.m, compAssets(t)); CKI.paintOps(c2, c, { W: w, H: h, ops }, 1);
+      const s = Math.min(1, 260 / w), o = document.createElement('canvas'); o.width = Math.round(w * s); o.height = Math.round(h * s);
+      o.getContext('2d').drawImage(c, 0, 0, o.width, o.height); u = o.toDataURL('image/png');
+    } catch (e) {}
+    if (compThumbs.size > 120) compThumbs.clear();
+    compThumbs.set(key, u); return u;
+  }
+  function addComp(ty) {
+    if (!CK) { toast('The component kit did not load. Reload the page.'); return; }
+    mark(); const id = uid();
+    const t = { id, at: T, dur: 4, comp: ty, m: Object.assign({ id: 'c' + id, type: ty }, JSON.parse(JSON.stringify(COMP_SEED[ty] || {}))),
+      vr: CK.VOPT[ty][0][0], size: 'm', pos: 'bottom', align: 'left', anim: 'rise' };
+    P.texts.push(t); sel = { kind: 'text', id }; renderAll();
+  }
+  const compWords = t => { const m = t.m || {}; return plain(m.text || m.sub || (m.chips || [])[0] || ((m.cols || [])[0] || {}).v || '').split('\n')[0]; };
   function addCallout(kind) {
     mark();
     const t = Object.assign({ id: uid(), at: T, dur: 3, call: kind, scale: 100 }, {
@@ -1385,7 +1498,8 @@
     draw._had = !!a;
     // a motion graphic's navy wash sits on the picture only: under every text and graphic (2026-11-26, by request)
     P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawWash(l); });
-    P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur && t.call !== 'cta') (t.call ? drawCallout : drawText)(t); });
+    P.texts.forEach(t => { if (T >= t.at && T < t.at + t.dur && t.call !== 'cta' && !t.comp) (t.call ? drawCallout : drawText)(t); });
+    drawComps();
     P.logos.forEach(l => { if (T >= l.at && T < l.at + l.dur) drawLogo(l); });
     // the end card goes over everything and carries the wordmark itself, so the corner lockup rests
     const ctas = P.texts.filter(t => t.call === 'cta' && T >= t.at && T < t.at + t.dur);
@@ -1436,7 +1550,7 @@
         rowH = ln.n * (ih + 4) + 4;
         items.forEach(it => {
           const m = media[it.mid] || {};
-          const name = kind === 'text' ? (it.call ? ({ ruler: 'Measure', count: 'Count', box: 'Box', cta: 'End card' }[it.call] + ' · ' + (it.value || it.label || it.head || '')) : plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0]) : (m.name || kind);
+          const name = kind === 'text' ? (it.comp ? (COMP_TL[it.comp] || 'Component') + ' · ' + compWords(it) : it.call ? ({ ruler: 'Measure', count: 'Count', box: 'Box', cta: 'End card' }[it.call] + ' · ' + (it.value || it.label || it.head || '')) : plain(it.text || it.eyebrow || it.sub || 'Text').split('\n')[0]) : (m.name || kind);
           body += '<div class="vs-it" data-kind="' + kind + '" data-id="' + it.id + '" tabindex="0" role="button" aria-label="' + esc(name + ', ' + (kind === 'audio' ? 'sound' : kind === 'text' ? 'text' : 'graphic')) + '"' + on(kind, it.id) + (it.track === 'sfx' ? ' data-sfx="1"' : '') +
             ' style="left:' + (LBL + it.at * pps) + 'px;width:' + Math.max(6, it.dur * pps - 1) + 'px;top:' + (4 + ln.map[it.id] * (ih + 4)) + 'px">' +
             (kind === 'audio' ? '<canvas data-wave="' + it.id + '"></canvas>' : '') + hd + '<span class="n">' + esc(name) + (kind === 'audio' ? spdTag(it) : '') + '</span>' + lenTag(it.id, it.dur) + '</div>';
@@ -2066,6 +2180,8 @@
       ];
       h += '<div class="vs-sec">' + H('Add text', 'at the playhead') + '<div class="vs-grid">' + pre.map(o => tile('data-addtext', o)).join('') + '</div></div>';
       h += '<div class="vs-sec">' + H('Add a callout', 'at the playhead') + '<div class="vs-grid">' + call.map(o => tile('data-addcall', o)).join('') + '</div></div>';
+      if (CK) h += '<div class="vs-sec">' + H('Add a component', 'from CAS, at the playhead') + COMP_GROUPS.map(gp => '<div class="vs-cg"><s>' + gp[0] + '</s><div class="vs-grid">' +
+        gp[1].map(ty => tile('data-addcomp', [ty, COMP_TL[ty], COMP_TL[ty] + ': ' + COMP_TIP[ty] + '. ' + CK.VOPT[ty].length + (CK.VOPT[ty].length === 1 ? ' style' : ' styles') + ', S to XL.', COMP_SPEC[ty]])).join('') + '</div></div>').join('') + '</div>';
     } else {
       h += '<div class="vs-sec">' + drop('logo', 'Drop a mograph or logo', 'Video, PNG or SVG · WebM keeps transparency') +
         (CMW ? cmWaitHtml() : '<button class="vs-link" data-cm="1" title="Paste a Claude Motion link; CASV adds its export by itself">Or bring one from Claude Motion</button>') + '</div>';
@@ -2157,6 +2273,7 @@
     else if ((el = q('data-hear'))) hearToggle(el.dataset.hear);
     else if ((el = q('data-addaudio'))) addAudio(el.dataset.addaudio, el.dataset.trk);
     else if ((el = q('data-addtext'))) addText(el.dataset.addtext);
+    else if ((el = q('data-addcomp'))) addComp(el.dataset.addcomp);
     else if ((el = q('data-addcall'))) (el.dataset.addcall === 'cta' ? addCta() : addCallout(el.dataset.addcall));
     else if ((el = q('data-addlogo'))) addLogo(el.dataset.addlogo);
   });
@@ -2220,6 +2337,7 @@
   function allOf(it) {
     const k = sel.kind;
     if (k === 'audio') return { g: ALLG.audio, peers: P.audio.filter(a => a !== it && a.track === it.track), word: it.track === 'music' ? 'music' : 'sound', track: it.track === 'music' ? 'Music' : 'Sound' };
+    if (k === 'text' && it.comp) return { g: [['Style, size, place and effect', ['vr', 'size', 'pos', 'align', 'anim']]], peers: P.texts.filter(t => t !== it && t.comp === it.comp), word: COMP_TL[it.comp].toLowerCase(), track: 'Text' };
     if (k === 'text') return it.call === 'cta' ? null : it.call ? { g: ALLG.call, peers: P.texts.filter(t => t !== it && t.call === it.call), word: 'callout of this kind', track: 'Text' }
       : { g: ALLG.text, peers: P.texts.filter(t => t !== it && !t.call), word: 'text', track: 'Text' };
     if (k === 'clip') return { g: ALLG.clip, peers: P.clips.filter(c => c !== it), word: 'clip', track: 'Video' };
@@ -2303,6 +2421,37 @@
           rng('i', 'capY', 'Height', it.capY == null ? 90 : it.capY, 0, 100, '%') +
           rng('i', 'capShift', 'Earlier / later', it.capShift || 0, -1.5, 1.5, 's', .05) +
           '<span class="vs-note">Timing is estimated from the loudness of the speech. Nudge it with Earlier / later.</span>') : '')) + timing();
+    } else if (sel.kind === 'text' && it.comp && it.m && CK) {
+      const m = it.m, ty = m.type;
+      const fld = (label, key, rows, ph) => f(label, rows ? '<textarea class="p-in" data-cf="' + key + '" rows="' + rows + '">' + esc(m[key] || '') + '</textarea>'
+        : '<input class="p-in" data-cf="' + key + '" value="' + esc(m[key] || '') + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '>');
+      // a list is one field per item, stored as it is (no separators typed)
+      const rows = (label, key, arr, one, pair) => f(label, arr.map((x, i) => '<div class="vs-ci">' +
+          (pair ? '<input class="p-in" data-cf="' + key + '" data-ci="' + i + '" data-cp="l" value="' + esc(x.l || '') + '" placeholder="Label" aria-label="Label ' + (i + 1) + '">' +
+                  '<input class="p-in" data-cf="' + key + '" data-ci="' + i + '" data-cp="v" value="' + esc(x.v || '') + '" placeholder="Figure" aria-label="Figure ' + (i + 1) + '">'
+                : '<input class="p-in" data-cf="' + key + '" data-ci="' + i + '" value="' + esc(x) + '" aria-label="' + one + ' ' + (i + 1) + '">') +
+          '<button class="vs-sq" data-crm="' + key + ':' + i + '" title="Remove" aria-label="Remove ' + one.toLowerCase() + ' ' + (i + 1) + '"' + (arr.length < 2 ? ' disabled' : '') + '>' + ico('close') + '</button></div>').join('') +
+        (arr.length < 6 ? '<button class="vs-link" data-cadd="' + key + '">Add ' + one.toLowerCase() + '</button>' : ''));
+      const lines = String(m.text || '').split('\n');
+      let words = '';
+      if (ty === 'eyebrow' || ty === 'cta') words = fld(ty === 'cta' ? 'What the button says' : 'Label', 'text');
+      else if (ty === 'hero' || ty === 'hook' || ty === 'body') words = fld(COMP_TL[ty], 'text', 2);
+      else if (ty === 'price') words = fld('Label over it', 'sub', 0, 'Prices from') + fld('Figure', 'text', 0, 'AED 2.6M');
+      else if (ty === 'tags') words = rows('Tags', 'chips', m.chips || [], 'Tag');
+      else if (ty === 'spec') words = rows('Facts', 'cols', m.cols || [], 'Fact', 1) +
+        row('Figure', segv('_figTop', m.figTop ? 1 : 0, [[0, 'Under'], [1, 'Over']])) + row('Figures', segv('_big', m.big ? 1 : 0, [[0, 'Regular'], [1, 'Large']]));
+      else if (ty === 'list' || ty === 'steps') words = rows(ty === 'list' ? 'Points' : 'Steps', '#text', lines, ty === 'list' ? 'Point' : 'Step');
+      else if (ty === 'spacer') words = rng('i', 'sph', 'Space', +m.h || 60, 10, 300, 'px');
+      const tiles = CK.VOPT[ty].length > 1 ? '<div class="vs-grid vs-vt">' + CK.VOPT[ty].map(o => '<button class="vs-t" data-k="vr" data-v="' + o[0] + '"' + (it.vr === o[0] ? ' data-on="1"' : '') +
+        ' title="' + esc(o[1] + ((CK.VDESC[ty] || {})[o[0]] ? ': ' + CK.VDESC[ty][o[0]] : '')) + '"><i><img alt="" src="' + compThumb(it, o[0]) + '"></i><b>' + esc(o[1]) + '</b></button>').join('') + '</div>' : '';
+      const ink = CK.inkSwatches(CK.palOf(compVar(it)));
+      const inkRow = ty === 'divider' || ty === 'spacer' ? '' : f('Ink', '<div class="vs-sws" data-n4="1">' + ink.map(w => '<button data-ck="inkHex" data-cv="' + (w[2] ? '' : w[1]) + '" title="' + esc(w[0]) + '" aria-label="' + esc(w[0]) + '"' +
+        ((m.inkHex || '') === (w[2] ? '' : w[1]) ? ' data-on="1"' : '') + ' style="background:' + w[1] + '"></button>').join('') + '</div>');
+      const icons = ICON_VR[ty] === it.vr ? f('Icons <s>Material Symbols names</s>', compItems(it).slice(0, 6).map((x, i) => '<input class="p-in" data-ic="' + i + '" value="' + esc((it.icons || {})[i] || ICON_DEF[i]) + '" aria-label="Icon ' + (i + 1) + '" spellcheck="false">').join('')) : '';
+      h = cap('Component', COMP_TL[ty]) + '<div class="vs-sec">' + (words || '<div class="vs-none">Nothing to type: it is drawn from the style below.</div>') + '</div>' +
+        sec('Style', CK.VOPT[ty].length + (CK.VOPT[ty].length === 1 ? ' style' : ' styles'), tiles + row('Size', seg('size', [['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL']])) + inkRow + icons) +
+        sec('Place and effect', '', row('Position', seg('pos', [['top', 'Top'], ['bottom', 'Bottom']])) + row('Alignment', seg('align', [['left', 'Left'], ['centre', 'Centre']])) +
+          f('Effect <s>how it arrives</s>', '<select class="p-in" data-s="anim">' + ANIMS.map(a => '<option value="' + a[0] + '"' + ((it.anim || 'rise') === a[0] ? ' selected' : '') + '>' + a[1] + '</option>').join('') + '</select>')) + timing();
     } else if (sel.kind === 'text' && it.call === 'cta') {
       h = cap('End card', esc(it.head || '')) + '<div class="vs-sec">' +
         f('Line above <s>optional</s>', '<textarea class="p-in" data-s="line" rows="2">' + esc(it.line || '') + '</textarea>') +
@@ -2441,12 +2590,20 @@
         const fi = insp.querySelector('[data-n="fit"]'), nt = insp.querySelector('#rateNote'); if (fi) fi.value = (sel.kind === 'clip' ? clipLen(it) : it.dur).toFixed(2); if (nt) nt.innerHTML = rateNote(it);
       }
       else if (sel.kind === 'logo' && (k === 'w' || k === 'x' || k === 'y')) lgeoW(it)[k] = v;
+      else if (k === 'sph' && it.m) it.m.h = v;
       else it[k] = k === 'vol' ? v / 100 : v;
       if (k === 'genDur') {                    // the price follows the slider; the prompt's beats are rewritten on release (change)
         const gb = insp.querySelector('#animNow'), gs = insp.querySelector('#genWhat'); if (gb && !gb.disabled) gb.textContent = 'Generate · ' + genCredits(it) + ' credits'; if (gs) gs.textContent = genWhat(it);
         dirty = true; save(); return;
       }
-    } else if (d.s) { it[d.s] = e.target.value; if (d.s === 'tr') { dirty = true; save(); renderAll(); return; } }
+    } else if (d.cf && it.m) {                // a component's words (CAS's module fields)
+      const v = e.target.value;
+      if (d.cf === '#text') { const a = String(it.m.text || '').split('\n'); a[+d.ci] = v.replace(/\n/g, ' '); it.m.text = a.join('\n'); }
+      else if (d.ci != null) { const a = it.m[d.cf] = (it.m[d.cf] || []).slice(); if (d.cp) a[+d.ci] = Object.assign({}, a[+d.ci], { [d.cp]: v }); else a[+d.ci] = v; }
+      else it.m[d.cf] = v;
+      dirty = true; save(); renderTimeline(); return;
+    } else if (d.ic != null && it.m) { it.icons = Object.assign({}, it.icons, { [d.ic]: e.target.value.trim() }); dirty = true; save(); return; }
+    else if (d.s) { it[d.s] = e.target.value; if (d.s === 'tr') { dirty = true; save(); renderAll(); return; } }
     else if (d.n) {
       const v = parseFloat(e.target.value); if (!isFinite(v)) return;
       const m = media[it.mid];
@@ -2503,6 +2660,18 @@
     if (b.id === 'iDel') return del();
     if (b.id === 'iDup') return dup();
     if (b.id === 'previewBtn') { seek(it.at); play(); const stopAt = it.at + it.dur; const iv = setInterval(() => { if (!playing || T >= stopAt) { clearInterval(iv); if (playing) pause(); } }, 40); return; }
+    if (it.m && (b.dataset.cadd || b.dataset.crm || b.dataset.ck || (b.dataset.k && b.dataset.k[0] === '_'))) {   // a component's lists and flags
+      mark();
+      if (b.dataset.k) it.m[b.dataset.k.slice(1)] = b.dataset.v === '1';
+      else if (b.dataset.ck) { if (b.dataset.cv) it.m[b.dataset.ck] = b.dataset.cv; else delete it.m[b.dataset.ck]; }
+      else if (b.dataset.cadd) { const k = b.dataset.cadd;
+        if (k === '#text') it.m.text = (it.m.text ? it.m.text + '\n' : '') + 'New ' + (it.m.type === 'steps' ? 'step' : 'point');
+        else (it.m[k] = (it.m[k] || []).slice()).push(k === 'cols' ? { l: 'Label', v: 'Figure' } : 'New tag'); }
+      else { const [k, i] = b.dataset.crm.split(':');
+        if (k === '#text') { const a = String(it.m.text || '').split('\n'); a.splice(+i, 1); it.m.text = a.join('\n'); }
+        else { it.m[k] = (it.m[k] || []).slice(); it.m[k].splice(+i, 1); } }
+      renderAll(); return;
+    }
     if (b.dataset.place) {
       mark(); const g = G();
       const q = lgeoW(it);
@@ -3121,6 +3290,19 @@
     tab = 'logos'; renderAll(); cmTick();
   }
   function cmStop() { if (CMW) clearTimeout(CMW.tm); CMW = null; }
+  // THE PDS EXTENSION HANDS THE EXPORT OVER AS IT DOWNLOADS (2026-11-27): Chrome's downloads API
+  // sees it finish on claude.ai, so CASV gets the file at once, with the film's link (the
+  // download's page), with no Downloads polling. While CASV is waiting it counts as that export
+  // (an Update replaces the old one); otherwise it comes in as a new mograph with its link.
+  async function cmDeliver(file, link) {
+    const w = CMW || { url: CM_RE.test(link || '') ? link : '', rep: '' };
+    if (!CMW) { CMW = Object.assign({ since: Date.now() / 1000, t0: Date.now(), last: {}, msg: '' }, w); if (!CMW.url) CMW = null; }
+    else if (!CMW.url && CM_RE.test(link || '')) CMW.url = link;
+    await addFiles([file], w.rep ? 'cmrep' : 'logo');
+    if (CMW && !CMW.tm) cmStop();          // set only for this file: addFiles has taken the link
+    tab = 'logos'; renderAll();
+    return { ok: true, said: (w.rep ? 'Replaced the mograph with the new export: ' : 'Added as a mograph: ') + file.name };
+  }
   async function cmTick() {
     const w = CMW; if (!w) return;
     if (Date.now() - w.t0 > 20 * 60e3) { cmStop(); toast('Stopped waiting for Claude Motion after 20 minutes. Drop the exported file here instead.'); renderLib(); return; }
@@ -4129,5 +4311,5 @@
     }
   };
   // a small handle for tests and the console
-  window.VideoStudio = { get project() { return P; }, get time() { return T; }, media, stats, bot, addFiles, importScript, parseScript, seek, play, pause, split, total, draw: () => { sync(); draw(); } };
+  window.VideoStudio = { get project() { return P; }, get time() { return T; }, media, stats, bot, addFiles, cmDeliver, importScript, parseScript, seek, play, pause, split, total, draw: () => { sync(); draw(); } };
 })();
