@@ -3812,7 +3812,22 @@
   $('#safeBtn').addEventListener('click', () => { showSafe = !showSafe; $('#safeBtn').setAttribute('aria-pressed', showSafe); if (showSafe) guideShow(); else guideHide(); });
   $('#zoIc').innerHTML = ico('zoom_out'); $('#ziIc').innerHTML = ico('zoom_in');
   $('#frameBtn').innerHTML = ico('photo_camera') + 'Save this frame<s>PNG</s>'; $('#exportBtn').innerHTML = ico('download') + 'Export the video<s>MP4</s>'; $('#outBtn').innerHTML = ico('download') + '<span class="vs-l2">Export</span>' + CHEV;
-  function paintTheme() { const light = document.documentElement.dataset.theme === 'light'; $('#themeBtn').innerHTML = ico(light ? 'dark_mode' : 'light_mode') + (light ? 'Switch to the dark theme' : 'Switch to the light theme'); }
+  function paintTheme() {
+    const light = document.documentElement.dataset.theme === 'light'; $('#themeBtn').innerHTML = ico(light ? 'dark_mode' : 'light_mode') + (light ? 'Switch to the dark theme' : 'Switch to the light theme');
+    const tc = document.querySelector('meta[name="theme-color"]'), app = getComputedStyle(document.documentElement).getPropertyValue('--ps-app').trim();
+    if (tc && app) tc.content = app;   // the app window's title bar takes the chrome's ground
+  }
+  // Chrome web app (casv-manifest.json). Chrome offers the install once the page qualifies; the
+  // menu item shows only then, and never inside the installed window.
+  let installEvt = null;
+  const paintInstall = () => { $('#installBtn').hidden = !installEvt || matchMedia('(display-mode: standalone)').matches; };
+  $('#installBtn').innerHTML = ico('install_desktop') + 'Install CASV as an app<s>Chrome</s>';
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvt = e; paintInstall(); });
+  addEventListener('appinstalled', () => { installEvt = null; paintInstall(); toast('CASV is installed. Open it from the Dock, Launchpad or Spotlight.'); });
+  $('#installBtn').addEventListener('click', async () => {
+    if (!installEvt) return; const e = installEvt; installEvt = null; paintInstall();
+    try { await e.prompt(); } catch (_) {}
+  });
   if (localStorage.getItem(TKEY) === 'light') document.documentElement.dataset.theme = 'light';
   $('#themeBtn').addEventListener('click', () => {
     const r = document.documentElement; if (r.dataset.theme === 'light') delete r.dataset.theme; else r.dataset.theme = 'light';

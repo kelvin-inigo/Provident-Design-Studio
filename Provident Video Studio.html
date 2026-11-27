@@ -4,6 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CASV · Provident Video Studio</title>
+<!-- A Chrome web app (2026-11-27): Chrome installs it from casv-manifest.json into its own window
+     and Dock icon. The id is the page's own URL, so a shortcut made earlier with Chrome's
+     "Create shortcut" is the same app and picks up the name and icon. theme-color follows the
+     chrome theme (paintTheme). -->
+<meta name="theme-color" content="#131519">
+<link rel="manifest" href="casv-manifest.json">
+<link rel="icon" href="casv-icon.svg" type="image/svg+xml">
+<link rel="icon" href="casv-icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="casv-icon-180.png">
 <!-- PROTOTYPE (branch video-studio, local only). A standalone page: it links the chrome kit
      directly, so tokens, buttons, fields and the typeface come from ui-design-system/. The
      artwork (the canvas) reads the ART literals in video-studio.js and never a chrome token. -->
@@ -914,6 +923,7 @@ dialog.vs-dlg::backdrop{background:rgba(10,11,13,.62)}
   <button class="vs-mi" id="prevBtn2" hidden></button>
   <hr>
   <button class="vs-mi" id="themeBtn"></button>
+  <button class="vs-mi" id="installBtn" title="Opens CASV in its own window, with its own icon in the Dock and Launchpad" hidden></button>
 </div>
 <div class="vs-pop vs-menu" id="outPop" popover>
   <button class="vs-mi" id="exportBtn" title="Record the video and save it to Downloads"></button>

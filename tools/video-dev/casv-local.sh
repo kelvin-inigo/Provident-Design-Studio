@@ -166,6 +166,33 @@ write_app() {
   mkdir -p "$APPS"; rm -rf "$APP"
   local s="$DIR/tools/video-dev/casv-local.sh"; s="${s//\\/\\\\}"; s="${s//\"/\\\"}"
   osacompile -o "$APP" -e "do shell script \"/bin/bash \" & quoted form of \"$s\" & \" open > /dev/null 2>&1 &\"" >/dev/null 2>&1
+  app_icon
+}
+# The launcher wears CASV's icon (the same "p" and play mark as the Chrome app), set again when an
+# update brings a new one.
+app_icon() {
+  local src="$DIR/tools/video-dev/casv.icns" dst="$APP/Contents/Resources/applet.icns"
+  [ -f "$src" ] && [ -d "$APP" ] || return 0
+  cmp -s "$src" "$dst" || { cp "$src" "$dst" && touch "$APP"; }
+}
+
+# CASV is a Chrome web app (2026-11-27, casv-manifest.json). Open the installed app's window when
+# there is one (Chrome's shim in "Chrome Apps.localized" names CASV's address); else the page in
+# Chrome, whose File menu offers "Install CASV as an app"; a Mac without Chrome gets its browser.
+chrome_app() {
+  local a u
+  for a in "$HOME/Applications/Chrome Apps.localized/"*.app "/Applications/Chrome Apps.localized/"*.app; do
+    [ -f "$a/Contents/Info.plist" ] || continue
+    u="$(/usr/libexec/PlistBuddy -c 'Print :CrAppModeShortcutURL' "$a/Contents/Info.plist" 2>/dev/null)"
+    case "$u" in "http://localhost:$PORT/"*|"http://127.0.0.1:$PORT/"*) printf '%s' "$a"; return 0 ;; esac
+  done
+  return 1
+}
+open_page() {
+  local a
+  if a="$(chrome_app)"; then open "$a"
+  elif [ -d "/Applications/Google Chrome.app" ] || [ -d "$HOME/Applications/Google Chrome.app" ]; then open -a "Google Chrome" "$PAGE"
+  else open "$PAGE"; fi
 }
 
 # ---- commands -----------------------------------------------------------------------------------
@@ -190,10 +217,11 @@ do_install() {
   progress 100 "CASV is installed" done
   echo; say "Done. CASV runs at $PAGE"
   say "Open it any time from Applications › Provident Video Studio (it updates itself first)."
+  say "In Chrome, the file menu (the video's name, top left) › Install CASV as an app gives it its own window."
   say "To generate video and write prompts, sign in once:"
   say "  bash \"$DIR/tools/video-dev/casv-local.sh\" signin"
   echo
-  [ -n "${CASV_NO_OPEN:-}" ] || open "$PAGE"
+  [ -n "${CASV_NO_OPEN:-}" ] || open_page
 }
 
 do_update() {
@@ -207,7 +235,8 @@ do_update() {
 do_open() {
   do_update >/dev/null 2>&1 && restart_helper
   helper_up || restart_helper
-  if wait_helper 30; then open "$PAGE"
+  app_icon
+  if wait_helper 30; then open_page
   else osascript -e 'display alert "CASV could not start" message "Its log is in ~/Library/Logs/Provident/casv.log."' >/dev/null 2>&1; fi
 }
 
