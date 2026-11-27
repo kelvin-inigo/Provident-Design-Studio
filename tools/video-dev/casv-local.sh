@@ -244,8 +244,10 @@ do_signin() {
   local hf; hf="$(command -v higgsfield || echo "$NODE/bin/higgsfield")"
   echo "  1. Higgsfield (generates video, voice and music):"
   PATH="$NODE/bin:$PATH" "$hf" auth login </dev/tty
-  echo "  2. Claude (writes prompts from photos):"
+  echo "  2. Claude (writes prompts from photos, and the Assistant):"
   /usr/bin/python3 "$DIR/tools/video-dev/serve.py" --claude-login </dev/tty
+  echo "  3. Grok for the Assistant (optional; an xAI API key, kept on this Mac only). Press Return to skip."
+  /usr/bin/python3 "$DIR/tools/video-dev/serve.py" --grok-key </dev/tty || true
 }
 
 do_status() {

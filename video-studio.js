@@ -2322,7 +2322,7 @@
   // timeline or the picture (CAS's "This component"); Whole video is what is set once (CAS's
   // Layout column). Picking something turns to Selected, dropping it turns back to Whole video,
   // and the switch lets either be opened by hand.
-  let rtab = 'doc', selKey = '';
+  let rtab = 'doc', selKey = '', aiHold = false;     // aiHold: the Assistant is working, its steps select things; the rail stays on it
   const cutBtn = (kind, n, label, one) => '<button class="p-ghost p-sm" data-mkcut="' + kind + '"' + (one ? ' data-one="1"' : '') + (n ? '' : ' disabled') + '>' + label + (n ? ' · ' + n : '') + '</button>';
   function mkPaint() {
     const pop = $('#mkPop'); if (!pop) return;
@@ -2378,10 +2378,11 @@
   function renderInspector() {
     const it = find(sel), el = $('#insp'); let h = '';
     const key = it ? sel.kind + ':' + sel.id : '';
-    if (key !== selKey) { selKey = key; rtab = it ? 'sel' : 'doc'; if (it) { document.body.dataset.pane = 'edit'; paintPane(); } }
+    if (key !== selKey) { selKey = key; if (!(rtab === 'ai' && (!it || aiHold))) rtab = it ? 'sel' : 'doc'; if (it) { document.body.dataset.pane = 'edit'; paintPane(); } }
     $('#rtabs').querySelectorAll('button').forEach(b => { const on = b.dataset.rtab === rtab; if (on) b.dataset.on = '1'; else delete b.dataset.on; b.setAttribute('aria-selected', on); });
-    genTab(); $('#gen').hidden = rtab !== 'gen'; el.hidden = rtab === 'gen';
+    genTab(); $('#gen').hidden = rtab !== 'gen'; $('#ai').hidden = rtab !== 'ai'; el.hidden = rtab === 'gen' || rtab === 'ai';
     if (rtab === 'gen') { paintGen(); return; }
+    if (rtab === 'ai') { paintAi(); return; }
     if (rtab === 'doc') { el.innerHTML = docHtml(); return; }
     { const g = group(); if (g && sel.kind === 'clip') {
       const st = clipStarts(), ix = g.map(c => P.clips.indexOf(c)), a0 = Math.min(...ix.map(k => st[k])), L = g.reduce((a, c) => a + clipLen(c), 0);
@@ -2547,6 +2548,121 @@
     el.parentNode.scrollTop = top;
   }
   function renderGen() { genTab(); if (rtab === 'gen') paintGen(); renderBar(); }
+
+  // ── THE ASSISTANT (2026-11-27, by request: "give option for grok or claude cowork to take over,
+  // let me prompt instruction then they take over"; the user chose the edits happening live here).
+  // The person writes what to do; Claude or Grok (serve.py /api/assist) answers with the bot's own
+  // edit steps, applied through VideoStudio.bot.edit one at a time so each shows as it lands. Steps
+  // that fail go back once for a fix. The video as it was is kept: Undo all (or ⌘Z) takes the run back.
+  const AI = { text: '', engine: 'claude', busy: false, log: [], said: '', err: '', before: null, can: null, t0: 0 };
+  const aiQ = t => { t = plain(t); return '“' + t.slice(0, 40) + (t.length > 40 ? '…' : '') + '”'; };
+  const aiWhat = id => {
+    const c = P.clips.find(x => x.id === id); if (c) return 'clip ' + (P.clips.indexOf(c) + 1);
+    const t = P.texts.find(x => x.id === id); if (t) return 'the text ' + aiQ(t.text);
+    const a = P.audio.find(x => x.id === id); if (a) return 'the ' + (a.track === 'sound' ? 'sound' : 'music');
+    return 'an item';
+  };
+  function aiLabel(o) {
+    const nm = id => media[id] ? aiQ(media[id].name) : 'a file';
+    switch (o.op) {
+      case 'add_clip': return 'Add ' + nm(o.media) + ' to the timeline';
+      case 'add_text': return 'Add the text ' + aiQ(o.text);
+      case 'add_audio': return 'Add ' + nm(o.media) + (o.track === 'sound' ? ' as a sound' : ' as music');
+      case 'set': return 'Change ' + aiWhat(o.id);
+      case 'remove': return 'Remove ' + aiWhat(o.id);
+      case 'wordmark': return o.on === false ? 'Hide the wordmark' : 'Set the wordmark';
+      case 'size': return 'Make it ' + o.size;
+      case 'name': return 'Name the video ' + aiQ(o.name);
+      default: return String(o.op);
+    }
+  }
+  // what the assistant reads: the bot's summary, this video's whole library and the studio's lists
+  function aiProject() {
+    const s = bot.summary();
+    s.library = Object.values(media).filter(ownV).map(m => ({ id: m.id, kind: m.kind, name: m.name, seconds: m.dur ? +m.dur.toFixed(2) : undefined, width: m.w, height: m.h, mograph: m.gfx ? true : undefined }));
+    s.playhead = +T.toFixed(2);
+    s.lists = { anims: ANIMS.map(a => a[0]), presets: ['headline', 'full', 'caption', 'centre', 'number'], sizes: ['Small', 'Medium', 'Large', 'Jumbo'] };
+    return s;
+  }
+  function aiHtml() {
+    const eng = AI.engine, who = eng === 'grok' ? 'Grok' : 'Claude', off = !!(AI.can && !AI.can[eng]);
+    let h = '<div class="vs-sec"><div class="vs-h"><b>Assistant</b><s>Claude or Grok edits this video</s></div>' +
+      '<textarea class="p-in vs-ai-in" id="aiIn" rows="4" spellcheck="true" aria-label="What should the assistant do" placeholder="e.g. Make each clip 3 seconds, add the headline “Palm Central” at the start and show the wordmark at the top"' + (AI.busy ? ' disabled' : '') + '>' + esc(AI.text) + '</textarea>' +
+      '<div class="vs-ai-row"><div class="vs-seg" role="radiogroup" aria-label="Which assistant">' +
+      [['claude', 'Claude'], ['grok', 'Grok']].map(([k, l]) => '<button type="button" role="radio" data-aieng="' + k + '" aria-checked="' + (eng === k) + '"' + (eng === k ? ' data-on="1"' : '') + (AI.busy ? ' disabled' : '') + '>' + l + '</button>').join('') +
+      '</div><button type="button" class="p-btn p-sm" id="aiGo"' + (AI.busy || off ? ' disabled' : '') + '>' + (AI.busy ? 'Working…' : 'Let it work') + '</button></div>';
+    h += off ? '<span class="vs-note">' + (eng === 'grok'
+        ? '<b>Grok needs an xAI API key on this Mac.</b> In Terminal, in CASV’s folder, run <code>python3 tools/video-dev/serve.py --grok-key</code>, then press Grok again.'
+        : '<b>Claude Code is not on this Mac.</b> Install CASV again, then sign in with <code>bash tools/video-dev/casv-local.sh signin</code>.') + '</span>'
+      : '<span class="vs-note">It works with the files already in this video’s library and changes the timeline here, step by step. Nothing is saved to Drive or sent anywhere. ⌘Return starts it.</span>';
+    h += '</div>';
+    const rows = AI.log.slice();
+    if (AI.busy && AI.wait) rows.push({ t: who + (AI.log.length ? ' is fixing the steps that did not work' : ' is reading the video and planning') + '…', s: 'run', e: Math.round((Date.now() - AI.t0) / 1000) + ' s' });
+    if (rows.length) h += '<div class="vs-sec"><ul class="vs-ai-log" aria-live="polite">' + rows.map(l => '<li data-s="' + l.s + '"><i></i><span>' + esc(l.t) + (l.e ? '<small>' + esc(l.e) + '</small>' : '') + '</span></li>').join('') + '</ul></div>';
+    if (AI.err) h += '<div class="vs-sec"><span class="vs-note" data-bad="1">' + esc(AI.err) + '</span></div>';
+    if (!AI.busy && (AI.said || AI.before)) h += '<div class="vs-sec">' + (AI.said ? '<p class="vs-ai-said">' + esc(AI.said) + '</p>' : '') +
+      (AI.before ? '<div class="vs-acts"><button type="button" class="p-ghost p-sm" id="aiUndo">Undo all</button></div>' : '') + '</div>';
+    return h;
+  }
+  function paintAi() {
+    const el = $('#ai'); if (!el || rtab !== 'ai') return;
+    if (AI.can == null) { AI.can = {}; fetch('/api/assist/status', { cache: 'no-store' }).then(r => r.ok ? r.json() : { claude: true, grok: true }).then(j => { AI.can = j; paintAi(); }).catch(() => { AI.can = null; }); }
+    const f = document.activeElement && document.activeElement.id === 'aiIn' ? [document.activeElement.selectionStart, document.activeElement.selectionEnd] : null;
+    el.innerHTML = aiHtml();
+    if (f) { const t = $('#aiIn'); if (t && !t.disabled) { t.focus(); t.setSelectionRange(f[0], f[1]); } }
+  }
+  async function aiRun() {
+    const text = AI.text.trim(); if (!text || AI.busy) return;
+    if (playing) pause();
+    Object.assign(AI, { busy: true, wait: true, log: [], said: '', err: '', t0: Date.now(), before: JSON.stringify(P) });
+    aiHold = true;
+    paintAi();
+    const tick = setInterval(() => { if (AI.wait) paintAi(); }, 1000);
+    let errors = [], any = false;
+    try {
+      for (let round = 0; round < 2; round++) {
+        AI.wait = true; paintAi();
+        const res = await fetch('/api/assist', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ engine: AI.engine, instruction: text, project: aiProject(), errors }) });
+        // a helper started before the Assistant existed has no /api/assist
+        const r = res.status === 404 ? { error: 'CASV\u2019s helper on this Mac is older than the Assistant. Restart it (quit and open Applications \u203a Provident Video Studio), then try again.' } : await res.json();
+        AI.wait = false;
+        if (r.error) { AI.err = r.error; break; }
+        if (r.said) AI.said = r.said;
+        errors = [];
+        for (const op of r.ops || []) {
+          const line = { t: aiLabel(op), s: 'run' }; AI.log.push(line); paintAi();
+          try { bot.edit([op]); line.s = 'ok'; any = true; }
+          catch (e) { line.s = 'bad'; line.e = String((e && e.message) || e); errors.push({ step: op, error: line.e }); }
+          paintAi(); await new Promise(res => setTimeout(res, 180));
+        }
+        if (!errors.length || !(r.ops || []).length) break;
+      }
+    } catch (e) { AI.err = 'CASV’s helper did not answer. Is it still running?'; }
+    clearInterval(tick);
+    AI.busy = false; AI.wait = false; aiHold = false; sel = null;
+    if (any) {                         // one step back for ⌘Z too: the video as it was before the run
+      if (undo[undo.length - 1] !== AI.before) { undo.push(AI.before); if (undo.length > 80) undo.shift(); redo.length = 0; }
+      dirty = true; save();
+    } else AI.before = null;
+    if (!AI.said && !AI.err && !any) AI.said = 'Nothing changed.';
+    renderAll(); paintAi();
+  }
+  function aiUndo() {
+    if (!AI.before) return;
+    mark(); P = JSON.parse(AI.before); AI.before = null; AI.said = 'Taken back: the video is as it was before the assistant started.'; AI.log = []; AI.err = '';
+    sel = null; partnerLoad(); fitCanvas(); renderAll(); dirty = true; save(); paintAi();
+  }
+  { const el = $('#ai');
+    el.addEventListener('input', e => { if (e.target.id === 'aiIn') AI.text = e.target.value; });
+    el.addEventListener('keydown', e => { if (e.target.id === 'aiIn' && e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); aiRun(); } });
+    el.addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || b.disabled) return;
+      if (b.dataset.aieng) { AI.engine = b.dataset.aieng; paintAi(); }
+      else if (b.id === 'aiGo') aiRun();
+      else if (b.id === 'aiUndo') aiUndo();
+    });
+  }
   const gen = $('#gen');
   // a field's visible label names it for assistive tech too (the helpers emit a sibling label with no `for`)
   function labelFields(root) {

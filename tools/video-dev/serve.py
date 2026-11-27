@@ -15,6 +15,7 @@ import subprocess
 import sys
 import threading
 import time
+import urllib.error
 import urllib.request
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
@@ -170,6 +171,87 @@ def claude_bin():
 def claude_env():
     # started from inside a Claude Code session, the parent's variables would make this one refuse to run
     return {k: v for k, v in os.environ.items() if not k.startswith(('CLAUDECODE', 'CLAUDE_CODE_'))}
+
+
+# THE ASSISTANT (2026-11-27, by request: "give option for grok or claude cowork to take over, let me
+# prompt instruction then they take over"; the user chose the edits happening live in the open video).
+# The page sends the instruction and the video's summary (VideoStudio.bot.summary() plus its
+# library); Claude (Claude Code on this Mac, the same sign-in as "Have Claude write it") or Grok
+# (the xAI API, a key kept on this Mac) answers with the bot's own edit steps, which the page applies
+# one by one through VideoStudio.bot.edit. A second round carries the steps that failed.
+ASSIST_SCHEMA = {'type': 'object', 'additionalProperties': False, 'required': ['said', 'ops'],
+                 'properties': {'said': {'type': 'string'}, 'ops': {'type': 'array', 'items': {'type': 'object'}}}}
+ASSIST_RULES = """You edit a short real estate video in CASV, Provident's video studio, for the person using it.
+You do not touch the studio yourself: you answer with a list of edit steps, and the studio applies them in order.
+Steps (the studio checks every value):
+{op:'add_clip', media, from?, to?, seconds?, index?, fit?:'fill'|'fit', mute?} - clips play one after another in list order; media is a library id; from/to trim a video (seconds into the file); seconds is how long a photo shows (default 3); index puts it at that place (0 = first).
+{op:'add_text', preset?:'headline'|'full'|'caption'|'centre'|'number', text, eyebrow?, sub?, at, seconds, size?:'Small'|'Medium'|'Large'|'Jumbo', pos?:'top'|'centre'|'bottom', align?:'left'|'centre', anim?} - at is when it appears (seconds from the start); anim is one of the names in lists.anims.
+{op:'add_audio', media, track?:'music'|'sound', at?, volume? (0-1), speed? (percent)} - music starts at 0 and is cut to the video's length.
+{op:'set', id, ...the same fields} changes a clip, text or audio by its id (index moves a clip; speed is a percent, 25-400 for a clip). {op:'remove', id}.
+{op:'wordmark', on?, align?:'left'|'centre', vpos?:'top'|'bottom', ink?:'white'|'navy'}. {op:'size', size:'9:16'|'1:1'}. {op:'name', name}.
+Only use ids that are in the video below (clips, texts, audio, library). Text is plain; **double asterisks** is the only markup.
+Brand rules: sentence-case headlines, but names (projects, buildings, communities, developers, people) keep their capitals exactly as the person wrote them, e.g. "Welcome to Palm Central"; short texts; never two texts at the same place at the same time; never invent prices, payment plans, permits, listing numbers or dates; if the instruction needs a fact that is not given, leave it out and say so.
+If the instruction cannot be done with these steps (for example it needs footage that is not in the library), do what you can and say what is missing.
+Answer with JSON only: "said" one or two plain sentences for the person (what you did, what you could not do), "ops" the steps."""
+
+
+def assist_prompt(b):
+    q = ASSIST_RULES + '\n\nTHE VIDEO NOW:\n' + json.dumps(b.get('project') or {}, ensure_ascii=False)
+    q += '\n\nTHE INSTRUCTION:\n' + str(b.get('instruction') or '')[:4000]
+    if b.get('errors'):
+        q += ('\n\nYOUR LAST STEPS WERE APPLIED, BUT THESE FAILED (the video above already has the others). '
+              'Answer with steps that fix only these, or none:\n' + json.dumps(b['errors'], ensure_ascii=False)[:6000])
+    return q
+
+
+def grok_key():
+    k = os.environ.get('XAI_API_KEY') or ''
+    try:
+        k = k or open(GROK_KEY).read().strip()
+    except OSError:
+        pass
+    return k
+
+
+GROK_KEY = os.path.expanduser('~/Library/Application Support/Provident/casv-xai-key')
+
+
+def assist_claude(q):
+    cb = claude_bin()
+    if not cb:
+        raise LookupError('Claude Code is not on this computer.')
+    r = subprocess.run([cb, '-p', q, '--model', 'opus', '--output-format', 'json', '--json-schema', json.dumps(ASSIST_SCHEMA),
+                        '--allowedTools', ''], capture_output=True, text=True, timeout=300, cwd=os.path.expanduser('~'), env=claude_env())
+    out = (r.stdout or '') + (r.stderr or '')
+    if 'Not logged in' in out or 'Please run /login' in out:
+        raise LookupError('Claude is not signed in on this computer. In Terminal run: python3 "%s" --claude-login' % os.path.abspath(__file__))
+    try:
+        res = json.loads(r.stdout)
+        return res.get('structured_output') or json.loads(re.search(r'\{.*\}', res.get('result') or '', re.S).group(0))
+    except Exception:
+        raise LookupError('Claude gave no steps back. ' + out.strip()[-240:])
+
+
+def assist_grok(q):
+    key = grok_key()
+    if not key:
+        raise LookupError('Grok needs an xAI API key on this computer. In Terminal run: python3 "%s" --grok-key' % os.path.abspath(__file__))
+    body = {'model': os.environ.get('CASV_GROK_MODEL') or 'grok-4', 'response_format': {'type': 'json_object'},
+            'messages': [{'role': 'system', 'content': 'You answer with one JSON object only.'}, {'role': 'user', 'content': q}]}
+    req = urllib.request.Request('https://api.x.ai/v1/chat/completions', data=json.dumps(body).encode(), method='POST',
+                                 headers={'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json'})
+    try:
+        with urllib.request.urlopen(req, timeout=300) as r:
+            res = json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        msg = e.read().decode('utf-8', 'replace')[:300]
+        raise LookupError('Grok answered %d: %s' % (e.code, msg))
+    except OSError as e:
+        raise LookupError('Grok did not answer: %s' % e)
+    try:
+        return json.loads(res['choices'][0]['message']['content'])
+    except Exception:
+        raise LookupError('Grok gave no steps back.')
 
 
 def desc_run(jp):
@@ -544,6 +626,16 @@ class H(SimpleHTTPRequestHandler):
             body = json.loads(self.rfile.read(n) or b'{}')
         except Exception:
             return self._json(400, {'error': 'bad json'})
+        if path == '/api/assist':                 # the Assistant: an instruction in, the bot's edit steps out
+            try:
+                q = assist_prompt(body)
+                w = assist_grok(q) if body.get('engine') == 'grok' else assist_claude(q)
+                ops = [o for o in (w.get('ops') or []) if isinstance(o, dict) and o.get('op')][:80]
+                return self._json(200, {'said': str(w.get('said') or '')[:600], 'ops': ops})
+            except LookupError as e:
+                return self._json(200, {'error': str(e)})
+            except subprocess.TimeoutExpired:
+                return self._json(200, {'error': 'The assistant took longer than five minutes. Try a smaller instruction.'})
         if path == '/api/work/state':             # one small thing the page used to keep in the browser
             key = body.get('key')
             if key not in WORK_KEYS or not isinstance(body.get('value'), (str, type(None))):
@@ -710,6 +802,8 @@ class H(SimpleHTTPRequestHandler):
         # into Downloads. The page asks for video files that landed there since it opened the film
         # (/api/cm/wait?since=<epoch s>) and then fetches the one it picked (/api/cm/file?name=).
         # Only video files directly in ~/Downloads, by plain name. macOS asks once to allow Downloads.
+        if self.path.split('?')[0] == '/api/assist/status':    # which assistants this Mac can run
+            return self._json(200, {'claude': bool(claude_bin()), 'grok': bool(grok_key())})
         if self.path.split('?')[0] in ('/api/cm/wait', '/api/cm/file'):
             dl = os.path.expanduser('~/Downloads'); q = self._q()
             try:
@@ -873,6 +967,16 @@ class H(SimpleHTTPRequestHandler):
 
 
 if __name__ == '__main__':
+    if '--grok-key' in sys.argv:              # keep an xAI API key on this Mac for the Assistant's Grok (never in the repo)
+        import getpass
+        k = getpass.getpass('Paste the xAI API key (it is not shown), then Return: ').strip()
+        if not k:
+            sys.exit('Nothing saved.')
+        os.makedirs(os.path.dirname(GROK_KEY), exist_ok=True)
+        with open(GROK_KEY, 'w') as fh:
+            fh.write(k)
+        os.chmod(GROK_KEY, 0o600)
+        sys.exit('Saved for this Mac. The Assistant can use Grok now.')
     if '--claude-login' in sys.argv:          # sign Claude Code in once, so the studio can write prompts from photos
         cb = claude_bin()
         sys.exit(subprocess.call([cb, 'auth', 'login'], env=claude_env()) if cb else 'Claude Code is not on this computer.')
