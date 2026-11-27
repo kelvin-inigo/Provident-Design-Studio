@@ -1112,3 +1112,29 @@ one job. `viewHome` is now one list.
   (reloaded) and dark; top bar 55px, no sideways scroll at 1440; phone 375 no overflow.
   **Not done:** Tracker is not yet renamed or simplified; the guide, help frames and Grok notes
   still describe the old Home; real Drive and sign-in not exercised.
+
+# TRACKER IS "ALL WORK": ONE TABLE (2026-11-27, branch home/streamline, NOT on main)
+
+By request, the next step after My work. `#/tracker` now draws `viewAll()`.
+
+- One table (`.aw`): render, name (kind, "waits on you"), step (the studio's segments, the stage
+  name for a campaign or the post's own step, then `sub`), Made (`tkCount(x.dlv)` for a campaign),
+  due (`dueEl`). A row opens its item page. Rows waiting on the viewer are tinted.
+- Order is Progress's attention order (`att`): waits on you, late, in progress, signed off with
+  something missing, all in, finished; then due date, then newest.
+- Controls: kind chips (only when the role sees both studios; `sxF`, `data-sf`), Find by name
+  (`#sx-q`), **Show finished** (`#sx-closed`, drawn only when something is finished). They reuse
+  the old state and handlers, so `sxDraw` and the focus-return still work. `sxMine`, the facets
+  (`sxFl`) and `sxV` are ignored here.
+- **Not drawn any more**: the Progress | Kanban switch, the deliverables grid per campaign,
+  Board | List, the Filter menu (Stage, Due, From), Only what waits on me, sort, group, density,
+  the Overdue lane and its three modes, the folding columns. `viewTracker`, `viewStatus` and their
+  helpers and CSS are still in the file, unreached; remove them when this lands. `?v=kanban`,
+  `?stage=` and `#/status` all land on the table.
+- Labels: nav and title "All work"; the item pages' back link "All work"; strings that said
+  Tracker (quiet states, New, the launch / posted confirms) follow.
+- Verified on :8797 (seed): 15 rows for the admin in attention order; Posts chip 7; search "palm"
+  2 with focus kept; Preview as pm 8 campaigns, smm 7 posts; 0 contrast failures dark (87 nodes) and
+  light (103, reloaded); no sideways scroll at 1440 or 375. **Not exercised:** Show finished (the
+  seed has no finished work), real Drive. The guide's Tracker section, the help frames and the Grok
+  notes still describe Progress and Kanban.

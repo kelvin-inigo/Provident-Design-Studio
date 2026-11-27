@@ -71,6 +71,20 @@ button{font-family:inherit}
 @media (min-width:641px){ .uh-nav [data-nav="projects"],.uh-nav [data-nav="access"],.uh-nav [data-nav="engine"],.uh-nav [data-nav="help"]{display:none} }
 .mn-i .uh-n{margin-left:auto}
 .mw{max-width:980px; margin:0 auto; width:100%}
+/* ALL WORK: one table */
+.aw-h,.aw a{display:grid; grid-template-columns:52px minmax(0,1.5fr) minmax(0,1.7fr) 86px 150px; gap:18px; align-items:center}
+.aw-h{padding:0 18px 8px; font:500 12px/1 var(--ps-font); letter-spacing:.04em; text-transform:uppercase; color:var(--ps-ink-2)}
+.aw{list-style:none; margin:0; padding:0; border-radius:16px; background:var(--ps-card); box-shadow:0 0 0 1px var(--ps-hair); overflow:hidden}
+.aw a{padding:11px 18px; color:var(--ps-ink); text-decoration:none; font-size:13.5px}
+.aw li + li a{border-top:1px solid var(--ps-hair)}
+.aw a:hover{background:var(--ps-card-h)} .aw a:focus-visible{outline-offset:-2px}
+.aw a[data-mine]{background:var(--ps-tint-1)}
+.aw-th{display:flex; justify-content:center}
+.aw-n{min-width:0} .aw-n b{display:block; font-weight:500; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.aw-n small{font-size:12.5px; color:var(--ps-ink-2)} .aw-n em{font-style:normal; color:var(--ps-ink)}
+.aw-s{display:flex; align-items:center; gap:10px; min-width:0; color:var(--ps-ink-2)} .aw-s > span:last-child{overflow:hidden; text-overflow:ellipsis; white-space:nowrap} .aw-s b{font-weight:500; color:var(--ps-ink)}
+.aw-m{color:var(--ps-ink-2); font-variant-numeric:tabular-nums}
+@media (max-width:900px){ .aw-h{display:none} .aw a{grid-template-columns:44px minmax(0,1fr) auto; gap:12px; padding:11px 12px} .aw-s,.aw-m{display:none} .aw .rd{--h:36px !important} }
 .mw .h1{margin-bottom:24px}
 .wks{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px}
 .wk{display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:22px; align-items:center; padding:18px 22px 18px 18px; border-radius:16px; background:var(--ps-card); box-shadow:0 0 0 1px var(--ps-hair)}
@@ -1423,7 +1437,7 @@ body{-webkit-tap-highlight-color:transparent;
   <span class="uh-ttl" id="uh-ttl" aria-hidden="true"></span>
   <nav class="uh-nav" aria-label="Main">
     <a href="#/" data-nav="home"><svg class="i uh-ti" aria-hidden="true"><use href="#g-home"/></svg>My work <span class="uh-n" id="mine-n" hidden></span></a>
-    <a href="#/tracker" data-nav="tracker"><svg class="i uh-ti" aria-hidden="true"><use href="#g-list"/></svg>Tracker</a>
+    <a href="#/tracker" data-nav="tracker"><svg class="i uh-ti" aria-hidden="true"><use href="#g-list"/></svg>All work</a>
     <a href="#/projects" data-nav="projects"><svg class="i uh-ti" aria-hidden="true"><use href="#g-folder"/></svg>Projects</a>
     <a href="#/access" data-nav="access"><svg class="i uh-ti" aria-hidden="true"><use href="#g-key"/></svg>Access <span class="uh-n" id="acc-n" hidden></span></a>
     <a href="#/engine" data-nav="engine" hidden><svg class="i uh-ti" aria-hidden="true"><use href="#g-eng"/></svg>Engine</a>
@@ -1738,13 +1752,13 @@ body{-webkit-tap-highlight-color:transparent;
       '<p>Use your Provident Google account. What is waiting on you, and what is with others, follows your role.</p>' +
       (acc ? '<div class="qk-a"><button class="b b-p b-lg" type="button" data-sign="in"' + (phase === 'busy' ? ' disabled' : '') + '>' + (phase === 'busy' ? 'Signing in…' : 'Sign in with Google') + '</button></div>' : '') + '</div></div>';
     if (!studiosFor(r).length) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>Your role doesn’t follow campaigns or posts</h3>' +
-      '<p>Tracker lists them for the people who work on them. To follow every campaign without changing anything, ask the admin to give your role “View ad sets” under Access › Roles.</p></div></div>';
+      '<p>All work lists them for the people who work on them. To follow every campaign without changing anything, ask the admin to give your role “View ad sets” under Access › Roles.</p></div></div>';
     if (!data.known) return '<div class="qk"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>' + (busy ? 'Reading your work from Google Drive\u2026' : 'Connect Google Drive') + '</h3>' +
       '<p>' + (busy ? 'Campaigns and posts are kept on the team\u2019s Drive. This takes a few seconds the first time.' : 'Campaigns and posts are kept on the team\u2019s Drive. Connect it once on this computer and ' + (where === 'status' ? 'every campaign and post you can see is on this board.' : 'what is waiting on you, and what is with others, appears here.')) + '</p>' +
       (busy ? '' : '<div class="qk-a"><button class="b b-p b-lg" type="button" data-drive>Connect Google Drive' + ico('r') + '</button></div>') + '</div></div>';
     var o = data.others.length, cs = canStart(r);
     return '<div class="qk"><span class="qk-o">' + ico('check') + '</span><div><h3>You’re clear</h3>' +
-      '<p>' + (viewOnly() ? (o ? (o === 1 ? 'One campaign is' : o + ' campaigns are') + ' in progress. You follow them on Tracker; nothing there waits on you.' : 'No campaign is in progress right now.')
+      '<p>' + (viewOnly() ? (o ? (o === 1 ? 'One campaign is' : o + ' campaigns are') + ' in progress. You follow them on All work; nothing there waits on you.' : 'No campaign is in progress right now.')
         : o ? (o === 1 ? 'One campaign or post is' : o + ' campaigns and posts are') + ' with others. Nothing needs you until someone hands it back.' : 'Nothing is in flight right now.') + '</p>' +
       (!cs.length && viewOnly() && o ? '<div class="qk-a"><a class="b b-p b-lg" href="#/tracker?v=kanban">See the board' + ico('r') + '</a></div>' : '') +
       (cs.length ? '<div class="qk-a"><a class="b b-p b-lg" href="' + (cs.length > 1 ? '#/new' : STUDIO[cs[0]].start) + '">Start something' + ico('r') + '</a><a class="b b-l" href="#/tracker?v=kanban">See the board</a></div>' : '') + '</div></div>';
@@ -2104,6 +2118,39 @@ body{-webkit-tap-highlight-color:transparent;
       (act.length > 1 ? '<button class="b b-l" type="button" data-fx="*">Clear all</button>' : '') +
       '<span class="sx-n" role="status">' + n + ' of ' + of + ' shown' + (hid ? ' · ' + hid + ' overdue hidden' : '') + '</span></div>';
   }
+  // ═════ ALL WORK (2026-11-27, branch home/streamline) ═════
+  // Tracker is one table: every campaign and post, in the order that needs attention, with its
+  // step, what is made and when it is due. Three controls: the kind, the name, and finished work.
+  // Progress, Kanban, Board | List, the Filter menu, sort, group, density and the overdue modes are
+  // not drawn any more (viewTracker / viewStatus below are kept, unreached, until this lands); a
+  // late row says so in red and sorts to the top after what waits on you. Old ?v=kanban and
+  // #/status links land here.
+  function viewAll(){
+    var ss = studiosFor(data.r), both = ss.length > 1;
+    var h = '<div class="sx-head"><div><h1 class="h1">All work</h1><p class="lede">' + (both ? 'Every campaign and post, who has it, and when it is due.' : ss[0] === 'ops' ? 'Every post, the step it is at, and when it is due.' : 'Every campaign, the step it is at, and when it is due.') + '</p></div></div>';
+    if (!data.known || !me || !me.email || !ss.length) return h + quiet('status');
+    var all = sxClosed ? data.rows.concat(data.closed) : data.rows, ql = sxQ.toLowerCase();
+    if (!both || ['all', 'cas', 'ops'].indexOf(sxF) < 0) sxF = 'all';
+    h += '<div class="sx-tools">';
+    if (both) h += '<div class="flt" role="group" aria-label="Show">' + [['all','Everything'], ['cas','Campaigns'], ['ops','Posts']].map(function(f){
+      var c = all.filter(function(x){ return f[0] === 'all' || x.studio === f[0]; }).length;
+      return '<button type="button" data-sf="' + f[0] + '" data-fk="sf:' + f[0] + '" aria-pressed="' + (sxF === f[0]) + '">' + f[1] + ' <small>' + c + '</small></button>'; }).join('') + '</div>';
+    if (data.closed.length) h += '<button class="tg" type="button" id="sx-closed" data-fk="sx-closed" aria-pressed="' + sxClosed + '" title="Launched campaigns and posted posts"><i></i>Show finished <small>' + data.closed.length + '</small></button>';
+    h += '<label class="srch">' + ico('search') + '<input id="sx-q" type="search" placeholder="Find by name" value="' + esc(sxQ) + '" aria-label="Find by name"></label></div>';
+    function dn(x){ return x.stage === 'closed' ? 9999 : (due(x.due) || { n: 999 }).n; }
+    function att(x){ return x.stage === 'closed' ? 5 : x.mine ? 0 : isLate(x) ? 1 : !signedOff(x) && x.stage !== 'ready' ? 2 : shortOf(x) ? 3 : 4; }
+    var rows = all.filter(function(x){ return (sxF === 'all' || x.studio === sxF) && (!ql || String(x.name).toLowerCase().indexOf(ql) >= 0); })
+      .sort(function(a, b){ return att(a) - att(b) || dn(a) - dn(b) || (b.at || 0) - (a.at || 0); });
+    if (!rows.length) return h + '<div class="qk sx-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3 aria-level="2">' + (ql ? 'Nothing by that name' : 'Nothing in motion') + '</h3><p>' + (ql ? 'Try fewer letters.' : 'Campaigns and posts appear here as they are filed.') + '</p></div></div>' + freshLine();
+    h += '<div class="aw-h" aria-hidden="true"><span></span><span>Name</span><span>Step</span><span>Made</span><span>Due</span></div><ol class="aw">' + rows.map(function(x){
+      var k = x.studio === 'cas' && x.dlv ? tkCount(x.dlv) : null, st = SC[x.stage] || {};
+      return '<li><a href="' + itemLink(x) + '"' + (x.mine ? ' data-mine' : '') + '><span class="aw-th">' + rd(x, 44) + '</span>' +
+        '<span class="aw-n"><b>' + esc(x.name) + '</b><small>' + (x.hub ? 'Content Hub post' : x.studio === 'cas' ? 'Campaign' : 'Post') + (x.mine ? ' · <em>waits on you</em>' : '') + '</small></span>' +
+        '<span class="aw-s">' + segs(x) + '<span><b>' + esc(x.studio === 'ops' ? x.step || st.n || '' : st.n || x.step || '') + '</b>' + (x.sub ? ' · ' + esc(x.sub) : '') + '</span></span>' +
+        '<span class="aw-m">' + (k && k.of ? k.n + ' of ' + k.of : '') + '</span>' + dueEl(x) + '</a></li>';
+    }).join('') + '</ol>';
+    return h + freshLine();
+  }
   function viewTracker(q){
     // the old Launch | Organic posts chips' address lands on the Organic posts kind chip
     if (q.v === 'posts') { sxF = 'ops'; try { history.replaceState(null, '', '#/tracker'); } catch (x) {} }
@@ -2265,7 +2312,7 @@ body{-webkit-tap-highlight-color:transparent;
         '<span class="door-f"><small>' + (r === 'smm' ? 'Drafts a post for the designers' : 'Usually a draft from social media') + '</small><span class="door-go">' + (r === 'smm' ? 'Draft a post' : 'Start a post') + ico('r') + '</span></span></span></a>'
     };
     var waiting = data.mine.filter(function(x){ return x.stage === 'new'; }).length;
-    return '<div class="nw nw-w"><h1 class="h1">What are you starting?</h1><p class="lede">Each opens in its own studio, and both show up on Tracker.</p><div class="doors"' + (ok.length < 2 ? ' style="grid-template-columns:minmax(0,560px)"' : '') + '>' + ok.map(function(k){ return doors[k]; }).join('') + '</div>' +
+    return '<div class="nw nw-w"><h1 class="h1">What are you starting?</h1><p class="lede">Each opens in its own studio, and both show up on All work.</p><div class="doors"' + (ok.length < 2 ? ' style="grid-template-columns:minmax(0,560px)"' : '') + '>' + ok.map(function(k){ return doors[k]; }).join('') + '</div>' +
       (waiting ? '<p class="door-alt">' + ico('tray') + '<span>Picking up something already filed? <a href="#/">' + waiting + (waiting === 1 ? ' item is' : ' items are') + ' waiting on your Home</a>.</span></p>' : '') + '</div>';
   }
 
@@ -2307,7 +2354,7 @@ body{-webkit-tap-highlight-color:transparent;
     var hctx = nav === 'help' && window.providentHelp ? helpCtx() : null, hk = hctx ? parts.join('/') + '|' + [hctx.out, hctx.admin, hctx.raw].join('|') : '';
     if (hctx) { html = pg._hk === hk && !anim ? null : window.providentHelp.render(parts.slice(1), q, hctx); }
     else if (gated()) { html = viewGate(); nav = 'gate'; }
-    else if (nav === 'tracker') html = viewTracker(q);
+    else if (nav === 'tracker') html = viewAll();
     else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops') && !sees(parts[1])) { q.v = 'kanban'; html = viewTracker(q); nav = 'tracker'; }
     else if (nav === 'item' && (parts[1] === 'cas' || parts[1] === 'ops')) { html = ''; host = parts[1]; openItem(parts[1], decodeURIComponent(parts.slice(2).join('/'))); nav = 'tracker'; }
     else if (nav === 'new' && parts[1] === 'cas' && canStart(data.r).indexOf('cas') >= 0) { html = ''; host = 'plan'; mountPlan(); drawPlanPage(); }
@@ -2354,17 +2401,17 @@ body{-webkit-tap-highlight-color:transparent;
     $('mn-n').textContent = nm || 'Not signed in'; $('mn-e').textContent = me && me.email || 'Use your Provident Google account';
     $('mn-r').textContent = data.r ? (roleLabel(rawRole()) || roleLabel(data.r)) : 'No role yet'; $('mn-r').hidden = !(me && me.email);
     var mx = $('mn-x'); mx.hidden = !acc; mx.textContent = phase === 'in' ? 'Sign out' : 'Sign in with Google'; mx.dataset.sign = phase === 'in' ? 'out' : 'in';
-    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', tracker: 'Tracker \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio', engine: 'Engine \u2014 Provident Design Studio', help: 'Help \u2014 Provident Design Studio' }[nav];
+    document.title = nav === 'gate' ? 'Sign in \u2014 Provident Design Studio' : { projects: 'Projects \u2014 Provident Design Studio', home: 'Provident Design Studio', tracker: 'All work \u2014 Provident Design Studio', new: 'New \u2014 Provident Design Studio', access: 'Access \u2014 Provident Design Studio', engine: 'Engine \u2014 Provident Design Studio', help: 'Help \u2014 Provident Design Studio' }[nav];
     // the ad set or post page is not the Tracker in the browser's tab list (2026-11-21, phone critique)
     if (/^#\/item\//.test(location.hash)) document.title = (/^#\/item\/ops\//.test(location.hash) ? 'Post' : 'Ad set') + ' \u2014 Provident Design Studio';
     // THE PHONE'S BAR (2026-11-26): a pushed page (an ad set or post, New, a file list, a help guide)
     // gets a back button where the wordmark was; Access, Engine and Help light the More tab
-    var bk = parts[0] === 'item' ? ['#/tracker', 'Tracker'] : parts[0] === 'new' || parts[0] === 'files' ? ['#/', 'My work'] : parts[0] === 'help' && parts[1] ? ['#/help', 'Help'] : null;
+    var bk = parts[0] === 'item' ? ['#/tracker', 'All work'] : parts[0] === 'new' || parts[0] === 'files' ? ['#/', 'My work'] : parts[0] === 'help' && parts[1] ? ['#/help', 'Help'] : null;
     $('uh-back').hidden = !bk || nav === 'gate'; if (bk) { $('uh-back').href = bk[0]; $('uh-backl').textContent = bk[1]; }
     var mo = $('uh-more'); if (/^(access|engine|help)$/.test(nav)) mo.setAttribute('aria-current', 'page'); else mo.removeAttribute('aria-current');
     var mn = $('more-n'); mn.textContent = pend; mn.hidden = !pend;
     // the phone's bar shows the page's name once its big title has scrolled away (2026-11-26)
-    $('uh-ttl').textContent = nav === 'gate' ? '' : nav === 'home' ? 'Home' : document.title.split(' \u2014 ')[0];
+    $('uh-ttl').textContent = nav === 'gate' ? '' : nav === 'home' ? 'My work' : document.title.split(' \u2014 ')[0];
     if (!gated() && (phase === 'in' || (me && me.email))) startWork();
     if (anim){ pg.removeAttribute('data-in'); void pg.offsetWidth; pg.setAttribute('data-in', ''); window.scrollTo(0, 0); }
     if (nav === 'tracker' && q.v === 'kanban' && q.stage){ var c = $('col-' + q.stage); if (c){ c.style.boxShadow = 'inset 0 0 0 1.5px var(--ps-link)'; c.scrollIntoView({ block: 'nearest', inline: 'center' }); } }
@@ -2640,8 +2687,8 @@ body{-webkit-tap-highlight-color:transparent;
   function launch(t){
     var K = window.providentDsKit; if (!K || !K.api || t.disabled) return;
     var post = t.dataset.op === 'rsposted', word = post ? 'Posted' : 'Launch';
-    if (!window.confirm(post ? 'Mark ' + t.dataset.nm + ' as posted?\n\nUse it once the post is published. It closes the post, takes it off your queue and moves it to Closed on Tracker’s Kanban. The log says you marked it.'
-      : 'Launch ' + t.dataset.nm + '?\n\nIt marks the campaign as running, takes it off your queue and moves it to Closed on Tracker’s Kanban. The log says you launched it.')) return;
+    if (!window.confirm(post ? 'Mark ' + t.dataset.nm + ' as posted?\n\nUse it once the post is published. It closes the post, takes it off your queue and moves it to the finished work on All work. The log says you marked it.'
+      : 'Launch ' + t.dataset.nm + '?\n\nIt marks the campaign as running, takes it off your queue and moves it to the finished work on All work. The log says you launched it.')) return;
     t.disabled = true; t.lastChild.textContent = post ? 'Closing\u2026' : 'Launching\u2026';
     var nw = acc && acc.now ? acc.now() : null, by = (me && me.name) || (typeof StudioBase !== 'undefined' && StudioBase.shareName && StudioBase.shareName()) || 'Performance marketing';
     K.api(t.dataset.op || 'rslaunch', { id: t.dataset.launch }, { by: by, em: (nw && nw.email) || (me && me.email) || '' })
@@ -2732,9 +2779,9 @@ body{-webkit-tap-highlight-color:transparent;
   function mountPlan(){ if (window.providentPlan) window.providentPlan.mount(CAS_ENG); }
   function drawPlanPage(){
     var r = data.r, pm = r === 'pm', waiting = data.rows.filter(function(x){ return x.studio === 'cas' && x.open; }).length;
-    $('np-lede').textContent = pm ? 'Name it, add the brief and who it\u2019s for, then file it as a ticket. A designer picks it up from Tracker.'
+    $('np-lede').textContent = pm ? 'Name it, add the brief and who it\u2019s for, then file it as a ticket. A designer picks it up from My work.'
       : 'Name it, add the brief and who it\u2019s for. File it as a ticket for a designer, or start designing it yourself.';
-    var F = [['var(--ps-dim)', 'Ticket', pm ? 'Filed here. It waits on Tracker until a designer picks it up.' : 'Filed here. Start designing picks it up at once.'],
+    var F = [['var(--ps-dim)', 'Ticket', pm ? 'Filed here. It waits on All work until a designer picks it up.' : 'Filed here. Start designing picks it up at once.'],
       ['var(--ps-link)', 'Design', 'Each audience is its own project, in English first.'],
       ['var(--ps-warn)', 'Copy check', 'The content team checks the English, then the Arabic translation.'],
       ['var(--ps-good)', 'Ready', 'Performance marketing downloads the package for every audience.']];
@@ -2857,7 +2904,7 @@ body{-webkit-tap-highlight-color:transparent;
   var pjF = 'all', pjQ = '';
   function viewProjects(){
     var r = data.r, ks = designs(); void r;
-    if (!ks.length) return '<h1 class="h1">Projects</h1><div class="qk pj-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>No projects for your role</h3><p>Your work comes to you as review links and on Tracker.</p></div></div>';
+    if (!ks.length) return '<h1 class="h1">Projects</h1><div class="qk pj-none"><span class="qk-o" data-k="info">' + ico('tray') + '</span><div><h3>No projects for your role</h3><p>Your work comes to you as review links and on My work.</p></div></div>';
     return '<h1 class="h1">Projects</h1><p class="lede">Every project saved on this computer, newest first. Open one to keep designing.</p>' +
       (phoneQ() ? '<div class="pj-tools pj-ph"><div class="sx-row"><label class="srch">' + ico('search') + '<input id="pj-q" type="search" placeholder="Find by name" value="' + esc(pjQ) + '" aria-label="Find a project by name" enterkeyhint="search"></label>' +
         '<button class="pb sx-fb" type="button" data-pjopen aria-label="Open a file">' + ico('folder') + '</button></div>' +

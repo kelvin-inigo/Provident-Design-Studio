@@ -117,6 +117,13 @@ say so and point to the step above.
     shows what is in progress elsewhere; **See everything** opens Tracker. On a computer,
     **Projects**, **Help**, **Your access** and **Engine** are in the account menu (your picture,
     top right).
+  - **All work** (once Tracker) is one table of every campaign and post: its name, the step it
+    is at, how much is made, and when it is due. It is in order of what needs attention: what
+    waits on you (tinted, marked **waits on you**), then what is overdue (in red), then the rest
+    by due date. Click a row to open it. Three controls: the **Everything** / **Campaigns** /
+    **Posts** chips, **Find by name**, and **Show finished** for launched and posted work. There
+    is no Progress or Kanban view any more; an old Status or Kanban link opens this table. The
+    paragraphs below that describe Progress, Kanban and their filters are the previous design.
   - **Tracker** has two views, switched at its top right: **Progress** (the default) and
     **Kanban**. Status is no longer its own page: its board, with every control, is Tracker's
     **Kanban**, and an old Status link opens it. Wherever this guide says *Status*, it means
