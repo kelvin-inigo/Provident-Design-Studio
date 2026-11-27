@@ -3083,3 +3083,25 @@ By request, after My work and All work. `AV` detail page only; the structure of 
   row each; Save is still in the fold; page height 2504 > 2322 px at 1440. Samana (no fold) and
   Preview as pm draw. **Not exercised:** a mixed ad set with a planned unbranded cell, the content
   team's and view-only pages, a phone, real Drive.
+
+## No team links: one address, the app (2026-11-27, branch home/streamline, NOT on main)
+
+By request: "team links is what made them confused, I want them to go to my app and see everything
+there, no more needing to send them multiple links."
+
+- **`appLink()`** = `StudioBase.linkBase() + '/index.html'`. **`linkRows()`** no longer lists the
+  designer / content team / performance marketing links: it draws one row, "Everyone opens it in
+  the app", with that address to copy. Every panel that called it follows (the review panel's
+  `.rv-dd`, now "The app's address and Drive location"; the Ad set tab's fold, now "Where the teams
+  open it"; the share dialog's `.shl-lks-h`; the review-created dialog).
+- **The ad set page's Team links card is not drawn** (`links` is still built, unused). Access stays.
+- **A filed ticket** (`PV.done`) no longer shows the designer link or Copy designer link: "it is on
+  their My work"; the button reads See all work.
+- **Roam** (`roamNote`, `roamStart`): `link` and `ctlink` are both `appLink()`, so every note
+  links the app and not a team's tokened view. The server's note text was not read or changed; it
+  formats whatever link it is given.
+- The tokens are unchanged and still do the work inside the app: My work's Check the copy / Open
+  the package (`href(x)`), the ad set page's header button for ct and pm, `&p=` deep links.
+- **Left as it was:** the editor's Share panel (Copy designer link / Copy edit link), OPS's Copy
+  link on a post page, old links already sent (they still open).
+- **Not verified in a browser** (the pane was held by a Google sign-in popup): syntax only.

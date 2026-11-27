@@ -200,7 +200,7 @@
         { t: 'Open the ad set on **Status**. At the top: its name, status, dates, **Drive folder** and **Ad set settings**.', f: 'item-cas', s: 'head' },
         { t: 'A tab per phase, and **Add phase**. Under it, **Waiting on** chips jump to each audience still open.', f: 'item-cas', s: 'phases' },
         { t: 'One card per market and audience. A project is a tile that opens it; a dashed slot says how it starts: **Start the English**, **Start the Arabic**, **Start the unbranded**.', f: 'item-cas', s: 'aud' },
-        { t: 'The **⋯** on a tile holds **Change audience**, **Already approved** and **Remove**. **Team links** on the right copy each team’s link.' }
+        { t: 'The **⋯** on a tile holds **Change audience**, **Already approved** and **Remove**. There are no team links: everyone opens the app and finds the campaign under **My work**.' }
       ],
       more: ['Reach is set per phase: press **Broad** on a phase for one Broad audience.', 'Drive follows Status: moving, renaming and removing change the Drive folder too.'] },
 

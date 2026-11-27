@@ -212,7 +212,7 @@ theme are in More), and a studio opens in Ad set (CAS) or Guided (OPS) with the 
     Status**. The request is for that view of that one ad set; it gives nothing anywhere else.
   - Signed out, the page asks them to sign in with Google first. An account still waiting for the
     admin gets no Request access button: the admin has to let them in under **Access** first.
-  - The designer answers in Status, on the ad set's page, in the **Access** card under Team links:
+  - The designer answers in Status, on the ad set's page, in the **Access** card on the right:
     **Allow** or **Decline** per request, and **Remove** for anyone already let in. Each answer is
     in the ad set's Activity. Once allowed, the person opens the same link again.
   - If someone asks why a link "says 404", tell them it's a link for another team: use their own

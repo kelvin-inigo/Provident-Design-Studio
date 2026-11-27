@@ -3453,11 +3453,16 @@
     ['ct', 'Content team', 'The words of every project beside its images. Approve the English copy and the translation.'],
     ['pm', 'Performance marketing', 'Every project’s images, always the latest. Download each audience when it is done.']
   ];
-  function linkRows(tok) {
-    return LINK_ROWS.map(([r, who, what]) => {
-      const link = rsLink((tok || {})[r] || '');
-      return '<div class="rv-lk"><div class="rv-lk-t"><b>' + who + '</b><s>' + what + '</s></div><div class="rv-lk-r"><input class="p-in" readonly value="' + esc(link) + '" aria-label="' + who + ' link"><button type="button" class="p-ghost" data-copy="' + esc(link) + '">Copy</button></div></div>';
-    }).join('');
+  // ONE ADDRESS, THE APP (2026-11-27, branch home/streamline, by request: "team links is what made
+  // them confused, I want them to go to my app and see everything there, no more needing to send
+  // them multiple links"). The three per-team links are not shown or copied anywhere any more.
+  // Each person signs in to the home and finds the ad set under My work; the buttons there (Check
+  // the copy, Open the package) still carry their team's token. Where a panel used to list the
+  // three links it says so, with the app's address to copy once.
+  const appLink = () => StudioBase.linkBase() + '/index.html';
+  function linkRows() {
+    const link = appLink();
+    return '<div class="rv-lk"><div class="rv-lk-t"><b>Everyone opens it in the app</b><s>They sign in and find this ad set under My work. There are no separate links to send.</s></div><div class="rv-lk-r"><input class="p-in" readonly value="' + esc(link) + '" aria-label="The app’s address"><button type="button" class="p-ghost" data-copy="' + esc(link) + '">Copy</button></div></div>';
   }
   // the designer's bypass, asked once: it skips the content team, so it says so
   const POST_SEND_Q = 'Send this post to the social media manager?\n\nIt skips the copy check: the post is ready to download and publish. The log says you sent it.';
@@ -3552,7 +3557,7 @@
     const pmL = tk.pm ? rsLink(tk.pm) : L.pm || '', ctL = tk.ct ? rsLink(tk.ct) : L.ct || '';
     const pmAt = au ? (lgDone(au.eng) ? au.eng : au.arb || it).sid : it.sid;
     A.call('roamnote', { name: rs.name || '', label: au ? au.label : [it.market, it.aud, it.lang === 'ARB' ? 'Arabic' : ''].filter(Boolean).join(' · '), lang: it.lang, to: ho && ho.to,
-                         by: StudioBase.shareName() || '', link: goTo(pmL, kind === 'done' ? pmAt : ''), ctlink: goTo(ctL, it.sid),
+                         by: StudioBase.shareName() || '', link: appLink(), ctlink: appLink(),
                          ready: rw ? rw.ready : '', left: rw ? rw.left : '', tally: auds.length && auds.every(z => z.done) ? 'The whole package is ready' : auds.length > 1 ? auds.filter(z => z.done).length + ' of ' + auds.length + ' audiences complete' : '',
                          pic: roamPicWorthy(act, ho) ? pic || '' : '', key: L.key || roamKey(rs), kind, note: (ho && ho.note) || '' })
       .then(r => { if (r && r.pic === false && flash) flash('Sent — Roam was told, without the picture: ' + (r.why || '')); })
@@ -3563,7 +3568,7 @@
     const A = window.providentAccess, tk = (rs && rs.tok) || {};
     if (!A || !A.call || !rs || isPost(rs)) return;
     A.call('roamnote', { kind: 'start', how, name: rs.name || '', key: roamKey(rs), to: to || null, by: StudioBase.shareName() || '',
-                         link: tk.pm ? rsLink(tk.pm) : '' }).catch(() => {});
+                         link: appLink() }).catch(() => {});
   }
   function accRole() { try { return window.providentAccess && window.providentAccess.now().role; } catch (e) { return null; } }
   // VIEW AD SETS (2026-11-18, by request): a role outside the campaign process (access.js viewOnly)
@@ -4359,7 +4364,7 @@
       const log = ((this._adtLog || {}).log || []).concat((S.log || []).filter(e => (e.changes || []).some(c => c.kind !== 'note'))).sort((a, b) => b.at - a.at);
       const act = '<section class="adt-card"><div class="adt-ch"><h3>Activity <s>' + log.length + '</s></h3></div><ol class="shl-list adt-log">' +
         (log.length ? log.slice(0, 60).map((e, i, l) => logEntryHtml(e, { max: 8, cont: logCont(l[i - 1], e), mine: e.by === StudioBase.shareName() })).join('') : '<li class="shl-empty">Nothing yet.</li>') + '</ol></section>';
-      const links = dd ? '<details class="adt-card adt-lk"><summary class="adt-ch"><h3>Links for the teams</h3>' + PICO.more + '</summary><div class="rv-lks">' + linkRows(rs.tok) + '</div>' +
+      const links = dd ? '<details class="adt-card adt-lk"><summary class="adt-ch"><h3>Where the teams open it</h3>' + PICO.more + '</summary><div class="rv-lks">' + linkRows(rs.tok) + '</div>' +
         (/^https?:\/\//.test(rs.drive || '') ? '<a class="adt-drv" href="' + esc(rs.drive) + '" target="_blank" rel="noopener">' + PICO.folder + '<span>Drive folder</span></a>' : '') + '</details>' : '';
       // the ad set's video (CASV): the same tiles and Add video placeholder as Status
       const vsec = vidSecHtml(rs), vid = vsec ? '<section class="adt-card adt-vid">' + vsec.replace(/^<section[^>]*>/, '').replace('<h3>', '<div class="adt-ch"><h3>').replace('</h3>', '</h3></div>') : '';
@@ -5756,9 +5761,8 @@
   PV.done = function (rs) {
     const link = rsLink(rs.tok.dd), body = this.el.querySelector('.rsp-body'), ft = this.el.querySelector('.rsp-ft');
     body.innerHTML = '<div class="rsp-done"><span class="rsp-ok">' + PICO.tick + '</span><div><span class="rsp-k">Open ticket</span><b>' + esc(rs.name) + '</b>' +
-      '<s>' + (rs.ticket && rs.ticket.to ? 'For ' + esc(firstName(rs.ticket.to.name, rs.ticket.to.email)) + ' — it is their turn on Status. ' : 'Listed in Status. ') + 'Send the designer the link, or they pick it up from Status.</s></div></div>' +
-      '<div class="rsp-lnk"><code title="' + esc(link) + '">' + esc(link.replace(/^https?:\/\//, '')) + '</code><button type="button" class="p-ghost" data-copy="' + esc(link) + '">' + PICO.link + '<span>Copy designer link</span></button></div>';
-    ft.innerHTML = '<p class="rsp-st"></p><button type="button" class="p-ghost" data-a="again">File another</button><button type="button" class="p-btn rsp-go" data-a="status">Open Status' + PICO.go + '</button>';
+      '<s>' + (rs.ticket && rs.ticket.to ? 'For ' + esc(firstName(rs.ticket.to.name, rs.ticket.to.email)) + ' — it is on their My work. ' : 'Listed on All work. ') + 'A designer picks it up from the app; there is no link to send.</s></div></div>';
+    ft.innerHTML = '<p class="rsp-st"></p><button type="button" class="p-ghost" data-a="again">File another</button><button type="button" class="p-btn rsp-go" data-a="status">See all work' + PICO.go + '</button>';
   };
   PV.reset = function () { const el = this.el, eng = this.eng; el._rsp = null; el.innerHTML = ''; el._rsp = new PlanView(el, eng); };
   window.providentPlan = Plan;
@@ -7103,7 +7107,7 @@
     if (ro) return back + '<div class="rvd">' + head + '<div class="rvd-cols"><div class="rvd-main">' + phase + audiences +
       vidSecHtml(rs, false).replace('<div class="rvd-aut">', '<div class="rvd-au vdo-card"><div class="rvd-lkc">').replace(/<\/section>$/, '</div></section>') + activity + '</div>' +
       '<aside class="rvd-side">' + briefHtml(rs.ticket, false, true).replace('rva-card rva-brief', 'rvd-card rva-brief') + '</aside></div></div>';
-    const side = '<aside class="rvd-side">' + (pmV ? '' : links + access) +
+    const side = '<aside class="rvd-side">' + (pmV ? '' : access) +
       (pmV ? briefHtml(rs.ticket).replace('rva-card rva-brief', 'rvd-card rva-brief') : '') +
       // REMOVE AND DELETE, FOLDED AWAY (2026-11-21, /impeccable critique): they sat right under the
       // Drive location's Save; now they wait behind one quiet summary, the delete last
@@ -7628,9 +7632,9 @@
       },
       links: list => {
         $('.shl-fld').hidden = true; $('.shl-note').textContent = ''; $('.shl-st').textContent = '';
-        $('.shl-lead').innerHTML = 'The review is ready. Send each team its own link — each person is named by their Google sign-in. All three are also kept in <b>Review links</b> on the home page.';
+        $('.shl-lead').innerHTML = 'The review is ready. Everyone finds it in the app, under <b>My work</b>; each person is named by their Google sign-in.';
         const box = document.createElement('div'); box.className = 'rv-lks shl-lks';
-        box.innerHTML = list.map(l => '<div class="rv-lk"><div class="rv-lk-t"><b>' + esc(l.who) + '</b><s>' + esc(l.what) + '</s></div><div class="rv-lk-r"><input class="p-in" readonly value="' + esc(l.link) + '" aria-label="' + esc(l.who) + ' link"><button type="button" class="p-ghost" data-copy="' + esc(l.link) + '">Copy</button></div></div>').join('');
+        box.innerHTML = linkRows();
         box.addEventListener('click', async e => { const b = e.target.closest('[data-copy]'); if (!b) return; const ok = await copyText(b.dataset.copy); b.textContent = ok ? 'Copied' : 'Select it'; });
         $('.shl-acts').before(box); el.querySelector('.shl-dlg-c').classList.add('shl-wide');
         x.hidden = true; go.textContent = 'Done'; go.disabled = false; go.onclick = () => el.remove();
@@ -7654,7 +7658,7 @@
       '<button class="shl-pill" type="button" aria-label="Changes on the shared link">' + svg(ICON.hist) + '<span>Changes</span><b class="shl-n" hidden></b><i class="shl-dot"></i></button>' +
       '<aside class="shl-panel" aria-label="Changes">' +
         '<header><div><h2>Changes</h2><p class="shl-sub"></p></div><button class="shl-close" type="button" aria-label="Close">' + svg(ICON.x) + '</button></header>' +
-        '<section class="rv" hidden><div class="rv-main"></div><details class="rv-dd" hidden><summary>Ad set links and Drive location</summary><div class="rv-lks"></div>' +
+        '<section class="rv" hidden><div class="rv-main"></div><details class="rv-dd" hidden><summary>The app’s address and Drive location</summary><div class="rv-lks"></div>' +
           '<label class="rv-drv"><span>Google Drive location</span><span class="rv-drv-r"><input class="p-in" placeholder="Paste the project’s Drive folder link or path"><button type="button" class="p-ghost" data-drv="1">Save</button></span></label></details></section>' +
         '<div class="shl-share"><input class="p-in" readonly aria-label="Edit link"><button class="p-ghost" type="button">' + svg(ICON.link) + 'Copy link</button></div>' +
         '<div class="shl-ph" hidden><p></p><button class="p-ghost" type="button">Restore from a saved file…</button></div>' +

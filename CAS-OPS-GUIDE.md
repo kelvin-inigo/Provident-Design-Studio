@@ -707,11 +707,11 @@ An Arabic copy keeps its English project's look.
 
 ### The roles, and the four steps of each audience
 
-A campaign covers every project of one ad set, for each market, audience and language, under
-**one set of links**. The links are in the Ad set tab, under **Links for the teams**, and on the
-ad set's Status page under **Team links**. There, **Copy** puts a line ready to send on the
-clipboard (`Content Review: <link>` for the content team, `AdSet Overview: <link>` for
-performance marketing), and the button beside it opens that team's view in a new tab.
+A campaign covers every project of one ad set, for each market, audience and language.
+**There are no team links to send.** Everyone opens the app, signs in, and finds the campaign
+under **My work** when it is their turn (or under **All work** any time); the content team's
+**Check the copy** and performance marketing's **Open the package** buttons are there. The Ad
+set tab's **Where the teams open it** and the Roam notes give the app's one address.
 
 | who | the link opens | they can |
 |---|---|---|
@@ -973,7 +973,7 @@ its designs, each design's look (branded or unbranded) and its languages.
   removed, moved, the ticket), **Edits** (words and photos changed in a project; **Show the
   changes** opens the old and new words) and **Video and downloads**. A kind with nothing in it
   has no button.
-- **On the right:** **Team links**, the **Brief** and **Drive location**.
+- **On the right:** **Access** requests when there are any, and **Drive location, remove or delete**. The **Brief** is at the top.
 
 To add an ad set from another computer, paste its **designer** link into the box at the top.
 **Remove from this list** only removes it from this computer, and it stays removed. Opening one of
